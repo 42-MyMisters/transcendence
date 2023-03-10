@@ -4,7 +4,7 @@ nvm install --lts
 
 npm i -g @nestjs/cli
 
-npm install /data/back --save
+npm install config --save --prefix /data/back
 
 npm run start:dev --prefix /data/back
 
