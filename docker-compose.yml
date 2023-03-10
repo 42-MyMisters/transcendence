@@ -1,0 +1,55 @@
+version: "3.9"
+
+services:
+  backend:
+    container_name: backend
+
+    build:
+      context: ./backend
+      dockerfile: ./Dockerfile
+
+    restart: always
+
+    volumes:
+      - type: bind
+        source: ./backend
+        target: /data
+    
+    ports:
+      - "4000:4000"
+    
+    # env_file:
+    #   - .env
+
+  frontend:
+    container_name: frontend
+
+    build:
+      context: ./frontend
+      dockerfile: ./Dockerfile
+
+    restart: always
+
+    volumes:
+      - type: bind
+        source: ./frontend
+        target: /data
+    
+    ports:
+      - "3000:3000"
+    
+    # env_file:
+    #   - .env
+
+
+# volumes:
+#   v_react:
+#     driver: local
+#     driver_opts:
+#       type: none
+#       o: bind
+#       device: $PWD/srcs/react/
+
+# networks:
+#   nw_db:
+#     driver: bridge
