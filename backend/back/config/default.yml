@@ -1,2 +1,8 @@
 server:
   port: 4000
+
+# postgre -> create database ts-dev
+db:
+  type: "postgres"
+  port: 5432
+  database: "ts-dev"
