@@ -6,3 +6,6 @@ db:
   type: "postgres"
   port: 5432
   database: "ts-dev"
+
+jwt:
+  expiresIn: 3600
