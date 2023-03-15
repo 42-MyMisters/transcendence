@@ -1,13 +1,16 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { UserRepository } from "./user.repository";
+import { JwtService } from "@nestjs/jwt";
 import config from 'config';
 import { IntraTokenDto } from "./dto/IntraTokenDto";
 import { IntraUserDto } from "./dto/IntraUserDto";
+import { User } from "./user.entity";
+import { UserRepository } from "./user.repository";
 
 @Injectable()
 export class UserService {
 	constructor(
 		private userRepository: UserRepository,
+		private jwtService: JwtService,
 	){}
 
 	async getTokenFromIntra(code: string) : Promise<IntraTokenDto> {
@@ -53,6 +56,18 @@ export class UserService {
 		}
 		const intraUserInfo: IntraUserDto = await response.json();
 		return intraUserInfo;
+	}
+
+	async addNewUser(intraUserDto: IntraUserDto): Promise<string>{
+		const payload = {uuid : intraUserDto.id};
+		const accessToken : string = await this.jwtService.sign(payload);
+		const user: User = await User.fromIntraUserDto(intraUserDto);
+		user.token = accessToken;
+		await this.userRepository.save(user);
+		return accessToken;
+	}
+	async getUserById(uid: number) {
+		return await this.userRepository.getUserById(uid);
 	}
 
 }

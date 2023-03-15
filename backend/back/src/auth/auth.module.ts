@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from '../user/user.entity';
 import { JwtModule } from '@nestjs/jwt';
-import config from 'config';
 import { PassportModule } from '@nestjs/passport';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import config from 'config';
+import { User } from '../user/user.entity';
 import { UserRepository } from '../user/user.repository';
 import { UserService } from '../user/user.service';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
 
 const jwtConfig : any = config.get('jwt');
 

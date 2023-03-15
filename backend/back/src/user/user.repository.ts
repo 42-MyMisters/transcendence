@@ -7,5 +7,10 @@ export class UserRepository extends Repository<User> {
 		@InjectRepository(User) private dataSource: DataSource) {
 			super(User, dataSource.manager)
 		};
-	// login
+
+	async getUserById(uid: number) {
+		const user = await this.findOneBy({uid});
+		return user;
+	}
+
 }
