@@ -28,15 +28,14 @@ export class UserService {
 			method: 'POST',
 			body: params
 		});
-		
-		const data : IntraTokenDto = await response.json();
 
+		const intraToken : IntraTokenDto = await response.json();
 		if (response.status < 200 || response.status >= 300) {
 			Logger.log(`${response}`);
 			Logger.log(`${response.status}`);
 			throw (`HTTP error! status: ${response.status}`);
 		}
-		return data;	
+		return intraToken;	
 	}
 	
 	async getUserInfoFromIntra(tokenObject: IntraTokenDto): Promise<IntraUserDto>{
@@ -52,7 +51,7 @@ export class UserService {
 			Logger.log(`${response.status}`);
 			throw (`HTTP error! status: ${response.status}`);
 		}
-		const data: IntraUserDto = await response.json();
-		return data;
+		const intraUserInfo: IntraUserDto = await response.json();
+		return intraUserInfo;
 	}
 }
