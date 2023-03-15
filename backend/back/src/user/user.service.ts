@@ -54,4 +54,5 @@ export class UserService {
 		const intraUserInfo: IntraUserDto = await response.json();
 		return intraUserInfo;
 	}
+
 }
