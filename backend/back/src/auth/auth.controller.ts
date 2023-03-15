@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
 
 @Controller('auth')
@@ -11,5 +11,4 @@ export class AuthController {
 		console.log(code);
 		return this.authService.intraSignIn(code);
 	}
-
 }

@@ -7,7 +7,5 @@ export class UserRepository extends Repository<User> {
 		@InjectRepository(User) private dataSource: DataSource) {
 			super(User, dataSource.manager)
 		};
-
 	// login
-
 }

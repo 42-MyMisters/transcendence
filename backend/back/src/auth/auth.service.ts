@@ -1,29 +1,24 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './user.entity';
-import { Repository } from 'typeorm';
-import { UserRepository } from './user.repository';
+import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { UserService } from 'src/user/user.service';
+import { IntraTokenDto } from 'src/user/dto/IntraTokenDto';
+import { IntraUserDto } from 'src/user/dto/IntraUserDto';
 
 @Injectable()
 export class AuthService {
 	constructor(
-		private userRepository: UserRepository,
+		private userService: UserService,
 		private jwtService: JwtService
 	){}
 	
 	async intraSignIn(code: string) : Promise<{accessToken: string}>{
-		const payload : string = code;
-		// TODO
-		// use code to find intra information
-
-		// if there is no code error
-
-		// resource : code -> intra info
-		// make user entity with resource and save to db
-		
-		// make access token
+		const userToken: IntraTokenDto = await this.userService.getTokenFromIntra(code);
+		const userData: IntraUserDto  = await this.userService.getUserInfoFromIntra(userToken);
+		// Logger.log(userData);getTokenFromIntra
+		// console.log(userData);
+		const payload = {uuid : userData.id.toString};
 		const accessToken : string = await this.jwtService.sign(payload);
+		Logger.log(`accessToken = ${accessToken}`)
 		return { accessToken };
 	}
 }
