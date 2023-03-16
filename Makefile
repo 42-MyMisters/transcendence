@@ -6,7 +6,7 @@
 #    By: seseo <seseo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/01/25 16:48:49 by seseo             #+#    #+#              #
-#    Updated: 2023/03/10 23:09:08 by seseo            ###   ########.fr        #
+#    Updated: 2023/03/16 23:38:38 by seseo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -23,20 +23,15 @@ DVL					:= $(DV) ls
 DN					:= docker network
 DNL					:= $(DN) ls
 
-# DATA_PATH 			:= $(HOME)/data
-
 TARGET				:= transcendence
 
 .PHONY:	all
 all:	up
 
-.PHONY: build
-build:
-		$(DC) -f $(DC_SRC) -p $(TARGET) build
-
 .PHONY:	up
-up:		build
-		$(DC) -f $(DC_SRC) -p $(TARGET) up -d
+up:
+		mkdir -p ./db
+		$(DC) -f $(DC_SRC) -p $(TARGET) up --build -d
 
 .PHONY:	down
 down:

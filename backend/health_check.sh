@@ -1,8 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
-STATUS=$(curl -o /dev/null -w "%{http_code}" "http://localhost:4000")
-
-if [ $STATUS -eq 200 ]; then
+if [ "`curl -I http://localhost:4000 2>/dev/null | head -n 1 | cut -d ' ' -f2`" == "200" ]; then
     exit 0
 else
     exit 1
