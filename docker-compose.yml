@@ -1,5 +1,9 @@
 version: "3.9"
 
+networks:
+  nw-db:
+    driver: bridge
+
 services:
   backend:
     container_name: backend
@@ -14,12 +18,15 @@ services:
       - type: bind
         source: ./backend
         target: /data
-    
+
     ports:
       - "4000:4000"
-    
-    # env_file:
-    #   - .env
+
+    networks:
+      nw-db: {}
+
+    env_file:
+      - ./config/.env
 
   frontend:
     container_name: frontend
@@ -34,14 +41,51 @@ services:
       - type: bind
         source: ./frontend
         target: /data
-    
+
     ports:
       - "3000:3000"
-    
-    # env_file:
-    #   - .env
 
+    env_file:
+      - ./config/.env
 
+  postgres:
+    container_name: postgres
+
+    image: postgres:latest
+
+    volumes:
+      - type: bind
+        source: ./db
+        target: /var/lib/postgresql/data/pgdata
+
+    restart: always
+
+    ports:
+      - 5432
+
+    networks:
+      nw-db:
+        aliases:
+          - postgres
+
+    env_file:
+      - ./config/.env
+
+  pgadmin:
+    container_name: pgadmin
+
+    image: dpage/pgadmin4:latest
+
+    restart: always
+
+    ports:
+      - "80:80"
+
+    env_file:
+      - ./config/.env
+
+    networks:
+      nw-db: {}
 # volumes:
 #   v_react:
 #     driver: local
@@ -50,6 +94,3 @@ services:
 #       o: bind
 #       device: $PWD/srcs/react/
 
-# networks:
-#   nw_db:
-#     driver: bridge
