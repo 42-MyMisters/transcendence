@@ -6,7 +6,7 @@
 #    By: seseo <seseo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/01/25 16:48:49 by seseo             #+#    #+#              #
-#    Updated: 2023/03/16 23:38:38 by seseo            ###   ########.fr        #
+#    Updated: 2023/03/17 22:14:58 by seseo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -31,7 +31,9 @@ all:	up
 .PHONY:	up
 up:
 		mkdir -p ./db
-		$(DC) -f $(DC_SRC) -p $(TARGET) up --build -d
+		$(DC) --env-file ./config/.env \
+				--env-file ./config/.postgres.env \
+				-f $(DC_SRC) -p $(TARGET) up --build -d
 
 .PHONY:	down
 down:

@@ -27,6 +27,10 @@ services:
 
     env_file:
       - ./config/.env
+    
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   frontend:
     container_name: frontend
@@ -61,7 +65,7 @@ services:
     restart: always
 
     ports:
-      - 5432
+      - $POSTGRES_PORT
 
     networks:
       nw-db:
@@ -69,23 +73,34 @@ services:
           - postgres
 
     env_file:
-      - ./config/.env
+      - ./config/.postgres.env
 
-  pgadmin:
-    container_name: pgadmin
+    healthcheck:
+      test: pg_isready -d $POSTGRES_DB -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER
+      interval: 10s
+      timeout: 30s
+      retries: 5
+      start_period: 10s
 
-    image: dpage/pgadmin4:latest
+  # pgadmin:
+  #   container_name: pgadmin
 
-    restart: always
+  #   image: dpage/pgadmin4:latest
 
-    ports:
-      - "80:80"
+  #   restart: always
 
-    env_file:
-      - ./config/.env
+  #   ports:
+  #     - "80:80"
 
-    networks:
-      nw-db: {}
+  #   env_file:
+      # - ./config/.pgadmin.env
+
+  #   networks:
+  #     nw-db: {}
+
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
 # volumes:
 #   v_react:
 #     driver: local
