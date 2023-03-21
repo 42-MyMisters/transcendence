@@ -6,24 +6,24 @@
 #    By: seseo <seseo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/01/25 16:48:49 by seseo             #+#    #+#              #
-#    Updated: 2023/03/17 22:14:58 by seseo            ###   ########.fr        #
+#    Updated: 2023/03/20 18:59:28 by seseo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 # for docker compose
-DC					:= docker compose
-DC_SRC				:= ./docker-compose.yml
+DC		:= docker compose --env-file ./config/.env --env-file ./config/.postgres.env
+DC_SRC	:= ./docker-compose.yml
 
-DI					:= docker image
-DIL					:= $(DI)s
+DI		:= docker image
+DIL		:= $(DI)s
 
-DV					:= docker volume
-DVL					:= $(DV) ls
+DV		:= docker volume
+DVL		:= $(DV) ls
 
-DN					:= docker network
-DNL					:= $(DN) ls
+DN		:= docker network
+DNL		:= $(DN) ls
 
-TARGET				:= transcendence
+TARGET	:= transcendence
 
 .PHONY:	all
 all:	up
@@ -31,9 +31,8 @@ all:	up
 .PHONY:	up
 up:
 		mkdir -p ./db
-		$(DC) --env-file ./config/.env \
-				--env-file ./config/.postgres.env \
-				-f $(DC_SRC) -p $(TARGET) up --build -d
+		cp ./config/development.yml ./backend/back/config/development.yml
+		$(DC) -f $(DC_SRC) -p $(TARGET) up --build -d
 
 .PHONY:	down
 down:
