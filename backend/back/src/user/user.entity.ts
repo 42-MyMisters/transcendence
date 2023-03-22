@@ -18,6 +18,8 @@ export class User extends BaseEntity {
 	@Column()
 	twowayFactor: boolean;
 
+	@Column()
+	twoFASecret: string;
 
 	static fromIntraUserDto(intraUserDto: IntraUserDto): User {
 		const user = new User();
@@ -27,5 +29,5 @@ export class User extends BaseEntity {
 		user.profileUrl = intraUserDto.image.link;
 		user.twowayFactor = false;
 		return user;
-	  }
+	}
 }

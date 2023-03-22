@@ -41,7 +41,7 @@ export class UserService {
 		return intraToken;	
 	}
 	
-	async getUserInfoFromIntra(tokenObject: IntraTokenDto): Promise<IntraUserDto>{
+	async getUserInfoFromIntra(tokenObject: IntraTokenDto): Promise<IntraUserDto> {
 		const meUrl = 'https://api.intra.42.fr/v2/me';
 		const response = await fetch(meUrl, {
 			method: 'GET',
@@ -58,16 +58,34 @@ export class UserService {
 		return intraUserInfo;
 	}
 
-	async addNewUser(intraUserDto: IntraUserDto): Promise<string>{
+	async addNewUser(intraUserDto: IntraUserDto): Promise<string> {
 		const payload = {uuid : intraUserDto.id};
 		const accessToken : string = await this.jwtService.sign(payload);
 		const user: User = await User.fromIntraUserDto(intraUserDto);
 		user.token = accessToken;
+		user.twoFASecret = '';
 		await this.userRepository.save(user);
 		return accessToken;
 	}
-	async getUserById(uid: number) {
+
+	async getUserById(uid: number) : Promise<User> {
 		return await this.userRepository.getUserById(uid);
+	}
+
+	async setTwoFactorAuthenticationSecret(secret: string, uid: number) : Promise<void> {
+		const user: User = await this.getUserById(uid);
+		user.twoFASecret = secret;
+		await this.userRepository.save(user);
+	}
+	
+	async toggleTwoFactorAuthentication(uid: number) : Promise<boolean> {
+		const user: User = await this.getUserById(uid);
+		user.twowayFactor = !user.twowayFactor;
+		if (!user.twowayFactor) {
+			user.twoFASecret = '';
+		}
+		await this.userRepository.save(user);
+		return user.twowayFactor;
 	}
 
 }
