@@ -1,5 +1,4 @@
-import React from "react";
-import "../css/navigator.css";
+import "../styles/Navigator.css";
 
 export default function Navigator() {
 	return (
