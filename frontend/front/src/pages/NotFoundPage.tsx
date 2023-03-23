@@ -1,9 +1,3 @@
-import React from "react";
-
 export default function NotFoundPage() {
-	return (
-		<div>
-			error page
-		</div>
-	);
+  return <div>error page</div>;
 }
