@@ -13,17 +13,17 @@ import "./App.css";
 export default function App() {
   return (
     <div className="WindowWrap">
-    <Router>
-      <Routes>
-        <Route path="/register" element={<RegisterPage/>}></Route>
-        <Route path="/chat" element={<ChatPage/>}></Route>
-        <Route path="/game" element={<GamePage/>}></Route>
-        <Route path="/setting" element={<SettingPage/>}></Route>
-        <Route path="/notfound" element={<NotFoundPage/>}></Route>
-        <Route path="/" element={<LoginPage/>}></Route>
-        <Route path="*" element={<NotFoundPage/>}></Route>
-      </Routes>
-    </Router>
+      <Router>
+        <Routes>
+          <Route path="/register" element={<RegisterPage />}></Route>
+          <Route path="/chat" element={<ChatPage />}></Route>
+          <Route path="/game" element={<GamePage />}></Route>
+          <Route path="/setting" element={<SettingPage />}></Route>
+          <Route path="/notfound" element={<NotFoundPage />}></Route>
+          <Route path="/" element={<LoginPage />}></Route>
+          <Route path="*" element={<NotFoundPage />}></Route>
+        </Routes>
+      </Router>
     </div>
   );
 }

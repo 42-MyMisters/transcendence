@@ -1,39 +1,39 @@
 .ModalWrap {
-	width: 100%;
-	height: 100%;
+  width: 100%;
+  height: 100%;
 
-	display: flex;
-	justify-content: center;
-	align-items: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .ModalBox {
-	width: 780px;
-	height: 600px;
-	background-color: #D9D9D9;
+  width: 780px;
+  height: 600px;
+  background-color: #d9d9d9;
 
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	flex-direction: column;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
 }
 
 .ModalTitle {
-	font-family: 'Inter';
-	font-style: normal;
-	font-weight: 400;
-	font-size: 50px;
-	line-height: 60px;
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 50px;
+  line-height: 60px;
 
-	flex-direction: column;
+  flex-direction: column;
 }
 
 .LogInBtn {
-	width: 540px;
-	height: 100px;
+  width: 540px;
+  height: 100px;
 
-	margin-top: 5%;
+  margin-top: 5%;
 
-	font-family: "Inter";
-	font-size: 50px;
+  font-family: "Inter";
+  font-size: 50px;
 }

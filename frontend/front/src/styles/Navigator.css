@@ -1,38 +1,38 @@
 ul li {
-	list-style: none;
-	line-height: 75px;
-	height: 100%;
+  list-style: none;
+  line-height: 75px;
+  height: 100%;
 }
 
 li a {
-	text-decoration: none;
-	color: white;
+  text-decoration: none;
+  color: white;
 }
 
-.nav-pages{
-	margin-right: 15px;
+.nav-pages {
+  margin-right: 15px;
 }
 
 .nav-content {
-	width: 100%;
-	height: 84px;
-	background-color: darkblue;
-	font-family: 'Tilt Neon', cursive;
+  width: 100%;
+  height: 84px;
+  background-color: darkblue;
+  font-family: "Tilt Neon", cursive;
 }
 
 .nav-items {
-	height: 100%;
-	display: block;
-	margin: auto;
+  height: 100%;
+  display: block;
+  margin: auto;
 }
 
 .nav-page {
-	float: right;
-	margin: 0 15px;
-	font-size: 30px;
+  float: right;
+  margin: 0 15px;
+  font-size: 30px;
 }
 
 .nav-logo {
-	float: left;
-	font-size: 30px;
+  float: left;
+  font-size: 30px;
 }
