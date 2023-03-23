@@ -26,9 +26,6 @@ export class AuthService {
 		Logger.log(`accessToken = ${accessToken}`)
 		return { accessToken };
 	}
-<<<<<<< HEAD
-}
-=======
 
 	// 2FA
 	async generateTwoFactorAuthenticationSecret(user: User) {
@@ -70,4 +67,3 @@ export class AuthService {
 
 }
 
->>>>>>> 5eb6d6d72243cab9df6138bfcc74d151ccfbc2ce
