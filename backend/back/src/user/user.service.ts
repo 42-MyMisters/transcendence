@@ -4,12 +4,15 @@ import config from 'config';
 import { IntraTokenDto } from "./dto/IntraTokenDto";
 import { IntraUserDto } from "./dto/IntraUserDto";
 import { User } from "./user.entity";
-import { UserRepository } from "./user.repository";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+// import { UserRepository } from "./user.repository";
 
 @Injectable()
 export class UserService {
 	constructor(
-		private userRepository: UserRepository,
+		@InjectRepository(User)
+		private userRepository: Repository<User>,
 		private jwtService: JwtService,
 	){}
 
@@ -67,9 +70,15 @@ export class UserService {
 		await this.userRepository.save(user);
 		return accessToken;
 	}
+<<<<<<< HEAD
 
 	async getUserById(uid: number) : Promise<User> {
 		return await this.userRepository.getUserById(uid);
+=======
+	async getUserById(uid: number) {
+		const user = await this.userRepository.findOneBy({uid});
+		return user;
+>>>>>>> a848c14f4820e1e88fff3bc091d177fa15b596ba
 	}
 
 	async setTwoFactorAuthenticationSecret(secret: string, uid: number) : Promise<void> {
