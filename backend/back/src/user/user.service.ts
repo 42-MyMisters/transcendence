@@ -5,13 +5,14 @@ import { IntraTokenDto } from "./dto/IntraTokenDto";
 import { IntraUserDto } from "./dto/IntraUserDto";
 import { User } from "./user.entity";
 import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 // import { UserRepository } from "./user.repository";
 
 @Injectable()
 export class UserService {
 	constructor(
 		@InjectRepository(User)
-		private userRepository,
+		private userRepository: Repository<User>,
 		private jwtService: JwtService,
 	){}
 
