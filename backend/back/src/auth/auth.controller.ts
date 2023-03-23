@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, Redirect, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Post, Query, Redirect, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
 import config from 'config';
@@ -32,6 +32,22 @@ export class AuthController {
 			throw new UnauthorizedException('Wrong authentication code');
 		}
 		await this.userService.toggleTwoFactorAuthentication(request.user.uid);
+	}
+
+	@Post('2fa/authenticate')
+	@HttpCode(200)
+	@UseGuards(JwtAuthGuard)
+	async authenticate(@Req() request, @Body() body) {
+	  const isCodeValid = this.authService.isTwoFactorAuthenticationCodeValid(
+		body.twoFactorAuthenticationCode,
+		request.user,
+	  );
+  
+	  if (!isCodeValid) {
+		throw new UnauthorizedException('Wrong authentication code');
+	  }
+  
+	  return this.authService.loginWith2fa(request.user);
 	}
 
 }

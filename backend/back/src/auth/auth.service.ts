@@ -17,7 +17,7 @@ export class AuthService {
 		const userData  = await this.userService.getUserInfoFromIntra(userToken);
 		const currUser = await this.userService.getUserById(userData.id);
 
-		if (isUserExist(currUser)){
+		if (this.userService.isUserExist(currUser)){
 			Logger.log(`Already Exsisted User ${currUser.nickname}`);
 			const accessToken = currUser.token;
 			return { accessToken };
@@ -52,8 +52,18 @@ export class AuthService {
 		});
 	  }
 
+	async loginWith2fa(userWithoutPsw: Partial<User>) {
+		const payload = {
+			email: userWithoutPsw.email,
+			isTwoFactorAuthenticationEnabled: !!userWithoutPsw.isTwoFactorAuthenticationEnabled,
+			isTwoFactorAuthenticated: true,
+		};
+
+		return {
+			email: payload.email,
+			access_token: this.jwtService.sign(payload),
+		};
+	}
+
 }
 
-const isUserExist = (user: User | null): user is User => {
-	return user !== null;
-}
