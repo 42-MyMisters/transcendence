@@ -1,42 +1,15 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-import "../css/login.css";
-
-// function Login({children} : {children: React.ReactElement}) {
-// 	return (
-// 		<div className="Login">
-// 			{children}
-// 		</div>
-// 	)
-// }
+import "../styles/LoginModal.css";
 
 export default function LoginPage() {
-
-	// return (
-	// 	<Login>
-	// 		<div className="LoginBox">
-
-	// 		</div>
-	// 	</Login>
-	// )
-
 	return (
-		<>
-			<div className="Login">
-				<div className="LoginBox">
-					<div className="LoginHeader">
-						Sign in
-					</div>
-					<div className="LoginBody">
-						<Link to="/chat">
-						<button className="LoginBtn">
-							Sign in with Intra
-						</button>
-						</Link>
-					</div>
-				</div>
+		<div className="ModalWrap">
+			<div className="ModalBox">
+				<h1 className="ModalTitle">Sign in</h1>
+				<button className="LogInBtn">Intra</button>
 			</div>
-		</>
+		</div>
 	);
 }
