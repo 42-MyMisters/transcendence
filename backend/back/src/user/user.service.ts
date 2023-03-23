@@ -6,7 +6,6 @@ import { IntraUserDto } from "./dto/IntraUserDto";
 import { User } from "./user.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-// import { UserRepository } from "./user.repository";
 
 @Injectable()
 export class UserService {
@@ -73,5 +72,10 @@ export class UserService {
 		const user = await this.userRepository.findOneBy({uid});
 		return user;
 	}
+
+	isUserExist = (user: User | null): user is User => {
+		return user !== null;
+	}
+
 
 }
