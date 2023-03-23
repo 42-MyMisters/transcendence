@@ -4,12 +4,14 @@ import config from 'config';
 import { IntraTokenDto } from "./dto/IntraTokenDto";
 import { IntraUserDto } from "./dto/IntraUserDto";
 import { User } from "./user.entity";
-import { UserRepository } from "./user.repository";
+import { InjectRepository } from "@nestjs/typeorm";
+// import { UserRepository } from "./user.repository";
 
 @Injectable()
 export class UserService {
 	constructor(
-		private userRepository: UserRepository,
+		@InjectRepository(User)
+		private userRepository,
 		private jwtService: JwtService,
 	){}
 
@@ -67,7 +69,8 @@ export class UserService {
 		return accessToken;
 	}
 	async getUserById(uid: number) {
-		return await this.userRepository.getUserById(uid);
+		const user = await this.userRepository.findOneBy({uid});
+		return user;
 	}
 
 }
