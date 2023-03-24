@@ -32,7 +32,7 @@ all:	up
 up:
 		mkdir -p ./db
 		cp ./config/development.yml ./backend/back/config/development.yml
-		$(DC) -f $(DC_SRC) -p $(TARGET) up --build -d
+		$(DC) -f $(DC_SRC) -p $(TARGET) up --build
 
 .PHONY:	down
 down:
