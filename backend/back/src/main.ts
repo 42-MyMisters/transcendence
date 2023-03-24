@@ -6,8 +6,11 @@ import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const serverConfig : any = config.get('server');
-  const port : any = serverConfig.port;
+  const serverConfig: any = config.get('server');
+  const port: any = serverConfig.port;
+  app.enableCors({
+    origin: '*',
+  });
   await app.listen(port);
   Logger.log(`Application running on port ${port}`);
 }
