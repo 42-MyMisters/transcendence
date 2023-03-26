@@ -6,6 +6,7 @@ import { IntraUserDto } from "./dto/IntraUserDto";
 import { User } from "./user.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
+import { bcrypt } from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -16,18 +17,21 @@ export class UserService {
 	){}
 
 	async getTokenFromIntra(code: string) : Promise<IntraTokenDto> {
-		const intraConfig : any = config.get('intra');
-		const clientId = intraConfig.client_id;
-		const clientSecret = intraConfig.client_secret;
-		const redirect_uri = intraConfig.redirect_uri;
-		const url = intraConfig.url;
+		const clientId = config.get<string>('intra.client_id');
+		const clientSecret = config.get<string>('intra.client_secret');
+		const redirectUri = config.get<string>('intra.redirect_uri');
+		const url = config.get<string>('intra.url');
+
+		Logger.log(`client id: ${clientId}`);
+		Logger.log(`client secret: ${clientSecret}`);
+		Logger.log(`redirect uri: ${redirectUri}`);
 
 		const params = new URLSearchParams();
 		params.set('grant_type', 'authorization_code');
 		params.set('client_id', clientId); 
 		params.set('client_secret',clientSecret);
 		params.set('code', code);
-		params.set('redirect_uri',redirect_uri);
+		params.set('redirect_uri',redirectUri);
 
 		const response = await fetch(url, {
 			method: 'POST',
@@ -36,8 +40,8 @@ export class UserService {
 
 		const intraToken : IntraTokenDto = await response.json();
 		if (response.status < 200 || response.status >= 300) {
-			Logger.log(`${response}`);
-			Logger.log(`${response.status}`);
+			Logger.log(`response: ${response}`);
+			Logger.log(`status: ${response.status}`);
 			throw (`HTTP error! status: ${response.status}`);
 		}
 		return intraToken;	
@@ -64,41 +68,24 @@ export class UserService {
 		const payload = {uuid : intraUserDto.id};
 		const accessToken : string = await this.jwtService.sign(payload);
 		const user: User = await User.fromIntraUserDto(intraUserDto);
+		user.password = '';
 		user.token = accessToken;
-		user.twoFASecret = '';
+		user.twoFactorSecret = '';
 		await this.userRepository.save(user);
 		return accessToken;
 	}
-<<<<<<< HEAD
 
-	async getUserById(uid: number) : Promise<User> {
-		return await this.userRepository.getUserById(uid);
-=======
 	async getUserById(uid: number) {
 		const user = await this.userRepository.findOneBy({uid});
 		return user;
->>>>>>> a848c14f4820e1e88fff3bc091d177fa15b596ba
 	}
 
-	async setTwoFactorAuthenticationSecret(secret: string, uid: number) : Promise<void> {
-		const user: User = await this.getUserById(uid);
-		user.twoFASecret = secret;
+	async updateUser(user: User) {
 		await this.userRepository.save(user);
-	}
-	
-	async toggleTwoFactorAuthentication(uid: number) : Promise<boolean> {
-		const user: User = await this.getUserById(uid);
-		user.twowayFactor = !user.twowayFactor;
-		if (!user.twowayFactor) {
-			user.twoFASecret = '';
-		}
-		await this.userRepository.save(user);
-		return user.twowayFactor;
 	}
 
 	isUserExist = (user: User | null): user is User => {
 		return user !== null;
 	}
-
 
 }

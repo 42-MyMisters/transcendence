@@ -6,6 +6,12 @@ export class User extends BaseEntity {
 	@PrimaryColumn()
 	uid: number;
 
+	@Column({select: false})
+	password: string;
+
+	@Column()
+	email: string;
+
 	@Column()
 	nickname: string;
 
@@ -16,18 +22,18 @@ export class User extends BaseEntity {
 	profileUrl: string;
 
 	@Column()
-	twowayFactor: boolean;
+	twoFactorEnabled: boolean;
 
 	@Column()
-	twoFASecret: string;
+	twoFactorSecret: string;
 
 	static fromIntraUserDto(intraUserDto: IntraUserDto): User {
 		const user = new User();
 		user.uid = intraUserDto.id;
+		user.email = intraUserDto.email;
 		user.nickname = intraUserDto.login;
-		// user.token
 		user.profileUrl = intraUserDto.image.link;
-		user.twowayFactor = false;
+		user.twoFactorEnabled = false;
 		return user;
 	}
 }
