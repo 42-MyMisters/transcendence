@@ -4,6 +4,8 @@ import { authenticator } from 'otplib';
 import { User } from 'src/user/user.entity';
 import { UserService } from 'src/user/user.service';
 import { toDataURL } from 'qrcode';
+import { bcrypt } from 'bcrypt';
+import config from 'config';
 
 @Injectable()
 export class AuthService {
@@ -20,24 +22,37 @@ export class AuthService {
 		if (this.userService.isUserExist(currUser)){
 			Logger.log(`Already Exsisted User ${currUser.nickname}`);
 			const accessToken = currUser.token;
-			return { accessToken };
-		}
-		const accessToken = await this.userService.addNewUser(userData);
-		Logger.log(`accessToken = ${accessToken}`)
-		return { accessToken };
+      return { accessToken };
+		} else {
+      const accessToken = await this.userService.addNewUser(userData);
+      Logger.log(`accessToken = ${accessToken}`)
+      return { accessToken };
+    }
 	}
 
 	// 2FA
-	async generateTwoFactorAuthenticationSecret(user: User) {
+	async genTwoFactorSecret(user: User) {
 		const secret = authenticator.generateSecret();
-	
-		const otpauthUrl = authenticator.keyuri(user.nickname, 'AUTH_APP_NAME', secret);
-	
-		await this.userService.setTwoFactorAuthenticationSecret(secret, user.uid);
+		const otpauthUrl = authenticator.keyuri(user.nickname, 'My Misters', secret);
+
+		user.twoFactorSecret = secret;
+		await this.userService.updateUser(user);
 	
 		return {
-		  secret,
-		  otpauthUrl
+			secret,
+			otpauthUrl
+		}
+	}
+
+	async toggleTwoFactor(uid: number) {
+		const user = await this.userService.getUserById(uid);
+		if (this.userService.isUserExist(user)) {
+			user.twoFactorEnabled = !user.twoFactorEnabled;
+			if (user.twoFactorEnabled) {
+				this.genTwoFactorSecret(user);
+			}
+			this.userService.updateUser(user);
+			return user.twoFactorEnabled;
 		}
 	}
 
@@ -45,25 +60,34 @@ export class AuthService {
 		return toDataURL(otpAuthUrl);
 	}
 
-	isTwoFactorAuthenticationCodeValid(twoFACode: string, user: User) {
+	isTwoFactorAuthenticationCodeValid(twoFactorCode: string, user: User) {
 		return authenticator.verify({
-		  token: twoFACode,
-		  secret: user.twoFASecret,
+		  token: twoFactorCode,
+		  secret: user.twoFactorSecret,
 		});
 	  }
 
 	async loginWith2fa(userWithoutPsw: Partial<User>) {
 		const payload = {
-			email: userWithoutPsw.email,
-			isTwoFactorAuthenticationEnabled: !!userWithoutPsw.isTwoFactorAuthenticationEnabled,
-			isTwoFactorAuthenticated: true,
+			uid: userWithoutPsw.uid,
+			twoFactorEnabled: !!userWithoutPsw.twoFactorEnabled
 		};
 
 		return {
-			email: payload.email,
+			uid: payload.uid,
 			access_token: this.jwtService.sign(payload),
 		};
 	}
+
+  async validateUser(uid: number, password: string) {
+    const hash = await bcrypt.hash(password, config.get<number>('hash.password.saltOrRounds'));
+    const isMatch = await bcrypt.compare(password, hash);
+    if (isMatch) {
+      Logger.log(`User(${uid}) login success.`);
+      return this.userService.getUserById(uid);
+    }
+    return null;
+  }
 
 }
 

@@ -2,7 +2,7 @@ import { Body, Controller, Get, HttpCode, Post, Query, Redirect, Req, Unauthoriz
 import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
 import config from 'config';
-import { JwtAuthGuard } from './jwt-auth.guard';
+import { JwtAuthGuard } from './jwt/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -10,7 +10,7 @@ export class AuthController {
 	}
 
 	@Get('/redir')
-	@Redirect('https://api.intra.42.fr/oauth/authorize?client_id=' + config.get<any>('intra').client_id + '&redirect_uri=' + config.get<any>('intra').redirect_uri + '&response_type=code', 301)
+	@Redirect('https://api.intra.42.fr/oauth/authorize?client_id=' + config.get<string>('intra.client_id') + '&redirect_uri=' + config.get<string>('intra.redirect_uri') + '&response_type=code', 301)
 	intra(){
 	}
 
@@ -21,7 +21,7 @@ export class AuthController {
 
 	@Post('/2fa/toggle')
 	@UseGuards(JwtAuthGuard)
-	async toggleTwoFactorAuthentication(@Req() request, @Body() body) {
+	async toggleTwoFactor(@Req() request, @Body() body) {
 		
 		const isCodeValid =
 			this.authService.isTwoFactorAuthenticationCodeValid(
@@ -31,10 +31,10 @@ export class AuthController {
 		if (!isCodeValid) {
 			throw new UnauthorizedException('Wrong authentication code');
 		}
-		await this.userService.toggleTwoFactorAuthentication(request.user.uid);
+		await this.authService.toggleTwoFactor(request.user.uid);
 	}
 
-	@Post('2fa/authenticate')
+	@Post('/2fa/authenticate')
 	@HttpCode(200)
 	@UseGuards(JwtAuthGuard)
 	async authenticate(@Req() request, @Body() body) {
