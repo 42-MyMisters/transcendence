@@ -1,11 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { authenticator } from 'otplib';
 import { User } from 'src/user/user.entity';
 import { UserService } from 'src/user/user.service';
 import { toDataURL } from 'qrcode';
-import { bcrypt } from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 import config from 'config';
+import { PasswordDto } from 'src/user/dto/PasswordDto';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +22,11 @@ export class AuthService {
 
 		if (this.userService.isUserExist(currUser)){
 			Logger.log(`Already Exsisted User ${currUser.nickname}`);
+			if (currUser.twoFactorEnabled) {
+
+			} else {
+
+			}
 			const accessToken = currUser.token;
       return { accessToken };
 		} else {
@@ -79,15 +85,32 @@ export class AuthService {
 		};
 	}
 
-  async validateUser(uid: number, password: string) {
-    const hash = await bcrypt.hash(password, config.get<number>('hash.password.saltOrRounds'));
-    const isMatch = await bcrypt.compare(password, hash);
-    if (isMatch) {
-      Logger.log(`User(${uid}) login success.`);
-      return this.userService.getUserById(uid);
-    }
-    return null;
+  async validateUser(email: string, password: string) {
+		const user = await this.userService.getUserByEmail(email);
+		// const userPw = await this.userService.getUserPasswordByEmail(email);
+		
+		if (this.userService.isUserExist(user)) {
+			const hash = await bcrypt.hash(password, config.get<number>('hash.password.saltOrRounds'));
+			const isMatch = await bcrypt.compare(user?.password, hash);
+			if (isMatch) {
+				Logger.log(`User(${email}) login success.`);
+				const {password, ...result} = user;
+				return result;
+			}
+			throw new UnauthorizedException('Wrong password!');
+		}
+		throw new UnauthorizedException('User not found!');
   }
 
+	async setPw(user: User, pw: PasswordDto) {
+		Logger.log(pw);
+		Logger.log(pw.password);
+		Logger.log(user);
+		// Logger.log(config.get<number>('hash.password.saltOrRounds'));
+		const userPw = await bcrypt.hash(pw.password, config.get<number>('hash.password.saltOrRounds'));
+		const userUpdate = user;
+		userUpdate.password = userPw;
+		this.userService.updateUser(userUpdate);
+	}
 }
 

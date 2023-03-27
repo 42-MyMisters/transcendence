@@ -7,6 +7,7 @@ import { User } from '../user/user.entity';
 import { UserService } from '../user/user.service';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { LocalStrategy } from './local/local.strategy';
 
 @Module({
 	imports: [
@@ -20,6 +21,6 @@ import { AuthService } from './auth.service';
 		PassportModule.register({ defaultStrategy: 'jwt'}),
 	],
   controllers: [AuthController],
-  providers: [AuthService, UserService]
+  providers: [AuthService, UserService, LocalStrategy]
 })
 export class AuthModule {}

@@ -8,16 +8,16 @@ import { User } from '../../user/user.entity';
 export class LocalStrategy extends PassportStrategy(Strategy) {
   constructor(private AuthService: AuthService) {
     super({
-      usernameField: 'uid',
+      usernameField: 'email',
       passwordField: 'password',
     });
   }
 
-  async validate(uid: number, password: string): Promise<Partial<User>> {
-    const userWithoutPsw = await this.AuthService.validateUser(uid, password);
-    if (!userWithoutPsw) {
-      throw new UnauthorizedException();
+  async validate(email: string, password: string): Promise<Partial<User>> {
+    const userWithoutPw = await this.AuthService.validateUser(email, password);
+    if (!userWithoutPw) {
+      throw new UnauthorizedException('user or password is not correct.');
     }
-    return userWithoutPsw;
+    return userWithoutPw;
   }
 }

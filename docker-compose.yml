@@ -82,25 +82,27 @@ services:
       retries: 5
       start_period: 10s
 
-  # pgadmin:
-  #   container_name: pgadmin
+  pgadmin:
+    container_name: pgadmin
 
-  #   image: dpage/pgadmin4:latest
+    image: dpage/pgadmin4:latest
 
-  #   restart: always
+    restart: always
 
-  #   ports:
-  #     - "80:80"
+    ports:
+      - "80:80"
 
-  #   env_file:
-      # - ./config/.pgadmin.env
+    env_file:
+      - ./config/.pgadmin.env
 
-  #   networks:
-  #     nw-db: {}
+    networks:
+      nw-db: {}
 
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+        
 # volumes:
 #   v_react:
 #     driver: local

@@ -22,9 +22,9 @@ export class UserService {
 		const redirectUri = config.get<string>('intra.redirect_uri');
 		const url = config.get<string>('intra.url');
 
-		Logger.log(`client id: ${clientId}`);
-		Logger.log(`client secret: ${clientSecret}`);
-		Logger.log(`redirect uri: ${redirectUri}`);
+		// Logger.log(`client id: ${clientId}`);
+		// Logger.log(`client secret: ${clientSecret}`);
+		// Logger.log(`redirect uri: ${redirectUri}`);
 
 		const params = new URLSearchParams();
 		params.set('grant_type', 'authorization_code');
@@ -80,8 +80,34 @@ export class UserService {
 		return user;
 	}
 
+	async getUserByEmail(email: string) {
+		const user = await this.userRepository.findOneBy({email});
+		return user;
+	}
+	
+	// async getUserPasswordByEmail(email: string) {
+	// 	const user = await this.userRepository.findOne({where: {email}, select: {password:true}});
+	// 	if (user) {
+	// 		return user.password;
+	// 	}
+	// 	return null;
+	// }
+
 	async updateUser(user: User) {
 		await this.userRepository.save(user);
+	}
+
+	async showUsers() {
+		Logger.log('show users');
+		const users = await this.userRepository.find();
+		if (users) {
+			let results;
+			users.forEach(user => {
+				const {password, ...userInfo} = user;
+				results.push(user);
+			});
+			return results;
+		}
 	}
 
 	isUserExist = (user: User | null): user is User => {
