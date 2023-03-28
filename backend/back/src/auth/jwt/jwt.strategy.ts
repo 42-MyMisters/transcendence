@@ -6,7 +6,7 @@ import { TokenPayload } from '../token-payload.entity';
 import config from 'config';
 
 @Injectable()
-export class Jwt2faStrategy extends PassportStrategy(Strategy, 'jwt') {
+export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(private readonly userService: UserService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),

@@ -94,20 +94,15 @@ export class UserService {
 	// }
 
 	async updateUser(user: User) {
-		await this.userRepository.save(user);
+		Logger.log(`[update] ${user.password}`);
+		const userUpdate = user;
+		await this.userRepository.save(userUpdate);
 	}
 
 	async showUsers() {
 		Logger.log('show users');
 		const users = await this.userRepository.find();
-		if (users) {
-			let results;
-			users.forEach(user => {
-				const {password, ...userInfo} = user;
-				results.push(user);
-			});
-			return results;
-		}
+		return users;
 	}
 
 	isUserExist = (user: User | null): user is User => {

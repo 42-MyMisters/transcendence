@@ -87,15 +87,12 @@ export class AuthService {
 
   async validateUser(email: string, password: string) {
 		const user = await this.userService.getUserByEmail(email);
-		// const userPw = await this.userService.getUserPasswordByEmail(email);
-		
+
 		if (this.userService.isUserExist(user)) {
-			const hash = await bcrypt.hash(password, config.get<number>('hash.password.saltOrRounds'));
-			const isMatch = await bcrypt.compare(user?.password, hash);
+			const isMatch = await bcrypt.compare(password, user.password);
 			if (isMatch) {
 				Logger.log(`User(${email}) login success.`);
-				const {password, ...result} = user;
-				return result;
+				return user;
 			}
 			throw new UnauthorizedException('Wrong password!');
 		}
@@ -103,14 +100,10 @@ export class AuthService {
   }
 
 	async setPw(user: User, pw: PasswordDto) {
-		Logger.log(pw);
-		Logger.log(pw.password);
-		Logger.log(user);
-		// Logger.log(config.get<number>('hash.password.saltOrRounds'));
 		const userPw = await bcrypt.hash(pw.password, config.get<number>('hash.password.saltOrRounds'));
 		const userUpdate = user;
 		userUpdate.password = userPw;
-		this.userService.updateUser(userUpdate);
+		await this.userService.updateUser(userUpdate);
 	}
 }
 

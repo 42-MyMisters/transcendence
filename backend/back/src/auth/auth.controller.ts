@@ -5,6 +5,8 @@ import config from 'config';
 import { JwtAuthGuard } from './jwt/jwt-auth.guard';
 import { PasswordDto } from 'src/user/dto/PasswordDto';
 import { bcrypt } from 'bcrypt';
+import { User } from 'src/user/user.entity';
+import { LocalAuthGuard } from './local/local-auth.guard';
 
 
 @Controller('auth')
@@ -15,22 +17,25 @@ export class AuthController {
 	@Get('/intraSignIn')
 	@Redirect('https://api.intra.42.fr/oauth/authorize?client_id=' + config.get<string>('intra.client_id') + '&redirect_uri=' + config.get<string>('intra.redirect_uri') + '&response_type=code', 301)
 	intra(){
+		// if 
 	}
 
 	@Post('/login-email')
-	loginWithEmail(@Body() body) {
-		const email = body.email;
-		const password = body.password;
+	@UseGuards(LocalAuthGuard)
+	loginWithEmail(@Req() req) {
+		return req.token;
 	}
 
 	@Post('/setpw')
-	setPw(
+	@UseGuards(JwtAuthGuard)
+	async setPw(
 		@Req() request,
 		@Body(ValidationPipe) pw:PasswordDto,
 		) {
-			Logger.log(request);
-			return this.authService.setPw(request.user, pw);
-	}
+			const user : User = request.user;
+			await this.authService.setPw(user, pw);
+			return request.user.access_token;
+		}
 
 	// for debug
 	@Get('/user')
@@ -46,12 +51,10 @@ export class AuthController {
 	@Post('/2fa/toggle')
 	@UseGuards(JwtAuthGuard)
 	async toggleTwoFactor(@Req() request, @Body() body) {
-		
-		const isCodeValid =
-			this.authService.isTwoFactorAuthenticationCodeValid(
-				body.twoFactorAuthenticationCode,
-				request.user,
-			);
+		const isCodeValid = this.authService.isTwoFactorAuthenticationCodeValid(
+			body.twoFactorAuthenticationCode,
+			request.user,
+		);
 		if (!isCodeValid) {
 			throw new UnauthorizedException('Wrong authentication code');
 		}
@@ -63,12 +66,12 @@ export class AuthController {
 	@UseGuards(JwtAuthGuard)
 	async authenticate(@Req() request, @Body() body) {
 	  const isCodeValid = this.authService.isTwoFactorAuthenticationCodeValid(
-		body.twoFactorAuthenticationCode,
-		request.user,
+			body.twoFactorAuthenticationCode,
+			request.user,
 	  );
   
 	  if (!isCodeValid) {
-		throw new UnauthorizedException('Wrong authentication code');
+			throw new UnauthorizedException('Wrong authentication code');
 	  }
   
 	  return this.authService.loginWith2fa(request.user);
