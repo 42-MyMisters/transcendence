@@ -13,19 +13,25 @@ export class AuthService {
 
 	async getUserInfoFromIntra(tokenObject: IntraTokenDto): Promise<IntraUserDto>{
 		const meUrl = 'https://api.intra.42.fr/v2/me';
-		const response = await fetch(meUrl, {
-			method: 'GET',
-			headers: {
-				'Authorization': `Bearer ${tokenObject.access_token}`,
-			},
-		});
-		if (response.status < 200 || response.status >= 300) {
-			Logger.log(`${response}`);
-			Logger.log(`${response.status}`);
-			throw (`HTTP error! status: ${response.status}`);
+		try {
+			const response = await fetch(meUrl, {
+				method: 'GET',
+				headers: {
+					'Authorization': `Bearer ${tokenObject.access_token}`,
+				},
+			});
+			if (response.status < 200 || response.status >= 300) {
+				Logger.log(`${response}`);
+				Logger.log(`${response.status}`);
+				throw (`HTTP error! status: ${response.status}`);
+			}
+			const intraUserInfo: IntraUserDto = await response.json();
+			return intraUserInfo;
 		}
-		const intraUserInfo: IntraUserDto = await response.json();
-		return intraUserInfo;
+		catch (error) {
+			Logger.log(error);
+			throw new Error('Failed to fetch user information from Intra');
+		}
 	}
 
 
