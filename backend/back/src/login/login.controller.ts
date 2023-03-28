@@ -13,8 +13,8 @@ export class LoginController {
 	}
 
 	@Get('/oauth/callback')
-	intraSignIn(@Query('code') code: string) : Promise<{accessToken: string}>{
-		return this.authService.intraSignIn(code);
+	async intraSignIn(@Query('code') code: string) : Promise<{accessToken: string}>{
+		return await this.authService.intraSignIn(code);
 	}
 
 }
