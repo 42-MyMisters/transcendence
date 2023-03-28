@@ -1,20 +1,20 @@
 import { Controller, Get, Query, Redirect } from '@nestjs/common';
-import { AuthService } from './auth.service';
 import config from 'config';
+import { AuthService } from 'src/auth/auth.service';
 
-@Controller('auth')
-export class AuthController {
+@Controller('login')
+export class LoginController {
 	constructor(private authService: AuthService) {
 	}
 
-	@Get('/redir')
+	@Get('/oauth')
 	@Redirect('https://api.intra.42.fr/oauth/authorize?client_id=' + config.get<any>('intra').client_id + '&redirect_uri=' + config.get<any>('intra').redirect_uri + '&response_type=code', 301)
 	intra(){
 	}
 
-	@Get('/login')
-	intraSignIn(@Query('code') code: string) : Promise<{accessToken: string}>{
-		return this.authService.intraSignIn(code);
+	@Get('/oauth/callback')
+	async intraSignIn(@Query('code') code: string) : Promise<{accessToken: string}>{
+		return await this.authService.intraSignIn(code);
 	}
 
 }
