@@ -1,8 +1,9 @@
 import React, { useEffect } from "react";
 import { useState } from "react";
 import { MdAddPhotoAlternate } from "react-icons/md";
+import { useNavigate } from "react-router-dom";
 
-import "../styles/LoginModal.css";
+import "../../styles/LoginModal.css";
 
 const RegisterImgUpload = {
   width: 200,
@@ -24,6 +25,7 @@ function RegisterImg() {
     });
     fileReader.readAsDataURL(files[0]);
   }, [files]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
     setFiles(e.target.files);
@@ -64,6 +66,12 @@ function RegisterNickName() {
   };
 
   const [username, setUsername] = useState("");
+  const navigate = useNavigate();
+
+  const navigateChat = () => {
+    navigate("/chat");
+  };
+
   const onChange = (event: React.FormEvent<HTMLInputElement>) => {
     const newValue = event.currentTarget.value;
     setUsername(newValue);
@@ -84,7 +92,9 @@ function RegisterNickName() {
         />
       </div>
       <div>
-        <button style={saveBtnStyle}>Save</button>
+        <button style={saveBtnStyle} onClick={navigateChat}>
+          Save
+        </button>
       </div>
     </form>
   );
@@ -98,13 +108,11 @@ const isFileExist = (files: FileList | null): files is FileList => {
   return !files || files.length === 0;
 };
 
-export default function RegisterPage() {
+export default function Register() {
   return (
-    <div className="ModalWrap">
-      <div className="ModalBox">
-        <RegisterImg />
-        <RegisterNickName />
-      </div>
-    </div>
+    <>
+      <RegisterImg />
+      <RegisterNickName />
+    </>
   );
 }

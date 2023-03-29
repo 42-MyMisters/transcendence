@@ -1,20 +1,18 @@
-import { Body, Controller, Get, HttpCode, Logger, Post, Query, Redirect, Req, UnauthorizedException, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { UserService } from '../user/user.service';
+import { Body, Controller, Get, HttpCode, Post, Query, Redirect, Req, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import config from 'config';
-import { JwtAuthGuard } from './jwt/jwt-auth.guard';
+import { AuthService } from 'src/auth/auth.service';
+import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
+import { LocalAuthGuard } from 'src/auth/local/local-auth.guard';
 import { PasswordDto } from 'src/user/dto/PasswordDto';
-import { bcrypt } from 'bcrypt';
 import { User } from 'src/user/user.entity';
-import { LocalAuthGuard } from './local/local-auth.guard';
+import { UserService } from 'src/user/user.service';
 
-
-@Controller('auth')
-export class AuthController {
+@Controller('login')
+export class LoginController {
 	constructor(private authService: AuthService, private userService: UserService) {
 	}
 
-	@Get('/intraSignIn')
+	@Get('/oauth')
 	@Redirect('https://api.intra.42.fr/oauth/authorize?client_id=' + config.get<string>('intra.client_id') + '&redirect_uri=' + config.get<string>('intra.redirect_uri') + '&response_type=code', 301)
 	intra(){
 		// if 
@@ -22,8 +20,8 @@ export class AuthController {
 
 	@Post('/login-email')
 	@UseGuards(LocalAuthGuard)
-	loginWithEmail(@Req() req) {
-		return req.token;
+	loginWithEmail(@Req() request) {
+		return request.user.access_token;
 	}
 
 	@Post('/setpw')
@@ -43,16 +41,16 @@ export class AuthController {
 		return this.userService.showUsers();
 	}
 
-	@Get('/login')
-	intraSignIn(@Query('code') code: string) : Promise<{accessToken: string}>{
-		return this.authService.intraSignIn(code);
+	@Get('/oauth/callback')
+	async intraSignIn(@Query('code') code: string) : Promise<{accessToken: string}>{
+		return await this.authService.intraSignIn(code);
 	}
 
 	@Post('/2fa/toggle')
 	@UseGuards(JwtAuthGuard)
 	async toggleTwoFactor(@Req() request, @Body() body) {
-		const isCodeValid = this.authService.isTwoFactorAuthenticationCodeValid(
-			body.twoFactorAuthenticationCode,
+		const isCodeValid = this.authService.isTwoFactorCodeValid(
+			body.twoFactorCode,
 			request.user,
 		);
 		if (!isCodeValid) {
@@ -65,8 +63,8 @@ export class AuthController {
 	@HttpCode(200)
 	@UseGuards(JwtAuthGuard)
 	async authenticate(@Req() request, @Body() body) {
-	  const isCodeValid = this.authService.isTwoFactorAuthenticationCodeValid(
-			body.twoFactorAuthenticationCode,
+	  const isCodeValid = this.authService.isTwoFactorCodeValid(
+			body.twoFactorCode,
 			request.user,
 	  );
   

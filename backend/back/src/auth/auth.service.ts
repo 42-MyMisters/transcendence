@@ -4,20 +4,74 @@ import { authenticator } from 'otplib';
 import { User } from 'src/user/user.entity';
 import { UserService } from 'src/user/user.service';
 import { toDataURL } from 'qrcode';
-import * as bcrypt from 'bcrypt';
 import config from 'config';
 import { PasswordDto } from 'src/user/dto/PasswordDto';
+import { IntraTokenDto } from 'src/user/dto/IntraTokenDto';
+import { IntraUserDto } from 'src/user/dto/IntraUserDto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
 	constructor(
 		private userService: UserService,
-		private jwtService: JwtService
+		private jwtService: JwtService,
 	){}
+
+	async getUserInfoFromIntra(tokenObject: IntraTokenDto): Promise<IntraUserDto>{
+		const meUrl = 'https://api.intra.42.fr/v2/me';
+		try {
+			const response = await fetch(meUrl, {
+				method: 'GET',
+				headers: {
+					'Authorization': `Bearer ${tokenObject.access_token}`,
+				},
+			});
+			if (response.status < 200 || response.status >= 300) {
+				Logger.log(`${response}`);
+				Logger.log(`${response.status}`);
+				throw (`HTTP error! status: ${response.status}`);
+			}
+			const intraUserInfo: IntraUserDto = await response.json();
+			return intraUserInfo;
+		}
+		catch (error) {
+			Logger.log(error);
+			throw new Error('Failed to fetch user information from Intra');
+		}
+	}
+
+
+	async getTokenFromIntra(code: string) : Promise<IntraTokenDto> {
+		const clientId = config.get<string>('intra.client_id');
+		const clientSecret = config.get<string>('intra.client_secret');
+		const redirect_uri = config.get<string>('intra.redirect_uri');
+		const url = config.get<string>('intra.url');
+
+		const params = new URLSearchParams();
+		params.set('grant_type', 'authorization_code');
+		params.set('client_id', clientId); 
+		params.set('client_secret',clientSecret);
+		params.set('code', code);
+		params.set('redirect_uri',redirect_uri);
+
+		const response = await fetch(url, {
+			method: 'POST',
+			body: params
+		});
+
+		const intraToken : IntraTokenDto = await response.json();
+		if (response.status < 200 || response.status >= 300) {
+			Logger.log(`${response}`);
+			Logger.log(`${response.status}`);
+			throw (`HTTP error! status: ${response.status}`);
+		}
+		return intraToken;	
+	}
+	
 	
 	async intraSignIn(code: string){
-		const userToken = await this.userService.getTokenFromIntra(code);
-		const userData  = await this.userService.getUserInfoFromIntra(userToken);
+		const userToken = await this.getTokenFromIntra(code);
+		const userData = await this.getUserInfoFromIntra(userToken);
 		const currUser = await this.userService.getUserById(userData.id);
 
 		if (this.userService.isUserExist(currUser)){
@@ -44,10 +98,7 @@ export class AuthService {
 		user.twoFactorSecret = secret;
 		await this.userService.updateUser(user);
 	
-		return {
-			secret,
-			otpauthUrl
-		}
+		return { secret, otpauthUrl };
 	}
 
 	async toggleTwoFactor(uid: number) {
@@ -56,22 +107,22 @@ export class AuthService {
 			user.twoFactorEnabled = !user.twoFactorEnabled;
 			if (user.twoFactorEnabled) {
 				this.genTwoFactorSecret(user);
+			} else {
+				user.twoFactorSecret = '';
 			}
 			this.userService.updateUser(user);
 			return user.twoFactorEnabled;
 		}
+		throw new UnauthorizedException('User Not Found!');
 	}
 
 	async generateQrCodeDataURL(otpAuthUrl: string) {
 		return toDataURL(otpAuthUrl);
 	}
 
-	isTwoFactorAuthenticationCodeValid(twoFactorCode: string, user: User) {
-		return authenticator.verify({
-		  token: twoFactorCode,
-		  secret: user.twoFactorSecret,
-		});
-	  }
+	isTwoFactorCodeValid(twoFactorCode: string, user: User) {
+		return authenticator.verify({ token: twoFactorCode, secret: user.twoFactorSecret });
+	}
 
 	async loginWith2fa(userWithoutPsw: Partial<User>) {
 		const payload = {

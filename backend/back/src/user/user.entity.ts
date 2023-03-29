@@ -9,10 +9,10 @@ export class User extends BaseEntity {
 	@Column()
 	password: string;
 
-	@Column()
+	@Column({ unique: true })
 	email: string;
 
-	@Column()
+	@Column({ unique: true })
 	nickname: string;
 
 	@Column()
