@@ -15,7 +15,11 @@ export class UserService {
 	){}
 
 	async addNewUser(intraUserDto: IntraUserDto): Promise<string> {
-		const payload = {uuid : intraUserDto.id};
+		const payload = {
+			uuid : intraUserDto.id,
+			twoFactorEnabled: false,
+			twoFactorAuthenticated: false,
+		};
 		const accessToken : string = await this.jwtService.sign(payload);
 		const user: User = await User.fromIntraUserDto(intraUserDto);
 		user.password = '';

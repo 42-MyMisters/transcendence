@@ -1,4 +1,4 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, Redirect, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { authenticator } from 'otplib';
 import { User } from 'src/user/user.entity';
@@ -77,9 +77,7 @@ export class AuthService {
 		if (this.userService.isUserExist(currUser)){
 			Logger.log(`Already Exsisted User ${currUser.nickname}`);
 			if (currUser.twoFactorEnabled) {
-
-			} else {
-
+				return '2fa authorize required'
 			}
 			const accessToken = currUser.token;
       return { accessToken };
@@ -93,12 +91,11 @@ export class AuthService {
 	// 2FA
 	async genTwoFactorSecret(user: User) {
 		const secret = authenticator.generateSecret();
-		const otpauthUrl = authenticator.keyuri(user.nickname, 'My Misters', secret);
+		const otpAuthUrl = authenticator.keyuri(user.nickname, 'My Misters', secret);
 
 		user.twoFactorSecret = secret;
 		await this.userService.updateUser(user);
-	
-		return { secret, otpauthUrl };
+		return { secret, otpAuthUrl };
 	}
 
 	async toggleTwoFactor(uid: number) {
@@ -106,12 +103,13 @@ export class AuthService {
 		if (this.userService.isUserExist(user)) {
 			user.twoFactorEnabled = !user.twoFactorEnabled;
 			if (user.twoFactorEnabled) {
-				this.genTwoFactorSecret(user);
+				const otp : { secret, otpAuthUrl } = await this.genTwoFactorSecret(user);
+				return await this.generateQrCodeDataURL(otp.otpAuthUrl);
 			} else {
 				user.twoFactorSecret = '';
+				this.userService.updateUser(user);
+				return null;
 			}
-			this.userService.updateUser(user);
-			return user.twoFactorEnabled;
 		}
 		throw new UnauthorizedException('User Not Found!');
 	}
@@ -120,14 +118,15 @@ export class AuthService {
 		return toDataURL(otpAuthUrl);
 	}
 
-	isTwoFactorCodeValid(twoFactorCode: string, user: User) {
+	async isTwoFactorCodeValid(twoFactorCode: string, user: User) {
 		return authenticator.verify({ token: twoFactorCode, secret: user.twoFactorSecret });
 	}
 
 	async loginWith2fa(userWithoutPsw: Partial<User>) {
 		const payload = {
 			uid: userWithoutPsw.uid,
-			twoFactorEnabled: !!userWithoutPsw.twoFactorEnabled
+			twoFactorEnabled: userWithoutPsw.twoFactorEnabled,
+			twoFactorAuthenticated: true,
 		};
 
 		return {
@@ -143,7 +142,8 @@ export class AuthService {
 			const isMatch = await bcrypt.compare(password, user.password);
 			if (isMatch) {
 				Logger.log(`User(${email}) login success.`);
-				return user;
+				const { password, ...userWithoutPw } = user;
+				return userWithoutPw;
 			}
 			throw new UnauthorizedException('Wrong password!');
 		}
@@ -151,8 +151,10 @@ export class AuthService {
   }
 
 	async setPw(user: User, pw: PasswordDto) {
-		const userPw = await bcrypt.hash(pw.password, config.get<number>('hash.password.saltOrRounds'));
+		Logger.log(user);
+		Logger.log(pw);
 		const userUpdate = user;
+		const userPw = await bcrypt.hash(pw.password, config.get<number>('hash.password.saltOrRounds'));
 		userUpdate.password = userPw;
 		await this.userService.updateUser(userUpdate);
 	}

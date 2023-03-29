@@ -7,6 +7,9 @@ import { LoginController } from './login.controller';
 import { UserService } from '../user/user.service';
 import { User } from '../user/user.entity';
 import { AuthService } from 'src/auth/auth.service';
+import { JwtStrategy } from 'src/auth/jwt/jwt.strategy';
+import { Jwt2faStrategy } from 'src/auth/jwt-2fa/jwt-2fa.strategy';
+import { LocalStrategy } from 'src/auth/local/local.strategy';
 
 const jwtConfig : any = config.get('jwt');
 
@@ -22,6 +25,6 @@ const jwtConfig : any = config.get('jwt');
 		PassportModule.register({ defaultStrategy: 'jwt'}),
 	],
 	controllers: [LoginController],
-	providers: [AuthService, UserService]
+	providers: [AuthService, UserService, JwtStrategy, Jwt2faStrategy, LocalStrategy]
 })
 export class LoginModule {}
