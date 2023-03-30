@@ -64,24 +64,22 @@ export class AuthService {
 	async intraSignIn(code: string) {
 		const userToken = await this.getTokenFromIntra(code);
 		const userData = await this.getUserInfoFromIntra(userToken);
-		let currUser = await this.userService.getUserById(userData.id);
+		const curUser = await this.userService.getUserById(userData.id);
 
-		if (!this.userService.isUserExist(currUser)){
-			currUser = await this.userService.addNewUser(userData);
+		if (!this.userService.isUserExist(curUser)){
+			const newUser = await this.userService.addNewUser(userData);
+			return newUser;
 		}
-		return currUser;
+		return curUser;
 	}
 
 	// Save 2fa secret, but twoFactorEnabled value does not change.
 	async genTwoFactorSecret(user: User) {
 		const secret = authenticator.generateSecret();
 		const otpAuthUrl = authenticator.keyuri(user.nickname, 'My Misters', secret);
-
-		user.twoFactorSecret = secret;
-		await this.userService.updateUser(user);
-		return await this.genQrCodeURL(otpAuthUrl);
+		return { secret, qr:await this.genQrCodeURL(otpAuthUrl) };
 	}
-
+	
 	async toggleTwoFactor(uid: number) {
 		const user = await this.userService.getUserById(uid);
 		if (this.userService.isUserExist(user)) {
@@ -90,7 +88,10 @@ export class AuthService {
 				await this.userService.updateUser(user);
 				return null;
 			} else {
-				return await this.genTwoFactorSecret(user);
+				const { secret, qr } = await this.genTwoFactorSecret(user);
+				user.twoFactorSecret = secret;
+				await this.userService.updateUser(user);
+				return qr;
 			}
 		}
 		throw new UnauthorizedException('User Not Found!');

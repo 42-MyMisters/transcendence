@@ -24,7 +24,7 @@ export class LoginController {
 	// intraSignIn will return accessToken with 2fa redirection condition.
 	// frontend need to redirect user to 2fa auth page.
 	@Get('/oauth/callback')
-	async intraSignIn(@Query('code') code: string) {
+	intraSignIn(@Query('code') code: string) {
 		const user = await this.authService.intraSignIn(code);
 		const token = await this.authService.login(user);
 		if (user.twoFactorEnabled) {
@@ -80,8 +80,8 @@ export class LoginController {
 	  }
 		const user = request.user;
 		user.twoFactorEnabled = true;
-		this.userService.updateUser(user);
-	  return this.authService.loginWith2fa(request.user);
+		await this.userService.updateUser(user);
+	  return await this.authService.loginWith2fa(request.user);
 	}
 
 	// /2fa/auth will return new accessToken.
