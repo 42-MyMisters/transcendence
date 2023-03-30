@@ -15,20 +15,32 @@ export class LoginController {
 		) {
 	}
 
+	// intra sign in. redirect to /oath/callback.
 	@Get('/oauth')
 	@Redirect('https://api.intra.42.fr/oauth/authorize?client_id=' + config.get<string>('intra.client_id') + '&redirect_uri=' + config.get<string>('intra.redirect_uri') + '&response_type=code', 302)
 	intra(){
-		// if 
+	}
+	
+	// intraSignIn will return accessToken with 2fa redirection condition.
+	// frontend need to redirect user to 2fa auth page.
+	@Get('/oauth/callback')
+	async intraSignIn(@Query('code') code: string) {
+		const user = await this.authService.intraSignIn(code);
+		const token = await this.authService.login(user);
+		if (user.twoFactorEnabled) {
+			return { ...token, redirect: true };
+		}
+		return { ...token, redirect: false };
 	}
 
-	@Post('/login-email')
+	// login with email & password.
+	@Post('/email')
 	@UseGuards(LocalAuthGuard)
 	loginWithEmail(@Req() request) {
 		if (request.user.twoFactorEnabled) {
-			return 'auth code required'
+			throw new UnauthorizedException('2fa required.');
 		}
-		// 토큰 확인 로직 필요...
-		return request.user.token;
+		return this.authService.genAccessToken(request.user, false);
 	}
 
 	@Post('/setpw')
@@ -36,11 +48,9 @@ export class LoginController {
 	async setPw(
 		@Req() request,
 		@Body(ValidationPipe) pw:PasswordDto,
-		) {
-			Logger.log(request);
-			await this.authService.setPw(request.user, pw);
-			return request.user.access_token;
-		}
+	) {
+		await this.userService.setUserPw(request.user, pw);
+	}
 
 	// for debug
 	@Get('/user')
@@ -48,32 +58,44 @@ export class LoginController {
 		return this.userService.showUsers();
 	}
 
-	@Get('/oauth/callback')
-	async intraSignIn(@Query('code') code: string) {
-		return await this.authService.intraSignIn(code);
-	}
-
+	// When toggleTwoFactor returns qrcode, user should verify OTP code through /2fa/auth/confirm.
+	// Otherwise, user's twoFactorEnabled value does not change.
 	@Get('/2fa/toggle')
 	@UseGuards(JwtAuthGuard)
 	async toggleTwoFactor(@Req() request) {
 		return await this.authService.toggleTwoFactor(request.user.uid);
 	}
 
-	@Post('/2fa/authenticate')
-	@HttpCode(200)
+	@Post('/2fa/toggle/confirm')
 	@UseGuards(JwtAuthGuard)
-	async authenticate(@Req() request, @Body() body) {
-		Logger.log('trying 2fa login');
+	async authConfirm(@Req() request, @Body() body) {
+		Logger.log('2fa toggle confirm');
 	  const isCodeValid = await this.authService.isTwoFactorCodeValid(
 			body.twoFactorCode,
 			request.user,
 			);
-			
-			Logger.log(`isCodeValid: ${isCodeValid}`);
+	  if (!isCodeValid) {
+			Logger.log('2fa confirmation failed. try again.');
+			throw new UnauthorizedException('Wrong authentication code');
+	  }
+		const user = request.user;
+		user.twoFactorEnabled = true;
+		this.userService.updateUser(user);
+	  return this.authService.loginWith2fa(request.user);
+	}
+
+	// /2fa/auth will return new accessToken.
+	@Post('/2fa/auth')
+	@UseGuards(JwtAuthGuard)
+	async auth(@Req() request, @Body() body) {
+		Logger.log('trying 2fa login');
+	  const isCodeValid = await this.authService.isTwoFactorCodeValid(
+			body.twoFactorCode,
+			request.user,
+		);	
 	  if (!isCodeValid) {
 			throw new UnauthorizedException('Wrong authentication code');
 	  }
-  
 	  return this.authService.loginWith2fa(request.user);
 	}
 
