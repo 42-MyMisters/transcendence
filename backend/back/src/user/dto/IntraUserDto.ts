@@ -4,4 +4,5 @@ export class IntraUserDto {
 	image: {
 		link: string;
 	}
+	email: string;
 }

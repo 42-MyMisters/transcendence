@@ -30,6 +30,7 @@ all:	up
 
 .PHONY:	up
 up:
+		git submodule init && git submodule update
 		mkdir -p ./db
 		cp ./config/development.yml ./backend/back/config/development.yml
 		$(DC) -f $(DC_SRC) -p $(TARGET) up --build -d
