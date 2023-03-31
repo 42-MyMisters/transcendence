@@ -1,5 +1,8 @@
-import { BaseEntity, Column, Entity, PrimaryColumn } from "typeorm";
+import { GameMatch } from "src/game/game.match.entity";
+import { BaseEntity, Column, Entity, OneToMany, PrimaryColumn } from "typeorm";
 import { IntraUserDto } from "./dto/IntraUserDto";
+import { UserFollower } from "./user.follower.entity";
+import { UserFollowing } from "./user.following.entity";
 
 @Entity()
 export class User extends BaseEntity {
@@ -26,6 +29,15 @@ export class User extends BaseEntity {
 
 	@Column()
 	twoFactorSecret: string;
+
+	@OneToMany(type => UserFollower, follower => follower, { lazy:true })
+	follower: User[];
+
+	@OneToMany(type => UserFollowing, following => following, { lazy:true })
+	following: User[];
+
+	@OneToMany(type => GameMatch, gameMatch => gameMatch, { lazy:true })
+	gameMatch: GameMatch[];
 
 	static fromIntraUserDto(intraUserDto: IntraUserDto): User {
 		const user = new User();
