@@ -1,11 +1,10 @@
-import { Injectable, Logger, Redirect, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { authenticator } from 'otplib';
 import { User } from 'src/user/user.entity';
 import { UserService } from 'src/user/user.service';
 import { toDataURL } from 'qrcode';
 import config from 'config';
-import { PasswordDto } from 'src/user/dto/PasswordDto';
 import { IntraTokenDto } from 'src/user/dto/IntraTokenDto';
 import { IntraUserDto } from 'src/user/dto/IntraUserDto';
 import * as bcrypt from 'bcrypt';
@@ -27,19 +26,15 @@ export class AuthService {
 				},
 			});
 			if (response.status < 200 || response.status >= 300) {
-				Logger.log(`${response}`);
-				Logger.log(`${response.status}`);
 				throw (`HTTP error! status: ${response.status}`);
 			}
 			const intraUserInfo: IntraUserDto = await response.json();
 			return intraUserInfo;
 		}
 		catch (error) {
-			Logger.log(error);
 			throw new Error('Failed to fetch user information from Intra');
 		}
 	}
-
 
 	async getTokenFromIntra(code: string) : Promise<IntraTokenDto> {
 		const clientId = config.get<string>('intra.client_id');
@@ -61,60 +56,48 @@ export class AuthService {
 
 		const intraToken : IntraTokenDto = await response.json();
 		if (response.status < 200 || response.status >= 300) {
-			Logger.log(`${response}`);
-			Logger.log(`${response.status}`);
 			throw (`HTTP error! status: ${response.status}`);
 		}
 		return intraToken;	
 	}
 	
-	
-	async intraSignIn(code: string){
+	async intraSignIn(code: string) {
 		const userToken = await this.getTokenFromIntra(code);
 		const userData = await this.getUserInfoFromIntra(userToken);
-		const currUser = await this.userService.getUserById(userData.id);
+		const curUser = await this.userService.getUserById(userData.id);
 
-		if (this.userService.isUserExist(currUser)){
-			Logger.log(`Already Exsisted User ${currUser.nickname}`);
-			if (currUser.twoFactorEnabled) {
-				return '2fa authorize required'
-			}
-			const accessToken = currUser.token;
-      return { accessToken };
-		} else {
-      const accessToken = await this.userService.addNewUser(userData);
-      Logger.log(`accessToken = ${accessToken}`)
-      return { accessToken };
-    }
+		if (!this.userService.isUserExist(curUser)){
+			const newUser = await this.userService.addNewUser(userData);
+			return newUser;
+		}
+		return curUser;
 	}
 
-	// 2FA
+	// Save 2fa secret, but twoFactorEnabled value does not change.
 	async genTwoFactorSecret(user: User) {
 		const secret = authenticator.generateSecret();
 		const otpAuthUrl = authenticator.keyuri(user.nickname, 'My Misters', secret);
-
-		user.twoFactorSecret = secret;
-		await this.userService.updateUser(user);
-		return { secret, otpAuthUrl };
+		return { secret, qr:await this.genQrCodeURL(otpAuthUrl) };
 	}
-
+	
 	async toggleTwoFactor(uid: number) {
 		const user = await this.userService.getUserById(uid);
 		if (this.userService.isUserExist(user)) {
-			user.twoFactorEnabled = !user.twoFactorEnabled;
 			if (user.twoFactorEnabled) {
-				const otp : { secret, otpAuthUrl } = await this.genTwoFactorSecret(user);
-				return await this.generateQrCodeDataURL(otp.otpAuthUrl);
-			} else {
-				user.twoFactorSecret = '';
-				this.userService.updateUser(user);
+				user.twoFactorEnabled = !user.twoFactorEnabled;
+				await this.userService.updateUser(user);
 				return null;
+			} else {
+				const { secret, qr } = await this.genTwoFactorSecret(user);
+				user.twoFactorSecret = secret;
+				await this.userService.updateUser(user);
+				return qr;
 			}
 		}
 		throw new UnauthorizedException('User Not Found!');
 	}
 
-	async generateQrCodeDataURL(otpAuthUrl: string) {
+	async genQrCodeURL(otpAuthUrl: string): Promise<{ data: string }> {
 		return toDataURL(otpAuthUrl);
 	}
 
@@ -122,17 +105,12 @@ export class AuthService {
 		return authenticator.verify({ token: twoFactorCode, secret: user.twoFactorSecret });
 	}
 
-	async loginWith2fa(userWithoutPsw: Partial<User>) {
-		const payload = {
-			uid: userWithoutPsw.uid,
-			twoFactorEnabled: userWithoutPsw.twoFactorEnabled,
-			twoFactorAuthenticated: true,
-		};
+	async loginWith2fa(userWithoutPw: Omit<User, 'password'>) {
+		return await this.genAccessToken(userWithoutPw, true);
+	}
 
-		return {
-			uid: payload.uid,
-			access_token: this.jwtService.sign(payload),
-		};
+	async login(userWithoutPw: Omit<User, 'password'>) {
+		return await this.genAccessToken(userWithoutPw, false);
 	}
 
   async validateUser(email: string, password: string) {
@@ -150,13 +128,14 @@ export class AuthService {
 		throw new UnauthorizedException('User not found!');
   }
 
-	async setPw(user: User, pw: PasswordDto) {
-		Logger.log(user);
-		Logger.log(pw);
-		const userUpdate = user;
-		const userPw = await bcrypt.hash(pw.password, config.get<number>('hash.password.saltOrRounds'));
-		userUpdate.password = userPw;
-		await this.userService.updateUser(userUpdate);
+	async genAccessToken(user: Omit<User, 'password'>, twoFactor: boolean) {
+		const payload = {
+			uid: user.uid,
+			twoFactorEnabled: user.twoFactorEnabled,
+			twoFactorAuthenticated: twoFactor,
+		}
+		return { accessToken: this.jwtService.sign(payload) };
 	}
+
 }
 
