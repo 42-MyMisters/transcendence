@@ -15,5 +15,5 @@ jobs:
           # For all configuration options see https://github.com/sturdy-dev/codeball-action/blob/v2/action.yml
           approvePullRequests: "false"
           labelPullRequestsWhenApproved: "true"
-          labelPullRequestsWhenReviewNeeded: "true"
+          labelPullRequestsWhenReviewNeeded: "false"
           failJobsWhenReviewNeeded: "false"
