@@ -1,17 +1,15 @@
-.ChatListBG {
+.ChatRoomUserListBG {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+
   width: 400px;
-  height: 410px;
+  height: 850px;
 
   background: #d9d9d9;
 }
 
-.ChatRoomList {
-  position: absolute;
-  left: 20px;
-  top: 154px;
-}
-
-.ChatListTxt {
+.ChatRoomNameTxt {
   position: absolute;
   left: 30px;
   top: 30px;
@@ -27,7 +25,29 @@
   align-items: center;
 }
 
-.ChatRoomListPlusBtn {
+.ChatRoomSettingBtn {
+  position: absolute;
+  right: 130px;
+  top: 30px;
+
+  width: 50px;
+  height: 50px;
+
+  background: url("../assets/setting.png");
+}
+
+.ChatRoomInviteBtn {
+  position: absolute;
+  right: 80px;
+  top: 30px;
+
+  width: 50px;
+  height: 50px;
+
+  background: url("../assets/plus.png");
+}
+
+.ChatRoomExitBtn {
   position: absolute;
   right: 30px;
   top: 30px;
@@ -35,34 +55,16 @@
   width: 50px;
   height: 50px;
 
-  /* border: 1px solid #000; */
-  background: url("../assets/plus.png");
+  background: url("../assets/logout.png");
 }
 
-.ChatRooms {
+.ChatRoomUsers {
   position: absolute;
   left: 30px;
   top: 100px;
 
   width: 340px;
-  height: 280px;
-
-  overflow: scroll;
-}
-
-.ChatUserList {
-  position: absolute;
-  left: 20px;
-  top: 594px;
-}
-
-.ChatUsers {
-  position: absolute;
-  left: 30px;
-  top: 100px;
-
-  width: 340px;
-  height: 280px;
+  height: 720px;
 
   overflow: scroll;
 }
