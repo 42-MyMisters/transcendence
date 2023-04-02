@@ -4,3 +4,13 @@
   background-color: #fff;
   border: 1px solid #000;
 }
+
+.QueueBackGround {
+  width: 1350px;
+  height: 800px;
+  background-color: #d9d9d9;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
