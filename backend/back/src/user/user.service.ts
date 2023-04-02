@@ -7,12 +7,16 @@ import { Repository } from "typeorm";
 import * as bcrypt from 'bcrypt';
 import { PasswordDto } from "./dto/PasswordDto";
 import config from "config";
+import { UserFollower } from "./user-follower.entity";
+import { UserFollowing } from "./user-following.entity";
 
 @Injectable()
 export class UserService {
 	constructor(
 		@InjectRepository(User)
 		private userRepository: Repository<User>,
+		private userFollowerRepository: Repository<UserFollower>,
+		private userFollowingRepository: Repository<UserFollowing>,
 		private jwtService: JwtService,
 	){}
 
@@ -36,7 +40,7 @@ export class UserService {
 	}
 	
 	async showUsers() {
-		const users = await this.userRepository.find();
+		const users = await this.userRepository.find({ relations: ["wonGames", "lostGames", "followers", "followings"] });
 		return users;
 	}
 
