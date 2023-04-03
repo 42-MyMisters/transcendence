@@ -10,12 +10,14 @@ import { AuthService } from 'src/auth/auth.service';
 import { JwtStrategy } from 'src/auth/jwt/jwt.strategy';
 import { Jwt2faStrategy } from 'src/auth/jwt-2fa/jwt-2fa.strategy';
 import { LocalStrategy } from 'src/auth/local/local.strategy';
+import { UserFollow } from 'src/user/user-follow.entity';
 
 const jwtConfig : any = config.get('jwt');
 
 @Module({
 	imports: [
 		TypeOrmModule.forFeature([User]),
+		TypeOrmModule.forFeature([UserFollow]),
 		JwtModule.register({
 			secret: jwtConfig.secret,
 			signOptions: {

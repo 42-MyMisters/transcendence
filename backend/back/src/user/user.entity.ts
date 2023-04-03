@@ -55,33 +55,4 @@ export class User extends BaseEntity {
 		return user;
 	}
 
-	async follow(userToFollow: User): Promise<void> {
-		const existingFollowing = await UserFollowing.findOne({ where: { userId: this.uid, followingId: userToFollow.uid } });
-
-		if (existingFollowing) {
-			throw new Error('You are already following this user.');
-		}
-
-		const following = new UserFollowing();
-		following.user = this;
-		following.following = userToFollow;
-		await following.save();
-
-		this.followings.push(following);
-		await this.save();
-	}
-
-	async unfollow(userToUnfollow: User): Promise<void> {
-		const following = await UserFollowing.findOne({ where: { userId: this.uid, followingId: userToUnfollow.uid } });
-
-		if (!following) {
-			throw new Error('You are not following this user.');
-		}
-
-		await following.remove();
-
-		this.followings = this.followings.filter(f => f.followingId !== userToUnfollow.uid);
-		await this.save();
-	}
-
 }

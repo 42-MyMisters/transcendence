@@ -1,5 +1,6 @@
 import { Body, Controller, Get, HttpCode, Logger, Post, Query, Redirect, Req, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import config from 'config';
+import { request } from 'http';
 import { AuthService } from 'src/auth/auth.service';
 import { Jwt2faAuthGuard } from 'src/auth/jwt-2fa/jwt-2fa-auth.guard';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
@@ -92,11 +93,23 @@ export class LoginController {
 	  const isCodeValid = await this.authService.isTwoFactorCodeValid(
 			body.twoFactorCode,
 			request.user,
-		);	
+			);	
 	  if (!isCodeValid) {
 			throw new UnauthorizedException('Wrong authentication code');
 	  }
 	  return this.authService.loginWith2fa(request.user);
+	}
+	
+	
+	@Get('/follow/')
+	@UseGuards(JwtAuthGuard)
+	async follow(@Req() request){
+		const user = await this.userService.getUserByEmail("seseo1@student.42seoul.kr");
+		if (this.userService.isUserExist(user)) {
+			Logger.log("follow");
+			await this.userService.follow(request.user, user);
+		}
+		Logger.log("follow");
 	}
 
 }
