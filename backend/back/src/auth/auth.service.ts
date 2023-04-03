@@ -1,4 +1,4 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { authenticator } from 'otplib';
 import { User } from 'src/user/user.entity';
@@ -146,24 +146,31 @@ export class AuthService {
 			uid: user.uid,
 			twoFactorEnabled: user.twoFactorEnabled,
 			twoFactorAuthenticated: twoFactor,
-			expiresIn: '7d'
 		}
-		const refreshToken = this.jwtService.sign(payload);
-		return { refreshToken };	
+		const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+		return { refreshToken: refreshToken };	
 	}
 
-	async reissuanceAccessToken(refreshToken: string) {
-		const payload = this.jwtService.verify(refreshToken);
-	
-		// refresh token 검증
-		const user = await this.userService.getUserById(payload.uid);
-		if (this.userService.isUserExist(user)) {
-			if (user.refreshToken === refreshToken){
-				 const access_token = await this.genAccessToken(user, user.twoFactorEnabled);
-				 return  { access_token };
+	async refreshAccessTokenWithRefreshToken(refreshToken: string) {
+		try{
+			const payload = this.jwtService.verify(refreshToken);
+			const user = await this.userService.getUserById(payload.uid);
+			if (this.userService.isUserExist(user)) {
+				if (user.refreshToken === refreshToken){
+					 const access_token = await this.genAccessToken(user, user.twoFactorEnabled);
+					 return  { access_token };
+				}
 			}
+		} 
+	
+		catch (error){
+			const errMsg = `Failed to verify the refresh token: ${error}`;
+			Logger.error(errMsg);
+			throw new BadRequestException(errMsg);
 		}
-		throw new UnauthorizedException('User not found');
+		
+		const errMsg = 'The refresh token provided is invalid. Please log in again.';
+		Logger.error(errMsg);
+		throw new UnauthorizedException(errMsg);
 	  }
 }
-

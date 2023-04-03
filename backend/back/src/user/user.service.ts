@@ -29,20 +29,7 @@ export class UserService {
 		const user = await this.userRepository.findOneBy({uid});
 		return user;
 	}
-	async getUserRefreshToken(uid: number){
-		const user = await this.userRepository.findOneBy({uid});
-		if (user === null || user.refreshToken === null)
-			throw new NotFoundException(`${uid} User not Found`);
-		return user.refreshToken;
-	}
-
-	async getUserRefreshToken(uid: number){
-		const user = await this.userRepository.findOneBy({uid});
-		if (user === null || user.refreshToken === null)
-			throw new NotFoundException(`${uid} User not Found`);
-		return user.refreshToken;
-	}
-
+	
 	async getUserByEmail(email: string) {
 		const user = await this.userRepository.findOneBy({email});
 		return user;
