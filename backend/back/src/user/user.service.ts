@@ -18,9 +18,6 @@ export class UserService {
 
 	async addNewUser(intraUserDto: IntraUserDto): Promise<User> {
 		const user: User = await User.fromIntraUserDto(intraUserDto);
-		user.password = 'null';
-		user.refreshToken ='null';
-		user.twoFactorSecret = 'null';
 		await this.userRepository.save(user);
 		return user;
 	}
