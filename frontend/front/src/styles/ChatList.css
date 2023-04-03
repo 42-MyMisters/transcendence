@@ -1,0 +1,68 @@
+.ChatListBG {
+  width: 400px;
+  height: 410px;
+
+  background: #d9d9d9;
+}
+
+.ChatRoomList {
+  position: absolute;
+  left: 20px;
+  top: 154px;
+}
+
+.ChatListTxt {
+  position: absolute;
+  left: 30px;
+  top: 30px;
+
+  width: 190px;
+  height: 50px;
+
+  /* font-family: "Inter"; */
+  font-style: normal;
+  font-weight: 400;
+  font-size: 30px;
+  display: flex;
+  align-items: center;
+}
+
+.ChatRoomListPlusBtn {
+  position: absolute;
+  right: 30px;
+  top: 30px;
+
+  width: 50px;
+  height: 50px;
+
+  /* border: 1px solid #000; */
+  background: url("../assets/plus.png");
+}
+
+.ChatRooms {
+  position: absolute;
+  left: 30px;
+  top: 100px;
+
+  width: 340px;
+  height: 280px;
+
+  overflow: scroll;
+}
+
+.ChatUserList {
+  position: absolute;
+  left: 20px;
+  top: 594px;
+}
+
+.ChatUsers {
+  position: absolute;
+  left: 30px;
+  top: 100px;
+
+  width: 340px;
+  height: 280px;
+
+  overflow: scroll;
+}

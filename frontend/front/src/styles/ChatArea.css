@@ -1,0 +1,48 @@
+.ChatAreaBG {
+  position: absolute;
+  left: 430px;
+  top: 154px;
+
+  width: 580px;
+  height: 850px;
+
+  background: #d9d9d9;
+}
+
+.ChatBubbleArea {
+  position: absolute;
+  left: 30px;
+  top: 30px;
+
+  width: 520px;
+  height: 730px;
+
+  overflow: scroll;
+}
+
+input[type="text"] {
+  position: absolute;
+  left: 30px;
+  bottom: 30px;
+
+  width: 460px;
+  height: 50px;
+
+  outline: none;
+  font-size: 30px;
+  font-weight: 400;
+  align-items: center;
+  color: #000;
+}
+
+.ChatDMImg {
+  position: absolute;
+  right: 30px;
+  bottom: 30px;
+
+  width: 50px;
+  height: 50px;
+
+  /* background-color: #fff; */
+  background: url("../assets/dm.png");
+}
