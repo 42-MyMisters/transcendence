@@ -8,6 +8,7 @@ import config from 'config';
 import { IntraTokenDto } from 'src/user/dto/IntraTokenDto';
 import { IntraUserDto } from 'src/user/dto/IntraUserDto';
 import * as bcrypt from 'bcrypt';
+import { verify } from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -70,6 +71,7 @@ export class AuthService {
 			const newUser = await this.userService.addNewUser(userData);
 			return newUser;
 		}
+		// if (curUser.refreshToken)
 		return curUser;
 	}
 
@@ -112,8 +114,6 @@ export class AuthService {
 	async login(userWithoutPw: Omit<User, 'password'>) {
 		const access_token = await this.genAccessToken(userWithoutPw, false);
 		const refresh_token = await this.genRefreshToken(userWithoutPw, false);
-		Logger.log(`access_token = ${access_token}`);
-		Logger.log(`ref_token = ${refresh_token}`);
 		return {access_token, refresh_token};
 	}
 
