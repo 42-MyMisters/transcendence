@@ -8,4 +8,4 @@ db:
   database: "ts-dev"
 
 jwt:
-  expiresIn: 3600
+  expiresIn: 20

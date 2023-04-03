@@ -1,11 +1,14 @@
-import { Body, Controller, Get, HttpCode, Logger, Post, Query, Redirect, Req, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Logger, Post, Query, Redirect, Req, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import config from 'config';
+import * as cookieParser from 'cookie-parser';
 import { AuthService } from 'src/auth/auth.service';
 import { Jwt2faAuthGuard } from 'src/auth/jwt-2fa/jwt-2fa-auth.guard';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { LocalAuthGuard } from 'src/auth/local/local-auth.guard';
 import { PasswordDto } from 'src/user/dto/PasswordDto';
 import { UserService } from 'src/user/user.service';
+import { Response } from 'express';
+import { Request } from 'express';
 
 @Controller('login')
 export class LoginController {
@@ -19,18 +22,32 @@ export class LoginController {
 	@Get('/oauth')
 	@Redirect('https://api.intra.42.fr/oauth/authorize?client_id=' + config.get<string>('intra.client_id') + '&redirect_uri=' + config.get<string>('intra.redirect_uri') + '&response_type=code', 302)
 	intra(){
+		Logger.log('redir');
 	}
 	
 	// intraSignIn will return accessToken with 2fa redirection condition.
 	// frontend need to redirect user to 2fa auth page.
 	@Get('/oauth/callback')
-	async intraSignIn(@Query('code') code: string) {
+	async intraSignIn(@Res() res: Response, @Query('code') code: string) {
+		Logger.log(`here1`);
 		const user = await this.authService.intraSignIn(code);
-		const token = await this.authService.login(user);
+		Logger.log(`here2`);
+		const { access_token, refresh_token } = await this.authService.login(user);
+		Logger.log(`here3`);
+		res.cookie('refresh_token', refresh_token, { httpOnly: true });
+		Logger.log(`here4`);
 		if (user.twoFactorEnabled) {
-			return { ...token, redirect: true };
+			return { ...access_token, redirect: true };
 		}
-		return { ...token, redirect: false };
+		Logger.log(`access = ${access_token.accessToken}`);
+		return { ...access_token, redirect: false };
+	}
+
+
+	@Post('/oauth/refresh')
+	async refreshTokens(@Req() req: Request) {
+		const refreshToken = req.cookies.refresh_token; 
+		return this.authService.reissuanceAccessToken(refreshToken);
 	}
 
 	// login with email & password.

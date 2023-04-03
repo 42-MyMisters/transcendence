@@ -110,7 +110,11 @@ export class AuthService {
 	}
 
 	async login(userWithoutPw: Omit<User, 'password'>) {
-		return await this.genAccessToken(userWithoutPw, false);
+		const access_token = await this.genAccessToken(userWithoutPw, false);
+		const refresh_token = await this.genRefreshToken(userWithoutPw, false);
+		Logger.log(`access_token = ${access_token}`);
+		Logger.log(`ref_token = ${refresh_token}`);
+		return {access_token, refresh_token};
 	}
 
   async validateUser(email: string, password: string) {
@@ -137,5 +141,30 @@ export class AuthService {
 		return { accessToken: this.jwtService.sign(payload) };
 	}
 
+	async genRefreshToken(user: Omit<User, 'password'>, twoFactor: boolean) {
+		const payload = {
+			uid: user.uid,
+			twoFactorEnabled: user.twoFactorEnabled,
+			twoFactorAuthenticated: twoFactor,
+		}
+		const refreshToken = this.jwtService.sign(payload, {
+			expiresIn: '7d',
+		  });
+		return { refreshToken };	
+	}
+
+	async reissuanceAccessToken(refreshToken: string) {
+		const payload = this.jwtService.verify(refreshToken);
+	
+		// refresh token 검증
+		const user = await this.userService.getUserById(payload.uid);
+		if (this.userService.isUserExist(user)) {
+			if (user.refreshToken === refreshToken){
+				 const access_token = await this.genAccessToken(user, user.twoFactorEnabled);
+				 return  { access_token };
+			}
+		}
+		throw new UnauthorizedException('User not found');
+	  }
 }
 

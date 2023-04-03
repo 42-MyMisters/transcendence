@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { IntraUserDto } from "./dto/IntraUserDto";
 import { User } from "./user.entity";
@@ -19,7 +19,7 @@ export class UserService {
 	async addNewUser(intraUserDto: IntraUserDto): Promise<User> {
 		const user: User = await User.fromIntraUserDto(intraUserDto);
 		user.password = 'null';
-		user.token = 'null';
+		user.refreshToken ='null';
 		user.twoFactorSecret = 'null';
 		await this.userRepository.save(user);
 		return user;
@@ -28,6 +28,12 @@ export class UserService {
 	async getUserById(uid: number) {
 		const user = await this.userRepository.findOneBy({uid});
 		return user;
+	}
+	async getUserRefreshToken(uid: number){
+		const user = await this.userRepository.findOneBy({uid});
+		if (user === null || user.refreshToken === null)
+			throw new NotFoundException(`${uid} User not Found`);
+		return user.refreshToken;
 	}
 
 	async getUserByEmail(email: string) {
