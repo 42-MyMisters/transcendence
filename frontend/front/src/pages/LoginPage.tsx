@@ -10,8 +10,8 @@ export default function LoginPage() {
   return (
     <BackGround>
       {/* <SignInModal /> */}
-      {/* <TFAModal /> */}
-      <InitialSettingModal />
+      <TFAModal />
+      {/* <InitialSettingModal /> */}
     </BackGround>
   );
 }
