@@ -1,6 +1,5 @@
 import { Body, Controller, Get, HttpCode, Logger, Post, Query, Redirect, Req, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import config from 'config';
-import * as cookieParser from 'cookie-parser';
 import { AuthService } from 'src/auth/auth.service';
 import { Jwt2faAuthGuard } from 'src/auth/jwt-2fa/jwt-2fa-auth.guard';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
