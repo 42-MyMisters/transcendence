@@ -71,7 +71,7 @@ export class AuthService {
 			const newUser = await this.userService.addNewUser(userData);
 			return newUser;
 		}
-		// if (curUser.refreshToken)
+		// TODO: refreshToken 이 이미 있는경우 처리
 		return curUser;
 	}
 
