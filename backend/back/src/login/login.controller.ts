@@ -1,11 +1,15 @@
-import { Body, Controller, Get, HttpCode, Logger, Post, Query, Redirect, Req, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Logger, Post, Query, Redirect, Req, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import config from 'config';
+import * as cookieParser from 'cookie-parser';
 import { AuthService } from 'src/auth/auth.service';
 import { Jwt2faAuthGuard } from 'src/auth/jwt-2fa/jwt-2fa-auth.guard';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { LocalAuthGuard } from 'src/auth/local/local-auth.guard';
 import { PasswordDto } from 'src/user/dto/PasswordDto';
 import { UserService } from 'src/user/user.service';
+import { Response } from 'express';
+import { Request } from 'express';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('login')
 export class LoginController {
@@ -15,22 +19,35 @@ export class LoginController {
 		) {
 	}
 
+	@Post('/fortest')
+	@UseGuards(Jwt2faAuthGuard)
+	testFunc(): string{
+		return "success";
+	}
 	// intra sign in. redirect to /oath/callback.
 	@Get('/oauth')
 	@Redirect('https://api.intra.42.fr/oauth/authorize?client_id=' + config.get<string>('intra.client_id') + '&redirect_uri=' + config.get<string>('intra.redirect_uri') + '&response_type=code', 302)
-	intra(){
-	}
+	intra(){}
 	
 	// intraSignIn will return accessToken with 2fa redirection condition.
 	// frontend need to redirect user to 2fa auth page.
 	@Get('/oauth/callback')
-	async intraSignIn(@Query('code') code: string) {
+	async intraSignIn(@Res() res: Response, @Query('code') code: string) {
 		const user = await this.authService.intraSignIn(code);
-		const token = await this.authService.login(user);
+		const { access_token, refresh_token } = await this.authService.login(user);
+		this.userService.setUserRefreshToken(user, refresh_token.refreshToken);
+		res.cookie('refresh_token', JSON.stringify(refresh_token), { httpOnly: true });
 		if (user.twoFactorEnabled) {
-			return { ...token, redirect: true };
+			return { ...access_token, redirect: true };
 		}
-		return { ...token, redirect: false };
+		return res.json({ ...access_token, redirect: false });
+	}
+
+
+	@Post('/oauth/refresh')
+	async refreshTokens(@Req() req: Request) {
+		const refreshToken = req.cookies.refresh_token; 
+		return this.authService.reissuanceAccessToken(refreshToken.refresh_token);
 	}
 
 	// login with email & password.

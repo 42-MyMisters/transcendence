@@ -16,7 +16,7 @@ export class User extends BaseEntity {
 	nickname: string;
 
 	@Column()
-	token: string;
+	refreshToken: string;
 
 	@Column()
 	profileUrl: string;
