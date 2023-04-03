@@ -9,7 +9,6 @@ import { PasswordDto } from 'src/user/dto/PasswordDto';
 import { UserService } from 'src/user/user.service';
 import { Response } from 'express';
 import { Request } from 'express';
-import { AuthGuard } from '@nestjs/passport';
 
 @Controller('login')
 export class LoginController {
@@ -27,27 +26,32 @@ export class LoginController {
 	// intra sign in. redirect to /oath/callback.
 	@Get('/oauth')
 	@Redirect('https://api.intra.42.fr/oauth/authorize?client_id=' + config.get<string>('intra.client_id') + '&redirect_uri=' + config.get<string>('intra.redirect_uri') + '&response_type=code', 302)
-	intra(){}
+	intra(){
+	}
 	
 	// intraSignIn will return accessToken with 2fa redirection condition.
 	// frontend need to redirect user to 2fa auth page.
 	@Get('/oauth/callback')
 	async intraSignIn(@Res() res: Response, @Query('code') code: string) {
+		Logger.log(`here1`);
 		const user = await this.authService.intraSignIn(code);
+		Logger.log(`here2`);
 		const { access_token, refresh_token } = await this.authService.login(user);
-		this.userService.setUserRefreshToken(user, refresh_token.refreshToken);
-		res.cookie('refresh_token', JSON.stringify(refresh_token), { httpOnly: true });
+		Logger.log(`here3`);
+		res.cookie('refresh_token', refresh_token, { httpOnly: true });
+		Logger.log(`here4`);
 		if (user.twoFactorEnabled) {
 			return { ...access_token, redirect: true };
 		}
-		return res.json({ ...access_token, redirect: false });
+		Logger.log(`access = ${access_token.accessToken}`);
+		return { ...access_token, redirect: false };
 	}
 
 
 	@Post('/oauth/refresh')
 	async refreshTokens(@Req() req: Request) {
 		const refreshToken = req.cookies.refresh_token; 
-		return this.authService.reissuanceAccessToken(refreshToken.refresh_token);
+		return this.authService.reissuanceAccessToken(refreshToken);
 	}
 
 	// login with email & password.
