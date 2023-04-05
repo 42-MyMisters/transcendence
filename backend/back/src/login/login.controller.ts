@@ -16,8 +16,6 @@ export class LoginController {
 		) {
 	}
 
-
-
 	// intra sign in. redirect to /oath/callback.
 	@Get('/oauth')
 	@Redirect('https://api.intra.42.fr/oauth/authorize?client_id=' + config.get<string>('intra.client_id') + '&redirect_uri=' + config.get<string>('intra.redirect_uri') + '&response_type=code', 302)
@@ -136,8 +134,6 @@ export class LoginController {
 		}
 	}
 
-
-
 	//For Debug Controller
 	@Post('/test')
 	@UseGuards(Jwt2faAuthGuard)
@@ -149,7 +145,5 @@ export class LoginController {
 	showUsers() {
 		return this.userService.showUsers();
 	}
-
-
 
 }
