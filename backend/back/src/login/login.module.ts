@@ -12,16 +12,14 @@ import { Jwt2faStrategy } from 'src/auth/jwt-2fa/jwt-2fa.strategy';
 import { LocalStrategy } from 'src/auth/local/local.strategy';
 import { UserFollow } from 'src/user/user-follow.entity';
 
-const jwtConfig : any = config.get('jwt');
-
 @Module({
 	imports: [
 		TypeOrmModule.forFeature([User]),
 		TypeOrmModule.forFeature([UserFollow]),
 		JwtModule.register({
-			secret: jwtConfig.secret,
+			secret: config.get<string>('jwt.secret'),
 			signOptions: {
-				expiresIn: jwtConfig.expiresIn,
+				expiresIn: config.get<string>('jwt.expiresIn'),
 			}
 		}),
 		PassportModule.register({ defaultStrategy: 'jwt'}),

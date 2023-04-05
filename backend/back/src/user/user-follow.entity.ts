@@ -4,18 +4,18 @@ import { User } from "./user.entity";
 @Entity()
 export class UserFollow extends BaseEntity {
   @PrimaryColumn()
-  followerId: number;
+  fromUserId: number;
 
   @PrimaryColumn()
-  followingId: number;
+  targetToFollowId: number;
 
-  @ManyToOne(type => User, follower => follower.followers, { onDelete: 'CASCADE', onUpdate: 'CASCADE', eager:true })
-  @JoinColumn({ name: 'followerId' })
-  follower: User;
+  @ManyToOne(type => User, fromUser => fromUser.followers, { onDelete: 'CASCADE', onUpdate: 'CASCADE', eager:true })
+  @JoinColumn({ name: 'fromUserId' })
+  fromUser: User;
   
-  @ManyToOne(type => User, following => following.followings, { onDelete: 'CASCADE', onUpdate: 'CASCADE', eager:true })
-  @JoinColumn({ name: 'followingId' })
-  following: User;
+  @ManyToOne(type => User, targetToFollow => targetToFollow.followings, { onDelete: 'CASCADE', onUpdate: 'CASCADE', eager:true })
+  @JoinColumn({ name: 'targetToFollowId' })
+  targetToFollow: User;
 
   @CreateDateColumn()
   createdAt: Date;

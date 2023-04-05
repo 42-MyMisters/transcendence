@@ -1,6 +1,5 @@
-import { Body, Controller, Get, HttpCode, Logger, Post, Query, Redirect, Req, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Post, Query, Redirect, Req, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import config from 'config';
-import { request } from 'http';
 import { AuthService } from 'src/auth/auth.service';
 import { Jwt2faAuthGuard } from 'src/auth/jwt-2fa/jwt-2fa-auth.guard';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
@@ -100,16 +99,26 @@ export class LoginController {
 	  return this.authService.loginWith2fa(request.user);
 	}
 	
-	
-	@Get('/follow/')
+	@Post('/follow')
 	@UseGuards(JwtAuthGuard)
-	async follow(@Req() request){
-		const user = await this.userService.getUserByEmail("seseo1@student.42seoul.kr");
+	async follow(@Req() request, @Body() body){
+		const user = await this.userService.getUserByEmail(body.targetEmail);
 		if (this.userService.isUserExist(user)) {
-			Logger.log("follow");
 			await this.userService.follow(request.user, user);
+		} else {
+			throw new UnauthorizedException("User Not Found!");
 		}
-		Logger.log("follow");
+	}
+	
+	@Post('/unfollow')
+	@UseGuards(JwtAuthGuard)
+	async unfollow(@Req() request, @Body() body){
+		const user = await this.userService.getUserByEmail(body.targetEmail);
+		if (this.userService.isUserExist(user)) {
+			await this.userService.unfollow(request.user, user);
+		} else {
+			throw new UnauthorizedException("User Not Found!");
+		}
 	}
 
 }
