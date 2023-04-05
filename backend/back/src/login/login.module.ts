@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -10,6 +10,7 @@ import { AuthService } from 'src/auth/auth.service';
 import { JwtStrategy } from 'src/auth/jwt/jwt.strategy';
 import { Jwt2faStrategy } from 'src/auth/jwt-2fa/jwt-2fa.strategy';
 import { LocalStrategy } from 'src/auth/local/local.strategy';
+
 
 const jwtConfig : any = config.get('jwt');
 
@@ -27,4 +28,5 @@ const jwtConfig : any = config.get('jwt');
 	controllers: [LoginController],
 	providers: [AuthService, UserService, JwtStrategy, Jwt2faStrategy, LocalStrategy]
 })
-export class LoginModule {}
+export class LoginModule{
+}
