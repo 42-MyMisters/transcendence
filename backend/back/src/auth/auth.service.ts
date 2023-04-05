@@ -9,6 +9,7 @@ import { IntraTokenDto } from 'src/user/dto/IntraTokenDto';
 import { IntraUserDto } from 'src/user/dto/IntraUserDto';
 import * as bcrypt from 'bcrypt';
 import { verify } from 'crypto';
+import { TokenPayload } from './token-payload.entity';
 
 @Injectable()
 export class AuthService {
@@ -104,6 +105,9 @@ export class AuthService {
 	}
 
 	async isTwoFactorCodeValid(twoFactorCode: string, user: User) {
+		if (!user.twoFactorSecret) {
+			return false;
+		  }
 		return authenticator.verify({ token: twoFactorCode, secret: user.twoFactorSecret });
 	}
 
@@ -151,26 +155,34 @@ export class AuthService {
 		return { refreshToken: refreshToken };	
 	}
 
-	async refreshAccessTokenWithRefreshToken(refreshToken: string) {
+
+	async verifyJwtToken(refreshToken: string): Promise<TokenPayload> {
 		try{
-			const payload = this.jwtService.verify(refreshToken);
-			const user = await this.userService.getUserById(payload.uid);
-			if (this.userService.isUserExist(user)) {
-				if (user.refreshToken === refreshToken){
-					 const access_token = await this.genAccessToken(user, user.twoFactorEnabled);
-					 return  { access_token };
-				}
-			}
+			const payload = await this.jwtService.verify(refreshToken);
+			return payload;
 		} 
-	
 		catch (error){
 			const errMsg = `Failed to verify the refresh token: ${error}`;
 			Logger.error(errMsg);
 			throw new BadRequestException(errMsg);
 		}
-		
-		const errMsg = 'The refresh token provided is invalid. Please log in again.';
-		Logger.error(errMsg);
-		throw new UnauthorizedException(errMsg);
+	}
+
+	async refreshAccessTokenRefreshToken(refreshToken: string) {
+
+		const payload = await this.verifyJwtToken(refreshToken);
+		const user = await this.userService.getUserById(payload.uid);
+		if (this.userService.isUserExist(user)) { // Maybe Need a wrapper function for not Exsisting user?
+			if (user.refreshToken === refreshToken){
+				const access_token = await this.genAccessToken(user, user.twoFactorEnabled);
+				return  { access_token };
+			}
+			else {
+				const errMsg = 'The refresh token provided is invalid. Please log in again.';
+				Logger.error(errMsg);
+				throw new UnauthorizedException(errMsg);
+			}
+		} else
+			throw new UnauthorizedException(`user not found`);
 	  }
 }
