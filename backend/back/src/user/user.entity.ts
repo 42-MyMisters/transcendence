@@ -8,7 +8,7 @@ export class User extends BaseEntity {
 	@PrimaryColumn()
 	uid: number;
 
-	@Column()
+	@Column({nullable: true})
 	password: string;
 
 	@Column({ unique: true })
@@ -17,8 +17,8 @@ export class User extends BaseEntity {
 	@Column({ unique: true })
 	nickname: string;
 
-	@Column()
-	token: string;
+	@Column({nullable: true})
+	refreshToken: string;
 
 	@Column()
 	profileUrl: string;
@@ -26,7 +26,7 @@ export class User extends BaseEntity {
 	@Column()
 	twoFactorEnabled: boolean;
 
-	@Column()
+	@Column({nullable: true})
 	twoFactorSecret: string;
 
 	@OneToMany(type => UserFollow, follower => follower.fromUser, { lazy: true })

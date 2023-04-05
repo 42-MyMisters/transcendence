@@ -1,12 +1,12 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { IntraUserDto } from "./dto/IntraUserDto";
-import { User } from "./user.entity";
+import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
 import * as bcrypt from 'bcrypt';
-import { PasswordDto } from "./dto/PasswordDto";
 import config from "config";
+import { Repository } from "typeorm";
+import { IntraUserDto } from "./dto/IntraUserDto";
+import { PasswordDto } from "./dto/PasswordDto";
 import { UserFollow } from "./user-follow.entity";
+import { User } from "./user.entity";
 
 @Injectable()
 export class UserService {
@@ -20,9 +20,6 @@ export class UserService {
 
 	async addNewUser(intraUserDto: IntraUserDto): Promise<User> {
 		const user: User = await User.fromIntraUserDto(intraUserDto);
-		user.password = 'null';
-		user.token = 'null';
-		user.twoFactorSecret = 'null';
 		await this.userRepository.save(user);
 		return user;
 	}
@@ -31,7 +28,7 @@ export class UserService {
 		const user = await this.userRepository.findOneBy({uid});
 		return user;
 	}
-
+	
 	async getUserByEmail(email: string) {
 		const user = await this.userRepository.findOneBy({email});
 		return user;
@@ -40,6 +37,12 @@ export class UserService {
 	async showUsers() {
 		const users = await this.userRepository.find({ relations: ["wonGames", "lostGames", "followers", "followings"] });
 		return users;
+	}
+
+	async setUserRefreshToken(user: User, refresh_token: string){
+		const userUpdate = user;
+		userUpdate.refreshToken = refresh_token;
+		await this.updateUser(userUpdate);
 	}
 
 	async setUserPw(user: User, pw: PasswordDto) {

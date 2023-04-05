@@ -6,6 +6,8 @@ import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { LocalAuthGuard } from 'src/auth/local/local-auth.guard';
 import { PasswordDto } from 'src/user/dto/PasswordDto';
 import { UserService } from 'src/user/user.service';
+import { Response } from 'express';
+import { Request } from 'express';
 
 @Controller('login')
 export class LoginController {
@@ -14,6 +16,8 @@ export class LoginController {
 		private userService: UserService,
 		) {
 	}
+
+
 
 	// intra sign in. redirect to /oath/callback.
 	@Get('/oauth')
@@ -24,13 +28,30 @@ export class LoginController {
 	// intraSignIn will return accessToken with 2fa redirection condition.
 	// frontend need to redirect user to 2fa auth page.
 	@Get('/oauth/callback')
-	async intraSignIn(@Query('code') code: string) {
+	async intraSignIn(@Res() res: Response, @Query('code') code: string) {
 		const user = await this.authService.intraSignIn(code);
-		const token = await this.authService.login(user);
+		const { access_token, refresh_token } = await this.authService.login(user);
+
+		await this.userService.setUserRefreshToken(user, refresh_token.refreshToken);
+		res.cookie('access_token', 
+			access_token, { 
+				httpOnly: true, 
+				sameSite: 'strict',
+				// secure: true //only https option
+			 });
 		if (user.twoFactorEnabled) {
-			return { ...token, redirect: true };
+			return { ...refresh_token, redirect: true };
 		}
-		return { ...token, redirect: false };
+		return res.json({ ...refresh_token, redirect: false });
+	}
+
+	// access_token expired => reissueance With Cookie(RefreshToken)
+	// IF refreshToken form is invalid or Expired => 400 BadRequestException(errMsg);
+	// IF refreshToken is valid But there is no Matching User => 401 Unauthorized
+	@Post('/oauth/refresh')
+	async refreshTokens(@Body('refreshToken') refresh_token: string) {
+		const refreshToken = refresh_token;
+		return await this.authService.refreshAccessTokenRefreshToken(refreshToken);
 	}
 
 	// login with email & password.
@@ -52,11 +73,6 @@ export class LoginController {
 		await this.userService.setUserPw(request.user, pw);
 	}
 
-	// for debug
-	@Get('/user')
-	showUsers() {
-		return this.userService.showUsers();
-	}
 
 	// When toggleTwoFactor returns qrcode, user should verify OTP code through /2fa/auth/confirm.
 	// Otherwise, user's twoFactorEnabled value does not change.
@@ -96,7 +112,7 @@ export class LoginController {
 	  if (!isCodeValid) {
 			throw new UnauthorizedException('Wrong authentication code');
 	  }
-	  return this.authService.loginWith2fa(request.user);
+	  return await this.authService.loginWith2fa(request.user);
 	}
 	
 	@Post('/follow')
@@ -121,5 +137,20 @@ export class LoginController {
 		}
 	}
 
-}
 
+
+	//For Debug Controller
+	@Post('/test')
+	@UseGuards(Jwt2faAuthGuard)
+	testFunc(): string{
+		return "success";
+	}
+
+	@Get('/user')
+	showUsers() {
+		return this.userService.showUsers();
+	}
+
+
+
+}

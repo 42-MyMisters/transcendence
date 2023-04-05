@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -27,4 +27,5 @@ import { UserFollow } from 'src/user/user-follow.entity';
 	controllers: [LoginController],
 	providers: [AuthService, UserService, JwtStrategy, Jwt2faStrategy, LocalStrategy]
 })
-export class LoginModule {}
+export class LoginModule{
+}
