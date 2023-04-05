@@ -7,7 +7,7 @@ export class User extends BaseEntity {
 	uid: number;
 
 	@Column({nullable: true})
-	password: string;
+	password: string | null;
 
 	@Column({ unique: true })
 	email: string;
@@ -16,7 +16,7 @@ export class User extends BaseEntity {
 	nickname: string;
 
 	@Column({nullable: true})
-	refreshToken: string;
+	refreshToken: string | null;
 
 	@Column()
 	profileUrl: string;
@@ -25,7 +25,7 @@ export class User extends BaseEntity {
 	twoFactorEnabled: boolean;
 
 	@Column({nullable: true})
-	twoFactorSecret: string;
+	twoFactorSecret: string | null;
 
 	static fromIntraUserDto(intraUserDto: IntraUserDto): User {
 		const user = new User();
