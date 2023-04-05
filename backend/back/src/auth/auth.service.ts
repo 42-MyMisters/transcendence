@@ -172,17 +172,14 @@ export class AuthService {
 
 		const payload = await this.verifyJwtToken(refreshToken);
 		const user = await this.userService.getUserById(payload.uid);
-		if (this.userService.isUserExist(user)) { // Maybe Need a wrapper function for not Exsisting user?
-			if (user.refreshToken === refreshToken){
+		if (this.userService.isUserExist(user) && user.refreshToken === refreshToken) { // Maybe Need a wrapper function for not Exsisting user?
 				const access_token = await this.genAccessToken(user, user.twoFactorEnabled);
 				return  { access_token };
-			}
-			else {
+		}
+		else {
 				const errMsg = 'The refresh token provided is invalid. Please log in again.';
 				Logger.error(errMsg);
 				throw new UnauthorizedException(errMsg);
-			}
-		} else
-			throw new UnauthorizedException(`user not found`);
+		}
 	  }
 }
