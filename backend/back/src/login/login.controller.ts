@@ -32,23 +32,26 @@ export class LoginController {
 		const user = await this.authService.intraSignIn(code);
 		const { access_token, refresh_token } = await this.authService.login(user);
 
-		this.userService.setUserRefreshToken(user, refresh_token.refreshToken);
-		
-		res.cookie('refresh_token', refresh_token, { httpOnly: true });
+		await this.userService.setUserRefreshToken(user, refresh_token.refreshToken);
+		res.cookie('access_token', 
+			access_token, { 
+				httpOnly: true, 
+				sameSite: 'strict',
+				// secure: true //only https option
+			 });
 		if (user.twoFactorEnabled) {
-			return { ...access_token, redirect: true };
+			return { ...refresh_token, redirect: true };
 		}
-		
-		return res.json({ ...access_token, redirect: false });
+		return res.json({ ...refresh_token, redirect: false });
 	}
 
 	// access_token expired => reissueance With Cookie(RefreshToken)
 	// IF refreshToken form is invalid or Expired => 400 BadRequestException(errMsg);
 	// IF refreshToken is valid But there is no Matching User => 401 Unauthorized
 	@Post('/oauth/refresh')
-	async refreshTokens(@Req() req: Request) {
-		const refreshToken = req.cookies.refresh_token;
-		return this.authService.refreshAccessTokenRefreshToken(refreshToken.refreshToken);
+	async refreshTokens(@Body('refreshToken') refresh_token: string) {
+		const refreshToken = refresh_token;
+		return await this.authService.refreshAccessTokenRefreshToken(refreshToken);
 	}
 
 	// login with email & password.
@@ -109,9 +112,8 @@ export class LoginController {
 	  if (!isCodeValid) {
 			throw new UnauthorizedException('Wrong authentication code');
 	  }
-	  return this.authService.loginWith2fa(request.user);
+	  return await this.authService.loginWith2fa(request.user);
 	}
-
 
 
 
