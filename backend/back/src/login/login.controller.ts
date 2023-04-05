@@ -48,7 +48,7 @@ export class LoginController {
 	@Post('/oauth/refresh')
 	async refreshTokens(@Req() req: Request) {
 		const refreshToken = req.cookies.refresh_token;
-		return this.authService.refreshAccessTokenWithRefreshToken(refreshToken.refreshToken);
+		return this.authService.refreshAccessTokenRefreshToken(refreshToken.refreshToken);
 	}
 
 	// login with email & password.
