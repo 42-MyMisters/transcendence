@@ -6,13 +6,10 @@ import { TokenPayload } from '../token-payload.entity';
 import config from 'config';
 
 @Injectable()
-export class Jwt2faStrategy extends PassportStrategy(Strategy, 'jwt-2fa') {
+export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
   constructor(private readonly userService: UserService) {
     super({
-      jwtFromRequest: ExtractJwt.fromExtractors([
-        (request) => request?.cookies?.access_token.accessToken,
-        ExtractJwt.fromAuthHeaderAsBearerToken(),
-      ]),
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: config.get<string>('jwt.secret'),
     });
   }

@@ -1,13 +1,13 @@
-import { Body, Controller, Get, HttpCode, Logger, Post, Query, Redirect, Req, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Post, Query, Redirect, Req, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import config from 'config';
+import { Response } from 'express';
 import { AuthService } from 'src/auth/auth.service';
 import { Jwt2faAuthGuard } from 'src/auth/jwt-2fa/jwt-2fa-auth.guard';
+import { JwtRefreshGuard } from 'src/auth/jwt-refresh/jwt-refresh-auth.guard';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { LocalAuthGuard } from 'src/auth/local/local-auth.guard';
 import { PasswordDto } from 'src/user/dto/PasswordDto';
 import { UserService } from 'src/user/user.service';
-import { Response } from 'express';
-import { Request } from 'express';
 
 @Controller('login')
 export class LoginController {
@@ -48,6 +48,7 @@ export class LoginController {
 	// access_token expired => reissueance With Cookie(RefreshToken)
 	// IF refreshToken form is invalid or Expired => 400 BadRequestException(errMsg);
 	// IF refreshToken is valid But there is no Matching User => 401 Unauthorized
+	@UseGuards(Jwt2faAuthGuard)
 	@Post('/oauth/refresh')
 	async refreshTokens(@Body('refreshToken') refresh_token: string) {
 		const refreshToken = refresh_token;
@@ -124,8 +125,10 @@ export class LoginController {
 		return "success";
 	}
 
+	@UseGuards(Jwt2faAuthGuard)
 	@Get('/user')
-	showUsers() {
+	showUsers(@Req() request) {
+		console.log(request);
 		return this.userService.showUsers();
 	}
 
