@@ -11,7 +11,7 @@ export default function PingPong() {
 
   return (
     <div className="QueueBackGround">
-      <canvas id="pong" width={1150} height={600}></canvas>
+      <canvas className="pong" width={1150} height={600}></canvas>
     </div>
   );
 }
