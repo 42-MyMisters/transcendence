@@ -20,7 +20,7 @@
   overflow: scroll;
 }
 
-input[type="text"] {
+.ChatAreaInput {
   position: absolute;
   left: 30px;
   bottom: 30px;

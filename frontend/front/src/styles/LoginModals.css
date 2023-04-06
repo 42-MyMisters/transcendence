@@ -40,7 +40,7 @@
   text-align: center;
 }
 
-input[type="text"] {
+.LoginModalInput {
   position: absolute;
   left: 120px;
   top: 310px;
