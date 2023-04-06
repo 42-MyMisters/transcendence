@@ -1,0 +1,167 @@
+.ProfilePageBG {
+  position: absolute;
+  left: 45px;
+  top: 180px;
+
+  width: 1350px;
+  height: 800px;
+  background: #d9d9d9;
+}
+.ProfileImage {
+  position: absolute;
+  left: 100px;
+  top: 95px;
+
+  width: 200px;
+  height: 200px;
+  border-radius: 100px;
+  background: #ffffff;
+}
+
+.ProfileNick {
+  position: absolute;
+  left: 350px;
+  top: 95px;
+
+  width: 270px;
+  height: 60px;
+
+  font-weight: 400;
+  font-size: 50px;
+  text-align: center;
+  color: #000000;
+}
+
+.ProfileOptions {
+  position: absolute;
+  left: 370px;
+  top: 175px;
+
+  width: 300px;
+  height: 150px;
+
+  font-weight: 400;
+  font-size: 30px;
+  color: #000000;
+}
+
+input[id="checkbox_TFA"] {
+  display: none;
+}
+
+input[id="checkbox_TFA"] + label {
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  border: 3px solid #707070;
+  position: absolute;
+  left: 70px;
+  top: 110px;
+  background: #ffffff;
+}
+
+input[id="checkbox_TFA"]:checked + label::before {
+  content: "✔";
+  font-size: 25px;
+  width: 30px;
+  height: 30px;
+  text-align: center;
+  color: #000000;
+  position: absolute;
+  left: 0px;
+  top: 0px;
+}
+
+.ProfileFriendFrame {
+  position: absolute;
+  left: 100px;
+  top: 345px;
+
+  width: 400px;
+  height: 400px;
+}
+
+.ProfileFriendTitle {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+
+  width: 150px;
+  height: 30px;
+
+  font-size: 30px;
+  font-weight: 400;
+
+  color: #000000;
+}
+
+.ProfileFriendBG {
+  position: absolute;
+  left: 0px;
+  top: 50px;
+
+  width: 400px;
+  height: 350px;
+
+  background: #959595;
+}
+
+.ProfileFriendList {
+  position: absolute;
+  left: 30px;
+  top: 30px;
+
+  width: 340px;
+  height: 290px;
+  overflow: scroll;
+}
+
+.ProfileMatchFrame {
+  position: absolute;
+  left: 700px;
+  top: 80px;
+}
+
+.ProfileMatchScore {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+
+  width: 430px;
+  height: 50px;
+
+  font-weight: 400;
+  font-size: 30px;
+}
+
+.ProfileMatchELO {
+  position: absolute;
+  left: 430px;
+  top: 0px;
+
+  width: 150px;
+  height: 50px;
+
+  font-weight: 400;
+  font-size: 30px;
+  text-align: right;
+}
+
+.ProfileMatchHistoryBG {
+  position: absolute;
+  left: 0px;
+  top: 65px;
+
+  width: 580px;
+  height: 600px;
+  background: #ffffff;
+}
+
+.ProfileMatchHistoryList {
+  position: absolute;
+  left: 15px;
+  top: 20px;
+
+  width: 550px;
+  height: 560px;
+}
