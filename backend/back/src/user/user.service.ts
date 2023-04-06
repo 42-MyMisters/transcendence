@@ -1,19 +1,21 @@
-import { Injectable, Logger, NotFoundException } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
-import { IntraUserDto } from "./dto/IntraUserDto";
-import { User } from "./user.entity";
+import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
 import * as bcrypt from 'bcrypt';
-import { PasswordDto } from "./dto/PasswordDto";
 import config from "config";
+import { Repository } from "typeorm";
+import { IntraUserDto } from "./dto/IntraUserDto";
+import { PasswordDto } from "./dto/PasswordDto";
+import { UserFollow } from "./user-follow.entity";
+import { User } from "./user.entity";
 
 @Injectable()
 export class UserService {
 	constructor(
 		@InjectRepository(User)
 		private userRepository: Repository<User>,
-		private jwtService: JwtService,
+
+		@InjectRepository(UserFollow)
+		private userFollowRepository: Repository<UserFollow>,
 	){}
 
 	async addNewUser(intraUserDto: IntraUserDto): Promise<User> {
@@ -33,7 +35,7 @@ export class UserService {
 	}
 	
 	async showUsers() {
-		const users = await this.userRepository.find();
+		const users = await this.userRepository.find({ relations: ["wonGames", "lostGames", "followers", "followings"] });
 		return users;
 	}
 
@@ -57,6 +59,32 @@ export class UserService {
 
 	isUserExist = (user: User | null): user is User => {
 		return user !== null;
+	}
+
+	async follow(curUser: User, userToFollow: User): Promise<void> {
+		await this.userFollowRepository.manager.transaction(async transactionalEntityManager => {
+			const existingFollowing = await transactionalEntityManager.findOne(UserFollow, { where : { fromUserId: curUser.uid, targetToFollowId: userToFollow.uid } });
+			if (existingFollowing) {
+				throw new Error('You are already following this user.');
+			}
+			
+			const follow = new UserFollow();
+			follow.fromUser = curUser;
+			follow.targetToFollow = userToFollow;
+			await transactionalEntityManager.save(follow);
+		});
+	}
+	
+	async unfollow(curUser: User, userToUnfollow: User): Promise<void> {
+		await this.userFollowRepository.manager.transaction(async transactionalEntityManager => {
+			const following = await transactionalEntityManager.findOne(UserFollow, { where : { fromUserId: curUser.uid, targetToFollowId: userToUnfollow.uid } });
+			if (!following) {
+				throw new Error('You are not following this user.');
+			}
+
+			await following.remove();
+		});
+
 	}
 
 }

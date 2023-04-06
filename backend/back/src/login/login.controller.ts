@@ -17,8 +17,6 @@ export class LoginController {
 		) {
 	}
 
-
-
 	// intra sign in. redirect to /oath/callback.
 	@Get('/oauth')
 	@Redirect('https://api.intra.42.fr/oauth/authorize?client_id=' + config.get<string>('intra.client_id') + '&redirect_uri=' + config.get<string>('intra.redirect_uri') + '&response_type=code', 302)
@@ -109,14 +107,34 @@ export class LoginController {
 	  const isCodeValid = await this.authService.isTwoFactorCodeValid(
 			body.twoFactorCode,
 			request.user,
-		);	
+			);	
 	  if (!isCodeValid) {
 			throw new UnauthorizedException('Wrong authentication code');
 	  }
 	  return await this.authService.loginWith2fa(request.user);
 	}
-
-
+	
+	@Post('/follow')
+	@UseGuards(JwtAuthGuard)
+	async follow(@Req() request, @Body() body){
+		const user = await this.userService.getUserByEmail(body.targetEmail);
+		if (this.userService.isUserExist(user)) {
+			await this.userService.follow(request.user, user);
+		} else {
+			throw new UnauthorizedException("User Not Found!");
+		}
+	}
+	
+	@Post('/unfollow')
+	@UseGuards(JwtAuthGuard)
+	async unfollow(@Req() request, @Body() body){
+		const user = await this.userService.getUserByEmail(body.targetEmail);
+		if (this.userService.isUserExist(user)) {
+			await this.userService.unfollow(request.user, user);
+		} else {
+			throw new UnauthorizedException("User Not Found!");
+		}
+	}
 
 	//For Debug Controller
 	@Post('/test')
@@ -131,7 +149,5 @@ export class LoginController {
 		console.log(request);
 		return this.userService.showUsers();
 	}
-
-
 
 }
