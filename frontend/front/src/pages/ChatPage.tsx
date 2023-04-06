@@ -1,14 +1,3 @@
-// import Navigator from "../components/Navigator";
-
-// export default function ChatPage() {
-//   return (
-//     <>
-//       <Navigator />
-//       <div>채팅페이지</div>
-//     </>
-//   );
-// }
-
 import BackGround from "../components/BackGround";
 import TopBar from "../components/TopBar";
 import ChatRoomList from "../components/ChatPage/ChatRoomList";
