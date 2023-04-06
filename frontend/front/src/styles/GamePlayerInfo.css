@@ -1,0 +1,124 @@
+.LeftWrap {
+  position: absolute;
+
+  top: 30px;
+  left: 30px;
+}
+
+.RightWrap {
+  position: absolute;
+
+  top: 30px;
+  left: 710px;
+}
+
+.PlayerWrap {
+  position: absolute;
+
+  width: 610px;
+  height: 670px;
+
+  background-color: lightcyan;
+}
+
+.PlayerNickName {
+  position: absolute;
+
+  left: 185px;
+
+  font-style: normal;
+  font-weight: 400;
+  font-size: 50px;
+  line-height: 61px;
+}
+
+.PlayerRecordBoard {
+  position: absolute;
+
+  top: 70px;
+
+  width: 610px;
+  height: 600px;
+
+  background-color: white;
+  overflow-y: scroll;
+}
+
+div::-webkit-scrollbar {
+  display: none;
+}
+
+.PlayerRecordWrap {
+  position: absolute;
+
+  top: 30px;
+  left: 30px;
+
+  width: 550px;
+  height: 30px;
+
+  background-color: darkseagreen;
+}
+
+/* Player Record Text */
+.LeftSideNickName {
+  position: absolute;
+
+  width: 200px;
+  height: 30px;
+
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 36px;
+}
+
+.LeftSideScore {
+  position: absolute;
+
+  height: 30px;
+  width: 50px;
+  left: 200px;
+
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 36px;
+}
+
+.RightSideNickName {
+  position: absolute;
+  left: 350px;
+  width: 200px;
+  height: 30px;
+
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 36px;
+
+  text-align: right;
+}
+
+.RightSideScore {
+  position: absolute;
+  height: 30px;
+  width: 50px;
+  left: 300px;
+
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 36px;
+
+  text-align: right;
+}
+
+.VSText {
+  position: absolute;
+  height: 30px;
+  width: 50px;
+  left: 250px;
+
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 36px;
+
+  text-align: center;
+}
