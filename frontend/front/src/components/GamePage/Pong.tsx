@@ -39,7 +39,7 @@ function drawText(
 ) {
   if (context) {
     context.fillStyle = color;
-    context.font = "75px fantasy";
+    context.font = "50px";
     context.fillText(text.toString(), x, y);
   }
 }

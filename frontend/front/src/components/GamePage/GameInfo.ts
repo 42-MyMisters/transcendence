@@ -33,6 +33,6 @@ export const net = {
 export const ball = {
   x: WIDTH / 2,
   y: HEIGHT / 2,
-  radius: 30,
+  radius: 15,
   color: "WHITE",
 };
