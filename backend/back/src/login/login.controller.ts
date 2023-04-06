@@ -4,11 +4,13 @@ import { AuthService } from 'src/auth/auth.service';
 import { Jwt2faAuthGuard } from 'src/auth/jwt-2fa/jwt-2fa-auth.guard';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { LocalAuthGuard } from 'src/auth/local/local-auth.guard';
-import { PasswordDto } from 'src/user/dto/PasswordDto';
+import { PasswordDto } from 'src/user/dto/Password.dto';
 import { UserService } from 'src/user/user.service';
 import { Response } from 'express';
 import { Request } from 'express';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @Controller('login')
 export class LoginController {
 	constructor(
@@ -24,7 +26,7 @@ export class LoginController {
 	@Redirect('https://api.intra.42.fr/oauth/authorize?client_id=' + config.get<string>('intra.client_id') + '&redirect_uri=' + config.get<string>('intra.redirect_uri') + '&response_type=code', 302)
 	intra(){
 	}
-	
+
 	// intraSignIn will return accessToken with 2fa redirection condition.
 	// frontend need to redirect user to 2fa auth page.
 	@Get('/oauth/callback')
@@ -33,9 +35,9 @@ export class LoginController {
 		const { access_token, refresh_token } = await this.authService.login(user);
 
 		await this.userService.setUserRefreshToken(user, refresh_token.refreshToken);
-		res.cookie('access_token', 
-			access_token, { 
-				httpOnly: true, 
+		res.cookie('access_token',
+			access_token, {
+				httpOnly: true,
 				sameSite: 'strict',
 				// secure: true //only https option
 			 });
@@ -108,7 +110,7 @@ export class LoginController {
 	  const isCodeValid = await this.authService.isTwoFactorCodeValid(
 			body.twoFactorCode,
 			request.user,
-		);	
+		);
 	  if (!isCodeValid) {
 			throw new UnauthorizedException('Wrong authentication code');
 	  }

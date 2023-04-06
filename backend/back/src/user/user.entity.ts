@@ -1,5 +1,5 @@
 import { BaseEntity, Column, Entity, PrimaryColumn } from "typeorm";
-import { IntraUserDto } from "./dto/IntraUserDto";
+import { IntraUserDto } from "./dto/IntraUser.dto";
 
 @Entity()
 export class User extends BaseEntity {

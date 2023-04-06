@@ -5,8 +5,8 @@ import { User } from 'src/user/user.entity';
 import { UserService } from 'src/user/user.service';
 import { toDataURL } from 'qrcode';
 import config from 'config';
-import { IntraTokenDto } from 'src/user/dto/IntraTokenDto';
-import { IntraUserDto } from 'src/user/dto/IntraUserDto';
+import { IntraTokenDto } from 'src/user/dto/IntraToken.dto';
+import { IntraUserDto } from 'src/user/dto/IntraUser.dto';
 import * as bcrypt from 'bcrypt';
 import { verify } from 'crypto';
 import { TokenPayload } from './token-payload.entity';
@@ -46,7 +46,7 @@ export class AuthService {
 
 		const params = new URLSearchParams();
 		params.set('grant_type', 'authorization_code');
-		params.set('client_id', clientId); 
+		params.set('client_id', clientId);
 		params.set('client_secret',clientSecret);
 		params.set('code', code);
 		params.set('redirect_uri',redirect_uri);
@@ -60,9 +60,9 @@ export class AuthService {
 		if (response.status < 200 || response.status >= 300) {
 			throw (`HTTP error! status: ${response.status}`);
 		}
-		return intraToken;	
+		return intraToken;
 	}
-	
+
 	async intraSignIn(code: string) {
 		const userToken = await this.getTokenFromIntra(code);
 		const userData = await this.getUserInfoFromIntra(userToken);
@@ -82,7 +82,7 @@ export class AuthService {
 		const otpAuthUrl = authenticator.keyuri(user.nickname, 'My Misters', secret);
 		return { secret, qr:await this.genQrCodeURL(otpAuthUrl) };
 	}
-	
+
 	async toggleTwoFactor(uid: number) {
 		const user = await this.userService.getUserById(uid);
 		if (this.userService.isUserExist(user)) {
@@ -152,7 +152,7 @@ export class AuthService {
 			twoFactorAuthenticated: twoFactor,
 		}
 		const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
-		return { refreshToken: refreshToken };	
+		return { refreshToken: refreshToken };
 	}
 
 
@@ -160,7 +160,7 @@ export class AuthService {
 		try{
 			const payload = await this.jwtService.verify(refreshToken);
 			return payload;
-		} 
+		}
 		catch (error) {
 			const errMsg = `Failed to verify the refresh token: ${String(error)}`;
 			Logger.error(errMsg);

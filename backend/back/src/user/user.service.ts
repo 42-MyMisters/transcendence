@@ -1,11 +1,11 @@
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
-import { IntraUserDto } from "./dto/IntraUserDto";
+import { IntraUserDto } from "./dto/IntraUser.dto";
 import { User } from "./user.entity";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import * as bcrypt from 'bcrypt';
-import { PasswordDto } from "./dto/PasswordDto";
+import { PasswordDto } from "./dto/Password.dto";
 import config from "config";
 
 @Injectable()
@@ -26,12 +26,12 @@ export class UserService {
 		const user = await this.userRepository.findOneBy({uid});
 		return user;
 	}
-	
+
 	async getUserByEmail(email: string) {
 		const user = await this.userRepository.findOneBy({email});
 		return user;
 	}
-	
+
 	async showUsers() {
 		const users = await this.userRepository.find();
 		return users;
