@@ -45,7 +45,7 @@ function drawText(
 }
 
 function drawNet(context: CanvasRenderingContext2D) {
-  for (let i = 0; i <= HEIGHT; i += 20) {
+  for (let i = 0; i <= HEIGHT; i += 40) {
     drawRect(net.x, net.y + i, net.width, net.height, net.color, context);
   }
 }

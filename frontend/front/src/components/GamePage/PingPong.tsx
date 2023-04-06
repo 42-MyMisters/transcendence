@@ -1,4 +1,5 @@
 import "../../styles/BackGround.css";
+import "../../styles/PingPong.css";
 
 import React, { useEffect } from "react";
 import { game } from "./Pong";

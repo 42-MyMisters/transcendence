@@ -7,18 +7,17 @@ export const START_Y = 0;
 export const me = {
   x: 0,
   y: START_Y,
-  width: 10,
-  height: 100,
+  width: 20,
+  height: 150,
   color: "WHITE",
   score: 0,
 };
 
 export const opponent = {
-  // const centerX = WIDTH / 2 + net.x;
-  x: WIDTH - 10,
-  y: START_Y + HEIGHT / 2 - 100 / 2,
-  width: 10,
-  height: 100,
+  x: WIDTH - 20,
+  y: START_Y + HEIGHT / 2 - 150 / 2,
+  width: 20,
+  height: 150,
   color: "WHITE",
   score: 0,
 };
@@ -34,6 +33,6 @@ export const net = {
 export const ball = {
   x: WIDTH / 2,
   y: HEIGHT / 2,
-  radius: 20,
+  radius: 30,
   color: "WHITE",
 };
