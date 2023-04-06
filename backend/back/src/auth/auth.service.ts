@@ -1,4 +1,4 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { authenticator } from 'otplib';
 import { User } from 'src/user/user.entity';
@@ -8,6 +8,8 @@ import config from 'config';
 import { IntraTokenDto } from 'src/user/dto/IntraTokenDto';
 import { IntraUserDto } from 'src/user/dto/IntraUserDto';
 import * as bcrypt from 'bcrypt';
+import { verify } from 'crypto';
+import { TokenPayload } from './token-payload.entity';
 
 @Injectable()
 export class AuthService {
@@ -70,6 +72,7 @@ export class AuthService {
 			const newUser = await this.userService.addNewUser(userData);
 			return newUser;
 		}
+		// TODO: refreshToken 이 이미 있는경우 처리
 		return curUser;
 	}
 
@@ -102,6 +105,9 @@ export class AuthService {
 	}
 
 	async isTwoFactorCodeValid(twoFactorCode: string, user: User) {
+		if (!user.twoFactorSecret) {
+			return false;
+		  }
 		return authenticator.verify({ token: twoFactorCode, secret: user.twoFactorSecret });
 	}
 
@@ -110,7 +116,9 @@ export class AuthService {
 	}
 
 	async login(userWithoutPw: Omit<User, 'password'>) {
-		return await this.genAccessToken(userWithoutPw, false);
+		const access_token = await this.genAccessToken(userWithoutPw, false);
+		const refresh_token = await this.genRefreshToken(userWithoutPw, false);
+		return {access_token, refresh_token};
 	}
 
   async validateUser(email: string, password: string) {
@@ -137,5 +145,41 @@ export class AuthService {
 		return { accessToken: this.jwtService.sign(payload) };
 	}
 
-}
+	async genRefreshToken(user: Omit<User, 'password'>, twoFactor: boolean) {
+		const payload = {
+			uid: user.uid,
+			twoFactorEnabled: user.twoFactorEnabled,
+			twoFactorAuthenticated: twoFactor,
+		}
+		const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+		return { refreshToken: refreshToken };	
+	}
 
+
+	async verifyJwtToken(refreshToken: string): Promise<TokenPayload> {
+		try{
+			const payload = await this.jwtService.verify(refreshToken);
+			return payload;
+		} 
+		catch (error) {
+			const errMsg = `Failed to verify the refresh token: ${String(error)}`;
+			Logger.error(errMsg);
+			throw new BadRequestException(errMsg);
+		}
+	}
+
+	async refreshAccessTokenRefreshToken(refreshToken: string) {
+
+		const payload = await this.verifyJwtToken(refreshToken);
+		const user = await this.userService.getUserById(payload.uid);
+		if (this.userService.isUserExist(user) && user.refreshToken === refreshToken) { // Maybe Need a wrapper function for not Exsisting user?
+				const access_token = await this.genAccessToken(user, user.twoFactorEnabled);
+				return  { access_token };
+		}
+		else {
+				const errMsg = 'The refresh token provided is invalid. Please log in again.';
+				Logger.error(errMsg);
+				throw new UnauthorizedException(errMsg);
+		}
+	  }
+}
