@@ -7,7 +7,7 @@ export default function ChatArea() {
         <div>Chat1</div>
         <div>Chat2</div>
       </div>
-      <input type="text"></input>
+      <input type="text" className="ChatAreaInput"></input>
       <div className="ChatDMImg" />
     </div>
   );
