@@ -1,6 +1,7 @@
 import "../../styles/BackGround.css";
 import "../../styles/GamePlayerInfo.css";
 import PlayerRecordBoard from "./PlayerRecordBoard";
+import CheckBox from "./CheckBox";
 
 export default function Waiting() {
   return (
@@ -17,6 +18,7 @@ export default function Waiting() {
           <PlayerRecordBoard />
         </div>
       </div>
+      <CheckBox />
     </div>
   );
 }
