@@ -1,0 +1,68 @@
+.RoomInviteModalBG {
+  position: absolute;
+
+  width: 1440px;
+  height: 1024px;
+
+  z-index: 998;
+  background-color: #ffffff;
+  opacity: 0.5;
+}
+
+.RoomInviteModal {
+  position: absolute;
+
+  height: 220px;
+  width: 460px;
+  left: 490px;
+  top: 432px;
+
+  z-index: 999;
+  background: #959595;
+}
+
+.InviteForm label {
+  position: absolute;
+
+  height: 50px;
+  width: 200px;
+  left: 30px;
+  top: 30px;
+
+  font-size: 30px;
+}
+
+.InviteForm input {
+  position: absolute;
+
+  height: 50px;
+  width: 400px;
+  left: 30px;
+  top: 80px;
+
+  font-size: 30px;
+}
+
+.Invite {
+  position: absolute;
+
+  height: 50px;
+  width: 180px;
+  left: 30px;
+  top: 150px;
+
+  font-size: 30px;
+  text-align: center;
+}
+
+.InviteCancel {
+  position: absolute;
+
+  height: 50px;
+  width: 180px;
+  left: 250px;
+  top: 150px;
+
+  font-size: 30px;
+  text-align: center;
+}
