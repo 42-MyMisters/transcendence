@@ -161,7 +161,7 @@ export class AuthService {
 			return payload;
 		} 
 		catch (error) {
-			const errMsg = `Failed to verify the refresh token: ${String(error)}`;
+			const errMsg = `Failed to verify the refresh token:  ${String(error)}`;
 			Logger.error(errMsg);
 			throw new BadRequestException(errMsg);
 		}

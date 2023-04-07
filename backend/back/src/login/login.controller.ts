@@ -31,6 +31,7 @@ export class LoginController {
 		const { access_token, refresh_token } = await this.authService.login(user);
 
 		await this.userService.setUserRefreshToken(user, refresh_token.refreshToken);
+		Logger.log(refresh_token.refreshToken);
 		res.cookie('access_token', 
 			access_token, { 
 				httpOnly: true, 
@@ -49,7 +50,7 @@ export class LoginController {
 	@UseGuards(JwtRefreshGuard)
 	@Post('/oauth/refresh')
 	async refreshAccessTokens(@Headers('authorization') refresh_token: string) {
-		const refreshToken = refresh_token;
+		const refreshToken = refresh_token.split(' ')[1];
 		return await this.authService.refreshAccessToken(refreshToken);
 	}
 
