@@ -17,13 +17,8 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
   async validate(payload: TokenPayload) {
     const user = await this.userService.getUserById(payload.uid);
     if (this.userService.isUserExist(user)) {
-      if (!user.twoFactorEnabled) {
         return user;
       }
-      if (payload.twoFactorAuthenticated) {
-        return user;
-      }
-    }
     throw new UnauthorizedException('User not found');
   }
 }

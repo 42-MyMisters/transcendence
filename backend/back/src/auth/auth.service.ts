@@ -167,7 +167,7 @@ export class AuthService {
 		}
 	}
 
-	async refreshAccessTokenRefreshToken(refreshToken: string) {
+	async refreshAccessToken(refreshToken: string) {
 		const payload = await this.verifyJwtToken(refreshToken);
 		const user = await this.userService.getUserById(payload.uid);
 		const isMatch = await bcrypt.compare(refreshToken, user?.refreshToken);

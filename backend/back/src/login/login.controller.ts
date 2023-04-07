@@ -48,9 +48,9 @@ export class LoginController {
 	// IF refreshToken is valid But there is no Matching User => 401 Unauthorized
 	@UseGuards(JwtRefreshGuard)
 	@Post('/oauth/refresh')
-	async refreshTokens(@Headers('authorization') refresh_token: string) {
+	async refreshAccessTokens(@Headers('authorization') refresh_token: string) {
 		const refreshToken = refresh_token;
-		return await this.authService.refreshAccessTokenRefreshToken(refreshToken);
+		return await this.authService.refreshAccessToken(refreshToken);
 	}
 
 	// login with email & password.
