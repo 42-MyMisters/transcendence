@@ -54,7 +54,13 @@ export class User extends BaseEntity {
 		return user;
 	}
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 >>>>>>> e9cf7af0 (MYM-51 [add] swagger dir && rename dto files)
+=======
+=======
+
+>>>>>>> ffb4a750b74b3de53c8c2f53819b4531a35b80a2
+>>>>>>> MYM-51-BE-swagger-advanced
 }
