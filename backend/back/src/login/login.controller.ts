@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Logger, Post, Query, Redirect, Req, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Post, Query, Redirect, Req, Res, UnauthorizedException, UseGuards, ValidationPipe, Headers } from '@nestjs/common';
 import config from 'config';
 import { Response } from 'express';
 import { AuthService } from 'src/auth/auth.service';
@@ -48,7 +48,7 @@ export class LoginController {
 	// IF refreshToken is valid But there is no Matching User => 401 Unauthorized
 	@UseGuards(JwtRefreshGuard)
 	@Post('/oauth/refresh')
-	async refreshTokens(@Body('refreshToken') refresh_token: string) {
+	async refreshTokens(@Headers('authorization') refresh_token: string) {
 		const refreshToken = refresh_token;
 		return await this.authService.refreshAccessTokenRefreshToken(refreshToken);
 	}

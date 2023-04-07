@@ -168,11 +168,10 @@ export class AuthService {
 	}
 
 	async refreshAccessTokenRefreshToken(refreshToken: string) {
-
 		const payload = await this.verifyJwtToken(refreshToken);
 		const user = await this.userService.getUserById(payload.uid);
 		const isMatch = await bcrypt.compare(refreshToken, user?.refreshToken);
-		if (this.userService.isUserExist(user) && isMatch) { // Maybe Need a wrapper function for not Exsisting user?
+		if (this.userService.isUserExist(user) && isMatch) {
 			const access_token = await this.genAccessToken(user, user.twoFactorEnabled);
 			return  { access_token };
 		}
