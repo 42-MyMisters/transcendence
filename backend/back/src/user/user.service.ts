@@ -28,12 +28,12 @@ export class UserService {
 		const user = await this.userRepository.findOneBy({uid});
 		return user;
 	}
-	
+
 	async getUserByEmail(email: string) {
 		const user = await this.userRepository.findOneBy({email});
 		return user;
 	}
-	
+
 	async showUsers() {
 		const users = await this.userRepository.find({ relations: ["wonGames", "lostGames", "followers", "followings"] });
 		return users;
@@ -61,25 +61,29 @@ export class UserService {
 		return user !== null;
 	}
 
+<<<<<<< HEAD
 	async follow(curUser: User, userToFollow: User): Promise<void> {
 		const existingFollowing = await this.userFollowRepository.findOne({ where : { fromUserId: curUser.uid, targetToFollowId: userToFollow.uid } });
 		if (existingFollowing) {
 			throw new Error('You are already following this user.');
 		}
-		
+
 		const follow = new UserFollow();
 		follow.fromUser = curUser;
 		follow.targetToFollow = userToFollow;
 		await this.userFollowRepository.save(follow);
 	}
-	
+
 	async unfollow(curUser: User, userToUnfollow: User): Promise<void> {
 		const existingFollowing = await this.userFollowRepository.findOne({ where : { fromUserId: curUser.uid, targetToFollowId: userToUnfollow.uid } });
 		if (!existingFollowing) {
 			throw new Error('You are not following this user.');
 		}
-	
+
 		await this.userFollowRepository.remove(existingFollowing);
 	}
 
 }
+=======
+}
+>>>>>>> e9cf7af0 (MYM-51 [add] swagger dir && rename dto files)

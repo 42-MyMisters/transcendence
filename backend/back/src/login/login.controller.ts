@@ -5,9 +5,10 @@ import { AuthService } from 'src/auth/auth.service';
 import { Jwt2faAuthGuard } from 'src/auth/jwt-2fa/jwt-2fa-auth.guard';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { LocalAuthGuard } from 'src/auth/local/local-auth.guard';
-import { PasswordDto } from 'src/user/dto/PasswordDto';
+import { PasswordDto } from 'src/user/dto/Password.dto';
 import { UserService } from 'src/user/user.service';
 
+@ApiBearerAuth()
 @Controller('login')
 export class LoginController {
 	constructor(
@@ -21,7 +22,7 @@ export class LoginController {
 	@Redirect('https://api.intra.42.fr/oauth/authorize?client_id=' + config.get<string>('intra.client_id') + '&redirect_uri=' + config.get<string>('intra.redirect_uri') + '&response_type=code', 302)
 	intra(){
 	}
-	
+
 	// intraSignIn will return accessToken with 2fa redirection condition.
 	// frontend need to redirect user to 2fa auth page.
 	@Get('/oauth/callback')
@@ -30,9 +31,9 @@ export class LoginController {
 		const { access_token, refresh_token } = await this.authService.login(user);
 
 		await this.userService.setUserRefreshToken(user, refresh_token.refreshToken);
-		res.cookie('access_token', 
-			access_token, { 
-				httpOnly: true, 
+		res.cookie('access_token',
+			access_token, {
+				httpOnly: true,
 				sameSite: 'strict',
 				// secure: true //only https option
 			 });
@@ -105,13 +106,17 @@ export class LoginController {
 	  const isCodeValid = await this.authService.isTwoFactorCodeValid(
 			body.twoFactorCode,
 			request.user,
-			);	
+<<<<<<< HEAD
+			);
+=======
+		);
+>>>>>>> e9cf7af0 (MYM-51 [add] swagger dir && rename dto files)
 	  if (!isCodeValid) {
 			throw new UnauthorizedException('Wrong authentication code');
 	  }
 	  return await this.authService.loginWith2fa(request.user);
 	}
-	
+
 	@Post('/follow')
 	@UseGuards(JwtAuthGuard)
 	async follow(@Req() request, @Body() body){
@@ -122,7 +127,7 @@ export class LoginController {
 			throw new UnauthorizedException("User Not Found!");
 		}
 	}
-	
+
 	@Post('/unfollow')
 	@UseGuards(JwtAuthGuard)
 	async unfollow(@Req() request, @Body() body){

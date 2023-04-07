@@ -31,10 +31,10 @@ export class User extends BaseEntity {
 
 	@OneToMany(type => UserFollow, follower => follower.fromUser, { lazy: true })
 	followers: UserFollow[];
-  
+
 	@OneToMany(type => UserFollow, following => following.targetToFollow, { lazy: true })
 	followings: UserFollow[];
-	
+
 	@OneToMany(type => Game, games => games.winner, { lazy: true })
 	wonGames: Game[];
 
@@ -53,5 +53,8 @@ export class User extends BaseEntity {
 		user.twoFactorEnabled = false;
 		return user;
 	}
+<<<<<<< HEAD
 
+=======
+>>>>>>> e9cf7af0 (MYM-51 [add] swagger dir && rename dto files)
 }
