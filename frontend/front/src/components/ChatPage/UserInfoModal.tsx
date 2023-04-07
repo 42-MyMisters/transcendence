@@ -1,11 +1,11 @@
+import { useAtom } from "jotai";
+import { userInfoModalAtom } from "../../components/atom/ModalAtom";
+
 import { IoCloseOutline } from "react-icons/io5";
 import "../../styles/UserInfoModal.css";
 
-type Props = {
-  setUserInfoModal: (isShow: boolean) => void;
-};
-
-export default function UserInfoModal({ setUserInfoModal }: Props) {
+export default function UserInfoModal() {
+  const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
   return (
     <>
       <div className="UserInfoModalBG"></div>

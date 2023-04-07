@@ -1,10 +1,11 @@
+import { useAtom } from "jotai";
+import { roomModalAtom } from "../atom/ModalAtom";
+
 import "../../styles/RoomModal.css";
 
-type Props = {
-  setRoomModal: (isShow: boolean) => void;
-};
+export default function RoomModal() {
+  const [roomModal, setRoomModal] = useAtom(roomModalAtom);
 
-export default function RoomModal({ setRoomModal }: Props) {
   return (
     <>
       <div className="RoomModalBG"></div>

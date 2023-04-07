@@ -1,10 +1,11 @@
+import { useAtom } from "jotai";
+import { inviteModalAtom } from "../../components/atom/ModalAtom";
+
 import "../../styles/RoomInviteModal.css";
 
-type Props = {
-  setInviteModal: (isShow: boolean) => void;
-};
+export default function RoomInviteModal() {
+  const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);
 
-export default function RoomInviteModal({ setInviteModal }: Props) {
   return (
     <>
       <div className="RoomInviteModalBG"></div>

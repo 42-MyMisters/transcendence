@@ -1,11 +1,13 @@
+import { useAtom } from "jotai";
+import { inviteModalAtom } from "../../components/atom/ModalAtom";
+import { userInfoModalAtom } from "../../components/atom/ModalAtom";
+
 import "../../styles/ChatRoomUserList.css";
 
-type Props = {
-  setUserInfoModal: (isShow: boolean) => void;
-  setInviteModal: (isShow: boolean) => void;
-};
+export default function ChatRoomUserList() {
+  const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);
+  const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
 
-export default function ChatRoomUserList({ setUserInfoModal, setInviteModal }: Props) {
   return (
     <div className="ChatRoomUserListBG">
       <div className="ChatRoomNameTxt">RoomName</div>
