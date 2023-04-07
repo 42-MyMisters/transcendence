@@ -21,6 +21,26 @@
   background: #959595;
 }
 
+.PrivacyChecker input {
+  position: absolute;
+
+  height: 20px;
+  width: 20px;
+  left: 301px;
+  top: 40px;
+}
+
+.PrivacyChecker label {
+  position: absolute;
+
+  height: 50px;
+  width: 100px;
+  left: 331px;
+  top: 35px;
+
+  font-size: 30px;
+}
+
 .RoomNameForm label {
   position: absolute;
 
