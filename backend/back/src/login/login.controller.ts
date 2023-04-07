@@ -46,7 +46,7 @@ export class LoginController {
 	// access_token expired => reissueance With Cookie(RefreshToken)
 	// IF refreshToken form is invalid or Expired => 400 BadRequestException(errMsg);
 	// IF refreshToken is valid But there is no Matching User => 401 Unauthorized
-	@UseGuards(Jwt2faAuthGuard)
+	@UseGuards(JwtRefreshGuard)
 	@Post('/oauth/refresh')
 	async refreshTokens(@Body('refreshToken') refresh_token: string) {
 		const refreshToken = refresh_token;
