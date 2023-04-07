@@ -3,7 +3,7 @@ import { AuthService } from 'src/auth/auth.service';
 import { Jwt2faAuthGuard } from 'src/auth/jwt-2fa/jwt-2fa-auth.guard';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { UserService } from 'src/user/user.service';
-import { PasswordDto } from './dto/PasswordDto';
+import { PasswordDto } from './dto/Password.dto';
 
 @Controller('user')
 export class UserController {
@@ -12,7 +12,7 @@ export class UserController {
 		private userService: UserService,
 		) {
 	}
-	
+
 	// When toggleTwoFactor returns qrcode, user should verify OTP code through /2fa/auth/confirm.
 	// Otherwise, user's twoFactorEnabled value does not change.
 	@Get('/2fa/toggle')
@@ -65,7 +65,7 @@ export class UserController {
 			throw new UnauthorizedException("User Not Found!");
 		}
 	}
-	
+
 	@Post('/unfollow')
 	@UseGuards(JwtAuthGuard)
 	async unfollow(@Req() request, @Body() body){
