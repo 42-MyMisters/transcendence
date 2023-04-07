@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Logger, Post, Query, Redirect, Req, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, InternalServerErrorException, Logger, Post, Query, Redirect, Req, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import config from 'config';
 import { Response } from 'express';
 import { AuthService } from 'src/auth/auth.service';
@@ -7,6 +7,7 @@ import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { LocalAuthGuard } from 'src/auth/local/local-auth.guard';
 import { PasswordDto } from 'src/user/dto/PasswordDto';
 import { UserService } from 'src/user/user.service';
+import * as path from 'path';
 
 @Controller('login')
 export class LoginController {
@@ -140,10 +141,40 @@ export class LoginController {
 	testFunc(): string{
 		return "success";
 	}
-
+	
 	@Get('/user')
 	showUsers() {
 		return this.userService.showUsers();
 	}
 
+	@Get('/profile-img-change')
+	@UseGuards(Jwt2faAuthGuard)
+	uploadPage(@Res() res: Response) {
+		const filePath = path.join(__dirname, 'upload.html');
+    res.sendFile(filePath);
+	}
+
+	@Post('/profile-img-chagne')
+	@UseGuards(Jwt2faAuthGuard)
+	async changeProfileImg(@Req() request, @Body() body) {
+		if (this.userService.isUserExist(request.user)) {
+			const imgServerUrl = 'https://localhost:5000/profile-image';
+			try {
+				const response = await fetch(imgServerUrl, {
+					method: 'POST',
+					body: body,
+				});
+				if (response.status != 200) {
+					throw (`HTTP error! status: ${response.status}`);
+				}
+				const { imgUrl } = await response.json();
+				this.userService.changeProfileImgUrl(request.user, imgUrl);
+			}
+			catch (e) {
+				throw new InternalServerErrorException("image upload failed.");
+			}
+		}
+		return "success";
+	}
+	
 }

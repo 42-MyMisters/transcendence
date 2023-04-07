@@ -25,18 +25,33 @@ services:
       postgres:
         condition: service_healthy
 
-  frontend:
-    container_name: frontend
+  # frontend:
+  #   container_name: frontend
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: ./Dockerfile
+  #   restart: always
+  #   volumes:
+  #     - type: bind
+  #       source: ./frontend
+  #       target: /data
+  #   ports:
+  #     - "3000:3000"
+  #   env_file:
+  #     - ./config/.env
+
+  img_serv:
+    container_name: img_serv
     build:
-      context: ./frontend
+      context: ./img_serv
       dockerfile: ./Dockerfile
     restart: always
     volumes:
       - type: bind
-        source: ./frontend
+        source: ./img_serv
         target: /data
     ports:
-      - "3000:3000"
+      - "5000:5000"
     env_file:
       - ./config/.env
 
@@ -63,21 +78,19 @@ services:
       retries: 5
       start_period: 10s
 
-  pgadmin:
-    container_name: pgadmin
-    image: dpage/pgadmin4:latest
-    restart: always
-    ports:
-      - "80:80"
-    env_file:
-      - ./config/.pgadmin.env
-    networks:
-      nw-db: {}
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-        
+  # pgadmin:
+  #   container_name: pgadmin
+  #   image: dpage/pgadmin4:latest
+  #   restart: always
+  #   ports:
+  #     - "80:80"
+  #   env_file:
+  #     - ./config/.pgadmin.env
+  #   networks:
+  #     nw-db: {}
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
 # volumes:
 #   v_react:
 #     driver: local

@@ -57,6 +57,11 @@ export class UserService {
 		await this.userRepository.save(userUpdate);
 	}
 
+	async changeProfileImgUrl(user: User, img_url: string): Promise<void> {
+		user.profileUrl = img_url;
+		await this.userRepository.save(user);
+	}
+
 	isUserExist = (user: User | null): user is User => {
 		return user !== null;
 	}
