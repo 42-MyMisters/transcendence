@@ -1,0 +1,143 @@
+.UserInfoModalBG {
+  position: absolute;
+
+  width: 1440px;
+  height: 1024px;
+
+  z-index: 998;
+  background-color: #ffffff;
+  opacity: 0.5;
+}
+
+.UserInfoModal {
+  position: absolute;
+
+  height: 400px;
+  width: 700px;
+  left: 350px;
+  bottom: 292px;
+
+  z-index: 999;
+  background: #959595;
+}
+
+.NickName {
+  position: absolute;
+
+  height: 60px;
+  width: 270px;
+  left: 320px;
+  top: 50px;
+
+  font-size: 50px;
+}
+
+.ProfileImg {
+  position: absolute;
+
+  height: 200px;
+  width: 200px;
+  border-radius: 100px;
+  left: 50px;
+  top: 50px;
+
+  background: #ffffff;
+}
+
+.CloseBtn {
+  position: absolute;
+  height: 50px;
+  width: 50px;
+  right: 20px;
+  top: 20px;
+
+  font-size: 50px;
+}
+
+.follow {
+  position: absolute;
+
+  height: 30px;
+  width: 150px;
+  left: 320px;
+  top: 160px;
+
+  font-size: 30px;
+}
+
+.invite {
+  position: absolute;
+
+  height: 30px;
+  width: 150px;
+  left: 320px;
+  top: 210px;
+
+  font-size: 30px;
+}
+
+.ignore {
+  position: absolute;
+
+  height: 30px;
+  width: 150px;
+  left: 320px;
+  top: 260px;
+
+  font-size: 30px;
+}
+
+.profile {
+  position: absolute;
+
+  height: 30px;
+  width: 150px;
+  left: 320px;
+  top: 310px;
+
+  font-size: 30px;
+}
+
+.kick {
+  position: absolute;
+
+  height: 30px;
+  width: 150px;
+  left: 490px;
+  top: 160px;
+
+  font-size: 30px;
+}
+
+.ban {
+  position: absolute;
+
+  height: 30px;
+  width: 150px;
+  left: 490px;
+  top: 210px;
+
+  font-size: 30px;
+}
+
+.mute {
+  position: absolute;
+
+  height: 30px;
+  width: 150px;
+  left: 490px;
+  top: 260px;
+
+  font-size: 30px;
+}
+
+.manager {
+  position: absolute;
+
+  height: 30px;
+  width: 150px;
+  left: 490px;
+  top: 310px;
+
+  font-size: 30px;
+}

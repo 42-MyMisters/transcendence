@@ -52,12 +52,14 @@
 
 .ChatUserList {
   position: absolute;
+
   left: 20px;
   top: 594px;
 }
 
 .ChatUsers {
   position: absolute;
+
   left: 30px;
   top: 100px;
 
