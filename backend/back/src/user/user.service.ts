@@ -62,29 +62,24 @@ export class UserService {
 	}
 
 	async follow(curUser: User, userToFollow: User): Promise<void> {
-		await this.userFollowRepository.manager.transaction(async transactionalEntityManager => {
-			const existingFollowing = await transactionalEntityManager.findOne(UserFollow, { where : { fromUserId: curUser.uid, targetToFollowId: userToFollow.uid } });
-			if (existingFollowing) {
-				throw new Error('You are already following this user.');
-			}
-			
-			const follow = new UserFollow();
-			follow.fromUser = curUser;
-			follow.targetToFollow = userToFollow;
-			await transactionalEntityManager.save(follow);
-		});
+		const existingFollowing = await this.userFollowRepository.findOne({ where : { fromUserId: curUser.uid, targetToFollowId: userToFollow.uid } });
+		if (existingFollowing) {
+			throw new Error('You are already following this user.');
+		}
+		
+		const follow = new UserFollow();
+		follow.fromUser = curUser;
+		follow.targetToFollow = userToFollow;
+		await this.userFollowRepository.save(follow);
 	}
 	
 	async unfollow(curUser: User, userToUnfollow: User): Promise<void> {
-		await this.userFollowRepository.manager.transaction(async transactionalEntityManager => {
-			const following = await transactionalEntityManager.findOne(UserFollow, { where : { fromUserId: curUser.uid, targetToFollowId: userToUnfollow.uid } });
-			if (!following) {
-				throw new Error('You are not following this user.');
-			}
-
-			await following.remove();
-		});
-
+		const existingFollowing = await this.userFollowRepository.findOne({ where : { fromUserId: curUser.uid, targetToFollowId: userToUnfollow.uid } });
+		if (!existingFollowing) {
+			throw new Error('You are not following this user.');
+		}
+	
+		await this.userFollowRepository.remove(existingFollowing);
 	}
 
 }
