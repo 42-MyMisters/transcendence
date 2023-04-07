@@ -35,13 +35,11 @@ export class LoginController {
 	@Get('/oauth')
 	@swagger.ApiOperation({
 		summary: '42 OAuth를 이용한 로그인 시도',
-		description:
-			"Client를 42 OAuth로 리디렉트하여 인증 시도. 로그인에 성공하면 'code' query를 가지고 /login/oauth/callback으로 리디렉트.",
+		description: "Client를 42 OAuth로 리디렉트하여 인증 시도. 로그인에 성공하면 'code' query를 가지고 /login/oauth/callback으로 리디렉트.",
 	})
 	@swagger.ApiResponse({
 		status: 302,
-		description:
-			'42 OAuth로 리디렉션 후, 로그인 시 /login/oauth/callback으로 리디렉션',
+		description: '42 OAuth로 리디렉션 후, 로그인 시 /login/oauth/callback으로 리디렉션',
 	})
 	@Redirect(
 		'https://api.intra.42.fr/oauth/authorize?client_id=' +
@@ -51,16 +49,13 @@ export class LoginController {
 		'&response_type=code',
 		302,
 	)
-	intra() {
-		//empty
-	}
+	intra() { }
 
 	// frontend need to redirect user to 2fa auth page.
 	@Get('/oauth/callback')
 	@swagger.ApiOperation({
 		summary: '42 OAuth 로그인 콜백',
-		description:
-			'42 OAuth 로그인 콜백. 로그인에 성공하면 access_token을 쿠키에 담고, refreshToken과 2fa 식별자(리디렉트 용)를 리턴.',
+		description: '42 OAuth 로그인 콜백. 로그인에 성공하면 access_token을 쿠키에 담고, refreshToken과 2fa 식별자(리디렉트 용)를 리턴.',
 		parameters: [
 			{
 				name: 'code',
@@ -85,26 +80,18 @@ export class LoginController {
 				},
 			},
 			example: {
-				refreshToken:
-					'1NiIsInR5c6IkpXVCJ9.eyJ1axjoxNjgxNDcyOTA3fQ.24Dlhpwbv75GXMireozDpzVA',
+				refreshToken: '1NiIsInR5c6IkpXVCJ9.eyJ1axjoxNjgxNDcyOTA3fQ.24Dlhpwbv75GXMireozDpzVA',
 				redirect: false,
 			},
 		},
 	})
 	@swagger.ApiUnauthorizedResponse({ description: "bad 'code'" })
-	@swagger.ApiInternalServerErrorResponse({
-		description: 'Intra server error try later or Using Id, Password',
-	})
+	@swagger.ApiInternalServerErrorResponse({ description: 'Intra server error try later or Using Id, Password' })
 	async intraSignIn(@Res() res: Response, @Query('code') code: string) {
 		const user = await this.authService.intraSignIn(code);
-		const { access_token, refresh_token } = await this.authService.login(
-			user,
-		);
+		const { access_token, refresh_token } = await this.authService.login( user );
 
-		await this.userService.setUserRefreshToken(
-			user,
-			refresh_token.refreshToken,
-		);
+		await this.userService.setUserRefreshToken( user, refresh_token.refreshToken );
 		res.cookie('accessToken', access_token, { // NOTE : 이전 쿠키에 계속 쌓임
 			httpOnly: true,
 			sameSite: 'strict',
@@ -119,8 +106,7 @@ export class LoginController {
 	@Post('/oauth/refresh')
 	@swagger.ApiOperation({
 		summary: 'Refresh Token을 이용한 Access Token 재발급',
-		description:
-			'Refresh Token을 이용한 Access Token 재발급. Refresh Token이 유효하지 않거나 만료되면 400, 유효하지만 해당 유저가 없으면 401을 리턴.',
+		description: 'Refresh Token을 이용한 Access Token 재발급. Refresh Token이 유효하지 않거나 만료되면 400, 유효하지만 해당 유저가 없으면 401을 리턴.',
 	})
 	@swagger.ApiBody({
 		schema: {
@@ -131,8 +117,7 @@ export class LoginController {
 				},
 			},
 			example: {
-				refreshToken:
-					'1NiIsInR5c6IkpXVCJ9.eyJ1axjoxNjgxNDcyOTA3fQ.24Dlhpwbv75GXMireozDpzVA',
+				refreshToken: '1NiIsInR5c6IkpXVCJ9.eyJ1axjoxNjgxNDcyOTA3fQ.24Dlhpwbv75GXMireozDpzVA',
 			},
 		},
 	})
@@ -147,22 +132,15 @@ export class LoginController {
 				},
 			},
 			example: {
-				accessToken:
-					'1NiIsInR5c6IkpXVCJ9.eyJ1axjoxNjgxNDcyOTA3fQ.24Dlhpwbv75GXMireozDpzVA',
+				accessToken: '1NiIsInR5c6IkpXVCJ9.eyJ1axjoxNjgxNDcyOTA3fQ.24Dlhpwbv75GXMireozDpzVA',
 			},
 		},
 	})
-	@swagger.ApiBadRequestResponse({
-		description: 'Refresh Token이 유효하지 않거나 만료되었을 때',
-	})
-	@swagger.ApiUnauthorizedResponse({
-		description: 'Refresh Token이 유효하지만 해당 유저가 없을 때',
-	})
+	@swagger.ApiBadRequestResponse({ description: 'Refresh Token이 유효하지 않거나 만료되었을 때' })
+	@swagger.ApiUnauthorizedResponse({ description: 'Refresh Token이 유효하지만 해당 유저가 없을 때' })
 	async refreshTokens(@Body('refreshToken') refresh_token: string) {
 		const refreshToken = refresh_token;
-		return await this.authService.refreshAccessTokenRefreshToken(
-			refreshToken,
-		);
+		return await this.authService.refreshAccessTokenRefreshToken( refreshToken );
 	}
 
 	// login with email & password.
