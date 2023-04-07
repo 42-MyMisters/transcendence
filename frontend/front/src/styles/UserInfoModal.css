@@ -1,18 +1,15 @@
-.NickNameModalBG {
+.UserInfoModalBG {
   position: absolute;
 
   width: 1440px;
   height: 1024px;
 
-  left: -20px;
-  top: -594px;
-
-  z-index: 999;
+  z-index: 998;
   background-color: #ffffff;
   opacity: 0.5;
 }
 
-.NickNameModal {
+.UserInfoModal {
   position: absolute;
 
   height: 400px;
@@ -20,7 +17,6 @@
   left: 350px;
   bottom: 292px;
 
-  /* 최상단 */
   z-index: 999;
   background: #959595;
 }

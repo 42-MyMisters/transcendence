@@ -1,0 +1,89 @@
+.RoomModalBG {
+  position: absolute;
+
+  width: 1440px;
+  height: 1024px;
+
+  z-index: 998;
+  background-color: #ffffff;
+  opacity: 0.5;
+}
+
+.RoomModal {
+  position: absolute;
+
+  height: 380px;
+  width: 460px;
+  left: 490px;
+  top: 372px;
+
+  z-index: 999;
+  background: #959595;
+}
+
+.RoomNameForm label {
+  position: absolute;
+
+  height: 50px;
+  width: 200px;
+  left: 30px;
+  top: 30px;
+
+  font-size: 30px;
+}
+
+.RoomNameForm input {
+  position: absolute;
+
+  height: 50px;
+  width: 400px;
+  left: 30px;
+  top: 80px;
+
+  font-size: 30px;
+}
+
+.PasswordFrom label {
+  position: absolute;
+
+  height: 50px;
+  width: 200px;
+  left: 30px;
+  top: 150px;
+
+  font-size: 30px;
+}
+
+.PasswordFrom input {
+  position: absolute;
+  height: 50px;
+  width: 400px;
+  left: 30px;
+  top: 200px;
+
+  font-size: 30px;
+}
+
+.Accept {
+  position: absolute;
+
+  height: 50px;
+  width: 180px;
+  left: 31px;
+  top: 300px;
+
+  font-size: 30px;
+  text-align: center;
+}
+
+.Cancel {
+  position: absolute;
+
+  height: 50px;
+  width: 180px;
+  left: 251px;
+  top: 300px;
+
+  font-size: 30px;
+  text-align: center;
+}
