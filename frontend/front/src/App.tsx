@@ -20,7 +20,6 @@ export default function App() {
               <Route path="/chat" element={<ChatPage />}></Route>
               <Route path="/game" element={<GamePage />}></Route>
               <Route path="/profile" element={<ProfilePage />}></Route>
-              <Route path="/notfound" element={<NotFoundPage />}></Route>
               <Route path="/" element={<LoginPage />}></Route>
               <Route path="*" element={<NotFoundPage />}></Route>
             </Routes>
