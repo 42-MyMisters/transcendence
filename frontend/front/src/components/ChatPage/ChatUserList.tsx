@@ -7,7 +7,6 @@ export default function ChatUserList() {
       <div className="ChatListTxt">User List</div>
       <div className="ChatUsers">
         <div>USER1</div>
-        <div>USER2</div>
       </div>
     </div>
   );
