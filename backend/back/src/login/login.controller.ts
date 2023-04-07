@@ -1,14 +1,18 @@
-import { Body, Controller, Get, HttpCode, Logger, Post, Query, Redirect, Req, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Post, Query, Redirect, Req, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import config from 'config';
+import { Response } from 'express';
 import { AuthService } from 'src/auth/auth.service';
 import { Jwt2faAuthGuard } from 'src/auth/jwt-2fa/jwt-2fa-auth.guard';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { LocalAuthGuard } from 'src/auth/local/local-auth.guard';
 import { PasswordDto } from 'src/user/dto/Password.dto';
 import { UserService } from 'src/user/user.service';
+<<<<<<< HEAD
 import { Response } from 'express';
 import { Request } from 'express';
 import { ApiBearerAuth } from '@nestjs/swagger';
+=======
+>>>>>>> ffb4a750b74b3de53c8c2f53819b4531a35b80a2
 
 @ApiBearerAuth()
 @Controller('login')
@@ -18,8 +22,6 @@ export class LoginController {
 		private userService: UserService,
 		) {
 	}
-
-
 
 	// intra sign in. redirect to /oath/callback.
 	@Get('/oauth')
@@ -110,14 +112,38 @@ export class LoginController {
 	  const isCodeValid = await this.authService.isTwoFactorCodeValid(
 			body.twoFactorCode,
 			request.user,
+<<<<<<< HEAD
 		);
+=======
+			);	
+>>>>>>> ffb4a750b74b3de53c8c2f53819b4531a35b80a2
 	  if (!isCodeValid) {
 			throw new UnauthorizedException('Wrong authentication code');
 	  }
 	  return await this.authService.loginWith2fa(request.user);
 	}
-
-
+	
+	@Post('/follow')
+	@UseGuards(JwtAuthGuard)
+	async follow(@Req() request, @Body() body){
+		const user = await this.userService.getUserByEmail(body.targetEmail);
+		if (this.userService.isUserExist(user)) {
+			await this.userService.follow(request.user, user);
+		} else {
+			throw new UnauthorizedException("User Not Found!");
+		}
+	}
+	
+	@Post('/unfollow')
+	@UseGuards(JwtAuthGuard)
+	async unfollow(@Req() request, @Body() body){
+		const user = await this.userService.getUserByEmail(body.targetEmail);
+		if (this.userService.isUserExist(user)) {
+			await this.userService.unfollow(request.user, user);
+		} else {
+			throw new UnauthorizedException("User Not Found!");
+		}
+	}
 
 	//For Debug Controller
 	@Post('/test')
@@ -130,7 +156,5 @@ export class LoginController {
 	showUsers() {
 		return this.userService.showUsers();
 	}
-
-
 
 }

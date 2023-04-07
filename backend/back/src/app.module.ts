@@ -7,8 +7,8 @@ import { LoginModule } from './login/login.module';
 
 @Module({
   imports: [
-	TypeOrmModule.forRoot(typeORMConfig),
-	LoginModule,
+		TypeOrmModule.forRoot(typeORMConfig),
+		LoginModule,
 	],
 	controllers: [AppController],
 	providers: [AppService],

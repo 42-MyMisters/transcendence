@@ -1,26 +1,25 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import config from 'config';
-import { LoginController } from './login.controller';
-import { UserService } from '../user/user.service';
-import { User } from '../user/user.entity';
 import { AuthService } from 'src/auth/auth.service';
-import { JwtStrategy } from 'src/auth/jwt/jwt.strategy';
 import { Jwt2faStrategy } from 'src/auth/jwt-2fa/jwt-2fa.strategy';
+import { JwtStrategy } from 'src/auth/jwt/jwt.strategy';
 import { LocalStrategy } from 'src/auth/local/local.strategy';
-
-
-const jwtConfig : any = config.get('jwt');
+import { UserFollow } from 'src/user/user-follow.entity';
+import { User } from '../user/user.entity';
+import { UserService } from '../user/user.service';
+import { LoginController } from './login.controller';
 
 @Module({
 	imports: [
 		TypeOrmModule.forFeature([User]),
+		TypeOrmModule.forFeature([UserFollow]),
 		JwtModule.register({
-			secret: jwtConfig.secret,
+			secret: config.get<string>('jwt.secret'),
 			signOptions: {
-				expiresIn: jwtConfig.expiresIn,
+				expiresIn: config.get<string>('jwt.expiresIn'),
 			}
 		}),
 		PassportModule.register({ defaultStrategy: 'jwt'}),

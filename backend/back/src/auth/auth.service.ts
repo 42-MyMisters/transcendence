@@ -1,14 +1,20 @@
 import { BadRequestException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { authenticator } from 'otplib';
-import { User } from 'src/user/user.entity';
-import { UserService } from 'src/user/user.service';
-import { toDataURL } from 'qrcode';
+import * as bcrypt from 'bcrypt';
 import config from 'config';
+<<<<<<< HEAD
 import { IntraTokenDto } from 'src/user/dto/IntraToken.dto';
 import { IntraUserDto } from 'src/user/dto/IntraUser.dto';
 import * as bcrypt from 'bcrypt';
 import { verify } from 'crypto';
+=======
+import { authenticator } from 'otplib';
+import { toDataURL } from 'qrcode';
+import { IntraTokenDto } from 'src/user/dto/IntraTokenDto';
+import { IntraUserDto } from 'src/user/dto/IntraUserDto';
+import { User } from 'src/user/user.entity';
+import { UserService } from 'src/user/user.service';
+>>>>>>> ffb4a750b74b3de53c8c2f53819b4531a35b80a2
 import { TokenPayload } from './token-payload.entity';
 
 @Injectable()

@@ -1,19 +1,32 @@
+<<<<<<< HEAD
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { IntraUserDto } from "./dto/IntraUser.dto";
 import { User } from "./user.entity";
+=======
+import { Injectable } from "@nestjs/common";
+>>>>>>> ffb4a750b74b3de53c8c2f53819b4531a35b80a2
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
 import * as bcrypt from 'bcrypt';
+<<<<<<< HEAD
 import { PasswordDto } from "./dto/Password.dto";
+=======
+>>>>>>> ffb4a750b74b3de53c8c2f53819b4531a35b80a2
 import config from "config";
+import { Repository } from "typeorm";
+import { IntraUserDto } from "./dto/IntraUserDto";
+import { PasswordDto } from "./dto/PasswordDto";
+import { UserFollow } from "./user-follow.entity";
+import { User } from "./user.entity";
 
 @Injectable()
 export class UserService {
 	constructor(
 		@InjectRepository(User)
 		private userRepository: Repository<User>,
-		private jwtService: JwtService,
+
+		@InjectRepository(UserFollow)
+		private userFollowRepository: Repository<UserFollow>,
 	){}
 
 	async addNewUser(intraUserDto: IntraUserDto): Promise<User> {
@@ -33,7 +46,7 @@ export class UserService {
 	}
 
 	async showUsers() {
-		const users = await this.userRepository.find();
+		const users = await this.userRepository.find({ relations: ["wonGames", "lostGames", "followers", "followings"] });
 		return users;
 	}
 
@@ -59,4 +72,29 @@ export class UserService {
 		return user !== null;
 	}
 
+<<<<<<< HEAD
 }
+=======
+	async follow(curUser: User, userToFollow: User): Promise<void> {
+		const existingFollowing = await this.userFollowRepository.findOne({ where : { fromUserId: curUser.uid, targetToFollowId: userToFollow.uid } });
+		if (existingFollowing) {
+			throw new Error('You are already following this user.');
+		}
+		
+		const follow = new UserFollow();
+		follow.fromUser = curUser;
+		follow.targetToFollow = userToFollow;
+		await this.userFollowRepository.save(follow);
+	}
+	
+	async unfollow(curUser: User, userToUnfollow: User): Promise<void> {
+		const existingFollowing = await this.userFollowRepository.findOne({ where : { fromUserId: curUser.uid, targetToFollowId: userToUnfollow.uid } });
+		if (!existingFollowing) {
+			throw new Error('You are not following this user.');
+		}
+	
+		await this.userFollowRepository.remove(existingFollowing);
+	}
+
+}
+>>>>>>> ffb4a750b74b3de53c8c2f53819b4531a35b80a2
