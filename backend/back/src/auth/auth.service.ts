@@ -141,7 +141,7 @@ export class AuthService {
 			twoFactorEnabled: user.twoFactorEnabled,
 			twoFactorAuthenticated: twoFactor,
 		}
-		return { accessToken: this.jwtService.sign(payload, { expiresIn: 10}) };
+		return { accessToken: this.jwtService.sign(payload) };
 	}
 
 	async genRefreshToken(user: Omit<User, 'password'>, twoFactor: boolean) {
