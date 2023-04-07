@@ -4,8 +4,10 @@ import { Jwt2faAuthGuard } from 'src/auth/jwt-2fa/jwt-2fa-auth.guard';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { UserService } from 'src/user/user.service';
 import { PasswordDto } from './dto/Password.dto';
+import { ApiTags, ApiOperation, ApiResponse, ApiOkResponse } from '@nestjs/swagger';
 
 @Controller('user')
+@ApiTags('user')
 export class UserController {
 	constructor(
 		private authService: AuthService,

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import config from 'config';
@@ -33,7 +33,7 @@ export class AuthService {
 			return intraUserInfo;
 		}
 		catch (error) {
-			throw new Error('Failed to fetch user information from Intra');
+			throw new InternalServerErrorException('Intra Sever Error, Try again later or using ID and password');
 		}
 	}
 
@@ -57,7 +57,7 @@ export class AuthService {
 
 		const intraToken : IntraTokenDto = await response.json();
 		if (response.status < 200 || response.status >= 300) {
-			throw (`HTTP error! status: ${response.status}`);
+			throw new UnauthorizedException("Bad code from clients");
 		}
 		return intraToken;
 	}

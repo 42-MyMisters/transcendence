@@ -3,8 +3,8 @@ import { InjectRepository } from "@nestjs/typeorm";
 import * as bcrypt from 'bcrypt';
 import config from "config";
 import { Repository } from "typeorm";
-import { IntraUserDto } from "./dto/IntraUserDto";
-import { PasswordDto } from "./dto/PasswordDto";
+import { IntraUserDto } from "./dto/IntraUser.dto";
+import { PasswordDto } from "./dto/Password.dto";
 import { UserFollow } from "./user-follow.entity";
 import { User } from "./user.entity";
 
@@ -61,12 +61,6 @@ export class UserService {
 		return user !== null;
 	}
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-}
-=======
->>>>>>> MYM-51-BE-swagger-advanced
 	async follow(curUser: User, userToFollow: User): Promise<void> {
 		const existingFollowing = await this.userFollowRepository.findOne({ where : { fromUserId: curUser.uid, targetToFollowId: userToFollow.uid } });
 		if (existingFollowing) {
@@ -89,10 +83,3 @@ export class UserService {
 	}
 
 }
-<<<<<<< HEAD
-=======
-}
->>>>>>> e9cf7af0 (MYM-51 [add] swagger dir && rename dto files)
-=======
->>>>>>> ffb4a750b74b3de53c8c2f53819b4531a35b80a2
->>>>>>> MYM-51-BE-swagger-advanced

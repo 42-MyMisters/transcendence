@@ -6,7 +6,7 @@ export function setSwagger(app: INestApplication): void {
     .setTitle('My Misters API')
     .setDescription('Backend API description')
     .setVersion('1.0')
-    .addTag('backend')
+    // .addTag('backend')
     .addBearerAuth()
     .addOAuth2()
     .build();

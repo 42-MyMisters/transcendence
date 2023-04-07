@@ -7,9 +7,11 @@ import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { LocalAuthGuard } from 'src/auth/local/local-auth.guard';
 import { PasswordDto } from 'src/user/dto/Password.dto';
 import { UserService } from 'src/user/user.service';
+import * as swagger from '@nestjs/swagger';
 
-@ApiBearerAuth()
 @Controller('login')
+@swagger.ApiTags('Login')
+// @swagger.ApiBearerAuth() // TODO : when this is needed? (only try some route with bearer token?)
 export class LoginController {
 	constructor(
 		private authService: AuthService,
@@ -17,8 +19,16 @@ export class LoginController {
 		) {
 	}
 
-	// intra sign in. redirect to /oath/callback.
 	@Get('/oauth')
+	@swagger.ApiOperation({
+		summary: "42 OAuth를 이용한 로그인 시도",
+		description: "Client를 42 OAuth로 리디렉트하여 인증 시도. 로그인에 성공하면 'code' query를 가지고 /login/oauth/callback으로 리디렉트.",
+		tags: ["42 OAuth", "Login"],
+	})
+	@swagger.ApiResponse({
+		status: 302,
+		description: '42 OAuth로 리디렉션 + /login/oauth/callback으로 리디렉션',
+	})
 	@Redirect('https://api.intra.42.fr/oauth/authorize?client_id=' + config.get<string>('intra.client_id') + '&redirect_uri=' + config.get<string>('intra.redirect_uri') + '&response_type=code', 302)
 	intra(){
 	}
@@ -26,6 +36,28 @@ export class LoginController {
 	// intraSignIn will return accessToken with 2fa redirection condition.
 	// frontend need to redirect user to 2fa auth page.
 	@Get('/oauth/callback')
+	@swagger.ApiOperation({
+		summary: "42 OAuth 로그인 콜백",
+		description: "42 OAuth 로그인 콜백. 로그인에 성공하면 access_token을 쿠키에 담고, refresh_token과 2fa 식별자(리디렉트 용)를 리턴.",
+	})
+	@swagger.ApiOkResponse({
+		description: 'ok' ,
+		schema: {
+			type: 'object',
+			properties: {
+				refresh_Token: {
+					type: 'string',
+					description: "refresh_token"
+				},
+				redirect: {
+					type: 'boolean',
+					description: "2fa 인증이 필요한 경우 true, 아닌 경우 false"
+				},
+			}
+		}
+	})
+	@swagger.ApiUnauthorizedResponse({ description: 'bad \'code\'' })
+	@swagger.ApiInternalServerErrorResponse({ description: 'Intra server error try later or Using Id, Password' })
 	async intraSignIn(@Res() res: Response, @Query('code') code: string) {
 		const user = await this.authService.intraSignIn(code);
 		const { access_token, refresh_token } = await this.authService.login(user);
@@ -36,7 +68,7 @@ export class LoginController {
 				httpOnly: true,
 				sameSite: 'strict',
 				// secure: true //only https option
-			 });
+			});
 		if (user.twoFactorEnabled) {
 			return { ...refresh_token, redirect: true };
 		}
@@ -106,18 +138,7 @@ export class LoginController {
 	  const isCodeValid = await this.authService.isTwoFactorCodeValid(
 			body.twoFactorCode,
 			request.user,
-<<<<<<< HEAD
-<<<<<<< HEAD
 			);
-=======
-		);
->>>>>>> e9cf7af0 (MYM-51 [add] swagger dir && rename dto files)
-=======
-		);
-=======
-			);
->>>>>>> ffb4a750b74b3de53c8c2f53819b4531a35b80a2
->>>>>>> MYM-51-BE-swagger-advanced
 	  if (!isCodeValid) {
 			throw new UnauthorizedException('Wrong authentication code');
 	  }
