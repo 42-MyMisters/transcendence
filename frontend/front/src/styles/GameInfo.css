@@ -1,0 +1,36 @@
+input {
+  width: 20px;
+  height: 20px;
+}
+
+.CheckBox1 {
+  position: absolute;
+
+  left: -30px;
+  top: 5px;
+}
+
+.GameMode1 {
+  position: absolute;
+
+  font-size: 30px;
+
+  left: 60px;
+  top: 730px;
+}
+
+.CheckBox2 {
+  position: absolute;
+
+  left: -30px;
+  top: 5px;
+}
+
+.GameMode2 {
+  position: absolute;
+
+  font-size: 30px;
+
+  left: 335px;
+  top: 730px;
+}
