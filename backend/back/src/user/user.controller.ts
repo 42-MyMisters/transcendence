@@ -4,15 +4,15 @@ import { Jwt2faAuthGuard } from 'src/auth/jwt-2fa/jwt-2fa-auth.guard';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { UserService } from 'src/user/user.service';
 import { PasswordDto } from './dto/Password.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiOkResponse } from '@nestjs/swagger';
+import * as swagger from '@nestjs/swagger';
 
 @Controller('user')
-@ApiTags('user')
+@swagger.ApiTags('user')
 export class UserController {
 	constructor(
 		private authService: AuthService,
 		private userService: UserService,
-		) {
+	) {
 	}
 
 	// When toggleTwoFactor returns qrcode, user should verify OTP code through /2fa/auth/confirm.
@@ -27,18 +27,18 @@ export class UserController {
 	@UseGuards(JwtAuthGuard)
 	async authConfirm(@Req() request, @Body() body) {
 		Logger.log('2fa toggle confirm');
-	  const isCodeValid = await this.authService.isTwoFactorCodeValid(
+		const isCodeValid = await this.authService.isTwoFactorCodeValid(
 			body.twoFactorCode,
 			request.user,
-			);
-	  if (!isCodeValid) {
+		);
+		if (!isCodeValid) {
 			Logger.log('2fa confirmation failed. try again.');
 			throw new UnauthorizedException('Wrong authentication code');
-	  }
+		}
 		const user = request.user;
 		user.twoFactorEnabled = true;
 		await this.userService.updateUser(user);
-	  return await this.authService.loginWith2fa(request.user);
+		return await this.authService.loginWith2fa(request.user);
 	}
 
 	// set user pw
@@ -46,7 +46,7 @@ export class UserController {
 	@UseGuards(Jwt2faAuthGuard)
 	async setPw(
 		@Req() request,
-		@Body(ValidationPipe) pw:PasswordDto,
+		@Body(ValidationPipe) pw: PasswordDto,
 	) {
 		await this.userService.setUserPw(request.user, pw);
 	}
@@ -59,7 +59,7 @@ export class UserController {
 
 	@Post('/follow')
 	@UseGuards(JwtAuthGuard)
-	async follow(@Req() request, @Body() body){
+	async follow(@Req() request, @Body() body) {
 		const user = await this.userService.getUserByEmail(body.targetEmail);
 		if (this.userService.isUserExist(user)) {
 			await this.userService.follow(request.user, user);
@@ -70,7 +70,7 @@ export class UserController {
 
 	@Post('/unfollow')
 	@UseGuards(JwtAuthGuard)
-	async unfollow(@Req() request, @Body() body){
+	async unfollow(@Req() request, @Body() body) {
 		const user = await this.userService.getUserByEmail(body.targetEmail);
 		if (this.userService.isUserExist(user)) {
 			await this.userService.unfollow(request.user, user);
