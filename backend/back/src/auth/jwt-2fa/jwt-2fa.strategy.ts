@@ -9,9 +9,13 @@ import config from 'config';
 export class Jwt2faStrategy extends PassportStrategy(Strategy, 'jwt-2fa') {
   constructor(private readonly userService: UserService) {
     super({
-      jwtFromRequest: ExtractJwt.fromExtractors([
-        (request) => request?.cookies?.access_token.accessToken,
-        ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([	
+              (request) => {
+        if (request?.cookies?.access_token?.accessToken) {
+          return request.cookies.access_token.accessToken;
+        }
+        return null;
+      },
       ]),
       secretOrKey: config.get<string>('jwt.secret'),
     });
