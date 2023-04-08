@@ -11,6 +11,7 @@ import { UserFollow } from 'src/user/user-follow.entity';
 import { User } from '../user/user.entity';
 import { UserService } from '../user/user.service';
 import { LoginController } from './login.controller';
+import { JwtRefreshStrategy } from 'src/auth/jwt-refresh/jwt-refresh.strategy';
 
 @Module({
 	imports: [
@@ -25,7 +26,7 @@ import { LoginController } from './login.controller';
 		PassportModule.register({ defaultStrategy: 'jwt'}),
 	],
 	controllers: [LoginController],
-	providers: [AuthService, UserService, JwtStrategy, Jwt2faStrategy, LocalStrategy]
+	providers: [AuthService, UserService, JwtStrategy, Jwt2faStrategy, LocalStrategy, JwtRefreshStrategy]
 })
 export class LoginModule{
 }

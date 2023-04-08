@@ -1,21 +1,9 @@
-import {
-	Body,
-	Controller,
-	Get,
-	Logger,
-	Post,
-	Query,
-	Redirect,
-	Req,
-	Res,
-	UnauthorizedException,
-	UseGuards,
-	ValidationPipe,
-} from '@nestjs/common';
+import { Body, Controller, Get, Logger, Post, Query, Redirect, Req, Res, UnauthorizedException, UseGuards, ValidationPipe, Headers } from '@nestjs/common';
 import config from 'config';
 import { Response } from 'express';
 import { AuthService } from 'src/auth/auth.service';
 import { Jwt2faAuthGuard } from 'src/auth/jwt-2fa/jwt-2fa-auth.guard';
+import { JwtRefreshGuard } from 'src/auth/jwt-refresh/jwt-refresh-auth.guard';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { LocalAuthGuard } from 'src/auth/local/local-auth.guard';
 import { PasswordDto } from 'src/user/dto/Password.dto';
@@ -89,14 +77,15 @@ export class LoginController {
 	@swagger.ApiInternalServerErrorResponse({ description: 'Intra server error try later or Using Id, Password' })
 	async intraSignIn(@Res() res: Response, @Query('code') code: string) {
 		const user = await this.authService.intraSignIn(code);
-		const { access_token, refresh_token } = await this.authService.login( user );
+		const { access_token, refresh_token } = await this.authService.login(user);
 
-		await this.userService.setUserRefreshToken( user, refresh_token.refreshToken );
-		res.cookie('accessToken', access_token, { // NOTE : 이전 쿠키에 계속 쌓임
-			httpOnly: true,
-			sameSite: 'strict',
-			// secure: true //only https option
-		});
+		await this.userService.setUserRefreshToken(user, refresh_token.refreshToken);
+		res.cookie('accessToken', access_token,
+			{
+				httpOnly: true,
+				sameSite: 'strict',
+				// secure: true //only https option
+			});
 		if (user.twoFactorEnabled) {
 			return { ...refresh_token, redirect: true };
 		}
@@ -104,6 +93,7 @@ export class LoginController {
 	}
 
 	@Post('/oauth/refresh')
+	@UseGuards(JwtRefreshGuard)
 	@swagger.ApiOperation({
 		summary: 'Refresh Token을 이용한 Access Token 재발급',
 		description: 'Refresh Token을 이용한 Access Token 재발급. Refresh Token이 유효하지 않거나 만료되면 400, 유효하지만 해당 유저가 없으면 401을 리턴.',
@@ -138,9 +128,9 @@ export class LoginController {
 	})
 	@swagger.ApiBadRequestResponse({ description: 'Refresh Token이 유효하지 않거나 만료되었을 때' })
 	@swagger.ApiUnauthorizedResponse({ description: 'Refresh Token이 유효하지만 해당 유저가 없을 때' })
-	async refreshTokens(@Body('refreshToken') refresh_token: string) {
-		const refreshToken = refresh_token;
-		return await this.authService.refreshAccessTokenRefreshToken( refreshToken );
+	async refreshAccessTokens(@Headers('authorization') refresh_token: string) {
+		const refreshToken = refresh_token.split(' ')[1];
+		return await this.authService.refreshAccessToken(refreshToken);
 	}
 
 	// login with email & password.
@@ -229,8 +219,10 @@ export class LoginController {
 		return 'success';
 	}
 
+	@UseGuards(Jwt2faAuthGuard)
 	@Get('/user')
-	showUsers() {
+	showUsers(@Req() request) {
+		console.log(request);
 		return this.userService.showUsers();
 	}
 }
