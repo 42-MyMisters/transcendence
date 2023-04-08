@@ -41,7 +41,7 @@ export class UserService {
 
 	async setUserRefreshToken(user: User, refresh_token: string){
 		const userUpdate = user;
-		userUpdate.refreshToken = refresh_token;
+		userUpdate.refreshToken = await bcrypt.hash(refresh_token, config.get<number>('hash.password.saltOrRounds'));
 		await this.updateUser(userUpdate);
 	}
 

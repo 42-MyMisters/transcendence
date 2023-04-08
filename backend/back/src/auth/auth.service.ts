@@ -1,7 +1,5 @@
 import { BadRequestException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
-import config from 'config';
 import { authenticator } from 'otplib';
 import { toDataURL } from 'qrcode';
 import { IntraTokenDto } from 'src/user/dto/IntraTokenDto';
@@ -9,6 +7,8 @@ import { IntraUserDto } from 'src/user/dto/IntraUserDto';
 import { User } from 'src/user/user.entity';
 import { UserService } from 'src/user/user.service';
 import { TokenPayload } from './token-payload.entity';
+import * as bcrypt from 'bcrypt';
+import config from 'config';
 
 @Injectable()
 export class AuthService {
@@ -161,24 +161,24 @@ export class AuthService {
 			return payload;
 		} 
 		catch (error) {
-			const errMsg = `Failed to verify the refresh token: ${String(error)}`;
+			const errMsg = `Failed to verify the refresh token:  ${String(error)}`;
 			Logger.error(errMsg);
 			throw new BadRequestException(errMsg);
 		}
 	}
 
-	async refreshAccessTokenRefreshToken(refreshToken: string) {
-
+	async refreshAccessToken(refreshToken: string) {
 		const payload = await this.verifyJwtToken(refreshToken);
 		const user = await this.userService.getUserById(payload.uid);
-		if (this.userService.isUserExist(user) && user.refreshToken === refreshToken) { // Maybe Need a wrapper function for not Exsisting user?
-				const access_token = await this.genAccessToken(user, user.twoFactorEnabled);
-				return  { access_token };
+		const isMatch = await bcrypt.compare(refreshToken, user?.refreshToken);
+		if (this.userService.isUserExist(user) && isMatch) {
+			const access_token = await this.genAccessToken(user, user.twoFactorEnabled);
+			return  { access_token };
 		}
 		else {
-				const errMsg = 'The refresh token provided is invalid. Please log in again.';
-				Logger.error(errMsg);
-				throw new UnauthorizedException(errMsg);
+			const errMsg = 'The refresh token provided is invalid. Please log in again.';
+			Logger.error(errMsg);
+			throw new UnauthorizedException(errMsg);
 		}
 	  }
 }

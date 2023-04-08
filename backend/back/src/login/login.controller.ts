@@ -1,8 +1,9 @@
-import { Body, Controller, Get, Logger, Post, Query, Redirect, Req, Res, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Post, Query, Redirect, Req, Res, UnauthorizedException, UseGuards, ValidationPipe, Headers } from '@nestjs/common';
 import config from 'config';
 import { Response } from 'express';
 import { AuthService } from 'src/auth/auth.service';
 import { Jwt2faAuthGuard } from 'src/auth/jwt-2fa/jwt-2fa-auth.guard';
+import { JwtRefreshGuard } from 'src/auth/jwt-refresh/jwt-refresh-auth.guard';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { LocalAuthGuard } from 'src/auth/local/local-auth.guard';
 import { PasswordDto } from 'src/user/dto/PasswordDto';
@@ -30,6 +31,7 @@ export class LoginController {
 		const { access_token, refresh_token } = await this.authService.login(user);
 
 		await this.userService.setUserRefreshToken(user, refresh_token.refreshToken);
+		Logger.log(refresh_token.refreshToken);
 		res.cookie('access_token', 
 			access_token, { 
 				httpOnly: true, 
@@ -45,10 +47,11 @@ export class LoginController {
 	// access_token expired => reissueance With Cookie(RefreshToken)
 	// IF refreshToken form is invalid or Expired => 400 BadRequestException(errMsg);
 	// IF refreshToken is valid But there is no Matching User => 401 Unauthorized
+	@UseGuards(JwtRefreshGuard)
 	@Post('/oauth/refresh')
-	async refreshTokens(@Body('refreshToken') refresh_token: string) {
-		const refreshToken = refresh_token;
-		return await this.authService.refreshAccessTokenRefreshToken(refreshToken);
+	async refreshAccessTokens(@Headers('authorization') refresh_token: string) {
+		const refreshToken = refresh_token.split(' ')[1];
+		return await this.authService.refreshAccessToken(refreshToken);
 	}
 
 	// login with email & password.
@@ -141,8 +144,10 @@ export class LoginController {
 		return "success";
 	}
 
+	@UseGuards(Jwt2faAuthGuard)
 	@Get('/user')
-	showUsers() {
+	showUsers(@Req() request) {
+		console.log(request);
 		return this.userService.showUsers();
 	}
 
