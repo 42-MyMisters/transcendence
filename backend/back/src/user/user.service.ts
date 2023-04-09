@@ -3,8 +3,8 @@ import { InjectRepository } from "@nestjs/typeorm";
 import * as bcrypt from 'bcrypt';
 import config from "config";
 import { Repository } from "typeorm";
-import { IntraUserDto } from "./dto/IntraUserDto";
-import { PasswordDto } from "./dto/PasswordDto";
+import { IntraUserDto } from "./dto/IntraUser.dto";
+import { PasswordDto } from "./dto/Password.dto";
 import { UserFollow } from "./user-follow.entity";
 import { User } from "./user.entity";
 
@@ -28,12 +28,12 @@ export class UserService {
 		const user = await this.userRepository.findOneBy({uid});
 		return user;
 	}
-	
+
 	async getUserByEmail(email: string) {
 		const user = await this.userRepository.findOneBy({email});
 		return user;
 	}
-	
+
 	async showUsers() {
 		const users = await this.userRepository.find({ relations: ["wonGames", "lostGames", "followers", "followings"] });
 		return users;
@@ -66,19 +66,19 @@ export class UserService {
 		if (existingFollowing) {
 			throw new Error('You are already following this user.');
 		}
-		
+
 		const follow = new UserFollow();
 		follow.fromUser = curUser;
 		follow.targetToFollow = userToFollow;
 		await this.userFollowRepository.save(follow);
 	}
-	
+
 	async unfollow(curUser: User, userToUnfollow: User): Promise<void> {
 		const existingFollowing = await this.userFollowRepository.findOne({ where : { fromUserId: curUser.uid, targetToFollowId: userToUnfollow.uid } });
 		if (!existingFollowing) {
 			throw new Error('You are not following this user.');
 		}
-	
+
 		await this.userFollowRepository.remove(existingFollowing);
 	}
 
