@@ -27,13 +27,15 @@ export class AuthService {
 				},
 			});
 			if (response.status < 200 || response.status >= 300) {
-				throw (`HTTP error! status: ${response.status}`);
+				Logger.error('Intra Error');
+				throw new BadRequestException(`HTTP error! status: ${response.status}`);
 			}
 			const intraUserInfo: IntraUserDto = await response.json();
 			return intraUserInfo;
 		}
 		catch (error) {
-			throw new Error('Failed to fetch user information from Intra');
+			Logger.error('Intra Error');
+			throw new BadRequestException('Failed to fetch user information from Intra');
 		}
 	}
 
@@ -56,8 +58,9 @@ export class AuthService {
 		});
 
 		const intraToken : IntraTokenDto = await response.json();
+		Logger.log('noterr');
 		if (response.status < 200 || response.status >= 300) {
-			throw (`HTTP error! status: ${response.status}`);
+			throw new BadRequestException(`HTTP error! status: ${response.status}`);
 		}
 		return intraToken;	
 	}
@@ -119,6 +122,9 @@ export class AuthService {
 		const refresh_token = await this.genRefreshToken(userWithoutPw, false);
 		return {access_token, refresh_token};
 	}
+	async logout(user: User){
+		return await this.userService.deleteRefreshToken(user.uid);
+	}
 
   async validateUser(email: string, password: string) {
 		const user = await this.userService.getUserByEmail(email);
@@ -141,7 +147,7 @@ export class AuthService {
 			twoFactorEnabled: user.twoFactorEnabled,
 			twoFactorAuthenticated: twoFactor,
 		}
-		return { accessToken: this.jwtService.sign(payload) };
+		return await this.jwtService.sign(payload);
 	}
 
 	async genRefreshToken(user: Omit<User, 'password'>, twoFactor: boolean) {
@@ -150,10 +156,9 @@ export class AuthService {
 			twoFactorEnabled: user.twoFactorEnabled,
 			twoFactorAuthenticated: twoFactor,
 		}
-		const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+		const refreshToken = await this.jwtService.sign(payload, { expiresIn: '7d' });
 		return { refreshToken: refreshToken };	
 	}
-
 
 	async verifyJwtToken(refreshToken: string): Promise<TokenPayload> {
 		try{
