@@ -9,8 +9,8 @@ import TFAModal from "../components/LoginPage/TwoFactorAuth";
 export default function LoginPage() {
   return (
     <BackGround>
-      {/* <SignInModal /> */}
-      <TFAModal />
+      <SignInModal />
+      {/* <TFAModal /> */}
       {/* <InitialSettingModal /> */}
     </BackGround>
   );

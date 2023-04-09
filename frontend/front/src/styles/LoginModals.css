@@ -9,7 +9,7 @@
   background: #d9d9d9;
 }
 
-.LoginTxts {
+.LoginTxt {
   position: absolute;
   left: 120px;
   top: 130px;
@@ -23,7 +23,7 @@
   text-align: center;
 }
 
-.LoginBtns {
+.LoginBtn {
   position: absolute;
   left: 120px;
   bottom: 90px;
