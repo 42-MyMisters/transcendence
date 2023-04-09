@@ -43,6 +43,20 @@ export class LoginController {
 		}
 		return res.json({ ...refresh_token, redirect: false });
 	}
+	// For Test
+	@Get('/signout')
+	@UseGuards(Jwt2faAuthGuard)
+	async red(@Req() request){
+		this.logout(request);
+	}
+
+	@Post('/signout')
+	@UseGuards(Jwt2faAuthGuard)
+	async logout(@Req() request) {
+		return await this.authService.logout(request.user);
+	}
+
+
 
 	// access_token expired => reissueance With Cookie(RefreshToken)
 	// IF refreshToken form is invalid or Expired => 400 BadRequestException(errMsg);
