@@ -147,17 +147,19 @@ export class AuthService {
 			twoFactorEnabled: user.twoFactorEnabled,
 			twoFactorAuthenticated: twoFactor,
 		}
-		return await this.jwtService.sign(payload);
+		const access_token = await this.jwtService.sign(payload);
+		return access_token;
 	}
 
 	async genRefreshToken(user: Omit<User, 'password'>, twoFactor: boolean) {
 		const payload = {
+			refresh: true,
 			uid: user.uid,
 			twoFactorEnabled: user.twoFactorEnabled,
 			twoFactorAuthenticated: twoFactor,
 		}
-		const refreshToken = await this.jwtService.sign(payload, { expiresIn: '7d' });
-		return { refreshToken: refreshToken };	
+		const refreshToken = await this.jwtService.sign(payload, { expiresIn: config.get<string>('jwt-refresh.exp')});
+		return refreshToken;	
 	}
 
 	async verifyJwtToken(refreshToken: string): Promise<TokenPayload> {
@@ -175,7 +177,8 @@ export class AuthService {
 	async refreshAccessToken(refreshToken: string) {
 		const payload = await this.verifyJwtToken(refreshToken);
 		const user = await this.userService.getUserById(payload.uid);
-		const isMatch = await bcrypt.compare(refreshToken, user?.refreshToken);
+		const refreshTokenPayload = refreshToken.split('.')[1];
+		const isMatch = await bcrypt.compare(refreshTokenPayload, user?.refreshToken);
 		if (this.userService.isUserExist(user) && isMatch) {
 			return await this.genAccessToken(user, user.twoFactorEnabled);
 		}

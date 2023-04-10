@@ -67,7 +67,7 @@ export class LoginController {
 		const user = await this.authService.intraSignIn(code);
 		const { access_token, refresh_token } = await this.authService.login(user);
 
-		await this.userService.setUserRefreshToken(user, refresh_token.refreshToken);
+		await this.userService.setUserRefreshToken(user, refresh_token.split('.')[1]);
 		res.cookie('accessToken', access_token,
 			{
 				httpOnly: true,
@@ -124,7 +124,7 @@ export class LoginController {
 	})
 	@swagger.ApiBadRequestResponse({ description: 'Refresh Token이 유효하지 않거나 만료되었을 때', type: ResponseErrorDto })
 	@swagger.ApiUnauthorizedResponse({ description: 'Refresh Token이 유효하지만 해당 유저가 없을 때', type: ResponseErrorDto })
-	async refreshAccessTokens(@Headers('authorization') refresh_token: string) {
+	async refreshAccessTokens(@Headers('authorization') refresh_token: string, @Req() request) {
 		const refreshToken = refresh_token.split(' ')[1];
 		return await this.authService.refreshAccessToken(refreshToken);
 	}
