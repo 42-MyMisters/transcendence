@@ -1,6 +1,6 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { UserService } from '../../user/user.service';
 import { TokenPayload } from '../token-payload.entity';
 import config from 'config';
@@ -9,9 +9,14 @@ import config from 'config';
 export class Jwt2faStrategy extends PassportStrategy(Strategy, 'jwt-2fa') {
   constructor(private readonly userService: UserService) {
     super({
-      jwtFromRequest: ExtractJwt.fromExtractors([
-        (request) => request?.cookies?.access_token.accessToken,
-        ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([	
+              (request) => {
+		Logger.log(JSON.stringify(request.cookies));
+        if (request?.cookies?.access_token) {
+          return request.cookies.access_token;
+        }
+        return null;
+      },
       ]),
       secretOrKey: config.get<string>('jwt.secret'),
     });
