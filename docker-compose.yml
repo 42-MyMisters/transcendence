@@ -3,6 +3,8 @@ version: "3.9"
 networks:
   nw-db:
     driver: bridge
+  nw-img:
+    driver: bridge
 
 services:
   backend:
@@ -19,6 +21,7 @@ services:
       - "4000:4000"
     networks:
       nw-db: {}
+      nw-img: {}
     env_file:
       - ./config/.env
     depends_on:
@@ -52,6 +55,10 @@ services:
         target: /data
     ports:
       - "5000:5000"
+    networks:
+      nw-img:
+        aliases:
+          - img_serv
     env_file:
       - ./config/.env
 
@@ -77,6 +84,7 @@ services:
       timeout: 30s
       retries: 5
       start_period: 10s
+
   # pgadmin:
   #   container_name: pgadmin
   #   image: dpage/pgadmin4:latest
