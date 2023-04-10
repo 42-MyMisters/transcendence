@@ -74,21 +74,29 @@ export class LoginController {
 				sameSite: 'strict',
 				// secure: true //only https option
 			});
-		if (user.twoFactorEnabled) {
-			return { ...refresh_token, redirect: true };
-		}
-		return res.json({ ...refresh_token, redirect: false });
+		res.cookie('refreshToken', refresh_token);
+		// if (user.twoFactorEnabled) {
+		// 	return res.redirect('http://localhost:3000/');
+		// }
+		return res.redirect('http://localhost:3000/');
 	}
+
 	// For Test
 	@Get('/signout')
 	@UseGuards(Jwt2faAuthGuard)
 	async red(@Req() request){
-		this.logout(request);
+		await this.logout(request);
 	}
 
 	@Post('/signout')
 	@UseGuards(Jwt2faAuthGuard)
 	async logout(@Req() request) {
+		const options = {
+			httpOnly: true,
+			sameSite: 'strict',
+			// secure: true // only https option
+		  };
+		request.cookie('access_token', '', { ...options, expires: new Date(0) });
 		return await this.authService.logout(request.user);
 	}
 
