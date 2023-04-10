@@ -55,7 +55,7 @@ export class UserService {
 	async deleteRefreshToken(uid: number) : Promise<number | null>{
 		const user = await this.getUserById(uid);
 		if (this.isUserExist(user)){
-			user.refreshToken = null as any;
+			user.refreshToken = null;
 			await this.userRepository.save(user);
 			return uid;
 		}
