@@ -1,14 +1,3 @@
-// import Navigator from "../components/Navigator";
-
-// export default function ChatPage() {
-//   return (
-//     <>
-//       <Navigator />
-//       <div>채팅페이지</div>
-//     </>
-//   );
-// }
-
 import BackGround from "../components/BackGround";
 import TopBar from "../components/TopBar";
 import ChatRoomList from "../components/ChatPage/ChatRoomList";
@@ -16,10 +5,25 @@ import ChatUserList from "../components/ChatPage/ChatUserList";
 import ChatArea from "../components/ChatPage/ChatArea";
 import ChatRoomUserList from "../components/ChatPage/ChatRoomUserList";
 
+import { useAtom } from "jotai";
+import { userInfoModalAtom } from "../components/atom/ModalAtom";
+import { inviteModalAtom } from "../components/atom/ModalAtom";
+import { roomModalAtom } from "../components/atom/ModalAtom";
+
+import UserInfoModal from "../components/ChatPage/UserInfoModal";
+import RoomModal from "../components/ChatPage/RoomModal";
+import RoomInviteModal from "../components/ChatPage/RoomInviteModal";
+
 export default function ChatPage() {
+  const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
+  const [roomModal, setRoomModal] = useAtom(roomModalAtom);
+  const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);
   return (
     <BackGround>
       <TopBar />
+      {userInfoModal ? <UserInfoModal /> : null}
+      {roomModal ? <RoomModal /> : null}
+      {inviteModal ? <RoomInviteModal /> : null}
       <ChatRoomList />
       <ChatUserList />
       <ChatArea />

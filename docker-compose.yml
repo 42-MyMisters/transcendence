@@ -77,7 +77,6 @@ services:
       timeout: 30s
       retries: 5
       start_period: 10s
-
   # pgadmin:
   #   container_name: pgadmin
   #   image: dpage/pgadmin4:latest

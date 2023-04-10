@@ -1,6 +1,6 @@
 import { Game } from "src/game/game.entity";
 import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryColumn } from "typeorm";
-import { IntraUserDto } from "./dto/IntraUserDto";
+import { IntraUserDto } from "./dto/IntraUser.dto";
 import { UserFollow } from "./user-follow.entity";
 
 @Entity()
@@ -31,10 +31,10 @@ export class User extends BaseEntity {
 
 	@OneToMany(type => UserFollow, follower => follower.fromUser, { lazy: true })
 	followers: UserFollow[];
-  
+
 	@OneToMany(type => UserFollow, following => following.targetToFollow, { lazy: true })
 	followings: UserFollow[];
-	
+
 	@OneToMany(type => Game, games => games.winner, { lazy: true })
 	wonGames: Game[];
 
@@ -53,5 +53,4 @@ export class User extends BaseEntity {
 		user.twoFactorEnabled = false;
 		return user;
 	}
-
 }
