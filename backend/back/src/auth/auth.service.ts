@@ -147,7 +147,8 @@ export class AuthService {
 			twoFactorEnabled: user.twoFactorEnabled,
 			twoFactorAuthenticated: twoFactor,
 		}
-		return await this.jwtService.sign(payload);
+		const access_token = await this.jwtService.sign(payload);
+		return access_token;
 	}
 
 	async genRefreshToken(user: Omit<User, 'password'>, twoFactor: boolean) {
@@ -158,7 +159,7 @@ export class AuthService {
 			twoFactorAuthenticated: twoFactor,
 		}
 		const refreshToken = await this.jwtService.sign(payload, { expiresIn: config.get<string>('jwt-refresh.exp')});
-		return { refreshToken: refreshToken };	
+		return refreshToken;	
 	}
 
 	async verifyJwtToken(refreshToken: string): Promise<TokenPayload> {
