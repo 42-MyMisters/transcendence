@@ -1,11 +1,10 @@
-import { Body, Controller, Get, Headers, InternalServerErrorException, Logger, Post, Query, Redirect, Req, Res, UnauthorizedException, UploadedFiles, UseGuards, UseInterceptors, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Headers, InternalServerErrorException, Logger, Param, Post, Query, Redirect, Req, Res, UnauthorizedException, UploadedFiles, UseGuards, UseInterceptors, ValidationPipe } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import * as swagger from '@nestjs/swagger';
-import axios from 'axios';
 import config from 'config';
-import { randomBytes } from 'crypto';
 import { Response } from 'express';
 import path from 'path';
+import sharp from 'sharp';
 import { AuthService } from 'src/auth/auth.service';
 import { Jwt2faAuthGuard } from 'src/auth/jwt-2fa/jwt-2fa-auth.guard';
 import { JwtRefreshGuard } from 'src/auth/jwt-refresh/jwt-refresh-auth.guard';
@@ -14,7 +13,6 @@ import { LocalAuthGuard } from 'src/auth/local/local-auth.guard';
 import { callFunctionDescriptionOfRefreshRoute, ResponseErrorDto } from 'src/swagger/response.util';
 import { PasswordDto } from 'src/user/dto/Password.dto';
 import { UserService } from 'src/user/user.service';
-// import axios from 'axios';
 
 @Controller('login')
 @swagger.ApiTags('로그인')
@@ -227,48 +225,45 @@ export class LoginController {
 		return this.userService.showUsers();
 	}
 
-	// @UseGuards(Jwt2faAuthGuard)
 	@Get('/profile-img-change')
+	@UseGuards(Jwt2faAuthGuard)
 	uploadPage(@Res() res: Response) {
 		const filePath = path.join(__dirname, '../../src/login/upload.html');
     res.sendFile(filePath);
 	}
 	
-	// @UseGuards(Jwt2faAuthGuard)
 	@Post('/profile-img-change')
-	@UseGuards(JwtRefreshGuard)
+	@UseGuards(Jwt2faAuthGuard)
 	@UseInterceptors(AnyFilesInterceptor())
-	async changeProfileImg(@Req() request, @UploadedFiles() file: Express.Multer.File[], @Res() res: Response) {
-		if (this.userService.isUserExist(request.user)) {
-			const imgServerUrl = 'img_serv/profile-image';
-			const headers = { 'Content-Type': 'multipart/form-data' };
-			const formData = new FormData();
-	
-			const timestamp = new Date().getTime();
-			const randomString = randomBytes(4).toString('hex');
-			const filename = `${timestamp}-${randomString}.jpg`;
-			
-			const buffer = file[0].buffer;
-			const blob = new Blob([buffer], { type: file[0].mimetype });
-	
-			formData.append('file', blob, filename);
-	
-			const options = { headers, data: formData };
-	
-			try {
-				Logger.log("begin");
-				const response = await axios.post(imgServerUrl, formData, { headers });
-				Logger.log("end");
-				request.user.profileUrl = response.data;
-				this.userService.updateUser(request.user);
-			} catch (error) {
-				// Handle error response from image server
-				console.error(error);
-				throw new InternalServerErrorException('Error uploading profile image');
-			}
+	async changeProfileImg(@Req() request, @UploadedFiles() file: Express.Multer.File[]) {
+		const user = request.user;
+		if (this.userService.isUserExist(user)) {
+			const filename = `${user.uid}_profile.jpg`;
 
+			try {
+				await sharp(file[0].buffer)
+				.resize(500, 500)
+				.flatten({ background: '#fff' })
+				.toFormat("jpeg", { mozjpeg: true })
+				.toFile(`uploads/${filename}`);
+				
+				user.profileUrl = `http://localhost:4000/login/get-profile/${filename}`
+				await this.userService.updateUser(user);
+				} catch (e) {
+					console.log(e);
+					throw new InternalServerErrorException('img error!');
+				}
+			} else {
+				throw new UnauthorizedException('user not found!');
+			}
 		}
-		throw new UnauthorizedException('user not found!');
+
+		// for debug
+		@Get('/get-profile/:filename')
+		getProfile(@Res() res: Response, @Param('filename') filename) {
+			const filePath = path.join(__dirname, `../../uploads/${filename}`);
+			res.sendFile(filePath);
+		}
+		
 	}
 	
-}

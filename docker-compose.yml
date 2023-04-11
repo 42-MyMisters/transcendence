@@ -3,8 +3,6 @@ version: "3.9"
 networks:
   nw-db:
     driver: bridge
-  nw-img:
-    driver: bridge
 
 services:
   backend:
@@ -21,7 +19,6 @@ services:
       - "4000:4000"
     networks:
       nw-db: {}
-      nw-img: {}
     env_file:
       - ./config/.env
     depends_on:
@@ -42,25 +39,6 @@ services:
   #     - "3000:3000"
   #   env_file:
   #     - ./config/.env
-
-  img_serv:
-    container_name: img_serv
-    build:
-      context: ./img_serv
-      dockerfile: ./Dockerfile
-    restart: always
-    volumes:
-      - type: bind
-        source: ./img_serv
-        target: /data
-    ports:
-      - "5000:5000"
-    networks:
-      nw-img:
-        aliases:
-          - img_serv
-    env_file:
-      - ./config/.env
 
   postgres:
     container_name: postgres
@@ -85,19 +63,19 @@ services:
       retries: 5
       start_period: 10s
 
-  # pgadmin:
-  #   container_name: pgadmin
-  #   image: dpage/pgadmin4:latest
-  #   restart: always
-  #   ports:
-  #     - "80:80"
-  #   env_file:
-  #     - ./config/.pgadmin.env
-  #   networks:
-  #     nw-db: {}
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4:latest
+    restart: always
+    ports:
+      - "80:80"
+    env_file:
+      - ./config/.pgadmin.env
+    networks:
+      nw-db: {}
+    depends_on:
+      postgres:
+        condition: service_healthy
 # volumes:
 #   v_react:
 #     driver: local
