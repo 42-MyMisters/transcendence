@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException, Logger, UnauthorizedException } from '@nestjs/common';
+import { BadGatewayException, BadRequestException, Injectable, InternalServerErrorException, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { authenticator } from 'otplib';
 import { toDataURL } from 'qrcode';
@@ -27,13 +27,15 @@ export class AuthService {
 				},
 			});
 			if (response.status < 200 || response.status >= 300) {
-				throw (`HTTP error! status: ${response.status}`);
+				Logger.error('Intra Error');
+				throw new BadRequestException(`HTTP error! status: ${response.status}`);
 			}
 			const intraUserInfo: IntraUserDto = await response.json();
 			return intraUserInfo;
 		}
 		catch (error) {
-			throw new InternalServerErrorException('Intra Sever Error, Try again later or using ID and password');
+			Logger.error('Intra Error');
+			throw new BadGatewayException('Failed to fetch user information from Intra');
 		}
 	}
 
@@ -55,9 +57,10 @@ export class AuthService {
 			body: params
 		});
 
-		const intraToken: IntraTokenDto = await response.json();
+		const intraToken : IntraTokenDto = await response.json();
 		if (response.status < 200 || response.status >= 300) {
-			throw new UnauthorizedException("Bad code from clients");
+			Logger.error('Intra code error');
+			throw new BadRequestException(`HTTP error! status: ${response.status}`);
 		}
 		return intraToken;
 	}
@@ -119,6 +122,9 @@ export class AuthService {
 		const refresh_token = await this.genRefreshToken(userWithoutPw, false);
 		return { access_token, refresh_token };
 	}
+	async logout(user: User){
+		return await this.userService.deleteRefreshToken(user.uid);
+	}
 
 	async validateUser(email: string, password: string) {
 		const user = await this.userService.getUserByEmail(email);
@@ -140,20 +146,21 @@ export class AuthService {
 			uid: user.uid,
 			twoFactorEnabled: user.twoFactorEnabled,
 			twoFactorAuthenticated: twoFactor,
-		};
-		return { accessToken: this.jwtService.sign(payload) };
+		}
+		const access_token = await this.jwtService.sign(payload);
+		return access_token;
 	}
 
 	async genRefreshToken(user: Omit<User, 'password'>, twoFactor: boolean) {
 		const payload = {
+			refresh: true,
 			uid: user.uid,
 			twoFactorEnabled: user.twoFactorEnabled,
 			twoFactorAuthenticated: twoFactor,
-		};
-		const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
-		return { refreshToken: refreshToken };
+		}
+		const refreshToken = await this.jwtService.sign(payload, { expiresIn: config.get<string>('jwt-refresh.exp')});
+		return refreshToken;	
 	}
-
 
 	async verifyJwtToken(refreshToken: string): Promise<TokenPayload> {
 		try {
@@ -170,7 +177,8 @@ export class AuthService {
 	async refreshAccessToken(refreshToken: string) {
 		const payload = await this.verifyJwtToken(refreshToken);
 		const user = await this.userService.getUserById(payload.uid);
-		const isMatch = await bcrypt.compare(refreshToken, user?.refreshToken);
+		const refreshTokenPayload = refreshToken.split('.')[1];
+		const isMatch = await bcrypt.compare(refreshTokenPayload, user?.refreshToken);
 		if (this.userService.isUserExist(user) && isMatch) {
 			return await this.genAccessToken(user, user.twoFactorEnabled);
 		}
