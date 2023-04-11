@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { ConflictException, Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as bcrypt from 'bcrypt';
 import config from "config";
@@ -90,6 +90,18 @@ export class UserService {
 		}
 
 		await this.userFollowRepository.remove(existingFollowing);
+	}
+
+	async changeNickname(curUser: User, changeNick: string): Promise<string>{
+		curUser.nickname = changeNick;
+		try{
+			await this.updateUser(curUser);
+		}
+		catch (error){
+			Logger.log(error);
+			throw new ConflictException(`${changeNick} is nickname duplicated`);
+		}
+		return changeNick;
 	}
 
 }

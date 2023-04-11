@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Logger, Post, Req, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Patch, Post, Query, Req, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
 import { AuthService } from 'src/auth/auth.service';
 import { Jwt2faAuthGuard } from 'src/auth/jwt-2fa/jwt-2fa-auth.guard';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { UserService } from 'src/user/user.service';
 import { PasswordDto } from './dto/Password.dto';
 import * as swagger from '@nestjs/swagger';
+import { request } from 'http';
 
 @Controller('user')
 @swagger.ApiTags('user')
@@ -77,6 +78,20 @@ export class UserController {
 		} else {
 			throw new UnauthorizedException("User Not Found!");
 		}
+	}
+
+	@Get('/nickname')
+	@UseGuards(Jwt2faAuthGuard)
+	async changeNick(@Req() request, @Query('nick')nickname : string){
+		const nick = {nickname}
+		Logger.log(`nick = ${nick.nickname}`);
+		await this.changeNickname(request, nick);
+	}
+
+	@Patch('/nickname')
+	@UseGuards(Jwt2faAuthGuard)
+	async changeNickname(@Req() request, @Body() body){
+		await this.userService.changeNickname(request.user, body.nickname);
 	}
 
 }
