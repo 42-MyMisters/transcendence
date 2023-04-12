@@ -1,10 +1,14 @@
-import { Body, Controller, Get, Logger, Post, Req, UnauthorizedException, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, InternalServerErrorException, Logger, Param, Post, Req, Res, UnauthorizedException, UploadedFiles, UseGuards, UseInterceptors, ValidationPipe } from '@nestjs/common';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import * as swagger from '@nestjs/swagger';
+import { Response } from 'express';
+import path from 'path';
+import sharp from 'sharp';
 import { AuthService } from 'src/auth/auth.service';
 import { Jwt2faAuthGuard } from 'src/auth/jwt-2fa/jwt-2fa-auth.guard';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { UserService } from 'src/user/user.service';
 import { PasswordDto } from './dto/Password.dto';
-import * as swagger from '@nestjs/swagger';
 
 @Controller('user')
 @swagger.ApiTags('user')
@@ -20,7 +24,7 @@ export class UserController {
 	@Get('/2fa/toggle')
 	@UseGuards(JwtAuthGuard)
 	async toggleTwoFactor(@Req() request) {
-		return await this.authService.toggleTwoFactor(request.user.uid);
+		return await this.userService.toggleTwoFactor(request.user.uid);
 	}
 
 	@Post('/2fa/toggle/confirm')
@@ -78,5 +82,46 @@ export class UserController {
 			throw new UnauthorizedException("User Not Found!");
 		}
 	}
+
+
+	@Get('/profile-img-change')
+	@UseGuards(Jwt2faAuthGuard)
+	uploadPage(@Res() res: Response) {
+		const filePath = path.join(__dirname, '../../src/login/upload.html');
+    	res.sendFile(filePath);
+	}
+	
+	@Post('/profile-img-change')
+	@UseGuards(Jwt2faAuthGuard)
+	@UseInterceptors(AnyFilesInterceptor())
+	async changeProfileImg(@Req() request, @UploadedFiles() file: Express.Multer.File[]) {
+		const user = request.user;
+		if (this.userService.isUserExist(user)) {
+			const filename = `${user.uid}_profile.jpg`;
+
+			try {
+				await sharp(file[0].buffer)
+				.resize(500, 500)
+				.flatten({ background: '#fff' })
+				.toFormat("jpeg", { mozjpeg: true })
+				.toFile(`uploads/${filename}`);
+				
+				user.profileUrl = `http://localhost:4000/login/get-profile/${filename}`
+				await this.userService.updateUser(user);
+				} catch (e) {
+					console.log(e);
+					throw new InternalServerErrorException('img error!');
+				}
+			} else {
+				throw new UnauthorizedException('user not found!');
+			}
+		}
+
+		// for debug
+		@Get('/get-profile/:filename')
+		getProfile(@Res() res: Response, @Param('filename') filename) {
+			const filePath = path.join(__dirname, `../../uploads/${filename}`);
+			res.sendFile(filePath);
+		}
 
 }
