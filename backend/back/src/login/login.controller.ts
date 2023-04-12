@@ -1,17 +1,13 @@
-import { Body, Controller, Get, Headers, InternalServerErrorException, Logger, Param, Post, Query, Redirect, Req, Res, UnauthorizedException, UploadedFiles, UseGuards, UseInterceptors, ValidationPipe } from '@nestjs/common';
-import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import { Body, Controller, Get, Headers, Logger, Post, Query, Redirect, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import * as swagger from '@nestjs/swagger';
 import config from 'config';
 import { Response } from 'express';
-import path from 'path';
-import sharp from 'sharp';
 import { AuthService } from 'src/auth/auth.service';
 import { Jwt2faAuthGuard } from 'src/auth/jwt-2fa/jwt-2fa-auth.guard';
 import { JwtRefreshGuard } from 'src/auth/jwt-refresh/jwt-refresh-auth.guard';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { LocalAuthGuard } from 'src/auth/local/local-auth.guard';
 import { callFunctionDescriptionOfRefreshRoute, ResponseErrorDto } from 'src/swagger/response.util';
-import { PasswordDto } from 'src/user/dto/Password.dto';
 import { UserService } from 'src/user/user.service';
 
 @Controller('login')
@@ -21,7 +17,6 @@ export class LoginController {
 		private authService: AuthService,
 		private userService: UserService,
 	) {
-		//empty
 	}
 
 	@Get('/oauth')
@@ -41,7 +36,7 @@ export class LoginController {
 	intra() { }
 
 	// frontend need to redirect user to 2fa auth page.
-	@Get('/oauth/callback')
+
 	@swagger.ApiQuery({
 		name: 'code',
 		type: 'string',
@@ -66,11 +61,14 @@ export class LoginController {
 	})
 	@swagger.ApiUnauthorizedResponse({ description: "bad 'code'", type: ResponseErrorDto })
 	@swagger.ApiInternalServerErrorResponse({ description: 'Intra server error try later or Using Id, Password', type: ResponseErrorDto })
+	@Get('/oauth/callback')
 	async intraSignIn(@Res() res: Response, @Query('code') code: string) {
-		const user = await this.authService.intraSignIn(code);
-		const { access_token, refresh_token } = await this.authService.login(user);
+		const userData = await this.authService.intraSignIn(code);
+		const user = await this.userService.getUserByIntraDto(userData);
 
-		await this.userService.setUserRefreshToken(user, refresh_token.split('.')[1]);
+		const { access_token, refresh_token } = await this.authService.login(user);
+		await this.userService.setUserRefreshToken(user, refresh_token);
+
 		res.cookie('accessToken', access_token,
 			{
 				httpOnly: true,
@@ -78,14 +76,11 @@ export class LoginController {
 				// secure: true //only https option
 			});
 		res.cookie('refreshToken', refresh_token);
-		// if (user.twoFactorEnabled) {
-		// 	return res.redirect('http://localhost:3000/');
-		// }
 		return res.redirect('http://localhost:3000/');
 	}
 
 	// For Test
-	@Get('/signout')
+	@Get('/logout')
 	@UseGuards(Jwt2faAuthGuard)
 	async red(@Req() request){
 		await this.logout(request);
@@ -100,13 +95,12 @@ export class LoginController {
 			// secure: true // only https option
 		  };
 		request.cookie('access_token', '', { ...options, expires: new Date(0) });
-		return await this.authService.logout(request.user);
+		return await this.userService.logout(request.user);
 	}
 
 
 
-	@Post('/oauth/refresh')
-	@UseGuards(JwtRefreshGuard)
+
 	@swagger.ApiBearerAuth('refreshToken')
 	@swagger.ApiHeader({
 		name: 'authorization',
@@ -127,9 +121,11 @@ export class LoginController {
 	})
 	@swagger.ApiBadRequestResponse({ description: 'Refresh Token이 유효하지 않거나 만료되었을 때', type: ResponseErrorDto })
 	@swagger.ApiUnauthorizedResponse({ description: 'Refresh Token이 유효하지만 해당 유저가 없을 때', type: ResponseErrorDto })
+	@Post('/oauth/refresh')
+	@UseGuards(JwtRefreshGuard)
 	async refreshAccessTokens(@Headers('authorization') refresh_token: string, @Req() request) {
-		const refreshToken = refresh_token.split(' ')[1];
-		return await this.authService.refreshAccessToken(refreshToken);
+		const user = request.user;
+		return await this.authService.refreshAccessToken(refresh_token, user);
 	}
 
 	// login with email & password.
@@ -142,18 +138,12 @@ export class LoginController {
 		return this.authService.genAccessToken(request.user, false);
 	}
 
-	@Post('/setpw')
-	@UseGuards(Jwt2faAuthGuard)
-	async setPw(@Req() request, @Body(ValidationPipe) pw: PasswordDto) {
-		await this.userService.setUserPw(request.user, pw);
-	}
-
 	// When toggleTwoFactor returns qrcode, user should verify OTP code through /2fa/auth/confirm.
 	// Otherwise, user's twoFactorEnabled value does not change.
 	@Get('/2fa/toggle')
 	@UseGuards(JwtAuthGuard)
 	async toggleTwoFactor(@Req() request) {
-		return await this.authService.toggleTwoFactor(request.user.uid);
+		return await this.userService.toggleTwoFactor(request.user.uid);
 	}
 
 	@Post('/2fa/toggle/confirm')
@@ -189,28 +179,6 @@ export class LoginController {
 		return await this.authService.loginWith2fa(request.user);
 	}
 
-	@Post('/follow')
-	@UseGuards(JwtAuthGuard)
-	async follow(@Req() request, @Body() body) {
-		const user = await this.userService.getUserByEmail(body.targetEmail);
-		if (this.userService.isUserExist(user)) {
-			await this.userService.follow(request.user, user);
-		} else {
-			throw new UnauthorizedException('User Not Found!');
-		}
-	}
-
-	@Post('/unfollow')
-	@UseGuards(JwtAuthGuard)
-	async unfollow(@Req() request, @Body() body) {
-		const user = await this.userService.getUserByEmail(body.targetEmail);
-		if (this.userService.isUserExist(user)) {
-			await this.userService.unfollow(request.user, user);
-		} else {
-			throw new UnauthorizedException('User Not Found!');
-		}
-	}
-
 	//For Debug Controller
 	@Post('/test')
 	@UseGuards(Jwt2faAuthGuard)
@@ -225,45 +193,5 @@ export class LoginController {
 		return this.userService.showUsers();
 	}
 
-	@Get('/profile-img-change')
-	@UseGuards(Jwt2faAuthGuard)
-	uploadPage(@Res() res: Response) {
-		const filePath = path.join(__dirname, '../../src/login/upload.html');
-    res.sendFile(filePath);
-	}
-	
-	@Post('/profile-img-change')
-	@UseGuards(Jwt2faAuthGuard)
-	@UseInterceptors(AnyFilesInterceptor())
-	async changeProfileImg(@Req() request, @UploadedFiles() file: Express.Multer.File[]) {
-		const user = request.user;
-		if (this.userService.isUserExist(user)) {
-			const filename = `${user.uid}_profile.jpg`;
-
-			try {
-				await sharp(file[0].buffer)
-				.resize(500, 500)
-				.flatten({ background: '#fff' })
-				.toFormat("jpeg", { mozjpeg: true })
-				.toFile(`uploads/${filename}`);
-				
-				user.profileUrl = `http://localhost:4000/login/get-profile/${filename}`
-				await this.userService.updateUser(user);
-				} catch (e) {
-					console.log(e);
-					throw new InternalServerErrorException('img error!');
-				}
-			} else {
-				throw new UnauthorizedException('user not found!');
-			}
-		}
-
-		// for debug
-		@Get('/get-profile/:filename')
-		getProfile(@Res() res: Response, @Param('filename') filename) {
-			const filePath = path.join(__dirname, `../../uploads/${filename}`);
-			res.sendFile(filePath);
-		}
-		
-	}
+}
 	
