@@ -19,7 +19,6 @@ export class LoginController {
 	) {
 	}
 
-	@Get('/oauth')
 	@swagger.ApiOperation({
 		summary: '42 OAuth를 이용한 로그인 시도',
 		description: "Client를 42 OAuth로 리디렉트하여 인증 시도. 로그인에 성공하면 'code' query를 가지고 /login/oauth/callback으로 리디렉트.",
@@ -28,6 +27,7 @@ export class LoginController {
 		status: 302,
 		description: '42 OAuth로 리디렉션 후, 로그인 시 /login/oauth/callback으로 리디렉션',
 	})
+	@Get('/oauth')
 	@Redirect(
 		'https://api.intra.42.fr/oauth/authorize?client_id=' + config.get<string>('intra.client_id') +
 		'&redirect_uri=' + config.get<string>('intra.redirect_uri') +
@@ -176,7 +176,15 @@ export class LoginController {
 		if (!isCodeValid) {
 			throw new UnauthorizedException('Wrong authentication code');
 		}
-		return await this.authService.loginWith2fa(request.user);
+		const tokens = await this.authService.loginWith2fa(request.user);
+		request.cookie('accessToken', tokens.accessToken,
+			{
+				httpOnly: true,
+				sameSite: 'strict',
+				// secure: true //only https option
+			}
+		);
+		await this.userService.setUserRefreshToken(request.user, tokens.refreshToken);
 	}
 
 	//For Debug Controller

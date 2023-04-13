@@ -96,8 +96,10 @@ export class AuthService {
 		return authenticator.verify({ token: twoFactorCode, secret: user.twoFactorSecret });
 	}
 
-	async loginWith2fa(userWithoutPw: Omit<User, 'password'>) {
-		return await this.genAccessToken(userWithoutPw, true);
+	async loginWith2fa(userWithoutPw: Omit<User, 'password'>) : Promise<{refreshToken: string, accessToken: string}> {
+		const refreshToken = await this.genRefreshToken(userWithoutPw, true);
+		const accessToken = await this.genAccessToken(userWithoutPw, true);
+		return {refreshToken, accessToken};
 	}
 
 	async login(userWithoutPw: Omit<User, 'password'>) {
