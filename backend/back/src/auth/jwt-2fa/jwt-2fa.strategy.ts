@@ -10,10 +10,10 @@ export class Jwt2faStrategy extends PassportStrategy(Strategy, 'jwt-2fa') {
   constructor(private readonly userService: UserService) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([	
-              (request) => {
-		Logger.log(JSON.stringify(request.cookies));
-        if (request?.cookies?.access_token) {
-          return request.cookies.access_token;
+        (request) => {
+                Logger.log(JSON.stringify(request.cookies));
+                if (request?.cookies?.accessToken) {
+          return request.cookies.accessToken;
         }
         return null;
       },

@@ -1,9 +1,19 @@
-import { Module } from '@nestjs/common';
+import { Logger, Module } from '@nestjs/common';
+import { JwtModule, JwtService } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import config from 'config';
 import { AuthService } from './auth.service';
-import { UserModule } from 'src/user/user.module';
 
 @Module({
-  imports: [UserModule],
+  imports: [
+    JwtModule.register({
+			secret: config.get<string>('jwt.secret'),
+			signOptions: {
+				expiresIn: config.get<string>('jwt.expiresIn'),
+			}
+		}),
+		PassportModule.register({ defaultStrategy: 'jwt'}),
+	],
   providers: [AuthService],
   exports: [AuthService],
 })
