@@ -3,7 +3,6 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import config from 'config';
 import { authenticator } from 'otplib';
-import { toDataURL } from 'qrcode';
 import { IntraTokenDto } from 'src/user/dto/IntraToken.dto';
 import { IntraUserDto } from 'src/user/dto/IntraUser.dto';
 import { User } from 'src/user/user.entity';
@@ -76,18 +75,7 @@ export class AuthService {
 		// return curUser;
 	}
 
-	// Save 2fa secret, but twoFactorEnabled value does not change.
-	async genTwoFactorSecret(user: User) {
-		const secret = authenticator.generateSecret();
-		const otpAuthUrl = authenticator.keyuri(user.nickname, 'My Misters', secret);
-		return { secret, qr: await this.genQrCodeURL(otpAuthUrl) };
-	}
 
-
-
-	async genQrCodeURL(otpAuthUrl: string): Promise<{ data: string }> {
-		return toDataURL(otpAuthUrl);
-	}
 
 	async isTwoFactorCodeValid(twoFactorCode: string, user: User) {
 		if (!user.twoFactorSecret) {
