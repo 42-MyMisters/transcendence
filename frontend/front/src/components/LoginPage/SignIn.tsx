@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useCookies } from "react-cookie";
+
 import "../../styles/LoginModals.css";
 
 export default function SignInModal() {
