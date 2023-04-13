@@ -4,10 +4,10 @@ import { AppModule } from './app.module';
 import config from 'config';
 import { Logger } from '@nestjs/common';
 
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
+import { setSwagger } from './swagger/swagger';
 
-async function bootstrap() {
+async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
   app.use(cookieParser());
   const serverConfig: any = config.get('server');
@@ -17,16 +17,10 @@ async function bootstrap() {
     origin: '*',
   });
 
-  const swagger = new DocumentBuilder()
-    .setTitle('My Misters API')
-    .setDescription('API description')
-    .setVersion('1.0')
-    // .addTag('backend')
-    .build();
-  const document = SwaggerModule.createDocument(app, swagger);
-  SwaggerModule.setup('api', app, document);
+  setSwagger(app);
 
   await app.listen(port);
   Logger.log(`Application running on port ${port}`);
 }
+
 bootstrap();

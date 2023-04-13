@@ -1,6 +1,6 @@
 import { Game } from "src/game/game.entity";
 import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryColumn } from "typeorm";
-import { IntraUserDto } from "./dto/IntraUserDto";
+import { IntraUserDto } from "./dto/IntraUser.dto";
 import { UserFollow } from "./user-follow.entity";
 
 @Entity()
@@ -8,8 +8,8 @@ export class User extends BaseEntity {
 	@PrimaryColumn()
 	uid: number;
 
-	@Column({nullable: true})
-	password: string;
+	@Column({nullable: true, type: 'varchar'})
+	password: string | null;
 
 	@Column({ unique: true })
 	email: string;
@@ -17,8 +17,8 @@ export class User extends BaseEntity {
 	@Column({ unique: true })
 	nickname: string;
 
-	@Column({nullable: true})
-	refreshToken: string;
+	@Column({nullable: true, type: 'varchar'})
+	refreshToken: string | null;
 
 	@Column()
 	profileUrl: string;
@@ -26,15 +26,15 @@ export class User extends BaseEntity {
 	@Column()
 	twoFactorEnabled: boolean;
 
-	@Column({nullable: true})
-	twoFactorSecret: string;
+	@Column({nullable: true, type: 'varchar'})
+	twoFactorSecret: string | null; 
 
 	@OneToMany(type => UserFollow, follower => follower.fromUser, { lazy: true })
 	followers: UserFollow[];
-  
+
 	@OneToMany(type => UserFollow, following => following.targetToFollow, { lazy: true })
 	followings: UserFollow[];
-	
+
 	@OneToMany(type => Game, games => games.winner, { lazy: true })
 	wonGames: Game[];
 
@@ -53,5 +53,4 @@ export class User extends BaseEntity {
 		user.twoFactorEnabled = false;
 		return user;
 	}
-
 }

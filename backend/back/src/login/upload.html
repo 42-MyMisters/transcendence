@@ -1,0 +1,19 @@
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<title>Upload Profile Image</title>
+	</head>
+	<body>
+		<h1>Upload Profile Image</h1>
+		<form
+			action="/login/profile-img-change"
+			method="POST"
+			enctype="multipart/form-data"
+		>
+			<label for="image">Choose a file:</label>
+			<input type="file" name="image" id="image" />
+			<br /><br />
+			<input type="submit" value="Upload" />
+		</form>
+	</body>
+</html>

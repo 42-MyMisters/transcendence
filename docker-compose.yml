@@ -25,20 +25,20 @@ services:
       postgres:
         condition: service_healthy
 
-  frontend:
-    container_name: frontend
-    build:
-      context: ./frontend
-      dockerfile: ./Dockerfile
-    restart: always
-    volumes:
-      - type: bind
-        source: ./frontend
-        target: /data
-    ports:
-      - "3000:3000"
-    env_file:
-      - ./config/.env
+  # frontend:
+  #   container_name: frontend
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: ./Dockerfile
+  #   restart: always
+  #   volumes:
+  #     - type: bind
+  #       source: ./frontend
+  #       target: /data
+  #   ports:
+  #     - "3000:3000"
+  #   env_file:
+  #     - ./config/.env
 
   postgres:
     container_name: postgres
@@ -76,8 +76,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-
-        
 # volumes:
 #   v_react:
 #     driver: local
