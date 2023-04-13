@@ -99,8 +99,6 @@ export class LoginController {
 	}
 
 
-
-
 	@swagger.ApiBearerAuth('refreshToken')
 	@swagger.ApiHeader({
 		name: 'authorization',
@@ -138,13 +136,6 @@ export class LoginController {
 		return this.authService.genAccessToken(request.user, false);
 	}
 
-	// When toggleTwoFactor returns qrcode, user should verify OTP code through /2fa/auth/confirm.
-	// Otherwise, user's twoFactorEnabled value does not change.
-	@Get('/2fa/toggle')
-	@UseGuards(JwtAuthGuard)
-	async toggleTwoFactor(@Req() request) {
-		return await this.userService.toggleTwoFactor(request.user.uid);
-	}
 
 	@Post('/2fa/toggle/confirm')
 	@UseGuards(JwtAuthGuard)
