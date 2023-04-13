@@ -1,13 +1,15 @@
-import { BadRequestException, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as bcrypt from 'bcrypt';
 import config from "config";
-import { AuthService } from "src/auth/auth.service";
 import { Repository } from "typeorm";
 import { IntraUserDto } from "./dto/IntraUser.dto";
 import { PasswordDto } from "./dto/Password.dto";
 import { UserFollow } from "./user-follow.entity";
 import { User } from "./user.entity";
+import { authenticator } from "otplib";
+import { toDataURL } from 'qrcode';
+
 
 @Injectable()
 export class UserService {
@@ -16,13 +18,31 @@ export class UserService {
 		private userRepository: Repository<User>,
 		@InjectRepository(UserFollow)
 		private userFollowRepository: Repository<UserFollow>,
-		private authService: AuthService
-	){}
+		
+		){}
 
+
+		
+
+	async isNicknameExist(nickname: string): Promise<boolean> {
+		const queryBuilder = this.userRepository.createQueryBuilder('user');
+		const count = await queryBuilder.where('user.nickname = :nickname', { nickname }).getCount();
+		return count > 0;
+	  };
+	
 	async addNewUser(intraUserDto: IntraUserDto): Promise<User> {
 		const user: User = await User.fromIntraUserDto(intraUserDto);
 		await this.userRepository.save(user);
 		return user;
+	}
+
+
+	async setUserNickname(user: User, changeNickname: string) {
+		const isExsistNickname = await this.isNicknameExist(changeNickname);
+		if (isExsistNickname)
+			throw new ConflictException('Nickname Already Exists');	
+		user.nickname = changeNickname;
+		await this.updateUser(user);
 	}
 
 	async getUserByIntraDto(userData: IntraUserDto){
@@ -31,8 +51,13 @@ export class UserService {
 			return user;
 		else {
 			const newUser = await this.addNewUser(userData);
-			return newUser
+			return newUser;
 		}
+	}
+
+	async getUserByNickname(nickname: string){
+		const user = await this.userRepository.findOneBy({nickname});
+		return user;
 	}
 
 	async getUserById(uid: number) {
@@ -110,6 +135,31 @@ export class UserService {
 		await this.userFollowRepository.remove(existingFollowing);
 	}
 
+	isTwoFactorEnabled(user: User){
+		if (user.twoFactorEnabled)
+			return true;
+		else 
+			return false;
+	}
+
+	async isTwoFactorCodeValid(twoFactorCode: string, user: User) {
+		if (!user.twoFactorSecret) {
+			return false;
+		}
+		return authenticator.verify({ token: twoFactorCode, secret: user.twoFactorSecret });
+	}
+
+	async genQrCodeURL(otpAuthUrl: string): Promise<{ data: string }> {
+		return toDataURL(otpAuthUrl);
+	}
+
+	// Save 2fa secret, but twoFactorEnabled value does not change.
+	async genTwoFactorSecret(user: User) {
+		const secret = authenticator.generateSecret();
+		const otpAuthUrl = authenticator.keyuri(user.nickname, 'My Misters', secret);
+		return { secret, qr: await this.genQrCodeURL(otpAuthUrl) };
+	}
+
 	async toggleTwoFactor(uid: number) {
 		const user = await this.getUserById(uid);
 		if (this.isUserExist(user)) {
@@ -118,7 +168,7 @@ export class UserService {
 				await this.updateUser(user);
 				return null;
 			} else {
-				const { secret, qr } = await this.authService.genTwoFactorSecret(user);
+				const { secret, qr } = await this.genTwoFactorSecret(user);
 				user.twoFactorSecret = secret;
 				await this.updateUser(user);
 				return qr;

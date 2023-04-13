@@ -1,4 +1,4 @@
-import { Body, Controller, Get, InternalServerErrorException, Logger, Param, Post, Req, Res, UnauthorizedException, UploadedFiles, UseGuards, UseInterceptors, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, InternalServerErrorException, Logger, Param, Patch, Post, Req, Res, UnauthorizedException, UploadedFiles, UseGuards, UseInterceptors, ValidationPipe } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import * as swagger from '@nestjs/swagger';
 import { Response } from 'express';
@@ -9,6 +9,7 @@ import { Jwt2faAuthGuard } from 'src/auth/jwt-2fa/jwt-2fa-auth.guard';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { UserService } from 'src/user/user.service';
 import { PasswordDto } from './dto/Password.dto';
+import { changeNicknameDto } from './dto/ChangeNickname.dto';
 
 @Controller('user')
 @swagger.ApiTags('user')
@@ -26,12 +27,13 @@ export class UserController {
 	async toggleTwoFactor(@Req() request) {
 		return await this.userService.toggleTwoFactor(request.user.uid);
 	}
+	
 
 	@Post('/2fa/toggle/confirm')
 	@UseGuards(JwtAuthGuard)
 	async authConfirm(@Req() request, @Body() body) {
 		Logger.log('2fa toggle confirm');
-		const isCodeValid = await this.authService.isTwoFactorCodeValid(
+		const isCodeValid = await this.userService.isTwoFactorCodeValid(
 			body.twoFactorCode,
 			request.user,
 		);
@@ -83,7 +85,6 @@ export class UserController {
 		}
 	}
 
-
 	@Get('/profile-img-change')
 	@UseGuards(Jwt2faAuthGuard)
 	uploadPage(@Res() res: Response) {
@@ -115,13 +116,26 @@ export class UserController {
 			} else {
 				throw new UnauthorizedException('user not found!');
 			}
-		}
+	}
+	@Get('/nickname')
+	@UseGuards(Jwt2faAuthGuard)
+	async testupdateNickname(@Req() request){
+		await this.updateNickname(request, {nickname: 'asdf'});
+		
+	}
 
-		// for debug
-		@Get('/get-profile/:filename')
-		getProfile(@Res() res: Response, @Param('filename') filename) {
-			const filePath = path.join(__dirname, `../../uploads/${filename}`);
-			res.sendFile(filePath);
-		}
+	@Patch('/nickname')
+	@UseGuards(Jwt2faAuthGuard)
+	async updateNickname(@Req() request, @Body() changeNicknameDto: changeNicknameDto){
+		const user = request.user;
+		await this.userService.setUserNickname(user, changeNicknameDto.nickname);
+	}
+
+	// for debug
+	@Get('/get-profile/:filename')
+	getProfile(@Res() res: Response, @Param('filename') filename) {
+		const filePath = path.join(__dirname, `../../uploads/${filename}`);
+		res.sendFile(filePath);
+	}
 
 }
