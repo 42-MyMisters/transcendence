@@ -1,78 +1,64 @@
-import { MouseEvent, useEffect, useState } from "react";
+import jwt_decode from "jwt-decode";
+import { Link } from "react-router-dom";
+
+import { useAtom } from "jotai";
+import { useEffect } from "react";
+import { useCookies } from "react-cookie";
+
 import BackGround from "../components/BackGround";
-import InitialSettingModal from "../components/LoginPage/InitialSetting";
 import SignInModal from "../components/LoginPage/SignIn";
 import TFAModal from "../components/LoginPage/TwoFactorAuth";
-// import Register from "../components/LoginPage/Register";
-// import "../styles/LoginModal.css";
+
+import { refreshTokenAtom } from "../components/atom/LoginAtom";
+import { cookieAtom } from "../components/atom/LoginAtom";
+import { TFAEnabledAtom } from "../components/atom/LoginAtom";
+import ChatPage from "./ChatPage";
+import { useNavigate } from "react-router-dom";
 
 export default function LoginPage() {
+  /* localstorage에 없는데 cookie에 있으면 로그인이 된거다 */
+  /* localstorage에 있으면 로그인 된거다 */
+  const [refreshToken, setRefreshToken] = useAtom(refreshTokenAtom);
+  const [cookie, setCookie] = useAtom(cookieAtom);
+  const [TFAEnabled, setTFAEnabled] = useAtom(TFAEnabledAtom);
+
+  const cookieIMade = "refreshToken";
+  const [cookies, setCookies, removeCookie] = useCookies([cookieIMade]);
+  const navigate = useNavigate();
+  useEffect(() => {
+    /* 로그인 경험이 있는지 확인 */
+    const storedRefreshToken = localStorage.getItem("refreshToken");
+    if (storedRefreshToken !== null) {
+      setRefreshToken(true);
+    }
+    /* 쿠키가 있음 -> localstorage에 저장해야함 */
+    if (cookies[cookieIMade] !== undefined) {
+      setCookie(true);
+      localStorage.setItem("refreshToken", cookies[cookieIMade]);
+      removeCookie(cookieIMade);
+      setCookie(false);
+    }
+  }, [setRefreshToken, setCookie]); // data change
+
+  useEffect(() => {
+    /* 2FA가 켜져있는지 확인 */
+    const value = localStorage.getItem("refreshToken");
+    if (value) {
+      const decoded: any = jwt_decode(JSON.stringify(value));
+      if (decoded.twoFactorEnabled) {
+        setTFAEnabled(true);
+      } else {
+        navigate("/chat");
+      }
+    }
+  }, [setTFAEnabled]);
   return (
     <BackGround>
-      {/* <SignInModal /> */}
-      <TFAModal />
-      {/* <InitialSettingModal /> */}
+      {/* refresh Token이 있으면 SigninModal이 꺼짐 */}
+      {/* refresh Token이 없으면 SigninModal이 켜짐 */}
+      {!refreshToken && <SignInModal />}
+      {/* refresh Token이 있고 cookie가 없으면 TFAModal실행 */}
+      {refreshToken && !cookie && TFAEnabled && <TFAModal />}
     </BackGround>
   );
 }
-
-// // export default function LoginPage() {
-// //   return (
-// //     <div className="ModalWrap">
-// //       <div className="ModalBox">
-// //         <h1 className="ModalTitle">Sign in</h1>
-// //         <button className="LogInBtn">Intra</button>
-// //       </div>
-// //     </div>
-// //   );
-// // }
-
-// function AuthenticatorComponent() {}
-
-// function RegisterComponent() {
-//   return (
-//     <img
-//       width="100px"
-//       height="100px"
-//       src="data:image/png;base64,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"
-//     />
-//   );
-// }
-
-// function LoginChecker() {
-//   return <div>bye</div>;
-// }
-
-// export default function LoginPage() {
-//   const [clicked, setClicked] = useState(false);
-
-//   useEffect(() => {
-//     console.log(clicked);
-//   }, [clicked]);
-
-//   const handleOnClick = async (e: MouseEvent<HTMLButtonElement>) => {
-//     e.preventDefault();
-
-//     const response = await fetch("http://localhost:4000");
-
-//     if (response.status === 200) {
-//       setClicked(true);
-//     }
-//   };
-
-//   return (
-//     <div className="ModalWrap">
-//       <div className="ModalBox">
-//         <button
-//           id="SignInBtn"
-//           onClick={handleOnClick}
-//           className="ModalBtn"
-//           style={clicked ? { display: "none" } : { display: "blocked" }}
-//         >
-//           click me!
-//         </button>
-//         {clicked === true ? <Register /> : <LoginChecker />}
-//       </div>
-//     </div>
-//   );
-// }
