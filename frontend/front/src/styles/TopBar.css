@@ -23,15 +23,15 @@
   /* border: 1px solid #ff0000; */
 }
 
+.AStyle {
+  text-decoration: none;
+  color: #fff;
+}
+
 .TopBarLogo {
   width: 300px;
 }
 
 .TopBarBtnAlign {
   float: right;
-}
-
-a {
-  text-decoration: none;
-  color: #fff;
 }

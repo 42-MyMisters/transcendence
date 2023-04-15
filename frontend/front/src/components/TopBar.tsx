@@ -24,7 +24,7 @@ function getNavLinkStyle({ isActive }: { isActive: boolean }) {
 function LogoBtn() {
   return (
     <div className="TopBarBtn TopBarLogo">
-      <a href="https://github.com/42-MyMisters" target="_blank" rel="noreferrer">MyMisters</a>
+      <a className="AStyle" href="https://github.com/42-MyMisters" target="_blank" rel="noreferrer">MyMisters</a>
     </div>
   );
 }
@@ -32,7 +32,7 @@ function LogoBtn() {
 function ChatBtn() {
   return (
     <div className="TopBarBtn">
-      <NavLink to="/chat" style={getNavLinkStyle}>Chat</NavLink>
+      <NavLink to="/chat" className="AStyle" style={getNavLinkStyle} >Chat</NavLink>
     </div>
   );
 }
@@ -46,7 +46,7 @@ function QueueBtn() {
 function ProfileBtn() {
   return (
     <div className="TopBarBtn">
-      <NavLink to="/profile" style={getNavLinkStyle}>Profile</NavLink>
+      <NavLink to="/profile" className="AStyle" style={getNavLinkStyle}>Profile</NavLink>
     </div>
   );
 }
