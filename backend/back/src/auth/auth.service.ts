@@ -3,7 +3,6 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import config from 'config';
 import { authenticator } from 'otplib';
-import { toDataURL } from 'qrcode';
 import { IntraTokenDto } from 'src/user/dto/IntraToken.dto';
 import { IntraUserDto } from 'src/user/dto/IntraUser.dto';
 import { User } from 'src/user/user.entity';
@@ -76,18 +75,7 @@ export class AuthService {
 		// return curUser;
 	}
 
-	// Save 2fa secret, but twoFactorEnabled value does not change.
-	async genTwoFactorSecret(user: User) {
-		const secret = authenticator.generateSecret();
-		const otpAuthUrl = authenticator.keyuri(user.nickname, 'My Misters', secret);
-		return { secret, qr: await this.genQrCodeURL(otpAuthUrl) };
-	}
 
-
-
-	async genQrCodeURL(otpAuthUrl: string): Promise<{ data: string }> {
-		return toDataURL(otpAuthUrl);
-	}
 
 	async isTwoFactorCodeValid(twoFactorCode: string, user: User) {
 		if (!user.twoFactorSecret) {
@@ -96,8 +84,10 @@ export class AuthService {
 		return authenticator.verify({ token: twoFactorCode, secret: user.twoFactorSecret });
 	}
 
-	async loginWith2fa(userWithoutPw: Omit<User, 'password'>) {
-		return await this.genAccessToken(userWithoutPw, true);
+	async loginWith2fa(userWithoutPw: Omit<User, 'password'>) : Promise<{refreshToken: string, accessToken: string}> {
+		const refreshToken = await this.genRefreshToken(userWithoutPw, true);
+		const accessToken = await this.genAccessToken(userWithoutPw, true);
+		return {refreshToken, accessToken};
 	}
 
 	async login(userWithoutPw: Omit<User, 'password'>) {

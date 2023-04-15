@@ -48,7 +48,7 @@ export class User extends BaseEntity {
 		const user = new User();
 		user.uid = intraUserDto.id;
 		user.email = intraUserDto.email;
-		user.nickname = intraUserDto.login;
+		user.nickname = intraUserDto.login + "#" + intraUserDto.id;
 		user.profileUrl = intraUserDto.image.link;
 		user.twoFactorEnabled = false;
 		return user;
