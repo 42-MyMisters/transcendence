@@ -34,11 +34,10 @@
 
 .ProfileOptions {
   position: absolute;
-  left: 370px;
-  top: 175px;
-
+  height: 30px;
   width: 300px;
-  height: 150px;
+  left: 371px;
+  top: 175px;
 
   font-weight: 400;
   font-size: 30px;
@@ -56,7 +55,7 @@ input[id="checkbox_TFA"] + label {
   border: 3px solid #707070;
   position: absolute;
   left: 70px;
-  top: 110px;
+  top: 73px;
   background: #ffffff;
 }
 
