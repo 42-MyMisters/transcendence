@@ -82,7 +82,7 @@ export class LoginController {
 	// For Test
 	@Get('/logout')
 	@UseGuards(Jwt2faAuthGuard)
-	async red(@Req() request){
+	async red(@Req() request) {
 		await this.logout(request);
 	}
 
@@ -93,7 +93,7 @@ export class LoginController {
 			httpOnly: true,
 			sameSite: 'strict',
 			// secure: true // only https option
-		  };
+		};
 		request.cookie('access_token', '', { ...options, expires: new Date(0) });
 		return await this.userService.logout(request.user);
 	}
@@ -123,7 +123,10 @@ export class LoginController {
 	@UseGuards(JwtRefreshGuard)
 	async refreshAccessTokens(@Headers('authorization') refresh_token: string, @Req() request) {
 		const user = request.user;
-		return await this.authService.refreshAccessToken(refresh_token, user);
+		const returnToken = {
+			accessToken: await this.authService.refreshAccessToken(refresh_token, user)
+		};
+		return returnToken;
 	}
 
 	// login with email & password.
@@ -193,4 +196,3 @@ export class LoginController {
 	}
 
 }
-	

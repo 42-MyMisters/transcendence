@@ -1,10 +1,16 @@
 import { useAtom } from "jotai";
-
 import { changeNameModalAtom } from "../atom/ModalAtom";
+import { PressEsc } from "../../yoma/pressEsc";
+
 import "../../styles/ProfileModal.css";
 
 export default function ChangeNameModal() {
   const [changeNameModal, setchangeNameModal] = useAtom(changeNameModalAtom);
+
+  PressEsc(() => {
+    setchangeNameModal(false);
+  }, ["Escape"]);
+
   return (
     <>
       <div className="ChangeNameModalBG"></div>

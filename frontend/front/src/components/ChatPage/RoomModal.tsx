@@ -1,10 +1,15 @@
 import { useAtom } from "jotai";
 import { roomModalAtom } from "../atom/ModalAtom";
+import { PressEsc } from "../../yoma/pressEsc";
 
 import "../../styles/RoomModal.css";
 
 export default function RoomModal() {
   const [roomModal, setRoomModal] = useAtom(roomModalAtom);
+
+  PressEsc(() => {
+    setRoomModal(false);
+  }, ["Escape"]);
 
   return (
     <>
