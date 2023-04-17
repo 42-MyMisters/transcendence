@@ -1,4 +1,4 @@
-import { BadGatewayException, BadRequestException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { BadGatewayException, BadRequestException, Injectable, Logger, PayloadTooLargeException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import config from 'config';
@@ -144,4 +144,14 @@ export class AuthService {
 			throw new UnauthorizedException(errMsg);
 		}
 	}
+
+	async jwtVerify(token: string): Promise<number> {
+		try {
+			const payload = await this.jwtService.verify(token);
+			return payload.uid;
+		} catch(e) {
+			throw new UnauthorizedException("user not found");
+		}
+	}
+
 }
