@@ -1,13 +1,13 @@
 import { useAtom } from "jotai";
 import { changeNameModalAtom } from "../atom/ModalAtom";
-import { PressKeyboard } from "../../yoma/pressKeyboard";
+import { PressKey } from "../../event/pressKey";
 
 import "../../styles/ProfileModal.css";
 
 export default function ChangeNameModal() {
   const [changeNameModal, setchangeNameModal] = useAtom(changeNameModalAtom);
 
-  PressKeyboard(["Escape"], () => { setchangeNameModal(false); } );
+  PressKey(["Escape"], () => { setchangeNameModal(false); });
 
   return (
     <>

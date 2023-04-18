@@ -1,7 +1,6 @@
-
 import { useEffect } from 'react';
 
-export const PressKeyboard = (keys: string[], callback: () => void) => {
+export const PressKey = (keys: string[], callback: () => void) => {
 	const onKeyDown = (event: KeyboardEvent) => {
 		const wasAnyKeyPressed = keys.some((key: string) => event.key === key);
 		if (wasAnyKeyPressed) {
@@ -9,6 +8,7 @@ export const PressKeyboard = (keys: string[], callback: () => void) => {
 			callback();
 		}
 	};
+
 	useEffect(() => {
 		document.addEventListener('keydown', onKeyDown);
 		return () => {
