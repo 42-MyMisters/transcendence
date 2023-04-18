@@ -1,6 +1,6 @@
 import { useAtom } from "jotai";
 import { userInfoModalAtom } from "../../components/atom/ModalAtom";
-import { PressEsc } from "../../yoma/pressEsc";
+import { PressKeyboard } from "../../yoma/pressEsc";
 
 import { IoCloseOutline } from "react-icons/io5";
 import "../../styles/UserInfoModal.css";
@@ -8,7 +8,7 @@ import "../../styles/UserInfoModal.css";
 export default function UserInfoModal() {
   const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
 
-  PressEsc(["Escape"], ()=>{ setUserInfoModal(false) });
+  PressKeyboard(["Escape"], ()=>{ setUserInfoModal(false) });
 
   return (
     <>
