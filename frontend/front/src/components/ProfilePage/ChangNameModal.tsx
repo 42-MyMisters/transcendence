@@ -1,6 +1,6 @@
 import { useAtom } from "jotai";
 import { changeNameModalAtom } from "../atom/ModalAtom";
-import { PressKeyboard } from "../../yoma/pressEsc";
+import { PressKeyboard } from "../../yoma/pressKeyboard";
 
 import "../../styles/ProfileModal.css";
 
