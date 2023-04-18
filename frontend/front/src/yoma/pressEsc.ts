@@ -14,7 +14,7 @@ export const PressEsc = (callback: () => void, keys: string[]) => {
 		return () => {
 			document.removeEventListener('keydown', onKeyDown);
 		};
-	}, [onKeyDown]);
+	}, []);
 };
 
 //   pressEsc(() => {
