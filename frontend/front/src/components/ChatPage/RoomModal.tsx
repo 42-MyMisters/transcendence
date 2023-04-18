@@ -1,10 +1,13 @@
 import { useAtom } from "jotai";
 import { roomModalAtom } from "../atom/ModalAtom";
+import { PressKey } from "../../event/pressKey";
 
 import "../../styles/RoomModal.css";
 
 export default function RoomModal() {
   const [roomModal, setRoomModal] = useAtom(roomModalAtom);
+
+  PressKey(["Escape"], () => { setRoomModal(false); });
 
   return (
     <>
