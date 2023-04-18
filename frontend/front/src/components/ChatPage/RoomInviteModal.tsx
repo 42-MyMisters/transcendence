@@ -1,10 +1,13 @@
 import { useAtom } from "jotai";
 import { inviteModalAtom } from "../../components/atom/ModalAtom";
+import { PressEsc } from "../../yoma/pressEsc";
 
 import "../../styles/RoomInviteModal.css";
 
 export default function RoomInviteModal() {
   const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);
+
+  PressEsc(["Escape"], () => { setInviteModal(false); });
 
   return (
     <>
