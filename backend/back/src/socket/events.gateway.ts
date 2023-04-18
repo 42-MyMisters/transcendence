@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common';
+import { Logger, UnauthorizedException } from '@nestjs/common';
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Namespace, Socket } from 'socket.io';
 import { AuthService } from 'src/auth/auth.service';
@@ -11,13 +11,13 @@ interface MessagePayload {
 }
 
 class SocketInfo {
-  socket: string;
+  socket: Socket;
   status: number;
-  blockedUsers: User[];
+  blockedUsers: number[];
 }
 
-const userDic: Record<number, SocketInfo> = {};
-let createdRooms: string[] = [];
+const userRecord: Record<number, SocketInfo> = {};
+const createdRooms: Record<string, User[]> = {};
 
 @WebSocketGateway({ namespace: 'sock', cors: { origin: '*' } })
 export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
@@ -34,15 +34,16 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
   
   afterInit() {
     this.nsp.adapter.on('delete-room', (room) => {
-      const deletedRoom = createdRooms.find(
+      const deletedRoom = Object.keys(createdRooms).find(
         (createdRoom) => createdRoom === room,
       );
       if (!deletedRoom) return;
 
+
       this.nsp.emit('delete-room', deletedRoom);
-      createdRooms = createdRooms.filter(
-        (createdRoom) => createdRoom !== deletedRoom,
-      );
+      if (createdRooms[deletedRoom] !== undefined) {
+        delete createdRooms[deletedRoom];
+      }
     });
 
     this.logger.log('socket initialized');
@@ -51,21 +52,29 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
 
   async handleConnection(@ConnectedSocket() socket: Socket) {
     try {
-      this.logger.log(`${socket.id} socket connected`);
+      this.logger.log(`${socket.id} socket connected.`);
       const uid = await this.authService.jwtVerify(socket.handshake.auth.token)
-      const user = this.userService.getUserById(uid);
-      socket.data.user = user;
+      const user = await this.userService.getUserById(uid);
+      if (this.userService.isUserExist(user)) {
+        socket.data.user = user;
+        if (userRecord[uid] === undefined) {
+          userRecord[uid] = { socket:socket, status: 1, blockedUsers:user.blockedUsers.map(blockedUsers => blockedUsers.targetToBlockId) }
+        } else {
+          this.logger.log(`${socket.id} already connected user. disconnect socket.`);
+          socket.disconnect();
+        }
+      } else {
+        throw new UnauthorizedException("User not found.");
+      }
     } catch(e) {
-      this.logger.log(`${socket.id} socket connected`);
-      
+      this.logger.log(`${socket.id} invalid connection. disconnect socket.`);
+      socket.disconnect();
     }
   }
-
 
   handleDisconnect(@ConnectedSocket() socket: Socket) {
     this.logger.log(`${socket.id} socket disconnected`);
   }
-
 
   @SubscribeMessage('message')
   handleMessage(
@@ -80,30 +89,27 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
     return { username: socket.id, message };
   }
 
-
   @SubscribeMessage('room-list')
   handleRoomList() {
-    return createdRooms;
+    return Object.keys(createdRooms);
   }
-
 
   @SubscribeMessage('create-room')
   handleCreateRoom(
     @ConnectedSocket() socket: Socket,
     @MessageBody() roomName: string,
   ) {
-    const exists = createdRooms.find((createdRoom) => createdRoom === roomName);
-    if (exists) {
+    const exists = createdRooms[roomName];
+    if (exists !== undefined) {
       return { success: false, payload: `${roomName} room is already created.` };
     }
 
     socket.join(roomName);
-    createdRooms.push(roomName);
+    createdRooms[roomName] = [socket.data.user];
     this.nsp.emit('create-room', roomName);
 
     return { success: true, payload: roomName };
   }
-
 
   @SubscribeMessage('join-room')
   handleJoinRoom(
@@ -117,7 +123,6 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
 
     return { success: true };
   }
-
 
   @SubscribeMessage('leave-room')
   handleLeaveRoom(

@@ -9,6 +9,7 @@ import { UserFollow } from "./user-follow.entity";
 import { User } from "./user.entity";
 import { authenticator } from "otplib";
 import { toDataURL } from 'qrcode';
+import { UserBlock } from "./user-block.entity";
 
 
 @Injectable()
@@ -17,25 +18,22 @@ export class UserService {
 		@InjectRepository(User)
 		private userRepository: Repository<User>,
 		@InjectRepository(UserFollow)
-		private userFollowRepository: Repository<UserFollow>,
-		
-		){}
-
-
-		
+		private userFollowRepository: Repository<UserFollow>,	
+		@InjectRepository(UserBlock)
+		private userBlockRepository: Repository<UserBlock>,	
+	){}
 
 	async isNicknameExist(nickname: string): Promise<boolean> {
 		const queryBuilder = this.userRepository.createQueryBuilder('user');
 		const count = await queryBuilder.where('user.nickname = :nickname', { nickname }).getCount();
 		return count > 0;
-	  };
+	}
 	
 	async addNewUser(intraUserDto: IntraUserDto): Promise<User> {
 		const user: User = await User.fromIntraUserDto(intraUserDto);
 		await this.userRepository.save(user);
 		return user;
 	}
-
 
 	async setUserNickname(user: User, changeNickname: string) {
 		const isExsistNickname = await this.isNicknameExist(changeNickname);
@@ -88,6 +86,7 @@ export class UserService {
 		userUpdate.password = userPw;
 		await this.updateUser(userUpdate);
 	}
+
 	async deleteRefreshToken(uid: number) {
 		const user = await this.getUserById(uid);
 		if (this.isUserExist(user)){
@@ -113,7 +112,7 @@ export class UserService {
 		if (!isLogout)
 			throw new BadRequestException ('RefreshToken Not Deleted');
 	}
-ß
+
 	async follow(curUser: User, userToFollow: User): Promise<void> {
 		const existingFollowing = await this.userFollowRepository.findOne({ where : { fromUserId: curUser.uid, targetToFollowId: userToFollow.uid } });
 		if (existingFollowing) {
@@ -135,7 +134,19 @@ export class UserService {
 		await this.userFollowRepository.remove(existingFollowing);
 	}
 
-	isTwoFactorEnabled(user: User){
+	async block(curUser: User, userToBlock: User): Promise<void> {
+		const existingUserBlock = await this.userBlockRepository.findOne({ where : { fromUserId: curUser.uid, targetToBlockId: userToBlock.uid } });
+		if (existingUserBlock) {
+			throw new Error('You are already blocked this user.');
+		}
+
+		const block = new UserBlock();
+		block.fromUserId = curUser.uid;
+		block.targetToBlock = userToBlock;
+		await this.userFollowRepository.save(block);
+	}
+
+	isTwoFactorEnabled(user: User) {
 		if (user.twoFactorEnabled)
 			return true;
 		else 
