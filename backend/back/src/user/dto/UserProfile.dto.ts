@@ -1,4 +1,5 @@
 import { Game } from "src/game/game.entity";
+import { UserFollow } from "../user-follow.entity";
 import { User } from "../user.entity";
 import { FollowingUserDto } from "./FollowingUser.dto";
 
@@ -7,7 +8,7 @@ export class UserProfileDto {
 	nickname: string;
     profileUrl: string;
     ELO: number;
-    followings: FollowingUserDto;
+    followings: FollowingUserDto[];
     games: Game;
 
     static fromUserEntity(user: User): UserProfileDto {
@@ -16,6 +17,7 @@ export class UserProfileDto {
 		userProfileDto.nickname = user.nickname;
         userProfileDto.profileUrl = user.profileUrl;
 		userProfileDto.ELO = 0;
+		userProfileDto.followings = user.followings.map((followUser) => FollowingUserDto.fromUser(followUser));
 		return userProfileDto;
 	}
 }

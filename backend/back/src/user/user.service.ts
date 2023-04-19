@@ -196,8 +196,7 @@ export class UserService {
 
 	async getUserProfile(user: User){
 		const userProfileDto = UserProfileDto.fromUserEntity(user);
-		// follower 조회
-		// Game 정보 조회 
+		//GAME 조회
 		return userProfileDto;
 		
 	}
