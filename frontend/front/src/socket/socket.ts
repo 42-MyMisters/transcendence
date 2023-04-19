@@ -16,18 +16,11 @@ export const socket = io(URL, {
 	// path: "",
 });
 
-export function SocketHook() {
-	const [userList, setUserList] = useState({});
-	const [allRoomList, setAllRoomList] = useState([]);
-	const [joinedRoomInfo, setJoinedRoomInfo] = useState({});
+export const SocketHook = () => {
+	// const [userList, setUserList] = useState({});
+	// const [allRoomList, setAllRoomList] = useState([]);
+	// const [joinedRoomInfo, setJoinedRoomInfo] = useState({});
 
-	useEffect(() => {
-	}, []);
-
-	return (
-		<>
-		</>
-	);
 }
 
 
@@ -39,7 +32,6 @@ export function SocketHook() {
 // const serializedMap = [...myMap.entries()];
 // const serializedSet = [...mySet.keys()];
 export const OnSocketEvent = () => {
-	const [socketState, setSocketState] = useAtom(socketAtom);
 
 	// catch all incoming events
 	socket.onAny((eventName, ...args) => {
@@ -149,12 +141,7 @@ export const leaveHandler = () => {
 
 
 //-----------------------------------------------
-socket.emit("dm", { to, message }, (ack) => {
-	socket.to(to).to(socket.userID).emit("private message", {
-		content,
-		from: socket.userID,
-		to,
-	});
-	// ack
-});
+// socket.emit("dm", { to, message }, (ack) => {
+// 	// ack
+// });
 // add message to to's JoinedRoomInfo (roomAttri: dm, self: true)

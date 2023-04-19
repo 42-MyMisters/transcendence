@@ -17,16 +17,22 @@ import RoomModal from "../components/ChatPage/RoomModal";
 import RoomInviteModal from "../components/ChatPage/RoomInviteModal";
 import { useEffect } from 'react';
 
-export default function ChatPage() {
+interface Props {
+  state: number;
+}
+export default function ChatPage(initCheck: Props) {
   const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
   const [roomModal, setRoomModal] = useAtom(roomModalAtom);
   const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);
-  useEffect(() => {
-    console.log("in chatpage");
-    return () => {
-      console.log("out chatpage");
-    };
-  }, []);
+
+  // useEffect(() => {
+  //   if (initCheck.state) {
+  //     console.log("init socket!!");
+  //   } else {
+  //     console.log("uninit socket!!");
+  //   }
+  // }, [initCheck.state]);
+
   return (
     <BackGround>
       <TopBar />
