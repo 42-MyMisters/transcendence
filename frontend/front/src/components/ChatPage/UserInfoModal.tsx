@@ -1,11 +1,15 @@
 import { useAtom } from "jotai";
 import { userInfoModalAtom } from "../../components/atom/ModalAtom";
+import { PressKey } from "../../event/pressKey";
 
 import { IoCloseOutline } from "react-icons/io5";
 import "../../styles/UserInfoModal.css";
 
 export default function UserInfoModal() {
   const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
+
+  PressKey(["Escape"], () => { setUserInfoModal(false) });
+
   return (
     <>
       <div className="UserInfoModalBG"></div>
