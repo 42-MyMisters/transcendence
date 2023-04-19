@@ -1,8 +1,8 @@
 import { Game } from "src/game/game.entity";
 import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryColumn } from "typeorm";
 import { IntraUserDto } from "./dto/IntraUser.dto";
-import { UserFollow } from "./user-follow.entity";
 import { UserBlock } from "./user-block.entity";
+import { UserFollow } from "./user-follow.entity";
 
 @Entity()
 export class User extends BaseEntity {

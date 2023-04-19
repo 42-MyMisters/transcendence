@@ -2,14 +2,14 @@ import { BadRequestException, ConflictException, Injectable, Logger, Unauthorize
 import { InjectRepository } from "@nestjs/typeorm";
 import * as bcrypt from 'bcrypt';
 import config from "config";
+import { authenticator } from "otplib";
+import { toDataURL } from 'qrcode';
 import { Repository } from "typeorm";
 import { IntraUserDto } from "./dto/IntraUser.dto";
 import { PasswordDto } from "./dto/Password.dto";
+import { UserBlock } from "./user-block.entity";
 import { UserFollow } from "./user-follow.entity";
 import { User } from "./user.entity";
-import { authenticator } from "otplib";
-import { toDataURL } from 'qrcode';
-import { UserBlock } from "./user-block.entity";
 
 
 @Injectable()
