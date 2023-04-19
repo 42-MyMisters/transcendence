@@ -10,6 +10,7 @@ import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { UserService } from 'src/user/user.service';
 import { PasswordDto } from './dto/Password.dto';
 import { changeNicknameDto } from './dto/ChangeNickname.dto';
+import { UserProfileDto } from './dto/UserProfile.dto';
 
 @Controller('user')
 @swagger.ApiTags('user')
@@ -131,9 +132,9 @@ export class UserController {
 		await this.userService.setUserNickname(user, changeNicknameDto.nickname);
 	}
 
-	@Post('profile')
+	@Post('/me')
 	@UseGuards(Jwt2faAuthGuard)
-	async getUserProfie (@Req() reqeust){
+	async getUserProfie (@Req() reqeust) : Promise<UserProfileDto>{
 		const user = reqeust.user;
 		return await this.userService.getUserProfile(user);
 	}

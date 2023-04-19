@@ -9,6 +9,7 @@ import { UserFollow } from "./user-follow.entity";
 import { User } from "./user.entity";
 import { authenticator } from "otplib";
 import { toDataURL } from 'qrcode';
+import { UserProfileDto } from "./dto/UserProfile.dto";
 
 
 @Injectable()
@@ -21,10 +22,7 @@ export class UserService {
 		
 		){}
 
-
-		
-
-	async isNicknameExist(nickname: string): Promise<boolean> {
+		async isNicknameExist(nickname: string): Promise<boolean> {
 		const queryBuilder = this.userRepository.createQueryBuilder('user');
 		const count = await queryBuilder.where('user.nickname = :nickname', { nickname }).getCount();
 		return count > 0;
@@ -194,5 +192,13 @@ export class UserService {
 
 	isUserExist = (user: User | null): user is User => {
 		return user !== null;
+	}
+
+	async getUserProfile(user: User){
+		const userProfileDto = UserProfileDto.fromUserEntity(user);
+		// follower 조회
+		// Game 정보 조회 
+		return userProfileDto;
+		
 	}
 }
