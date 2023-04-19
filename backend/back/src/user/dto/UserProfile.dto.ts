@@ -11,13 +11,18 @@ export class UserProfileDto {
     followings: FollowingUserDto[];
     games: Game;
 
-    static fromUserEntity(user: User): UserProfileDto {
+    static async fromUserEntity(user: User): Promise<UserProfileDto> {
 		const userProfileDto = new UserProfileDto();
 		userProfileDto.uid = user.uid;
 		userProfileDto.nickname = user.nickname;
         userProfileDto.profileUrl = user.profileUrl;
+		if (Array.isArray(user.followings)) {
+			userProfileDto.followings = user.followings.map((followUser) => FollowingUserDto.fromUser(followUser));
+		} 
+		else {
+			userProfileDto.followings = [];
+		}
 		userProfileDto.ELO = 0;
-		userProfileDto.followings = user.followings.map((followUser) => FollowingUserDto.fromUser(followUser));
 		return userProfileDto;
 	}
 }

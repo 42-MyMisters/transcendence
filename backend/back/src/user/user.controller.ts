@@ -132,11 +132,40 @@ export class UserController {
 		await this.userService.setUserNickname(user, changeNicknameDto.nickname);
 	}
 
+	@swagger.ApiQuery({})
+	@swagger.ApiOperation({
+		summary: '내 User 정보를 리턴',
+		description: '필요한 User 정보 리턴',
+	})
+	@swagger.ApiOkResponse({
+		description: 'ok',
+		schema: {
+			type: 'object',
+			properties: {
+				uid:  { type: 'number', description: 'user 의 intra uid 이자 고유 관리 번호', },
+				nickname:{ type: 'string', description: 'user 의 고유한 닉네임', },
+				profileUrl: { type: 'string', description: 'user 의 프로필 사진 URL', },
+				ELO: { type: 'number', description: 'user의 티어 ', },
+				followings: { type: 'object', description: '유저가 팔로우 중인 User정보', },
+				games: { type: 'object', description: '게임 정보를 담은 Game Object', },
+			},
+			// example: { refreshToken: '1NiIsInR5c6IkpXVCJ9.eyJ1axjoxNjgxNDcyOTA3fQ.24Dlhpwbv75GXMireozDpzVA', redirect: false, },
+		},
+	})
+
 	@Post('/me')
 	@UseGuards(Jwt2faAuthGuard)
 	async getUserProfie (@Req() reqeust) : Promise<UserProfileDto>{
 		const user = reqeust.user;
+		console.log(user);
 		return await this.userService.getUserProfile(user);
+	}
+
+
+	@Get('/me')
+	@UseGuards(Jwt2faAuthGuard)
+	async GETgetUserProfie (@Req() reqeust) : Promise<UserProfileDto>{
+		return await this.getUserProfie(reqeust);
 	}
 
 
