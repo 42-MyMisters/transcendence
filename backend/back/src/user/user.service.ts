@@ -34,6 +34,10 @@ export class UserService {
 		return user;
 	}
 
+	async saveNewUser(user: User): Promise<User> {
+		return await this.userRepository.save(user);
+	}
+
 
 	async setUserNickname(user: User, changeNickname: string) {
 		const isExsistNickname = await this.isNicknameExist(changeNickname);
@@ -195,9 +199,13 @@ export class UserService {
 	}
 
 	async getUserProfile(user: User){
-		const userProfileDto = UserProfileDto.fromUserEntity(user);
+		const usr = await this.getUserById(user.uid);
+		if (this.isUserExist(usr)){
+			const userProfileDto = UserProfileDto.fromUserEntity(usr);
 		//GAME 조회
 		return userProfileDto;
-		
+		}
+		throw new BadRequestException();
+	
 	}
 }

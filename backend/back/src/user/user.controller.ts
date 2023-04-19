@@ -1,4 +1,4 @@
-import { Body, Controller, Get, InternalServerErrorException, Logger, Param, Patch, Post, Req, Res, UnauthorizedException, UploadedFiles, UseGuards, UseInterceptors, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, InternalServerErrorException, Logger, Param, Patch, Post, Query, Req, Res, UnauthorizedException, UploadedFiles, UseGuards, UseInterceptors, ValidationPipe } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import * as swagger from '@nestjs/swagger';
 import { Response } from 'express';
@@ -64,10 +64,16 @@ export class UserController {
 		return this.userService.showUsers();
 	}
 
+	@Get('/follow')
+	@UseGuards(Jwt2faAuthGuard)
+	async followGET(@Req() request, @Query('uid')uid: number) {
+		await this.follow(request,{uid});
+	}
+
 	@Post('/follow')
-	@UseGuards(JwtAuthGuard)
+	@UseGuards(Jwt2faAuthGuard)
 	async follow(@Req() request, @Body() body) {
-		const user = await this.userService.getUserByEmail(body.targetEmail);
+		const user = await this.userService.getUserById(body.uid);
 		if (this.userService.isUserExist(user)) {
 			await this.userService.follow(request.user, user);
 		} else {
@@ -76,9 +82,9 @@ export class UserController {
 	}
 
 	@Post('/unfollow')
-	@UseGuards(JwtAuthGuard)
+	@UseGuards(Jwt2faAuthGuard)
 	async unfollow(@Req() request, @Body() body) {
-		const user = await this.userService.getUserByEmail(body.targetEmail);
+		const user = await this.userService.getUserById(body.uid);
 		if (this.userService.isUserExist(user)) {
 			await this.userService.unfollow(request.user, user);
 		} else {
@@ -175,5 +181,4 @@ export class UserController {
 		const filePath = path.join(__dirname, `../../uploads/${filename}`);
 		res.sendFile(filePath);
 	}
-
 }
