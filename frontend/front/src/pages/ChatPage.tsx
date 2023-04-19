@@ -15,11 +15,18 @@ import * as socket from "../socket/socket";
 import UserInfoModal from "../components/ChatPage/UserInfoModal";
 import RoomModal from "../components/ChatPage/RoomModal";
 import RoomInviteModal from "../components/ChatPage/RoomInviteModal";
+import { useEffect } from 'react';
 
 export default function ChatPage() {
   const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
   const [roomModal, setRoomModal] = useAtom(roomModalAtom);
   const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);
+  useEffect(() => {
+    console.log("in chatpage");
+    return () => {
+      console.log("out chatpage");
+    };
+  }, []);
   return (
     <BackGround>
       <TopBar />
@@ -30,7 +37,6 @@ export default function ChatPage() {
       <ChatUserList />
       <ChatArea />
       <ChatRoomUserList />
-      {/* <socket.SocketHook /> */} // TODO: socket...
     </BackGround>
   );
 }

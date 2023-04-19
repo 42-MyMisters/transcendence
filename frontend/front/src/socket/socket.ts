@@ -17,7 +17,7 @@ export const socket = io(URL, {
 });
 
 export function SocketHook() {
-	const [userList, setUserList] = useState([]);
+	const [userList, setUserList] = useState({});
 	const [allRoomList, setAllRoomList] = useState([]);
 	const [joinedRoomInfo, setJoinedRoomInfo] = useState({});
 
@@ -88,6 +88,11 @@ export const OnSocketEvent = () => {
 		console.log(err.message); // prints the message associated with the error
 	});
 
+	socket.on("dm", ({ from, message }) => {
+		// NOTE: check blocked?
+		// add message to from's JoinedRoomInfo (roomAttri: dm, self: false)
+	});
+
 	/**
 	 * TODO: 1. 최초 연결시, 방 목록, dm 목록, 유저 목록(팔로워)을 받아온다.
 	 * 채팅 화면은 아무것도 연결 안되어 있는 상태. 방 클릭하면 그 방으로 접속 시도
@@ -145,6 +150,11 @@ export const leaveHandler = () => {
 
 //-----------------------------------------------
 socket.emit("dm", { to, message }, (ack) => {
+	socket.to(to).to(socket.userID).emit("private message", {
+		content,
+		from: socket.userID,
+		to,
+	});
 	// ack
 });
-// add message to to's JoinedRoomInfo (dm attribute, add myself)
+// add message to to's JoinedRoomInfo (roomAttri: dm, self: true)
