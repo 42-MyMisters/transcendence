@@ -10,6 +10,8 @@ import { userInfoModalAtom } from "../components/atom/ModalAtom";
 import { inviteModalAtom } from "../components/atom/ModalAtom";
 import { roomModalAtom } from "../components/atom/ModalAtom";
 
+import * as socket from "../socket/socket";
+
 import UserInfoModal from "../components/ChatPage/UserInfoModal";
 import RoomModal from "../components/ChatPage/RoomModal";
 import RoomInviteModal from "../components/ChatPage/RoomInviteModal";
@@ -28,6 +30,7 @@ export default function ChatPage() {
       <ChatUserList />
       <ChatArea />
       <ChatRoomUserList />
+      {/* <socket.SocketHook /> */} // TODO: socket...
     </BackGround>
   );
 }

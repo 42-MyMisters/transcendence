@@ -1,5 +1,6 @@
 import { io } from 'socket.io-client';
 import { useAtom } from "jotai";
+import { useEffect, useState } from 'react';
 import { socketAtom } from '../components/atom/SocketAtom';
 
 const URL = "http://localhost:4000";
@@ -11,9 +12,24 @@ export const socket = io(URL, {
 	},
 	reconnectionDelay: 10000, // defaults to 1000
 	reconnectionDelayMax: 10000, // defaults to 5000
-	// autoConnect: false,
+	autoConnect: false, //TODO: chat page에 들어가면 연결
 	// path: "",
 });
+
+export function SocketHook() {
+	const [userList, setUserList] = useState([]);
+	const [allRoomList, setAllRoomList] = useState([]);
+	const [joinedRoomInfo, setJoinedRoomInfo] = useState({});
+
+	useEffect(() => {
+	}, []);
+
+	return (
+		<>
+		</>
+	);
+}
+
 
 // https://socket.io/docs/v4/client-offline-behavior/
 // https://socket.io/docs/v4/emitting-events/#volatile-events
@@ -66,33 +82,69 @@ export const OnSocketEvent = () => {
 
 	// the connection is denied by the server in a middleware function
 	socket.on("connect_error", (err) => {
+		if (err.message === "unauthorized") {
+			// handle each case
+		}
 		console.log(err.message); // prints the message associated with the error
 	});
 
 	/**
-	 * 1. 최초 연결시, 방 목록, dm 목록, 유저 목록(팔로워)을 받아온다.
+	 * TODO: 1. 최초 연결시, 방 목록, dm 목록, 유저 목록(팔로워)을 받아온다.
 	 * 채팅 화면은 아무것도 연결 안되어 있는 상태. 방 클릭하면 그 방으로 접속 시도
 	 */
 
 	/**
-	 * 2. 방 클릭시, 방에 접속한다.
+	 * TODO: 2. 방 클릭시, 방에 접속한다.
 	 * protected 방이면 비민 번호를 입력후, 맞으면 접속
 	 * 채팅 화면이 접속한 방 정보로 변경.
 	 */
 
 	/**
-	 * 3. 유저 클릭시, 유저랑 DM.
+	 * TODO: 3. 유저 클릭시, 유저랑 DM.
 	 * NOTE: 상대가 나를, 내가 상대를 block 되어 있으면?
 	 */
 
 	/**
-	 * 4. 방에서 유저 클릭시 userInfoModal을 띄우고 각 기능 수행
+	 * TODO: 4. 방에서 유저 클릭시 userInfoModal을 띄우고 각 기능 수행
 	 */
 
 	/**
-	 * 5. 채팅 엔터, 버튼 클릭시 현재 접속한 방에 메시지 전송
+	 * TODO: 5. 채팅 엔터, 버튼 클릭시 현재 접속한 방에 메시지 전송
 	 * 아무런 방에 접속하지 않은채 메시지 전송시, 아무것도 안되게
 	 */
 
 };
 
+
+
+//-----------------------------------------------
+export const joinHandler = () => {
+	//TODO: join room with room id
+};
+export const leaveHandler = () => {
+	//TODO: leave room with room id
+};
+
+// when click the join, leave button
+// function join() {
+//     socket.joinHandler();
+//   }
+
+//   function leave() {
+//     socket.leaveHandler();
+//   }
+
+//   return (
+//     <>
+//       <button onClick={ join }>Join</button>
+//       <button onClick={ leave }>Leave</button>
+//     </>
+//   );
+// }
+
+
+//-----------------------------------------------
+socket.emit("dm", { to, message }, (ack) => {
+	// ack
+});
+// add message to to's JoinedRoomInfo (dm attribute, add myself)
