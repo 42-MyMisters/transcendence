@@ -131,9 +131,17 @@ export class UserController {
 		await this.userService.setUserNickname(user, changeNicknameDto.nickname);
 	}
 
+	@Post('profile')
+	@UseGuards(Jwt2faAuthGuard)
+	async getUserProfie (@Req() reqeust){
+		const user = reqeust.user;
+		return await this.userService.getUserProfile(user);
+	}
+
+
 	// for debug
 	@Get('/get-profile/:filename')
-	getProfile(@Res() res: Response, @Param('filename') filename) {
+	getProfilePicture_debug(@Res() res: Response, @Param('filename') filename) {
 		const filePath = path.join(__dirname, `../../uploads/${filename}`);
 		res.sendFile(filePath);
 	}
