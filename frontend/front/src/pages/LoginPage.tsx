@@ -15,7 +15,7 @@ import { TFAEnabledAtom } from "../components/atom/LoginAtom";
 import ChatPage from "./ChatPage";
 import { useNavigate } from "react-router-dom";
 
-import * as socket from "../socket/socket.io";
+import * as socket from "../socket/socket";
 
 export default function LoginPage() {
   /* localstorage에 없는데 cookie에 있으면 로그인이 된거다 */
