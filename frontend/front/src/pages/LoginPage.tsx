@@ -15,6 +15,8 @@ import { TFAEnabledAtom } from "../components/atom/LoginAtom";
 import ChatPage from "./ChatPage";
 import { useNavigate } from "react-router-dom";
 
+import * as socket from "../socket/socket.io";
+
 export default function LoginPage() {
   /* localstorage에 없는데 cookie에 있으면 로그인이 된거다 */
   /* localstorage에 있으면 로그인 된거다 */
@@ -48,6 +50,7 @@ export default function LoginPage() {
       if (decoded.twoFactorEnabled) {
         setTFAEnabled(true);
       } else {
+        socket.onSocketEvent();
         navigate("/chat");
       }
     }
