@@ -1,0 +1,69 @@
+.SpeechBubble {
+  display: flex;
+  flex-direction: column;
+  /* overflow: auto; */
+
+  width: 520px;
+}
+
+.SpeechBubbleNickName {
+  display: flex;
+
+  width: 400px;
+  height: 50px;
+  align-self: flex-start;
+
+  justify-content: start;
+  text-align: left;
+  line-height: 50px;
+  font-weight: 400;
+  font-size: 30px;
+}
+
+.SpeechBubbleMessage {
+  display: flex;
+  flex-direction: row;
+
+  width: 400px;
+  height: fit-content;
+  align-self: flex-start;
+
+  word-break: break-all;
+
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 36px;
+
+  background-color: #fff;
+}
+
+.SpeechBubbleMyNickName {
+  display: flex;
+
+  width: 400px;
+  height: 50px;
+  align-self: flex-end;
+
+  justify-content: end;
+  text-align: right;
+  line-height: 50px;
+  font-weight: 400;
+  font-size: 30px;
+}
+
+.SpeechBubbleMyMessage {
+  display: flex;
+  flex-direction: row;
+
+  width: 400px;
+  height: fit-content;
+  align-self: flex-end;
+
+  word-break: break-all;
+
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 36px;
+
+  background-color: #fff;
+}

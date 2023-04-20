@@ -2,6 +2,7 @@ import { useAtom } from "jotai";
 import { roomModalAtom } from "../../components/atom/ModalAtom";
 
 import "../../styles/ChatList.css";
+import ChatRoom from "../objects/ChatRoom";
 
 export default function ChatRoomList() {
   const [roomModal, setRoomModal] = useAtom(roomModalAtom);
@@ -11,8 +12,8 @@ export default function ChatRoomList() {
       <div className="ChatListTxt">Chatting List</div>
       <div className="ChatRoomListPlusBtn" onClick={() => setRoomModal(true)} />
       <div className="ChatRooms">
-        <div>Room1</div>
-        <div>Room2</div>
+        <ChatRoom roomName="room1" type="Protected"></ChatRoom>
+        <ChatRoom roomName="room2" type="Private"></ChatRoom>
       </div>
     </div>
   );
