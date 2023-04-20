@@ -50,7 +50,8 @@ export default function LoginPage() {
       if (decoded.twoFactorEnabled) {
         setTFAEnabled(true);
       } else {
-        socket.OnSocketEvent(); // NOTE: socket event
+        socket.socket.connect();
+        socket.OnSocketEvent();
         navigate("/chat");
       }
     }

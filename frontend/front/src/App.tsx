@@ -10,10 +10,17 @@ import NotFoundPage from "./pages/NotFoundPage";
 import "./App.css";
 
 import { socketFirstTouch } from './components/atom/SocketAtom';
+import { socket } from './socket/socket';
 import { Provider, atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 
 
 export default function App() {
+
+  const [socketState, setSocketState] = useState(socket);
+
+  useEffect(() => {
+    console.log(socketState);
+  }, []);
 
   // const value = useAtomValue(socketFirstTouch);
   // const ShowSocket = () => {

@@ -4,17 +4,18 @@ import { useEffect, useState } from 'react';
 
 // import { } from '../components/atom/SocketAtom';
 
-const URL = "http://localhost:4000";
+const URL = "http://localhost:4000/sock";
 
 export const socket = io(URL, {
-	withCredentials: true,
 	auth: (cb) => {
 		cb({ token: localStorage.getItem("refreshToken") });
 	},
-	reconnectionDelay: 10000, // defaults to 1000
-	reconnectionDelayMax: 10000, // defaults to 5000
-	autoConnect: false, //TODO: chat page에 들어가면 연결
-	// path: "",
+	autoConnect: false,
+	transports: ["websocket"],
+	// reconnectionDelay: 1000, // defaults to 1000
+	// reconnectionDelayMax: 10000, // defaults to 5000
+	// withCredentials: true,
+	// path: "/socket.io",
 });
 
 export const SocketHook = () => {
@@ -69,8 +70,8 @@ export const OnSocketEvent = () => {
 		console.log("socket disconnected");
 	});
 
-	socket.on("test", (data) => {
-		console.log("test event");
+	socket.on("init", (data) => {
+		console.log("init event : established connection with server, ", data);
 	});
 
 	// the connection is denied by the server in a middleware function
