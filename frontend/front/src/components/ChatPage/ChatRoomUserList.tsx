@@ -3,6 +3,7 @@ import { inviteModalAtom } from "../../components/atom/ModalAtom";
 import { userInfoModalAtom } from "../../components/atom/ModalAtom";
 
 import "../../styles/ChatRoomUserList.css";
+import UserObj from "../objects/UserObj";
 
 export default function ChatRoomUserList() {
   const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);
@@ -15,8 +16,18 @@ export default function ChatRoomUserList() {
       <div className="ChatRoomInviteBtn" onClick={() => setInviteModal(true)} />
       <div className="ChatRoomExitBtn" />
       <div className="ChatRoomUsers">
-        <div onClick={() => setUserInfoModal(true)}>User1</div>
-        <div>User2</div>
+        <UserObj
+          nickName="User1"
+          status="online"
+          power="Owner"
+          callBack={() => setUserInfoModal(true)}
+        />
+        <UserObj
+          nickName="User2"
+          status="ingame"
+          power="Manager"
+          callBack={() => setUserInfoModal(true)}
+        />
       </div>
     </div>
   );

@@ -10,6 +10,9 @@
 }
 
 .ChatBubbleArea {
+  display: flex;
+  flex-direction: column-reverse;
+
   position: absolute;
   left: 30px;
   top: 30px;
