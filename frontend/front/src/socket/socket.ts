@@ -1,7 +1,9 @@
 import { io } from 'socket.io-client';
-import { useAtom } from "jotai";
+
 import { useEffect, useState } from 'react';
-import { socketAtom } from '../components/atom/SocketAtom';
+
+import { socketInitAtom } from '../components/atom/SocketAtom';
+import { useAtom } from "jotai";
 
 const URL = "http://localhost:4000";
 

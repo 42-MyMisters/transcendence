@@ -15,7 +15,7 @@ import * as socket from "../socket/socket";
 import UserInfoModal from "../components/ChatPage/UserInfoModal";
 import RoomModal from "../components/ChatPage/RoomModal";
 import RoomInviteModal from "../components/ChatPage/RoomInviteModal";
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 interface Props {
   state: number;
@@ -24,6 +24,11 @@ export default function ChatPage(initCheck: Props) {
   const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
   const [roomModal, setRoomModal] = useAtom(roomModalAtom);
   const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);
+
+  const [test, setTest] = useState(() => {
+    console.log("init test State");
+    return 1;
+  });
 
   // useEffect(() => {
   //   if (initCheck.state) {

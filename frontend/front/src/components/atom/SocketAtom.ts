@@ -1,4 +1,10 @@
 import { atom } from "jotai";
-/* 상태관리를 전역에서 해주는 개념의 jotai 사용 */
-export const socketAtom = atom(false);
+
+const socketFirstTouch = atom(false);
+
+export const socketInitAtom = atom(
+	(get) => get(socketFirstTouch),
+	(get, set, firstTouch: boolean) => {
+		set(socketFirstTouch, firstTouch)
+	});
 
