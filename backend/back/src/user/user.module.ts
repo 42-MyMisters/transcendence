@@ -20,6 +20,6 @@ import { JwtRefreshStrategy } from 'src/auth/jwt-refresh/jwt-refresh.strategy';
   ],
   controllers: [UserController],
   providers: [UserService, Jwt2faAuthGuard, Jwt2faStrategy, LocalAuthGuard, LocalStrategy, JwtRefreshGuard, JwtRefreshStrategy],
-  exports: [UserService, Jwt2faAuthGuard, Jwt2faStrategy, LocalAuthGuard, LocalStrategy, JwtRefreshGuard, JwtRefreshStrategy],
+  exports: [TypeOrmModule, UserService, Jwt2faAuthGuard, Jwt2faStrategy, LocalAuthGuard, LocalStrategy, JwtRefreshGuard, JwtRefreshStrategy],
 })
 export class UserModule {}

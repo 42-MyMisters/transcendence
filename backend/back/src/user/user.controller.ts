@@ -163,8 +163,7 @@ export class UserController {
 	@UseGuards(Jwt2faAuthGuard)
 	async getUserProfie (@Req() reqeust) : Promise<UserProfileDto>{
 		const user = reqeust.user;
-		console.log(user);
-		return await this.userService.getUserProfile(user);
+		return await this.userService.getUserProfile(user.uid);
 	}
 
 

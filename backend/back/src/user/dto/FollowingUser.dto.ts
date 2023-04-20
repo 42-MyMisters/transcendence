@@ -1,5 +1,6 @@
+import { Type } from "class-transformer";
+import { validateOrReject } from "class-validator";
 import { UserFollow } from "../user-follow.entity";
-import { User } from "../user.entity";
 
 export class FollowingUserDto {
     uid : number;
@@ -8,14 +9,19 @@ export class FollowingUserDto {
     status: string;
     createdAt: Date; 
 
-    static fromUser(follwingUser: UserFollow): FollowingUserDto {
-		const followUserDto = new FollowingUserDto();
-        const user = follwingUser.fromUser;
-		followUserDto.uid = user.uid
-		followUserDto.nickname = user.nickname;
-		followUserDto.profileUrl = user.profileUrl;
-        followUserDto.createdAt = follwingUser.createdAt;
-		// followUserDto.status = 
-		return followUserDto;
-	}
+    static async mapUserFollowToFollowingUserDto(userFollow: UserFollow): Promise<FollowingUserDto> {
+        const dto = new FollowingUserDto();
+        dto.uid = userFollow.targetToFollow.uid;
+        dto.nickname = userFollow.targetToFollow.nickname;
+        dto.profileUrl = userFollow.targetToFollow.profileUrl;
+        dto.createdAt = userFollow.createdAt;
+
+        // validate DTO object using class-validator
+        await validateOrReject(dto);
+        return dto;
+  }
+
+
+    @Type(() => FollowingUserDto)
+    followings?: FollowingUserDto[];
 };

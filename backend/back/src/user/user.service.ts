@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as bcrypt from 'bcrypt';
 import config from "config";
@@ -10,6 +10,8 @@ import { User } from "./user.entity";
 import { authenticator } from "otplib";
 import { toDataURL } from 'qrcode';
 import { UserProfileDto } from "./dto/UserProfile.dto";
+import { FollowingUserDto } from "./dto/FollowingUser.dto";
+import { validateOrReject } from "class-validator";
 
 
 @Injectable()
@@ -198,14 +200,40 @@ export class UserService {
 		return user !== null;
 	}
 
-	async getUserProfile(user: User){
-		const usr = await this.getUserById(user.uid);
-		if (this.isUserExist(usr)){
-			const userProfileDto = UserProfileDto.fromUserEntity(usr);
+	async getUserWithFollowing(uid: number){
+		const user = await User.findOne({ 
+			where: { uid },
+			join: {
+				alias: "user",
+				leftJoinAndSelect: {follwings : "user.following" }
+			}
+		  });
+
+	}
+
+
+
+
+	async getUserProfile(uid: number){
+		console.log("IN FUNC");
+		const findUser = await User.findOne({ where: { uid }});
+
+		if (!this.isUserExist(findUser))
+			throw new NotFoundException(`${uid} user not found`);
+
+		const followings = findUser.followings;
+		console.log(followings);
+		console.log(Array.from(followings));
+		const followingArray = Array.from(followings);
+		const followingUserDtos = await Promise.all(followingArray.map(async (userFollow) => {
+		  return await FollowingUserDto.mapUserFollowToFollowingUserDto(userFollow);
+		}));
+
+		
+		const userDto = await UserProfileDto.fromUserEntity(findUser);
+		userDto.followings = followingUserDtos;
+		return userDto;
 		//GAME 조회
-		return userProfileDto;
-		}
-		throw new BadRequestException();
 	
 	}
 }

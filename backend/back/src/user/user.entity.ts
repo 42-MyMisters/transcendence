@@ -29,10 +29,10 @@ export class User extends BaseEntity {
 	@Column({nullable: true, type: 'varchar'})
 	twoFactorSecret: string | null; 
 
-	@OneToMany(type => UserFollow, follower => follower.fromUser, { lazy: true })
+	@OneToMany(type => UserFollow, follower => follower.fromUser,)
 	followers: UserFollow[];
 
-	@OneToMany(type => UserFollow, following => following.targetToFollow, { lazy: true })
+	@OneToMany(type => UserFollow, following => following.targetToFollow)
 	followings: UserFollow[];
 
 	@OneToMany(type => Game, games => games.winner, { lazy: true })
