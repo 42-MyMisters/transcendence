@@ -1,4 +1,4 @@
-import { Body, Controller, Get, InternalServerErrorException, Logger, Param, Patch, Post, Req, Res, UnauthorizedException, UploadedFiles, UseGuards, UseInterceptors, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, InternalServerErrorException, Logger, Param, Patch, Post, Query, Req, Res, UnauthorizedException, UploadedFiles, UseGuards, UseInterceptors, ValidationPipe } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import * as swagger from '@nestjs/swagger';
 import { Response } from 'express';
@@ -10,6 +10,7 @@ import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { UserService } from 'src/user/user.service';
 import { PasswordDto } from './dto/Password.dto';
 import { changeNicknameDto } from './dto/ChangeNickname.dto';
+import { UserProfileDto } from './dto/UserProfile.dto';
 
 @Controller('user')
 @swagger.ApiTags('user')
@@ -63,10 +64,16 @@ export class UserController {
 		return this.userService.showUsers();
 	}
 
+	@Get('/follow')
+	@UseGuards(Jwt2faAuthGuard)
+	async followGET(@Req() request, @Query('uid')uid: number) {
+		await this.follow(request,{uid});
+	}
+
 	@Post('/follow')
-	@UseGuards(JwtAuthGuard)
+	@UseGuards(Jwt2faAuthGuard)
 	async follow(@Req() request, @Body() body) {
-		const user = await this.userService.getUserByEmail(body.targetEmail);
+		const user = await this.userService.getUserById(body.uid);
 		if (this.userService.isUserExist(user)) {
 			await this.userService.follow(request.user, user);
 		} else {
@@ -75,9 +82,9 @@ export class UserController {
 	}
 
 	@Post('/unfollow')
-	@UseGuards(JwtAuthGuard)
+	@UseGuards(Jwt2faAuthGuard)
 	async unfollow(@Req() request, @Body() body) {
-		const user = await this.userService.getUserByEmail(body.targetEmail);
+		const user = await this.userService.getUserById(body.uid);
 		if (this.userService.isUserExist(user)) {
 			await this.userService.unfollow(request.user, user);
 		} else {
@@ -131,11 +138,46 @@ export class UserController {
 		await this.userService.setUserNickname(user, changeNicknameDto.nickname);
 	}
 
+	@swagger.ApiQuery({})
+	@swagger.ApiOperation({
+		summary: '내 User 정보를 리턴',
+		description: '필요한 User 정보 리턴',
+	})
+	@swagger.ApiOkResponse({
+		description: 'ok',
+		schema: {
+			type: 'object',
+			properties: {
+				uid:  { type: 'number', description: 'user 의 intra uid 이자 고유 관리 번호', },
+				nickname:{ type: 'string', description: 'user 의 고유한 닉네임', },
+				profileUrl: { type: 'string', description: 'user 의 프로필 사진 URL', },
+				ELO: { type: 'number', description: 'user의 티어 ', },
+				followings: { type: 'object', description: '유저가 팔로우 중인 User정보', },
+				games: { type: 'object', description: '게임 정보를 담은 Game Object', },
+			},
+			// example: { refreshToken: '1NiIsInR5c6IkpXVCJ9.eyJ1axjoxNjgxNDcyOTA3fQ.24Dlhpwbv75GXMireozDpzVA', redirect: false, },
+		},
+	})
+
+	@Post('/me')
+	@UseGuards(Jwt2faAuthGuard)
+	async getUserProfie (@Req() reqeust) : Promise<UserProfileDto>{
+		const user = reqeust.user;
+		return await this.userService.getUserProfile(user.uid);
+	}
+
+
+	@Get('/me')
+	@UseGuards(Jwt2faAuthGuard)
+	async GETgetUserProfie (@Req() reqeust) : Promise<UserProfileDto>{
+		return await this.getUserProfie(reqeust);
+	}
+
+
 	// for debug
 	@Get('/get-profile/:filename')
-	getProfile(@Res() res: Response, @Param('filename') filename) {
+	getProfilePicture_debug(@Res() res: Response, @Param('filename') filename) {
 		const filePath = path.join(__dirname, `../../uploads/${filename}`);
 		res.sendFile(filePath);
 	}
-
 }
