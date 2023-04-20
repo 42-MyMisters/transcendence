@@ -1,9 +1,8 @@
 import { io } from 'socket.io-client';
-
+import { useAtom } from "jotai";
 import { useEffect, useState } from 'react';
 
-import { socketInitAtom } from '../components/atom/SocketAtom';
-import { useAtom } from "jotai";
+// import { } from '../components/atom/SocketAtom';
 
 const URL = "http://localhost:4000";
 
@@ -147,3 +146,16 @@ export const leaveHandler = () => {
 // 	// ack
 // });
 // add message to to's JoinedRoomInfo (roomAttri: dm, self: true)
+
+
+/**
+ * NOTE: for session storage
+ */
+
+// export function getSocketSession() {
+// 	return localStorage.getItem('hasSocketSession') || 'off';
+// }
+
+// export function setSocketSession(session: string) {
+// 	localStorage.setItem('hasSocketSession', session);
+// }

@@ -1,10 +1,16 @@
-import { atom } from "jotai";
+import { atom, createStore } from "jotai";
 
-const socketFirstTouch = atom(false);
 
-export const socketInitAtom = atom(
-	(get) => get(socketFirstTouch),
-	(get, set, firstTouch: boolean) => {
-		set(socketFirstTouch, firstTouch)
-	});
+export const socketFirstTouch = atom<boolean>(false);
+export const storeSocketInit = createStore();
 
+// storeSocketInit.set(socketFirstTouch, false);
+
+// export const readWriteAtom = atom(
+// 	(get) => {
+// 		get(socketFirstTouch)
+// 	},
+// 	(get, set, newState: boolean) => {
+// 		set(socketFirstTouch, newState)
+// 	}
+// )

@@ -1,6 +1,5 @@
-import { StrictMode, useState } from "react";
+import { StrictMode, useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import { Provider } from "jotai";
 
 import ChatPage from "./pages/ChatPage";
 import GamePage from "./pages/GamePage";
@@ -10,32 +9,30 @@ import NotFoundPage from "./pages/NotFoundPage";
 
 import "./App.css";
 
-import { PressKey } from "./event/pressKey";
+import { socketFirstTouch } from './components/atom/SocketAtom';
+import { Provider, atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 
 
 export default function App() {
-  const [socketState, setSocketState] = useState(0);
-  // const reverse = () => {
-  //   console.log(socketState);
-  //   if (socketState) {
-  //     setSocketState(0);
-  //     console.log("in true -> false");
-  //   } else {
-  //     setSocketState(1);
-  //     console.log("in false -> true");
-  //   }
-  //   console.log(socketState);
-  // };
-  // PressKey(["a"], () => { reverse() });
 
+  // const value = useAtomValue(socketFirstTouch);
+  // const ShowSocket = () => {
+  //   console.log("value : ", value);
+  // };
+  // const setSocket = useSetAtom(socketFirstTouch);
+  // const setTrue = () => { setSocket(true) };
+  // const setFalse = () => { setSocket(false) };
 
   return (
     <StrictMode>
-      <Provider>
+      {/* <button onClick={ShowSocket}>show socket value</button>
+      <button onClick={setTrue}>set true</button>
+      <button onClick={setFalse}>set false</button> */}
+      <Provider >
         <div className="WindowWrap">
           <Router>
             <Routes>
-              <Route path="/chat" element={<ChatPage state={socketState} />}></Route>
+              <Route path="/chat" element={<ChatPage />}></Route>
               <Route path="/game" element={<GamePage />}></Route>
               <Route path="/profile" element={<ProfilePage />}></Route>
               <Route path="/" element={<LoginPage />}></Route>

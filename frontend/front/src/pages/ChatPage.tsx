@@ -10,33 +10,17 @@ import { userInfoModalAtom } from "../components/atom/ModalAtom";
 import { inviteModalAtom } from "../components/atom/ModalAtom";
 import { roomModalAtom } from "../components/atom/ModalAtom";
 
-import * as socket from "../socket/socket";
-
 import UserInfoModal from "../components/ChatPage/UserInfoModal";
 import RoomModal from "../components/ChatPage/RoomModal";
 import RoomInviteModal from "../components/ChatPage/RoomInviteModal";
-import { useEffect, useState } from 'react';
 
-interface Props {
-  state: number;
-}
-export default function ChatPage(initCheck: Props) {
+import * as socket from "../socket/socket";
+
+export default function ChatPage() {
   const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
   const [roomModal, setRoomModal] = useAtom(roomModalAtom);
   const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);
 
-  const [test, setTest] = useState(() => {
-    console.log("init test State");
-    return 1;
-  });
-
-  // useEffect(() => {
-  //   if (initCheck.state) {
-  //     console.log("init socket!!");
-  //   } else {
-  //     console.log("uninit socket!!");
-  //   }
-  // }, [initCheck.state]);
 
   return (
     <BackGround>
