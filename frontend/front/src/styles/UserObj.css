@@ -1,0 +1,62 @@
+.UserObj {
+  position: relative;
+  width: 340px;
+  height: 50px;
+}
+
+.UserProfile {
+  position: absolute;
+
+  width: 50px;
+  height: 50px;
+
+  border-radius: 25px;
+
+  /* background: url("../assets/grouproom.png"); */
+  background-color: #fff;
+}
+
+.UserStatus {
+  position: absolute;
+  top: 35px;
+  left: 35px;
+
+  width: 15px;
+  height: 15px;
+
+  border-radius: 7.5px;
+}
+
+.UserNickName {
+  position: absolute;
+  left: 70px;
+
+  width: 220px;
+  height: 50px;
+
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 50px;
+  align-items: center;
+  color: #000;
+}
+
+.UserPowerOwner {
+  position: absolute;
+  right: 0px;
+
+  width: 50px;
+  height: 50px;
+
+  background: url("../assets/owner.png");
+}
+
+.UserPowerManager {
+  position: absolute;
+  right: 0px;
+
+  width: 50px;
+  height: 50px;
+
+  background: url("../assets/manager.png");
+}
