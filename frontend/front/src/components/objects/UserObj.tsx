@@ -12,7 +12,7 @@ export default function UserObj({
   callBack: () => void;
 }) {
   return (
-    <div className="UserObj">
+    <div className="UserObj" onClick={callBack}>
       <div className="UserProfile" />
       <div
         className="UserStatus"
