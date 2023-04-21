@@ -9,8 +9,6 @@ import NotFoundPage from "./pages/NotFoundPage";
 
 import "./App.css";
 
-import { socketFirstTouch } from './components/atom/SocketAtom';
-import * as socket from './socket/socket';
 import { Provider, atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 
 
