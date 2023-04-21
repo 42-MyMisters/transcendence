@@ -6,10 +6,19 @@ import Waiting from "../components/GamePage/Waiting";
 import BackGround from "../components/BackGround";
 import TopBar from "../components/TopBar";
 
+import { useAtom } from "jotai";
+import { hasLoginAtom } from '../components/atom/SocketAtom';
+import { useNavigate } from 'react-router-dom';
+
 export default function GamePage() {
   const [showComponent, setShowComponent] = useState(true);
+  const [hasLogin,] = useAtom(hasLoginAtom);
+  const navigate = useNavigate();
 
   useEffect(() => {
+    if (!hasLogin) {
+      navigate("/");
+    }
     const timer = setTimeout(() => {
       setShowComponent(false);
     }, 5000);

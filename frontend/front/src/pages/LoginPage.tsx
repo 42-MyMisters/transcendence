@@ -52,8 +52,8 @@ export default function LoginPage() {
       if (decoded.twoFactorEnabled) {
         setTFAEnabled(true);
       } else {
-        console.log("move to chat page");
         if (hasLogin === false) {
+          console.log("haslogin : false, move to chat page");
           setHasLogin(true);
           socket.socket.connect(); //NOTE : when error ocurred, how to handle?
           socket.OnSocketEvent();

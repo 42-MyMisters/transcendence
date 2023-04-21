@@ -1,4 +1,3 @@
-import { type } from 'os';
 
 enum IUserStatus {
 	offline,
@@ -14,10 +13,10 @@ enum IInRoomStatus {
 }
 
 enum IRoomType {
-	dm,
 	open,
 	protected,
 	private,
+	dm,
 }
 
 enum IRoomPower {
@@ -30,16 +29,20 @@ type userGlobalAttributes = {
 	userName: string; // or user unique id
 	userProfile: string;
 	userStatus: IUserStatus;
-	userRoomPower: IRoomPower;
 }
 
 type userRoomAttributes = {
 	userDefaultInfo: userGlobalAttributes;
 	userInRoomStatus: IInRoomStatus;
+	userRoomPower: IRoomPower;
 }
 
 type userRoomMap = {
 	[key: string]: userRoomAttributes;
+}
+
+type userNameHistory = {
+	[key: string]: string;
 }
 
 type messageAttributes = {
@@ -48,22 +51,23 @@ type messageAttributes = {
 	isMe: boolean;
 }
 
-type roomDefault = {
+type roomDefaultInfo = {
 	roomName: string;
 	roomType: IRoomType;
 }
 
 type roomAttributes = {
-	roomDefaultInfo: roomDefault;
+	roomDefaultInfo: roomDefaultInfo;
 	roomUserList: userRoomMap;
 	roomMessageList: messageAttributes[];
+	userNameHistory: userNameHistory;
 	myRoomStatus: IInRoomStatus;
 }
 
 type perUserItem = {
 	userList: userGlobalAttributes[];
-	roomList: roomDefault[];
-	myRoomList: roomAttributes[];
+	roomList: roomDefaultInfo[];
+	joinRoomList: roomAttributes[];
 }
 
 export type { perUserItem };
@@ -71,5 +75,5 @@ export type { perUserItem };
 export const userItem: perUserItem = {
 	userList: [],
 	roomList: [],
-	myRoomList: [],
+	joinRoomList: [],
 };

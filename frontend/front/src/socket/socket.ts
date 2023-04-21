@@ -1,12 +1,10 @@
 import { io } from 'socket.io-client';
-import { useAtom } from "jotai";
-import { useEffect, useState } from 'react';
 
-// import { } from '../components/atom/SocketAtom';
+const URL = "http://localhost:4000";
+const NameSpace = "/sock";
 
-const URL = "http://localhost:4000/sock";
 
-export const socket = io(URL, {
+export const socket = io(URL + NameSpace, {
 	auth: (cb) => {
 		cb({ token: localStorage.getItem("refreshToken") });
 	},
@@ -17,14 +15,6 @@ export const socket = io(URL, {
 	// withCredentials: true,
 	// path: "/socket.io",
 });
-
-export const SocketHook = () => {
-	// const [userList, setUserList] = useState({});
-	// const [allRoomList, setAllRoomList] = useState([]);
-	// const [joinedRoomInfo, setJoinedRoomInfo] = useState({});
-
-}
-
 
 // https://socket.io/docs/v4/client-offline-behavior/
 // https://socket.io/docs/v4/emitting-events/#volatile-events

@@ -23,18 +23,16 @@ export default function ChatPage() {
   const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
   const [roomModal, setRoomModal] = useAtom(roomModalAtom);
   const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);
-  const [hasLoginIndicator,] = useAtom(hasLoginAtom);
+  const [hasLogin,] = useAtom(hasLoginAtom);
   const [socketInfo, setSocketInfo] = useAtom(dtoChatInfoAtom);
-  const goLoginPage = useNavigate();
+  const navegate = useNavigate();
 
   useEffect(() => {
-    console.log("change: chat page");
+    if (!hasLogin) {
+      navegate("/");
+    }
   }, []);
 
-  if (!hasLoginIndicator) {
-    goLoginPage("/");
-    return null;
-  }
 
 
 

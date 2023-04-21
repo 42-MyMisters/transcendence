@@ -15,11 +15,10 @@ import { useNavigate } from 'react-router-dom';
 
 export default function ProfilePage() {
   const [changeNameModal, setchangeNameModal] = useAtom(changeNameModalAtom);
-  const [hasLoginIndicator,] = useAtom(hasLoginAtom);
-  const goLoginPage = useNavigate();
-  if (!hasLoginIndicator) {
-    goLoginPage("/");
-    return null;
+  const [hasLogin,] = useAtom(hasLoginAtom);
+  const navigate = useNavigate();
+  if (!hasLogin) {
+    navigate("/");
   }
 
   return (
