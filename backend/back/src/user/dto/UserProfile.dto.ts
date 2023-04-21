@@ -16,7 +16,7 @@ export class UserProfileDto {
 		userProfileDto.uid = user.uid;
 		userProfileDto.nickname = user.nickname;
         userProfileDto.profileUrl = user.profileUrl;
-		console.log(user.followings.entries); // undefined???
+		// console.log(user.followings.entries); // undefined???
 		// why lazy loading not working??
 		userProfileDto.ELO = 0;
 		return userProfileDto;

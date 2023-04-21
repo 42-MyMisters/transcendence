@@ -215,23 +215,21 @@ export class UserService {
 
 
 	async getUserProfile(uid: number){
-		console.log("IN FUNC");
 		const findUser = await User.findOne({ where: { uid }});
 
 		if (!this.isUserExist(findUser))
 			throw new NotFoundException(`${uid} user not found`);
 
-		const followings = findUser.followings;
-		console.log(followings);
-		console.log(Array.from(followings));
-		const followingArray = Array.from(followings);
-		const followingUserDtos = await Promise.all(followingArray.map(async (userFollow) => {
-		  return await FollowingUserDto.mapUserFollowToFollowingUserDto(userFollow);
-		}));
+		// const followings = findUser.followings;
+		// console.log(followings);
+		// console.log(Array.from(followings));
+		// const followingArray = Array.from(followings);
+		// const followingUserDtos = await Promise.all(followingArray.map(async (userFollow) => {
+		//   return await FollowingUserDto.mapUserFollowToFollowingUserDto(userFollow);
+		// }));
 
-		
 		const userDto = await UserProfileDto.fromUserEntity(findUser);
-		userDto.followings = followingUserDtos;
+		// userDto.followings = followingUserDtos;
 		return userDto;
 		//GAME 조회
 	
