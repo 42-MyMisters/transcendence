@@ -29,10 +29,6 @@ export const SocketHook = () => {
 // https://socket.io/docs/v4/client-offline-behavior/
 // https://socket.io/docs/v4/emitting-events/#volatile-events
 // https://socket.io/docs/v4/emitting-events/#acknowledgements
-
-// Map and Set must be manually serialized:
-// const serializedMap = [...myMap.entries()];
-// const serializedSet = [...mySet.keys()];
 export const OnSocketEvent = () => {
 
 	// catch all incoming events
@@ -82,81 +78,73 @@ export const OnSocketEvent = () => {
 		console.log("init event : established connection with server, ", data);
 	});
 
-	socket.on("dm", ({ from, message }) => {
-		// NOTE: check blocked?
-		// add message to from's JoinedRoomInfo (roomAttri: dm, self: false)
+	socket.on("message", ({ from, message }) => {
 	});
 
-	/**
-	 * TODO: 1. 최초 연결시, 방 목록, dm 목록, 유저 목록(팔로워)을 받아온다.
-	 * 채팅 화면은 아무것도 연결 안되어 있는 상태. 방 클릭하면 그 방으로 접속 시도
-	 */
+	socket.on("delete-room", (deletedRoom) => {
+	});
 
-	/**
-	 * TODO: 2. 방 클릭시, 방에 접속한다.
-	 * protected 방이면 비민 번호를 입력후, 맞으면 접속
-	 * 채팅 화면이 접속한 방 정보로 변경.
-	 */
-
-	/**
-	 * TODO: 3. 유저 클릭시, 유저랑 DM.
-	 * NOTE: 상대가 나를, 내가 상대를 block 되어 있으면?
-	 */
-
-	/**
-	 * TODO: 4. 방에서 유저 클릭시 userInfoModal을 띄우고 각 기능 수행
-	 */
-
-	/**
-	 * TODO: 5. 채팅 엔터, 버튼 클릭시 현재 접속한 방에 메시지 전송
-	 * 아무런 방에 접속하지 않은채 메시지 전송시, 아무것도 안되게
-	 */
+	socket.on("create-room", (newRoomName) => {
+	});
 
 };
 
-
-
-//-----------------------------------------------
-export const joinHandler = () => {
-	//TODO: join room with room id
-};
-export const leaveHandler = () => {
-	//TODO: leave room with room id
+export const emitDeleteRoom = (room: string) => {
+	socket.emit("delete-Room", { room });
 };
 
-// when click the join, leave button
-// function join() {
-//     socket.joinHandler();
-//   }
+export const emitMessage = (roomName: string, message: string) => {
+	socket.emit("message", { roomName, message });
+};
 
-//   function leave() {
-//     socket.leaveHandler();
-//   }
+export const emitRoomList = () => {
+	socket.emit("room-list");
+};
+export const emitCreateRoom = (roomName: string) => {
+	socket.emit("create-room", { roomName });
+};
 
-//   return (
-//     <>
-//       <button onClick={ join }>Join</button>
-//       <button onClick={ leave }>Leave</button>
-//     </>
-//   );
-// }
+export const emitJoinRoom = (roomName: string) => {
+	socket.emit("joinNroom", { roomName });
+};
 
+export const emitLeaveRoom = (roomName: string) => {
+	socket.emit("leave-room", { roomName });
+};
 
-//-----------------------------------------------
-// socket.emit("dm", { to, message }, (ack) => {
-// 	// ack
-// });
-// add message to to's JoinedRoomInfo (roomAttri: dm, self: true)
 
 
 /**
- * NOTE: for session storage
+ * TODO: 1. 최초 연결시, 방 목록, dm 목록, 유저 목록(팔로워)을 받아온다.
+ * 채팅 화면은 아무것도 연결 안되어 있는 상태. 방 클릭하면 그 방으로 접속 시도
  */
 
-// export function getSocketSession() {
-// 	return localStorage.getItem('hasSocketSession') || 'off';
-// }
+/**
+ * TODO: 2. 방 클릭시, 방에 접속한다.
+ * protected 방이면 비민 번호를 입력후, 맞으면 접속
+ * 채팅 화면이 접속한 방 정보로 변경.
+ */
 
-// export function setSocketSession(session: string) {
-// 	localStorage.setItem('hasSocketSession', session);
-// }
+/**
+ * TODO: 3. 유저 클릭시, 유저랑 DM.
+ * NOTE: 상대가 나를, 내가 상대를 block 되어 있으면?
+ */
+
+/**
+ * TODO: 4. 방에서 유저 클릭시 userInfoModal을 띄우고 각 기능 수행
+ */
+
+/**
+ * TODO: 5. 채팅 엔터, 버튼 클릭시 현재 접속한 방에 메시지 전송
+ * 아무런 방에 접속하지 않은채 메시지 전송시, 아무것도 안되게
+ */
+
+/**
+ * TODO: 6. 채팅방에서 나가기
+ * 방장이면 방 삭제??
+ * 권환 초기화 및 방 정보 초기화
+ */
+
+/**
+ * TODO: 7. 채팅방에서 상호작용
+ */
