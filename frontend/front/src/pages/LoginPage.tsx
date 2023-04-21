@@ -54,7 +54,7 @@ export default function LoginPage() {
       } else {
         console.log("move to chat page");
         setHasLoginIndicator(true);
-        socket.socket.connect();
+        socket.socket.connect(); //NOTE : when error ocurred, how to handle?
         socket.OnSocketEvent();
         navigate("/chat");
       }
