@@ -1,3 +1,5 @@
+import { useAtom } from "jotai";
+import { UserInfoModalInfo } from "../atom/UserInfoModalAtom";
 import "../../styles/UserObj.css";
 
 export default function UserObj({
@@ -11,8 +13,21 @@ export default function UserObj({
   power: string;
   callBack: () => void;
 }) {
+  let [userInfo, setUserInfo] = useAtom(UserInfoModalInfo);
   return (
-    <div className="UserObj" onClick={callBack}>
+    <div
+      className="UserObj"
+      onClick={() => {
+        setUserInfo({
+          nickName: nickName,
+          isFollow: false,
+          userState: status,
+          isIgnored: true,
+          myPower: "Owner", //[TODO] fix
+        });
+        callBack();
+      }}
+    >
       <div className="UserProfile" />
       <div
         className="UserStatus"
