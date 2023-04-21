@@ -16,6 +16,7 @@ import ChatPage from "./ChatPage";
 import { useNavigate } from "react-router-dom";
 
 import * as socket from "../socket/socket";
+import { hasLogin } from '../components/atom/SocketAtom';
 
 export default function LoginPage() {
   /* localstorage에 없는데 cookie에 있으면 로그인이 된거다 */
@@ -23,6 +24,7 @@ export default function LoginPage() {
   const [refreshToken, setRefreshToken] = useAtom(refreshTokenAtom);
   const [cookie, setCookie] = useAtom(cookieAtom);
   const [TFAEnabled, setTFAEnabled] = useAtom(TFAEnabledAtom);
+  const [hasLoginIndicator, setHasLoginIndicator] = useAtom(hasLogin);
 
   const cookieIMade = "refreshToken";
   const [cookies, setCookies, removeCookie] = useCookies([cookieIMade]);
@@ -50,7 +52,9 @@ export default function LoginPage() {
       if (decoded.twoFactorEnabled) {
         setTFAEnabled(true);
       } else {
+        console.log("move to chat page");
         socket.socket.connect();
+        setHasLoginIndicator(true);
         socket.OnSocketEvent();
         navigate("/chat");
       }

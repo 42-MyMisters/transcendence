@@ -70,16 +70,16 @@ export const OnSocketEvent = () => {
 		console.log("socket disconnected");
 	});
 
-	socket.on("init", (data) => {
-		console.log("init event : established connection with server, ", data);
-	});
-
 	// the connection is denied by the server in a middleware function
 	socket.on("connect_error", (err) => {
 		if (err.message === "unauthorized") {
 			// handle each case
 		}
 		console.log(err.message); // prints the message associated with the error
+	});
+
+	socket.on("init", (data) => {
+		console.log("init event : established connection with server, ", data);
 	});
 
 	socket.on("dm", ({ from, message }) => {
