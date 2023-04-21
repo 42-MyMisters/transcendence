@@ -53,8 +53,8 @@ export default function LoginPage() {
         setTFAEnabled(true);
       } else {
         console.log("move to chat page");
-        socket.socket.connect();
         setHasLoginIndicator(true);
+        socket.socket.connect();
         socket.OnSocketEvent();
         navigate("/chat");
       }
