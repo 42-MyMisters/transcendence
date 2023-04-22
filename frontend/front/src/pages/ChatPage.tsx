@@ -13,11 +13,24 @@ import { roomModalAtom } from "../components/atom/ModalAtom";
 import UserInfoModal from "../components/ChatPage/UserInfoModal";
 import RoomModal from "../components/ChatPage/RoomModal";
 import RoomInviteModal from "../components/ChatPage/RoomInviteModal";
+import { UserAtom } from "../components/atom/UserAtom";
+import { useEffect, useState } from "react";
 
 export default function ChatPage() {
   const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
   const [roomModal, setRoomModal] = useAtom(roomModalAtom);
   const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);
+
+  const [userInfo, setUserInfo] = useAtom(UserAtom);
+
+  useEffect(() => {
+    fetch("http://localhost:4000/user/me")
+      .then((response) => response.json())
+      .then((response) => {
+        console.log(response);
+      });
+  });
+
   return (
     <BackGround>
       <TopBar />
