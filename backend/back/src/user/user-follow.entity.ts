@@ -9,11 +9,11 @@ export class UserFollow extends BaseEntity {
   @PrimaryColumn()
   targetToFollowId: number;
 
-  @ManyToOne(type => User, fromUser => fromUser.followers, { onDelete: 'CASCADE', onUpdate: 'CASCADE', eager:true })
+  @ManyToOne(type => User, fromUser => fromUser.followers, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
   @JoinColumn({ name: 'fromUserId' })
   fromUser: User;
   
-  @ManyToOne(type => User, targetToFollow => targetToFollow.followings, { onDelete: 'CASCADE', onUpdate: 'CASCADE', eager:true })
+  @ManyToOne(type => User, targetToFollow => targetToFollow.followings, { onDelete: 'CASCADE', onUpdate: 'CASCADE'})
   @JoinColumn({ name: 'targetToFollowId' })
   targetToFollow: User;
 
