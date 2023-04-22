@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as bcrypt from 'bcrypt';
 import config from "config";
@@ -9,6 +9,9 @@ import { UserFollow } from "./user-follow.entity";
 import { User } from "./user.entity";
 import { authenticator } from "otplib";
 import { toDataURL } from 'qrcode';
+import { UserProfileDto } from "./dto/UserProfile.dto";
+import { FollowingUserDto } from "./dto/FollowingUser.dto";
+import { validateOrReject } from "class-validator";
 
 
 @Injectable()
@@ -21,10 +24,7 @@ export class UserService {
 		
 		){}
 
-
-		
-
-	async isNicknameExist(nickname: string): Promise<boolean> {
+		async isNicknameExist(nickname: string): Promise<boolean> {
 		const queryBuilder = this.userRepository.createQueryBuilder('user');
 		const count = await queryBuilder.where('user.nickname = :nickname', { nickname }).getCount();
 		return count > 0;
@@ -34,6 +34,10 @@ export class UserService {
 		const user: User = await User.fromIntraUserDto(intraUserDto);
 		await this.userRepository.save(user);
 		return user;
+	}
+
+	async saveNewUser(user: User): Promise<User> {
+		return await this.userRepository.save(user);
 	}
 
 
@@ -194,5 +198,40 @@ export class UserService {
 
 	isUserExist = (user: User | null): user is User => {
 		return user !== null;
+	}
+
+	async getUserWithFollowing(uid: number){
+		const user = await User.findOne({ 
+			where: { uid },
+			join: {
+				alias: "user",
+				leftJoinAndSelect: {follwings : "user.following" }
+			}
+		  });
+
+	}
+
+
+
+
+	async getUserProfile(uid: number){
+		const findUser = await User.findOne({ where: { uid }});
+
+		if (!this.isUserExist(findUser))
+			throw new NotFoundException(`${uid} user not found`);
+
+		// const followings = findUser.followings;
+		// console.log(followings);
+		// console.log(Array.from(followings));
+		// const followingArray = Array.from(followings);
+		// const followingUserDtos = await Promise.all(followingArray.map(async (userFollow) => {
+		//   return await FollowingUserDto.mapUserFollowToFollowingUserDto(userFollow);
+		// }));
+
+		const userDto = await UserProfileDto.fromUserEntity(findUser);
+		// userDto.followings = followingUserDtos;
+		return userDto;
+		//GAME 조회
+	
 	}
 }

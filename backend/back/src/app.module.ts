@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { typeORMConfig } from './configs/typeorm.config';
 import { GameModule } from './game/game.module';
 import { LoginModule } from './login/login.module';
+import { TesterModule } from './tester/tester.module';
 import { UserModule } from './user/user.module';
 
 @Module({
@@ -13,6 +14,7 @@ import { UserModule } from './user/user.module';
 		TypeOrmModule.forRoot(typeORMConfig),
 		LoginModule,
 		GameModule,
+		TesterModule,
   ],
 	controllers: [AppController],
 	providers: [AppService],

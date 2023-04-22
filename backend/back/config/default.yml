@@ -9,3 +9,6 @@ db:
 
 jwt:
     expiresIn: 3600
+
+jwt-refresh:
+    exp: 200000
