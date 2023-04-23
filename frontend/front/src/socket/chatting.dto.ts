@@ -4,15 +4,16 @@ type roomDto = {
 }
 
 type roomMessageDto = {
-	from: string;
+	from: string | number; // userId
 	message: string;
 	isMe: boolean;
 	date?: string;
 }
 
 type userDto = {
-	userName: string;
-	userProfile: string;
+	userId: string | number;
+	userDisplayName: string;
+	userProfileUrl: string;
 	userStatus: 'online' | 'offline' | 'inGame';
 }
 

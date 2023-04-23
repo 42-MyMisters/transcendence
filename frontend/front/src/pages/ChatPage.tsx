@@ -35,22 +35,21 @@ export default function ChatPage() {
   socket.on("change-UserInfo", ({ roomName, from, message }) => { });
   socket.on("change-UserRoomInfo", ({ roomName, from, message }) => { });
 
+  socket.on("join-newuser", ({ roomName, from, message }) => { });
+
   socket.on("message", ({ roomName, from, message }) => {
     const findRoom = joinRoomList.find((room) => room.info.roomName === roomName);
     if (findRoom === undefined) {
-      // add new room
+      // not join room
     } else {
       const otherRoom = joinRoomList.filter((room) => room.info.roomName !== roomName);
-      // add user to UserList and nameHistory
-      const newMessageList = [...findRoom.messageList, { from, message, isMe: false }];
       otherRoom.push({
         info: findRoom.info,
         userList: findRoom.userList,
-        messageList: newMessageList,
+        messageList: [...findRoom.messageList, { from, message, isMe: false }],
         myRoomStatus: findRoom.myRoomStatus,
         userNameHistory: findRoom.userNameHistory
       });
-
       setJoinRoomList(otherRoom);
     }
   });
