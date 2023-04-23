@@ -16,25 +16,13 @@ import RoomInviteModal from "../components/ChatPage/RoomInviteModal";
 
 import * as socket from "../socket/socket";
 import { useEffect, useState } from 'react';
-import { hasLoginAtom, dtoChatInfoAtom } from '../components/atom/SocketAtom';
-import { useNavigate } from 'react-router-dom';
+import { chatInfoAtom } from '../components/atom/SocketAtom';
 
 export default function ChatPage() {
   const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
   const [roomModal, setRoomModal] = useAtom(roomModalAtom);
   const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);
-  const [hasLogin,] = useAtom(hasLoginAtom);
-  const [socketInfo, setSocketInfo] = useAtom(dtoChatInfoAtom);
-  const navegate = useNavigate();
-
-  useEffect(() => {
-    if (!hasLogin) {
-      navegate("/");
-    }
-  }, []);
-
-
-
+  // const [socketInfo, setSocketInfo] = useAtom(ChatInfoAtom);
 
   return (
     <BackGround>

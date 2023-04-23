@@ -10,16 +10,9 @@ import ChangeNameModal from "../components/ProfilePage/ChangNameModal";
 
 import { useAtom } from "jotai";
 import { changeNameModalAtom } from "../components/atom/ModalAtom";
-import { hasLoginAtom } from '../components/atom/SocketAtom';
-import { useNavigate } from 'react-router-dom';
 
 export default function ProfilePage() {
   const [changeNameModal, setchangeNameModal] = useAtom(changeNameModalAtom);
-  const [hasLogin,] = useAtom(hasLoginAtom);
-  const navigate = useNavigate();
-  if (!hasLogin) {
-    navigate("/");
-  }
 
   return (
     <BackGround>

@@ -11,6 +11,26 @@ import "./App.css";
 
 import { Provider, atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 
+import { hasLoginAtom } from './components/atom/SocketAtom';
+
+function CheckLogin({ children }: { children: JSX.Element }) {
+  const [hasLogin,] = useAtom(hasLoginAtom);
+
+  if (!hasLogin) {
+    return (
+      <>
+        <LoginPage />
+      </>
+    );
+  } else {
+    return (
+      <>
+        {children}
+      </>
+    );
+  }
+}
+
 
 export default function App() {
 
@@ -19,13 +39,15 @@ export default function App() {
       <Provider >
         <div className="WindowWrap">
           <Router>
-            <Routes>
-              <Route path="/chat" element={<ChatPage />}></Route>
-              <Route path="/game" element={<GamePage />}></Route>
-              <Route path="/profile" element={<ProfilePage />}></Route>
-              <Route path="/" element={<LoginPage />}></Route>
-              <Route path="*" element={<NotFoundPage />}></Route>
-            </Routes>
+            <CheckLogin>
+              <Routes>
+                <Route path="/chat" element={<ChatPage />}></Route>
+                <Route path="/game" element={<GamePage />}></Route>
+                <Route path="/profile" element={<ProfilePage />}></Route>
+                <Route path="/" element={<LoginPage />}></Route>
+                <Route path="*" element={<NotFoundPage />}></Route>
+              </Routes>
+            </CheckLogin>
           </Router>
         </div>
       </Provider>

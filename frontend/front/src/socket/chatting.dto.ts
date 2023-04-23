@@ -31,7 +31,7 @@ type roomAttributes = {
 	},
 }
 
-type perUserItemDto = {
+type socketUserItemDto = {
 	userList: {
 		userName: string; // or user unique id
 		userProfile: string;
@@ -41,9 +41,9 @@ type perUserItemDto = {
 	joinRoomList: roomAttributes[];
 }
 
-export type { perUserItemDto };
+export type { socketUserItemDto };
 
-export const userItem: perUserItemDto = {
+export const userItem: socketUserItemDto = {
 	userList: [],
 	roomList: [],
 	joinRoomList: [],

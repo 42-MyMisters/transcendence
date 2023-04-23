@@ -3,8 +3,7 @@ import { io } from 'socket.io-client';
 const URL = "http://localhost:4000";
 const NameSpace = "/sock";
 
-
-export const socket = io(URL + NameSpace, {
+export const socket = io(`${URL}${NameSpace}`, {
 	auth: (cb) => {
 		cb({ token: localStorage.getItem("refreshToken") });
 	},
@@ -16,9 +15,6 @@ export const socket = io(URL + NameSpace, {
 	// path: "/socket.io",
 });
 
-// https://socket.io/docs/v4/client-offline-behavior/
-// https://socket.io/docs/v4/emitting-events/#volatile-events
-// https://socket.io/docs/v4/emitting-events/#acknowledgements
 export const OnSocketEvent = () => {
 
 	// catch all incoming events
