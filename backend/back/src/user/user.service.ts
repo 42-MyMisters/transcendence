@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import * as bcrypt from 'bcrypt';
 import config from "config";
@@ -10,6 +10,11 @@ import { PasswordDto } from "./dto/Password.dto";
 import { UserBlock } from "./user-block.entity";
 import { UserFollow } from "./user-follow.entity";
 import { User } from "./user.entity";
+import { authenticator } from "otplib";
+import { toDataURL } from 'qrcode';
+import { UserProfileDto } from "./dto/UserProfile.dto";
+import { FollowingUserDto } from "./dto/FollowingUser.dto";
+import { validateOrReject } from "class-validator";
 
 
 @Injectable()
@@ -18,12 +23,11 @@ export class UserService {
 		@InjectRepository(User)
 		private userRepository: Repository<User>,
 		@InjectRepository(UserFollow)
-		private userFollowRepository: Repository<UserFollow>,	
-		@InjectRepository(UserBlock)
-		private userBlockRepository: Repository<UserBlock>,	
-	){}
+		private userFollowRepository: Repository<UserFollow>,
+		
+		){}
 
-	async isNicknameExist(nickname: string): Promise<boolean> {
+		async isNicknameExist(nickname: string): Promise<boolean> {
 		const queryBuilder = this.userRepository.createQueryBuilder('user');
 		const count = await queryBuilder.where('user.nickname = :nickname', { nickname }).getCount();
 		return count > 0;
@@ -34,6 +38,11 @@ export class UserService {
 		await this.userRepository.save(user);
 		return user;
 	}
+
+	async saveNewUser(user: User): Promise<User> {
+		return await this.userRepository.save(user);
+	}
+
 
 	async setUserNickname(user: User, changeNickname: string) {
 		const isExsistNickname = await this.isNicknameExist(changeNickname);
@@ -205,5 +214,40 @@ export class UserService {
 
 	isUserExist = (user: User | null): user is User => {
 		return user !== null;
+	}
+
+	async getUserWithFollowing(uid: number){
+		const user = await User.findOne({ 
+			where: { uid },
+			join: {
+				alias: "user",
+				leftJoinAndSelect: {follwings : "user.following" }
+			}
+		  });
+
+	}
+
+
+
+
+	async getUserProfile(uid: number){
+		const findUser = await User.findOne({ where: { uid }});
+
+		if (!this.isUserExist(findUser))
+			throw new NotFoundException(`${uid} user not found`);
+
+		// const followings = findUser.followings;
+		// console.log(followings);
+		// console.log(Array.from(followings));
+		// const followingArray = Array.from(followings);
+		// const followingUserDtos = await Promise.all(followingArray.map(async (userFollow) => {
+		//   return await FollowingUserDto.mapUserFollowToFollowingUserDto(userFollow);
+		// }));
+
+		const userDto = await UserProfileDto.fromUserEntity(findUser);
+		// userDto.followings = followingUserDtos;
+		return userDto;
+		//GAME 조회
+	
 	}
 }

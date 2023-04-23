@@ -22,6 +22,6 @@ import { UserService } from './user.service';
   ],
   controllers: [UserController],
   providers: [UserService, Jwt2faAuthGuard, Jwt2faStrategy, LocalAuthGuard, LocalStrategy, JwtRefreshGuard, JwtRefreshStrategy],
-  exports: [UserService],
+  exports: [TypeOrmModule, UserService, Jwt2faAuthGuard, Jwt2faStrategy, LocalAuthGuard, LocalStrategy, JwtRefreshGuard, JwtRefreshStrategy],
 })
 export class UserModule {}

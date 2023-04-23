@@ -12,8 +12,8 @@ export class User extends BaseEntity {
 	@Column({nullable: true, type: 'varchar', length: 60})
 	password: string | null;
 
-	@Column({ unique: true })
-	email: string;
+	@Column({ unique: true, nullable: true, type: 'varchar' })
+	email: string | null;
 
 	@Column({ unique: true })
 	nickname: string;
@@ -30,10 +30,10 @@ export class User extends BaseEntity {
 	@Column({nullable: true, type: 'varchar'})
 	twoFactorSecret: string | null; 
 
-	@OneToMany(type => UserFollow, follower => follower.fromUser, { lazy: true })
+	@OneToMany(type => UserFollow, follower => follower.fromUser,)
 	followers: UserFollow[];
 
-	@OneToMany(type => UserFollow, following => following.targetToFollow, { lazy: true })
+	@OneToMany(type => UserFollow, following => following.targetToFollow)
 	followings: UserFollow[];
 
 	@OneToMany(type => UserBlock, userBlock => userBlock.targetToBlockId, { lazy: true })
