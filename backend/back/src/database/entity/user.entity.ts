@@ -1,6 +1,6 @@
-import { Game } from "src/game/game.entity";
+import { Game } from "src/database/entity/game.entity";
 import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryColumn } from "typeorm";
-import { IntraUserDto } from "./dto/IntraUser.dto";
+import { IntraUserDto } from "../../user/dto/IntraUser.dto";
 import { UserFollow } from "./user-follow.entity";
 
 @Entity()
