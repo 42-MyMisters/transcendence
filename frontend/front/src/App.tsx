@@ -19,7 +19,8 @@ function CheckLogin({ children }: { children: JSX.Element }) {
   if (!hasLogin) {
     return (
       <>
-        <LoginPage />
+        {/* <LoginPage /> */}
+        {children}
       </>
     );
   } else {

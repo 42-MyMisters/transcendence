@@ -1,4 +1,6 @@
 import { io } from 'socket.io-client';
+import { useAtom } from "jotai";
+import { focusRoomAtom, chatInfoAtom } from '../components/atom/SocketAtom';
 
 const URL = "http://localhost:4000";
 const NameSpace = "/sock";
@@ -60,20 +62,9 @@ export const OnSocketEvent = () => {
 		console.log(err.message); // prints the message associated with the error
 	});
 
-	socket.on("init", (data) => {
-		console.log("init event : established connection with server, ", data);
-	});
 
-	socket.on("message", ({ from, message }) => {
-	});
+}
 
-	socket.on("delete-room", (deletedRoom) => {
-	});
-
-	socket.on("create-room", (newRoomName) => {
-	});
-
-};
 
 export const emitDeleteRoom = (room: string) => {
 	socket.emit("delete-Room", { room });
