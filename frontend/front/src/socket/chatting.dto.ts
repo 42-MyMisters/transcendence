@@ -7,12 +7,12 @@ type roomAttributes = {
 	roomDefaultInfo: roomDefaultInfoAttributes;
 	roomUserList: {
 		[key: string]: {
-			userDefaultInfo: {
+			userList: {
 				userName: string; // or user unique id
 				userProfile: string;
 				userStatus: 'online' | 'offline' | 'inGame';
 			};
-			userInRoomStatus: 'normal' | 'mute' | 'ban' | 'kick';
+			userRoomStatus: 'normal' | 'mute' | 'ban' | 'kick';
 			userRoomPower: 'owner' | 'admin' | 'member';
 		}
 	},
@@ -41,10 +41,11 @@ type socketUserItemDto = {
 	joinRoomList: roomAttributes[];
 }
 
-export type { socketUserItemDto };
 
 export const userItem: socketUserItemDto = {
 	userList: [],
 	roomList: [],
 	joinRoomList: [],
 };
+
+export type { socketUserItemDto };
