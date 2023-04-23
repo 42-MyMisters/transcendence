@@ -178,6 +178,11 @@ export class LoginController {
 		await this.userService.setUserRefreshToken(request.user, tokens.refreshToken);
 	}
 
+	@Post('/myProfile')
+	@UseGuards(Jwt2faAuthGuard)
+	async showMyUserProfile(){
+	}
+
 	//For Debug Controller
 	@Post('/test')
 	@UseGuards(Jwt2faAuthGuard)
