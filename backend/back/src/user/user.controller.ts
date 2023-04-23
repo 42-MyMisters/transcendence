@@ -42,9 +42,7 @@ export class UserController {
 			Logger.log('2fa confirmation failed. try again.');
 			throw new UnauthorizedException('Wrong authentication code');
 		}
-		const user = request.user;
-		user.twoFactorEnabled = true;
-		await this.userService.updateUser(user);
+		await this.userService.setUserTwoFactorEnabled(request.user, true);
 		return await this.authService.loginWith2fa(request.user);
 	}
 
@@ -73,7 +71,7 @@ export class UserController {
 	@Post('/follow')
 	@UseGuards(Jwt2faAuthGuard)
 	async follow(@Req() request, @Body() body) {
-		const user = await this.userService.getUserById(body.uid);
+		const user = await this.userService.getUserByUid(body.uid);
 		if (this.userService.isUserExist(user)) {
 			await this.userService.follow(request.user, user);
 		} else {
@@ -84,7 +82,7 @@ export class UserController {
 	@Post('/unfollow')
 	@UseGuards(Jwt2faAuthGuard)
 	async unfollow(@Req() request, @Body() body) {
-		const user = await this.userService.getUserById(body.uid);
+		const user = await this.userService.getUserByUid(body.uid);
 		if (this.userService.isUserExist(user)) {
 			await this.userService.unfollow(request.user, user);
 		} else {
@@ -104,26 +102,21 @@ export class UserController {
 	@UseInterceptors(AnyFilesInterceptor())
 	async changeProfileImg(@Req() request, @UploadedFiles() file: Express.Multer.File[]) {
 		const user = request.user;
-		if (this.userService.isUserExist(user)) {
-			const filename = `${user.uid}_profile.jpg`;
-
-			try {
-				await sharp(file[0].buffer)
-				.resize(500, 500)
-				.flatten({ background: '#fff' })
-				.toFormat("jpeg", { mozjpeg: true })
-				.toFile(`uploads/${filename}`);
-				
-				user.profileUrl = `http://localhost:4000/login/get-profile/${filename}`
-				await this.userService.updateUser(user);
-				} catch (e) {
-					console.log(e);
-					throw new InternalServerErrorException('img error!');
-				}
-			} else {
-				throw new UnauthorizedException('user not found!');
-			}
+		const filename = `${user.uid}_profile.jpg`;
+		try {
+			await sharp(file[0].buffer)
+			.resize(500, 500)
+			.flatten({ background: '#fff' })
+			.toFormat("jpeg", { mozjpeg: true })
+			.toFile(`uploads/${filename}`);
+			const profileUrl = `http://localhost:4000/login/get-profile/${filename}`
+			await this.userService.setUserProfileUrl(user, profileUrl);	
+		} catch (e) {
+			Logger.error(e);
+			throw new InternalServerErrorException('img error!');
+		}
 	}
+	
 	@Get('/nickname')
 	@UseGuards(Jwt2faAuthGuard)
 	async testupdateNickname(@Req() request){
