@@ -1,6 +1,6 @@
 import { io } from 'socket.io-client';
 import { useAtom } from "jotai";
-import { focusRoomAtom, chatInfoAtom } from '../components/atom/SocketAtom';
+import { focusRoomAtom } from '../components/atom/SocketAtom';
 
 const URL = "http://localhost:4000";
 const NameSpace = "/sock";
