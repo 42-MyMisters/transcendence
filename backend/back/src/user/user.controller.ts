@@ -9,6 +9,7 @@ import { Jwt2faAuthGuard } from 'src/auth/jwt-2fa/jwt-2fa-auth.guard';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { UserService } from 'src/user/user.service';
 import { changeNicknameDto } from './dto/ChangeNickname.dto';
+import { PasswordDto } from './dto/Password.dto';
 import { UserProfileDto } from './dto/UserProfile.dto';
 
 @Controller('user')

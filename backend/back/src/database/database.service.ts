@@ -1,16 +1,17 @@
-import { BadRequestException, ForbiddenException, Inject, Injectable } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
+import { UserFollow } from "src/database/entity/user-follow.entity";
 import { User } from "src/database/entity/user.entity";
 import { DataSource, Repository } from "typeorm";
 import { Game } from "./entity/game.entity";
-import { UserFollow } from "src/database/entity/user-follow.entity";
-import { ExceptionsHandler } from "@nestjs/core/exceptions/exceptions-handler";
+import { UserBlock } from "./entity/user-block.entity";
 
 @Injectable()
 export class DatabaseService {
     constructor(
         @InjectRepository(User) private userRepository: Repository<User>,
         @InjectRepository(UserFollow) private userFollowRepository: Repository<UserFollow>,
+        @InjectRepository(UserBlock) private userBlockRepository: Repository<UserBlock>,
         @InjectRepository(Game) private gameRepository: Repository<Game>,
         private dataSource: DataSource,
     ) {}
@@ -94,22 +95,43 @@ export class DatabaseService {
     async saveFollow(userFollow: UserFollow): Promise<UserFollow>{
         return await this.userFollowRepository.save(userFollow);
     }
-
+    
     // USER-FOLLOW READ
     async findFollowingByUid(fromUid: number, toUid: number): Promise<UserFollow | null>{
         return await this.userFollowRepository.findOne({ where : { fromUserId: fromUid, targetToFollowId: toUid } });
     }
-
+    
     // USER-FOLLOW UPDATE
     
-
+    
     // USER-FOLLOW DELETE
-    async deleteFollow(userFollow: UserFollow){
-        await this.userFollowRepository.remove(userFollow);
+    async deleteFollow(fromUid: number, toUid: number) {
+        // await this.userFollowRepository.remove(userFollow);
+        const result = await this.userFollowRepository.delete({fromUserId: fromUid, targetToFollowId: toUid});
+        if (result.affected === 0) {
+            throw new NotFoundException("already unfollowed");
+        }
+    }
+    
+    // USER-BLOCK CREATE
+    async saveBlock(userBlock: UserBlock): Promise<UserBlock> {
+        return await this.userBlockRepository.save(userBlock);
+    }
+    
+    // USER-BLOCK READ
+    async findBlockByUid(fromUid: number, toUid: number): Promise<UserBlock | null> {
+        return await this.userBlockRepository.findOne({ where: { fromUserId: fromUid, targetToBlockId: toUid } });
     }
 
-
-
+    // USER-BLOCK DELETE
+    async deleteBlock(fromUid: number, toUid: number) {
+        // await this.userBlockRepository.remove(userBlock);
+        const result = await this.userBlockRepository.delete({fromUserId: fromUid, targetToBlockId: toUid});
+        if (result.affected === 0) {
+            throw new NotFoundException("already unblocked");
+        }
+    }
+    
     //GAME
-
+    
 }

@@ -1,6 +1,7 @@
 import { Game } from "src/database/entity/game.entity";
+import { IntraUserDto } from "src/user/dto/IntraUser.dto";
+import { UserBlock } from "src/database/entity/user-block.entity";
 import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryColumn } from "typeorm";
-import { IntraUserDto } from "../../user/dto/IntraUser.dto";
 import { UserFollow } from "./user-follow.entity";
 
 @Entity()
