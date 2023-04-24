@@ -10,11 +10,37 @@ interface MessagePayload {
   message: string;
 }
 
-class SocketInfo {
+interface SocketInfo {
   socket: Socket;
   status: number;
   blockedUsers: number[];
 }
+
+interface ConnectedUser {
+  uid: number;
+  nickname: string;
+  status: number;
+}
+
+interface RoomInfo {
+  roomName: string;
+  roomType: string;
+  roomPass?: string;
+  roomOwner?: string;
+  roomManager?: string[];
+  roomUsers?: ConnectedUser[];
+}
+
+interface RoomListPayload {
+  roomName: string;
+  roomType: string;
+}
+
+interface RoomPayload {
+  status: string;
+  reason: string;
+}
+
 
 const userRecord: Record<number, SocketInfo> = {};
 const createdRooms: Record<string, User[]> = {};

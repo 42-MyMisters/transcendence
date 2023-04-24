@@ -7,7 +7,7 @@ import { Jwt2faAuthGuard } from 'src/auth/jwt-2fa/jwt-2fa-auth.guard';
 import { JwtRefreshGuard } from 'src/auth/jwt-refresh/jwt-refresh-auth.guard';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { LocalAuthGuard } from 'src/auth/local/local-auth.guard';
-import { ResponseErrorDto, callFunctionDescriptionOfRefreshRoute } from 'src/swagger/response.util';
+import { callFunctionDescriptionOfRefreshRoute, ResponseErrorDto } from 'src/swagger/response.util';
 import { UserService } from 'src/user/user.service';
 
 @Controller('login')
