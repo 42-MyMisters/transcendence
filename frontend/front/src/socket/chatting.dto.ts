@@ -22,7 +22,6 @@ type joinRoomDto = {
 	},
 	messageList: roomMessageDto[],
 	// myRoomStatus: 'normal' | 'mute' | 'ban' | 'kick',
-	userNameHistory?: userDto;
 }
 
 type roomDto = {

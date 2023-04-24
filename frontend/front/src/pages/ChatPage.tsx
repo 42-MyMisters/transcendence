@@ -17,6 +17,7 @@ import RoomInviteModal from "../components/ChatPage/RoomInviteModal";
 import { useEffect, useState } from 'react';
 import { socket } from "../socket/socket";
 import * as chatAtom from '../components/atom/SocketAtom';
+import type * as chatType from '../socket/chatting.dto';
 
 export default function ChatPage() {
   const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
@@ -24,6 +25,7 @@ export default function ChatPage() {
   const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);
 
   const [userList, setUserList] = useAtom(chatAtom.userListAtom);
+  const [userHistory, setUserHistory] = useAtom(chatAtom.userHistoryAtom);
   const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
   const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
   const [isFirstLogin, setIsFirstLogin] = useAtom(chatAtom.isFirstLoginAtom);
@@ -37,15 +39,17 @@ export default function ChatPage() {
     if (findRoom === undefined) {
       // not join room
     } else {
-      const isExistUser = findRoom.joinDetail?.userList[from];
-      if (isExistUser === undefined) {
-        // add user to userList
-      }
-      const newMessage = [...findRoom.joinDetail.messageList, { from, message, isMe: false }];
-      const newRoomList = { ...roomList };
-      newRoomList[roomName].joinDetail.messageList = newMessage;
-      setRoomList(newRoomList);
-    };
+      if (findRoom.joinDetail === undefined) {
+        findRoom.joinDetail = { userList: {}, messageList: [] };
+      };
+    }
+    const isExistUser = findRoom.joinDetail.userList[from];
+    if (isExistUser === undefined) {
+      // add user to userList
+    }
+    const newRoomList = { ...roomList };
+    newRoomList[roomName].joinDetail.messageList = [...findRoom.joinDetail.messageList, { from, message, isMe: false }];
+    setRoomList(newRoomList);
   });
 
 
