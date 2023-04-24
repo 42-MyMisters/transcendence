@@ -5,7 +5,7 @@ import config from 'config';
 import { authenticator } from 'otplib';
 import { IntraTokenDto } from 'src/user/dto/IntraToken.dto';
 import { IntraUserDto } from 'src/user/dto/IntraUser.dto';
-import { User } from 'src/user/user.entity';
+import { User } from 'src/database/entity/user.entity';
 
 @Injectable()
 export class AuthService {

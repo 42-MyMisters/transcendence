@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AuthService } from 'src/auth/auth.service';
-import { User } from 'src/user/user.entity';
+import { User } from 'src/database/entity/user.entity';
 import { UserService } from 'src/user/user.service';
 
 @Injectable()
@@ -69,7 +69,7 @@ export class TesterService {
   
 
   async userGenerate(){
-    const user = await this.userService.saveNewUser(this.randomUserGenerate());
+    const user = await this.userService.addNewUserTest(this.randomUserGenerate());
     const { access_token, refresh_token } = await this.authService.login(user);
     await this.userService.setUserRefreshToken(user, refresh_token);
     return {access_token, refresh_token};

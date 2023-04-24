@@ -1,14 +1,14 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from 'src/auth/auth.module';
 import { LoginModule } from 'src/login/login.module';
 import { UserModule } from 'src/user/user.module';
 import { TesterController } from './tester.controller';
 import { TesterService } from './tester.service';
+import { DatabaseModule } from 'src/database/database.module';
 
 @Module({
   imports: [
-	LoginModule, UserModule, AuthModule
+	DatabaseModule, LoginModule, UserModule, AuthModule
   ],
 	controllers: [TesterController],
 	providers: [TesterService],
