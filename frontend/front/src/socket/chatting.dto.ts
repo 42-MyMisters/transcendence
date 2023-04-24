@@ -35,8 +35,4 @@ type joinRoomDto = {
 	},
 }
 
-export const userList: userDto[] = [];
-export const roomList: roomDto[] = [];
-export const joinRoomList: joinRoomDto[] = [];
-
 export type { userDto, roomDto, joinRoomDto, roomMessageDto };

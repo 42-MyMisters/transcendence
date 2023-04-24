@@ -4,8 +4,8 @@ import { roomModalAtom } from "../../components/atom/ModalAtom";
 import "../../styles/ChatList.css";
 import ChatRoom from "../objects/ChatRoom";
 
-import { socket } from "../socket/socket";
-import * as chatAtom from '../components/atom/SocketAtom';
+import { socket } from "../../socket/socket";
+import * as chatAtom from '../atom/SocketAtom';
 
 export default function ChatRoomList() {
   const [roomModal, setRoomModal] = useAtom(roomModalAtom);
