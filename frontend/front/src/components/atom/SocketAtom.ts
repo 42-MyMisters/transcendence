@@ -7,6 +7,7 @@ export const userListAtom = atom<DTO.userDto[]>([]);
 export const roomListAtom = atom<DTO.roomDto[]>([]);
 export const joinRoomListAtom = atom<DTO.joinRoomDto[]>([]);
 export const hasLoginAtom = atom<boolean>(false);
+export const isFirstLoginAtom = atom<boolean>(true);
 export const focusRoomAtom = atom<string>('');
 
 // export const socketFirstTouch = atom<boolean>(false);

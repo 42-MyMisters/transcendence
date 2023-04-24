@@ -14,8 +14,8 @@ import UserInfoModal from "../components/ChatPage/UserInfoModal";
 import RoomModal from "../components/ChatPage/RoomModal";
 import RoomInviteModal from "../components/ChatPage/RoomInviteModal";
 
-import { socket } from "../socket/socket";
 import { useEffect, useState } from 'react';
+import { socket } from "../socket/socket";
 import * as chatAtom from '../components/atom/SocketAtom';
 
 export default function ChatPage() {
@@ -27,6 +27,7 @@ export default function ChatPage() {
   const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
   const [joinRoomList, setJoinRoomList] = useAtom(chatAtom.joinRoomListAtom);
   const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
+  const [isFirstLogin, setIsFirstLogin] = useAtom(chatAtom.isFirstLoginAtom);
 
   socket.on("init", (data) => {
     console.log("init event : established connection with server, ", data);
@@ -43,6 +44,7 @@ export default function ChatPage() {
       // not join room
     } else {
       const otherRoom = joinRoomList.filter((room) => room.info.roomName !== roomName);
+      // new user check before
       otherRoom.push({
         info: findRoom.info,
         userList: findRoom.userList,
@@ -60,7 +62,13 @@ export default function ChatPage() {
   socket.on("create-room", (newRoomName) => {
   });
 
+  if (isFirstLogin) { // socket init info stage
+    socket.emit('room-list', (ack) => {
 
+    });
+
+    setIsFirstLogin(false);
+  }
 
   return (
     <BackGround>
