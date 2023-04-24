@@ -5,6 +5,7 @@ import { DataSource, Repository } from "typeorm";
 import { Game } from "./entity/game.entity";
 import { UserFollow } from "src/database/entity/user-follow.entity";
 import { ExceptionsHandler } from "@nestjs/core/exceptions/exceptions-handler";
+import { use } from "passport";
 
 @Injectable()
 export class DatabaseService {
@@ -43,6 +44,18 @@ export class DatabaseService {
     async findUserByEmail(email: string): Promise<User | null>{
         const user = await this.userRepository.findOneBy({email});
 		return user;
+    }
+
+    async findUserWithFollowing(uid: number): Promise<User[]> {
+        const user = await this.userRepository.find({
+            relations: {
+                followings: true,
+            },
+            where: {
+                uid
+            }
+        });
+        return user;
     }
 
 

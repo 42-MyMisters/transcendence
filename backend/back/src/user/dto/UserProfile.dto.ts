@@ -16,7 +16,15 @@ export class UserProfileDto {
 		userProfileDto.uid = user.uid;
 		userProfileDto.nickname = user.nickname;
         userProfileDto.profileUrl = user.profileUrl;
-		// console.log(user.followings.entries); // undefined???
+		const followings = await user.followings;
+
+		const followingUserDtos = await Promise.all(followings.map(async (userFollow) => {
+			return await FollowingUserDto.mapUserFollowToFollowingUserDto(userFollow);
+		  }));
+		  
+		userProfileDto.followings = followingUserDtos;
+		// user.followings.entries
+		console.log(user.followings.entries.length); // undefined???
 		// why lazy loading not working??
 		userProfileDto.ELO = 0;
 		return userProfileDto;

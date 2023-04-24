@@ -50,7 +50,7 @@ export class UserService {
 			return findUser;
 			else
 			throw new NotFoundException('user not found');
-		}
+	}
 		
 		
 	async showUsers() {
@@ -185,9 +185,10 @@ export class UserService {
 
 
 	async getUserProfile(uid: number){
-		const findUser = await User.findOne({ where: { uid }});
+		const findUser = await this.databaseService.findUserWithFollowing(uid);
 
-		if (!this.isUserExist(findUser))
+
+		if (!this.isUserExist(findUser[0]))
 			throw new NotFoundException(`${uid} user not found`);
 
 		// const followings = findUser.followings;
@@ -198,7 +199,7 @@ export class UserService {
 		//   return await FollowingUserDto.mapUserFollowToFollowingUserDto(userFollow);
 		// }));
 
-		const userDto = await UserProfileDto.fromUserEntity(findUser);
+		const userDto = await UserProfileDto.fromUserEntity(findUser[0]);
 		// userDto.followings = followingUserDtos;
 		return userDto;
 		//GAME 조회
