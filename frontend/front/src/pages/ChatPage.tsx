@@ -49,7 +49,6 @@ export default function ChatPage() {
         info: findRoom.info,
         userList: findRoom.userList,
         messageList: [...findRoom.messageList, { from, message, isMe: false }],
-        myRoomStatus: findRoom.myRoomStatus,
         userNameHistory: findRoom.userNameHistory
       });
       setJoinRoomList(otherRoom);
