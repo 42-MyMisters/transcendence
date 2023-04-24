@@ -5,7 +5,7 @@ import { ForbiddenCharacter } from "../validator/forbidden-character.validator";
 export class changeNicknameDto {
 	@IsNotEmpty()
 	@IsString()
-	@Length(1, 20)
+	@Length(6, 16)
 	@Validate(ForbiddenCharacter, ["#"])
 	nickname: string;
 }

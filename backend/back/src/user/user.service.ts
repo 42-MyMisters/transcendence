@@ -1,21 +1,22 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, Logger, NotFoundException, UnauthorizedException } from "@nestjs/common";
+import { ConflictException, ForbiddenException, Injectable, Logger, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import * as bcrypt from 'bcrypt';
 import config from "config";
 import { authenticator } from "otplib";
 import { toDataURL } from 'qrcode';
 import { DatabaseService } from "src/database/database.service";
-import { UserFollow } from "../database/entity/user-follow.entity";
-import { User } from "../database/entity/user.entity";
+import { UserFollow } from "src/database/entity/user-follow.entity";
+import { User } from "src/database/entity/user.entity";
+import { UserBlock } from "../database/entity/user-block.entity";
 import { IntraUserDto } from "./dto/IntraUser.dto";
 import { PasswordDto } from "./dto/Password.dto";
 import { UserProfileDto } from "./dto/UserProfile.dto";
-import { find } from "rxjs";
 
 
 @Injectable()
 export class UserService {
-	constructor(private readonly databaseService: DatabaseService
-		){}
+	constructor(
+		private readonly databaseService: DatabaseService
+	){}
 
 	async addNewUserTest(user: User){
 		return await this.databaseService.saveUser(user);
@@ -33,7 +34,7 @@ export class UserService {
 	async getUserByIntraDto(intraUserDto: IntraUserDto){
 		const findUser = await this.databaseService.findUserByUid(intraUserDto.id);
 		if (this.isUserExist(findUser))
-		return findUser;
+			return findUser;
 		else {
 			const newUser = await this.addNewUser(intraUserDto);
 			return newUser;
@@ -48,7 +49,7 @@ export class UserService {
 		const findUser = await this.databaseService.findUserByNickname(nickname);
 		if (this.isUserExist(findUser))
 			return findUser;
-			else
+		else
 			throw new NotFoundException('user not found');
 	}
 		
@@ -88,7 +89,7 @@ export class UserService {
 	async logout(user: User){
 		await this.deleteRefreshToken(user.uid);
 	}
-ß
+
 	// TODO ? ::  existingFollowing 조회없이, 바로 저장해보고 try catch 로 예외처리?
 	async follow(curUser: User, userToFollow: User): Promise<void> {
 		const existingFollowing = await this.databaseService.findFollowingByUid(curUser.uid, userToFollow.uid);
@@ -104,18 +105,30 @@ export class UserService {
 
 	// TODO ? ::  existingFollowing 조회없이, 바로 저장해보고 try catch 로 예외처리?
 	async unfollow(curUser: User, userToUnfollow: User): Promise<void> {
-		const existingFollowing = await this.databaseService.findFollowingByUid(curUser.uid, userToUnfollow.uid);
-		if (!existingFollowing) {
-			throw new Error('You are not following this user.');
+		// const existingFollowing = await this.databaseService.findFollowingByUid(curUser.uid, userToUnfollow.uid);
+		// if (!existingFollowing) {
+		// 	throw new Error('You are not following this user.');
+		// }
+		await this.databaseService.deleteFollow(curUser.uid, userToUnfollow.uid);
+	}
+	
+	async block(curUser: User, userToBlock: User): Promise<void> {
+		const existingUserBlock = await this.databaseService.findBlockByUid(curUser.uid, userToBlock.uid);
+		if (existingUserBlock) {
+			throw new Error('You are already blocked this user.');
 		}
-		await this.databaseService.deleteFollow(existingFollowing);
+		const block = new UserBlock();
+		block.fromUserId = curUser.uid;
+		block.targetToBlock = userToBlock;
+		await this.databaseService.saveBlock(block);
 	}
 
-	isTwoFactorEnabled(user: User){
-		if (user.twoFactorEnabled)
-			return true;
-		else 
-			return false;
+	async unblock(curUser: User, userToUnblock: User): Promise<void> {
+		await this.databaseService.deleteBlock(curUser.uid, userToUnblock.uid);
+	}
+	
+	isTwoFactorEnabled(user: User) {
+		return user.twoFactorEnabled;
 	}
 
 	async isTwoFactorCodeValid(twoFactorCode: string, user: User) {
