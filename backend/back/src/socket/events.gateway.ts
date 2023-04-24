@@ -2,7 +2,7 @@ import { Logger, UnauthorizedException } from '@nestjs/common';
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Namespace, Socket } from 'socket.io';
 import { AuthService } from 'src/auth/auth.service';
-import { User } from 'src/user/user.entity';
+import { User } from 'src/database/entity/user.entity';
 import { UserService } from 'src/user/user.service';
 
 interface MessagePayload {
@@ -23,10 +23,10 @@ const createdRooms: Record<string, User[]> = {};
 export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
 	constructor(
+    private userService: UserService,
 		private authService: AuthService,
-		private userService: UserService,
-	) {
-	}
+	) {}
+
   private logger = new Logger('Gateway');
 
   @WebSocketServer()
@@ -54,7 +54,7 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
     try {
       this.logger.log(`${socket.id} socket connected.`);
       const uid = await this.authService.jwtVerify(socket.handshake.auth.token)
-      const user = await this.userService.getUserById(uid);
+      const user = await this.userService.getUserByUid(uid);
       if (this.userService.isUserExist(user)) {
         socket.data.user = user;
         if (userRecord[uid] === undefined) {

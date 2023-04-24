@@ -7,7 +7,7 @@ import { Jwt2faAuthGuard } from 'src/auth/jwt-2fa/jwt-2fa-auth.guard';
 import { JwtRefreshGuard } from 'src/auth/jwt-refresh/jwt-refresh-auth.guard';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
 import { LocalAuthGuard } from 'src/auth/local/local-auth.guard';
-import { callFunctionDescriptionOfRefreshRoute, ResponseErrorDto } from 'src/swagger/response.util';
+import { ResponseErrorDto, callFunctionDescriptionOfRefreshRoute } from 'src/swagger/response.util';
 import { UserService } from 'src/user/user.service';
 
 @Controller('login')
@@ -149,9 +149,7 @@ export class LoginController {
 			Logger.log('2fa confirmation failed. try again.');
 			throw new UnauthorizedException('Wrong authentication code');
 		}
-		const user = request.user;
-		user.twoFactorEnabled = true;
-		await this.userService.updateUser(user);
+		await this.userService.setUserTwoFactorEnabled(request.user, true);
 		return await this.authService.loginWith2fa(request.user);
 	}
 

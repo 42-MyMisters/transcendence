@@ -1,165 +1,134 @@
-import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException, UnauthorizedException } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
+import { ConflictException, ForbiddenException, Injectable, Logger, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import * as bcrypt from 'bcrypt';
 import config from "config";
 import { authenticator } from "otplib";
 import { toDataURL } from 'qrcode';
-import { Repository } from "typeorm";
+import { DatabaseService } from "src/database/database.service";
+import { UserFollow } from "src/database/entity/user-follow.entity";
+import { User } from "src/database/entity/user.entity";
+import { UserBlock } from "../database/entity/user-block.entity";
 import { IntraUserDto } from "./dto/IntraUser.dto";
 import { PasswordDto } from "./dto/Password.dto";
-import { UserBlock } from "./user-block.entity";
-import { UserFollow } from "./user-follow.entity";
-import { User } from "./user.entity";
-import { authenticator } from "otplib";
-import { toDataURL } from 'qrcode';
 import { UserProfileDto } from "./dto/UserProfile.dto";
-import { FollowingUserDto } from "./dto/FollowingUser.dto";
-import { validateOrReject } from "class-validator";
 
 
 @Injectable()
 export class UserService {
 	constructor(
-		@InjectRepository(User)
-		private userRepository: Repository<User>,
-		@InjectRepository(UserFollow)
-		private userFollowRepository: Repository<UserFollow>,
-		
-		){}
+		private readonly databaseService: DatabaseService
+	){}
 
-		async isNicknameExist(nickname: string): Promise<boolean> {
-		const queryBuilder = this.userRepository.createQueryBuilder('user');
-		const count = await queryBuilder.where('user.nickname = :nickname', { nickname }).getCount();
-		return count > 0;
+	async addNewUserTest(user: User){
+		return await this.databaseService.saveUser(user);
 	}
-	
+
 	async addNewUser(intraUserDto: IntraUserDto): Promise<User> {
 		const user: User = await User.fromIntraUserDto(intraUserDto);
-		await this.userRepository.save(user);
-		return user;
+		const createdUser = await this.databaseService.saveUser(user);
+		if (this.isUserExist(createdUser))
+			return createdUser;
+		else
+			throw new ForbiddenException('User Not Created');
 	}
-
-	async saveNewUser(user: User): Promise<User> {
-		return await this.userRepository.save(user);
-	}
-
-
-	async setUserNickname(user: User, changeNickname: string) {
-		const isExsistNickname = await this.isNicknameExist(changeNickname);
-		if (isExsistNickname)
-			throw new ConflictException('Nickname Already Exists');	
-		user.nickname = changeNickname;
-		await this.updateUser(user);
-	}
-
-	async getUserByIntraDto(userData: IntraUserDto){
-		const user = await this.getUserById(userData.id);
-		if (this.isUserExist(user))
-			return user;
+	
+	async getUserByIntraDto(intraUserDto: IntraUserDto){
+		const findUser = await this.databaseService.findUserByUid(intraUserDto.id);
+		if (this.isUserExist(findUser))
+			return findUser;
 		else {
-			const newUser = await this.addNewUser(userData);
+			const newUser = await this.addNewUser(intraUserDto);
 			return newUser;
 		}
 	}
 
+	async getUserByUid(uid: number){
+		return await this.databaseService.findUserByUid(uid);
+	}
+	
 	async getUserByNickname(nickname: string){
-		const user = await this.userRepository.findOneBy({nickname});
-		return user;
-	}
-
-	async getUserById(uid: number) {
-		const user = await this.userRepository.findOneBy({uid});
-		return user;
-	}
-
-	async getUserByEmail(email: string) {
-		const user = await this.userRepository.findOneBy({email});
-		return user;
-	}
-
+		const findUser = await this.databaseService.findUserByNickname(nickname);
+		if (this.isUserExist(findUser))
+			return findUser;
+		else
+			throw new NotFoundException('user not found');
+		}
+		
+		
 	async showUsers() {
-		const users = await this.userRepository.find({ relations: ["wonGames", "lostGames", "followers", "followings"] });
-		return users;
+		return await this.databaseService.findAllUsersWithGames();
 	}
-
+		
+	async setUserNickname(user: User, changeNickname: string) {
+		this.databaseService.updateUserNickname(user.uid, changeNickname);
+	}
+		
 	async setUserRefreshToken(user: User, refresh_token: string){
 		const refreshTokenPayload = refresh_token.split('.')[1];
-		const userUpdate = user;
-		userUpdate.refreshToken = await bcrypt.hash(refreshTokenPayload, config.get<number>('hash.password.saltOrRounds'));
-		await this.updateUser(userUpdate);
+		const updatedRefreshToken = await bcrypt.hash(refreshTokenPayload, config.get<number>('hash.password.saltOrRounds'));
+		await this.databaseService.updateUserRefreshToken(user.uid, updatedRefreshToken);
+	}
+
+	async setUserTwoFactorEnabled(user: User, isEnabled: boolean){
+		await this.databaseService.updateUserTwoFactorEnabled(user.uid, isEnabled);
+	}
+
+	//TODO :: THIS COULD BE setUserRefreshToken(user, null)?
+	async deleteRefreshToken(uid: number) {
+		await this.databaseService.updateUserRefreshToken(uid, null);
 	}
 
 	async setUserPw(user: User, pw: PasswordDto) {
-		const userUpdate = user;
-		const userPw = await bcrypt.hash(pw.password, config.get<number>('hash.password.saltOrRounds'));
-		userUpdate.password = userPw;
-		await this.updateUser(userUpdate);
+		const cryptedPassword = await bcrypt.hash(pw.password, config.get<number>('hash.password.saltOrRounds'));
+		await this.databaseService.updateUserPassword(user.uid, cryptedPassword);
 	}
 
-	async deleteRefreshToken(uid: number) {
-		const user = await this.getUserById(uid);
-		if (this.isUserExist(user)){
-			user.refreshToken = null;
-			await this.userRepository.save(user);
-			return true;
-		}
-		return false;
-	}
-
-	async updateUser(user: User) {
-		const userUpdate = user;
-		await this.userRepository.save(userUpdate);
-	}
-
-	async changeProfileImgUrl(user: User, img_url: string): Promise<void> {
-		user.profileUrl = img_url;
-		await this.userRepository.save(user);
+	async setUserProfileUrl(user: User, profileUrl: string){
+		this.databaseService.updateUserProfileImgUrl(user.uid, profileUrl)
 	}
 
 	async logout(user: User){
-		const isLogout : boolean = await this.deleteRefreshToken(user.uid);
-		if (!isLogout)
-			throw new BadRequestException ('RefreshToken Not Deleted');
+		await this.deleteRefreshToken(user.uid);
 	}
 
+	// TODO ? ::  existingFollowing 조회없이, 바로 저장해보고 try catch 로 예외처리?
 	async follow(curUser: User, userToFollow: User): Promise<void> {
-		const existingFollowing = await this.userFollowRepository.findOne({ where : { fromUserId: curUser.uid, targetToFollowId: userToFollow.uid } });
+		const existingFollowing = await this.databaseService.findFollowingByUid(curUser.uid, userToFollow.uid);
 		if (existingFollowing) {
-			throw new Error('You are already following this user.');
+			throw new ConflictException('You are already following this user.');
 		}
 
 		const follow = new UserFollow();
 		follow.fromUser = curUser;
 		follow.targetToFollow = userToFollow;
-		await this.userFollowRepository.save(follow);
+		await this.databaseService.saveFollow(follow);
 	}
 
+	// TODO ? ::  existingFollowing 조회없이, 바로 저장해보고 try catch 로 예외처리?
 	async unfollow(curUser: User, userToUnfollow: User): Promise<void> {
-		const existingFollowing = await this.userFollowRepository.findOne({ where : { fromUserId: curUser.uid, targetToFollowId: userToUnfollow.uid } });
-		if (!existingFollowing) {
-			throw new Error('You are not following this user.');
-		}
-
-		await this.userFollowRepository.remove(existingFollowing);
+		// const existingFollowing = await this.databaseService.findFollowingByUid(curUser.uid, userToUnfollow.uid);
+		// if (!existingFollowing) {
+		// 	throw new Error('You are not following this user.');
+		// }
+		await this.databaseService.deleteFollow(curUser.uid, userToUnfollow.uid);
 	}
-
+	
 	async block(curUser: User, userToBlock: User): Promise<void> {
-		const existingUserBlock = await this.userBlockRepository.findOne({ where : { fromUserId: curUser.uid, targetToBlockId: userToBlock.uid } });
+		const existingUserBlock = await this.databaseService.findBlockByUid(curUser.uid, userToBlock.uid);
 		if (existingUserBlock) {
 			throw new Error('You are already blocked this user.');
 		}
-
 		const block = new UserBlock();
 		block.fromUserId = curUser.uid;
 		block.targetToBlock = userToBlock;
-		await this.userFollowRepository.save(block);
+		await this.databaseService.saveBlock(block);
 	}
 
+	async unblock(curUser: User, userToUnblock: User): Promise<void> {
+		await this.databaseService.deleteBlock(curUser.uid, userToUnblock.uid);
+	}
+	
 	isTwoFactorEnabled(user: User) {
-		if (user.twoFactorEnabled)
-			return true;
-		else 
-			return false;
+		return user.twoFactorEnabled;
 	}
 
 	async isTwoFactorCodeValid(twoFactorCode: string, user: User) {
@@ -180,31 +149,29 @@ export class UserService {
 		return { secret, qr: await this.genQrCodeURL(otpAuthUrl) };
 	}
 
-	async toggleTwoFactor(uid: number) {
-		const user = await this.getUserById(uid);
-		if (this.isUserExist(user)) {
-			if (user.twoFactorEnabled) {
-				user.twoFactorEnabled = !user.twoFactorEnabled;
-				await this.updateUser(user);
+	async toggleTwoFactor(uid: number) : Promise<Object | null> {
+		const findUser = await this.databaseService.findUserByUid(uid);
+		if (this.isUserExist(findUser)) {
+			if (findUser.twoFactorEnabled) {
+				await this.databaseService.updateUserTwoFactorEnabled(findUser.uid, false);
 				return null;
 			} else {
-				const { secret, qr } = await this.genTwoFactorSecret(user);
-				user.twoFactorSecret = secret;
-				await this.updateUser(user);
+				const { secret, qr } = await this.genTwoFactorSecret(findUser);
+				await this.databaseService.updateUserTwoSecret(findUser.uid, secret);
 				return qr;
 			}
 		}
-		throw new UnauthorizedException('User Not Found!');
+		throw new ForbiddenException('User Not Found!');
 	}
 
 	async validateUser(email: string, password: string) {
-		const user = await this.getUserByEmail(email);
+		const findUser = await this.databaseService.findUserByEmail(email);
 
-		if (this.isUserExist(user)) {
-			const isMatch = await bcrypt.compare(password, user.password);
+		if (this.isUserExist(findUser)) {
+			const isMatch = await bcrypt.compare(password, findUser.password);
 			if (isMatch) {
 				Logger.log(`User(${email}) login success.`);
-				const { password, ...userWithoutPw } = user;
+				const { password, ...userWithoutPw } = findUser;
 				return userWithoutPw;
 			}
 			throw new UnauthorizedException('Wrong password!');
