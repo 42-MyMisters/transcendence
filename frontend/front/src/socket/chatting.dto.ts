@@ -4,14 +4,14 @@ type roomDto = {
 }
 
 type roomMessageDto = {
-	from: string | number; // userId
+	from: number;
 	message: string;
 	isMe: boolean;
 	date?: string;
 }
 
 type userDto = {
-	userId: string | number;
+	userId: number;
 	userDisplayName: string;
 	userProfileUrl: string;
 	userStatus: 'online' | 'offline' | 'inGame';
@@ -20,16 +20,16 @@ type userDto = {
 type joinRoomDto = {
 	info: roomDto;
 	userList: {
-		[key: string]: {
+		[key: number]: {
 			userInfo: userDto;
 			userRoomStatus: 'normal' | 'mute' | 'ban' | 'kick';
 			userRoomPower: 'owner' | 'admin' | 'member';
 		}
 	},
 	messageList: roomMessageDto[],
-	myRoomStatus: 'normal' | 'mute' | 'ban' | 'kick',
+	// myRoomStatus: 'normal' | 'mute' | 'ban' | 'kick',
 	userNameHistory?: {
-		[key: string]: {
+		[key: number]: {
 			userInfo: userDto;
 		};
 	},

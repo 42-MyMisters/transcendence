@@ -82,7 +82,7 @@ export const emitCreateRoom = (roomName: string) => {
 };
 
 export const emitJoinRoom = (roomName: string) => {
-	socket.emit("joinNroom", { roomName });
+	socket.emit("join-room", { roomName });
 };
 
 export const emitLeaveRoom = (roomName: string) => {
