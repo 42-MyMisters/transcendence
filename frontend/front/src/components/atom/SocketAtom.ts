@@ -2,11 +2,11 @@ import { atom, createStore } from "jotai";
 import type * as DTO from '../../socket/chatting.dto';
 
 
-export const userListAtom = atom<DTO.userDto[]>([]);
-export const dmListAtom = atom<DTO.userDto[]>([]);
-export const followingListAtom = atom<DTO.userDto[]>([]);
 export const roomListAtom = atom<DTO.roomDto[]>([]);
-export const joinRoomListAtom = atom<DTO.joinRoomDto[]>([]);
+export const userListAtom = atom<DTO.userDto[]>([]);
+// export const dmListAtom = atom<DTO.userDto[]>([]);
+// export const followingListAtom = atom<DTO.userDto[]>([]);
+
 export const hasLoginAtom = atom<boolean>(false);
 export const isFirstLoginAtom = atom<boolean>(true);
 export const focusRoomAtom = atom<string>('');

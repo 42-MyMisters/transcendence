@@ -25,7 +25,6 @@ export default function ChatPage() {
 
   const [userList, setUserList] = useAtom(chatAtom.userListAtom);
   const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
-  const [joinRoomList, setJoinRoomList] = useAtom(chatAtom.joinRoomListAtom);
   const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
   const [isFirstLogin, setIsFirstLogin] = useAtom(chatAtom.isFirstLoginAtom);
 
@@ -33,33 +32,22 @@ export default function ChatPage() {
     console.log("init event : established connection with server, ", data);
   });
 
-  socket.on("change-UserInfo", ({ roomName, from, message }) => { });
-  socket.on("change-UserRoomInfo", ({ roomName, from, message }) => { });
-
-  socket.on("join-newuser", ({ roomName, from, message }) => { });
-
   socket.on("message", ({ roomName, from, message }) => {
-    const findRoom = joinRoomList.find((room) => room.info.roomName === roomName);
+    const findRoom = roomList[roomName];
     if (findRoom === undefined) {
       // not join room
     } else {
-      const otherRoom = joinRoomList.filter((room) => room.info.roomName !== roomName);
-      // new user check before
-      otherRoom.push({
-        info: findRoom.info,
-        userList: findRoom.userList,
-        messageList: [...findRoom.messageList, { from, message, isMe: false }],
-        userNameHistory: findRoom.userNameHistory
-      });
-      setJoinRoomList(otherRoom);
-    }
+      const isExistUser = findRoom.joinDetail?.userList[from];
+      if (isExistUser === undefined) {
+        // add user to userList
+      }
+      const newMessage = [...findRoom.joinDetail.messageList, { from, message, isMe: false }];
+      const newRoomList = { ...roomList };
+      newRoomList[roomName].joinDetail.messageList = newMessage;
+      setRoomList(newRoomList);
+    };
   });
 
-  socket.on("delete-room", (deletedRoom) => {
-  });
-
-  socket.on("create-room", (newRoomName) => {
-  });
 
   if (isFirstLogin) { // socket init info stage
     socket.emit('room-list', (ack) => {
