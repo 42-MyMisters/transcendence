@@ -248,6 +248,20 @@ export function emitUserList() {
 	});
 }
 
+export function emitUserBlockList() {
+	const userId = 1;
+
+	socket.emit("user-block-list", {
+		userId
+	}, ({
+		userList,
+	}: {
+		userList: chatType.userListDto,
+	}) => {
+
+	});
+}
+
 export function emitDmHistoryList() {
 	const userId = 1;
 
