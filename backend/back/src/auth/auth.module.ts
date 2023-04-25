@@ -15,7 +15,7 @@ import { AuthService } from './auth.service';
 		}),
 		PassportModule.register({ defaultStrategy: 'jwt'}),
 	],
-  providers: [DatabaseModule, AuthService, JwtService],
+  providers: [DatabaseModule, JwtService, AuthService ],
   exports: [AuthService, JwtModule],
 })
 export class AuthModule {}

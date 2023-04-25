@@ -17,11 +17,7 @@ export class FollowingUserDto {
         dto.createdAt = userFollow.createdAt;
 
         // validate DTO object using class-validator
-        await validateOrReject(dto);
+        // await validateOrReject(dto);
         return dto;
   }
-
-
-    @Type(() => FollowingUserDto)
-    followings?: FollowingUserDto[];
 };

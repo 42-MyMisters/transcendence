@@ -198,10 +198,10 @@ export class UserService {
 
 
 	async getUserProfile(uid: number){
-		const findUser = await this.databaseService.findUserWithFollowing(uid);
+		const findUser = await this.databaseService.findUserByUid(uid);
 
 
-		if (!this.isUserExist(findUser[0]))
+		if (!this.isUserExist(findUser))
 			throw new NotFoundException(`${uid} user not found`);
 
 		// const followings = findUser.followings;
@@ -211,8 +211,8 @@ export class UserService {
 		// const followingUserDtos = await Promise.all(followingArray.map(async (userFollow) => {
 		//   return await FollowingUserDto.mapUserFollowToFollowingUserDto(userFollow);
 		// }));
-
-		const userDto = await UserProfileDto.fromUserEntity(findUser[0]);
+		const findFollwing = await this.databaseService.findAllFollowingByUid(uid);
+		const userDto = await UserProfileDto.fromUserEntity(findUser, findFollwing);
 		// userDto.followings = followingUserDtos;
 		return userDto;
 		//GAME 조회

@@ -46,7 +46,6 @@ export class DatabaseService {
 		return user;
     }
 
-<<<<<<< HEAD
     async findUserWithFollowing(uid: number): Promise<User[]> {
         const user = await this.userRepository.find({
             relations: {
@@ -60,8 +59,6 @@ export class DatabaseService {
     }
 
 
-=======
->>>>>>> 5654a695d3ba45177b970d4056df85f4da621dcc
     // USER UPDATE
     async updateUser(user: User){
         await this.userRepository.save(user);
@@ -105,7 +102,6 @@ export class DatabaseService {
     }
 
 
-
     // USER-FOLLOW CREATE
     async saveFollow(userFollow: UserFollow): Promise<UserFollow>{
         return await this.userFollowRepository.save(userFollow);
@@ -114,6 +110,13 @@ export class DatabaseService {
     // USER-FOLLOW READ
     async findFollowingByUid(fromUid: number, toUid: number): Promise<UserFollow | null>{
         return await this.userFollowRepository.findOne({ where : { fromUserId: fromUid, targetToFollowId: toUid } });
+    }
+
+    async findAllFollowingByUid(fromUserId: number) {
+       return await this.userFollowRepository.find({
+        where: { fromUserId },
+        relations: ['targetToFollow'],
+      });
     }
     
     // USER-FOLLOW UPDATE

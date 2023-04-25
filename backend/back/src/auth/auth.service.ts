@@ -104,7 +104,7 @@ export class AuthService {
 			twoFactorEnabled: user.twoFactorEnabled,
 			twoFactorAuthenticated: twoFactor,
 		}
-		const access_token = await this.jwtService.sign(payload);
+		const access_token = this.jwtService.sign(payload);
 		return access_token;
 	}
 
