@@ -60,7 +60,7 @@ export class UserService {
 
 
 	async showUsers() {
-		return await this.databaseService.findAllUsersWithGames();
+		return await this.databaseService.findAllUser();
 	}
 
 	async setUserNickname(user: User, changeNickname: string) {

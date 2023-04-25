@@ -25,11 +25,6 @@ export class DatabaseService {
     async findAllUser(): Promise<User[]> {
         return await this.userRepository.find();
     }
-    // THIS MIGHT NOT WORK
-    async findAllUsersWithGames(): Promise<User[]> {
-        const users = await this.userRepository.find({ relations: ["wonGames", "lostGames", "followers", "followings"] });
-        return users;
-    }
     
     async findUserByUid(uid: number): Promise<User | null> {
         const user = await this.userRepository.findOneBy({uid});
