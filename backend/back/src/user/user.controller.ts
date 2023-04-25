@@ -182,7 +182,7 @@ export class UserController {
 	})
 	@swagger.ApiOkResponse({
 		description: '현재 로그인한 유저의 Following한 유저 정보 조회 성공',
-		type: [FollowingUserDto[]],
+		type: [FollowingUserDto],
 	})	
 	@Get('/following')
 	@UseGuards(Jwt2faAuthGuard)
