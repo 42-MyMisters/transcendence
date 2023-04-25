@@ -25,14 +25,21 @@ export default function ChatPage() {
   const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);
 
   const [isFirstLogin, setIsFirstLogin] = useAtom(chatAtom.isFirstLoginAtom);
-  const [userList, setUserList] = useAtom(chatAtom.userListAtom);
-  const [userHistory, setUserHistory] = useAtom(chatAtom.userHistoryAtom);
+
   const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
+  const [userList, setUserList] = useAtom(chatAtom.userListAtom);
+  const [userBlockList, setUserBlockList] = useAtom(chatAtom.userBlockListAtom);
+  const [dmHistoryList, setDmHistoryList] = useAtom(chatAtom.dmHistoryListAtom);
   const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
 
+  if (isFirstLogin) {
+    socket.OnSocketChatEvent();
 
-  if (isFirstLogin) { // socket init info stage
-    // call init event
+    // init data request
+    // socket.emitUserBlockList();
+    // socket.emitDmHistoryList();
+
+    // socket.emitRoomList();
     setIsFirstLogin(false);
   }
 

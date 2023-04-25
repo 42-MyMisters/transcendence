@@ -3,6 +3,7 @@ type userDto = {
 		userDisplayName: string;
 		userProfileUrl: string;
 		userStatus: 'online' | 'offline' | 'inGame';
+		hasDmHistory: boolean;
 	}
 }
 
