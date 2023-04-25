@@ -1,3 +1,4 @@
+import { Cookies } from "react-cookie";
 import "../styles/TopBar.css";
 import { Link, NavLink } from "react-router-dom";
 
@@ -24,7 +25,9 @@ function getNavLinkStyle({ isActive }: { isActive: boolean }) {
 function LogoBtn() {
   return (
     <div className="TopBarBtn TopBarLogo">
-      <a className="AStyle" href="https://github.com/42-MyMisters" target="_blank" rel="noreferrer">MyMisters</a>
+      <a className="AStyle" href="https://github.com/42-MyMisters" target="_blank" rel="noreferrer">
+        MyMisters
+      </a>
     </div>
   );
 }
@@ -32,7 +35,9 @@ function LogoBtn() {
 function ChatBtn() {
   return (
     <div className="TopBarBtn">
-      <NavLink to="/chat" className="AStyle" style={getNavLinkStyle} >Chat</NavLink>
+      <NavLink to="/chat" className="AStyle" style={getNavLinkStyle}>
+        Chat
+      </NavLink>
     </div>
   );
 }
@@ -48,13 +53,20 @@ function QueueBtn() {
 function ProfileBtn() {
   return (
     <div className="TopBarBtn">
-      <NavLink to="/profile" className="AStyle" style={getNavLinkStyle}>Profile</NavLink>
+      <NavLink to="/profile" className="AStyle" style={getNavLinkStyle}>
+        Profile
+      </NavLink>
     </div>
   );
 }
 
 function LogoutBtn() {
+  function LogOut() {
+    localStorage.clear();
+  }
   return (
-    <div className="TopBarBtn">Logout</div>
+    <div className="TopBarBtn" onClick={LogOut}>
+      Logout
+    </div>
   );
 }
