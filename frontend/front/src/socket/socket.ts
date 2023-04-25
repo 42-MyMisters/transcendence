@@ -19,6 +19,12 @@ export const socket = io(`${URL}${NameSpace}`, {
 });
 
 export function OnSocketEvent() {
+	const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
+	const [userList, setUserList] = useAtom(chatAtom.userListAtom);
+	const [userHistory, setUserHistory] = useAtom(chatAtom.userHistoryAtom);
+	const [userBlockList, setUserBlockList] = useAtom(chatAtom.userBlockListAtom);
+	const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
+
 	// catch all incoming events
 	socket.onAny((eventName, ...args) => {
 		console.log("incoming ", eventName, args);
@@ -66,32 +72,63 @@ export function OnSocketEvent() {
 
 	socket.on("room-list-notify", ({
 		action,
-		userList,
+		roomId,
+		roomName,
+		roomType
 	}: {
 		action: 'add' | 'delete';
-		userList: {
-			[key: number]: {
-				roomName: string;
-				roomType: 'open' | 'protected';
+		roomId: number;
+		roomName: string;
+		roomType: 'open' | 'protected' | 'private';
+	}) => {
+		switch (action) {
+			case 'add': {
+				const newRoomList: chatType.roomListDto = { ...roomList };
+				newRoomList[roomId] = {
+					roomName,
+					roomType,
+					isJoined: false,
+				};
+				setRoomList({ ...newRoomList });
+				break;
+			}
+			case 'delete': {
+				const newRoomList: chatType.roomListDto = { ...roomList };
+				delete newRoomList[roomId];
+				setRoomList({ ...newRoomList });
+				break;
+			}
+			default: {
+				// error case
+				break;
 			}
 		}
-	}) => {
-
 	});
-
 
 	socket.on("room-join", ({
 		roomId,
 		roomName,
+		roomType,
 		userList = {}
 	}: {
 		roomId: number,
 		roomName: string,
-		userList: chatType.userListDto
+		roomType: 'open' | 'protected' | 'private',
+		userList: chatType.userInRoomListDto,
 	}) => {
-
+		const newRoomList: chatType.roomListDto = { ...roomList };
+		newRoomList[roomId] = {
+			roomName,
+			roomType: roomType,
+			isJoined: true,
+			detail: {
+				userList: { ...userList },
+				messageList: [],
+			}
+		};
+		setRoomList({ ...newRoomList });
+		setFocusRoom(roomId);
 	});
-
 
 	socket.on("room-inaction", ({
 		roomId,
@@ -103,7 +140,6 @@ export function OnSocketEvent() {
 
 	});
 
-
 	socket.on("user-update", ({
 		userId,
 		userDisplayName,
@@ -114,6 +150,24 @@ export function OnSocketEvent() {
 		userDisplayName: string
 		userProfileUrl: string;
 		userStatus: 'online' | 'offline' | 'inGame';
+	}) => {
+		const newUserList: chatType.userDto = { ...userList };
+		newUserList[userId] = {
+			userDisplayName,
+			userProfileUrl,
+			userStatus,
+		};
+		setUserList({ ...newUserList });
+	});
+
+	socket.on("message", ({
+		type,
+		to,
+		message
+	}: {
+		type: 'room' | 'user',
+		to: number,
+		message: string
 	}) => {
 
 	});
@@ -164,7 +218,7 @@ export function emitRoomJoin() {
 	}: {
 		status: 'ok' | 'ko',
 		reason?: string,
-		userList?: chatType.userListDto,
+		userList?: chatType.userDto,
 	}) => {
 
 	});
@@ -178,7 +232,7 @@ export function emitRoomLeave() {
 	}, ({
 		userList,
 	}: {
-		userList: chatType.userListDto,
+		userList: chatType.userDto,
 	}) => {
 
 	});
@@ -242,7 +296,7 @@ export function emitUserList() {
 	}, ({
 		userList,
 	}: {
-		userList: chatType.userListDto,
+		userList: chatType.userDto,
 	}) => {
 
 	});
@@ -256,7 +310,7 @@ export function emitUserBlockList() {
 	}, ({
 		userList,
 	}: {
-		userList: chatType.userListDto,
+		userList: chatType.userDto,
 	}) => {
 
 	});
@@ -270,7 +324,7 @@ export function emitDmHistoryList() {
 	}, ({
 		userList,
 	}: {
-		userList: chatType.userListDto,
+		userList: chatType.userDto,
 	}) => {
 
 	});
@@ -284,7 +338,27 @@ export function emitFollowingList() {
 	}, ({
 		userList,
 	}: {
-		userList: chatType.userListDto,
+		userList: chatType.userDto,
+	}) => {
+
+	});
+}
+
+export function emitMessage() {
+	const type = 'room';
+	const to = 1;
+	const message = "test message";
+
+	socket.emit("message", {
+		type,
+		to,
+		message
+	}, ({
+		status,
+		reason,
+	}: {
+		status: 'ok' | 'ko',
+		reason?: 'string'
 	}) => {
 
 	});

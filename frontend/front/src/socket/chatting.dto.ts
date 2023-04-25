@@ -13,33 +13,7 @@ type roomMessageDto = {
 	date?: string;
 }
 
-type joinRoomDto = {
-	userList: {
-		[key: number]: {
-			userRoomStatus: 'normal' | 'mute' | 'ban' | 'kick';
-			userRoomPower: 'owner' | 'admin' | 'member';
-		}
-	},
-	messageList: roomMessageDto[],
-	// myRoomStatus: 'normal' | 'mute' | 'ban' | 'kick',
-}
-
-type roomDto = {
-	[key: string]: {
-		roomType: 'open' | 'protected' | 'private' | 'dm';
-		isJoined: boolean;
-		joinDetail?: joinRoomDto;
-	}
-}
-
-type roomListDto = {
-	[key: number]: {
-		roomName: string
-		roomType: 'open' | 'protected';
-	}
-}
-
-type userListDto = {
+type userInRoomListDto = {
 	[key: number]: {
 		userDisplayName: string;
 		userRoomStatus: 'normal' | 'mute' | 'ban' | 'kick';
@@ -47,4 +21,19 @@ type userListDto = {
 	}
 }
 
-export type { userDto, roomDto, joinRoomDto, roomMessageDto, roomListDto, userListDto };
+type roomDetailDto = {
+	userList: userInRoomListDto,
+	messageList: roomMessageDto[],
+	// myRoomStatus: 'normal' | 'mute' | 'ban' | 'kick',
+}
+
+type roomListDto = {
+	[key: number]: {
+		roomName: string
+		roomType: 'open' | 'protected' | 'private';
+		isJoined: boolean;
+		detail?: roomDetailDto;
+	}
+}
+
+export type { userDto, roomDetailDto, roomMessageDto, roomListDto, userInRoomListDto };
