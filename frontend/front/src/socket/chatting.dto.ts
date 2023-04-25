@@ -6,6 +6,11 @@ type userDto = {
 		hasDmHistory: boolean;
 	}
 }
+type userSimpleDto = {
+	[key: number]: {
+		blocked: boolean;
+	}
+}
 
 type roomMessageDto = {
 	userId: number;
@@ -25,7 +30,8 @@ type userInRoomListDto = {
 type roomDetailDto = {
 	userList: userInRoomListDto,
 	messageList: roomMessageDto[],
-	// myRoomStatus: 'normal' | 'mute' | 'ban' | 'kick',
+	myRoomStatus: 'normal' | 'mute' | 'ban' | 'kick',
+	myRoomPower: 'owner' | 'admin' | 'member';
 }
 
 type roomListDto = {
@@ -33,8 +39,9 @@ type roomListDto = {
 		roomName: string
 		roomType: 'open' | 'protected' | 'private';
 		isJoined: boolean;
+		// kickList?: number[];
 		detail?: roomDetailDto;
 	}
 }
 
-export type { userDto, roomDetailDto, roomMessageDto, roomListDto, userInRoomListDto };
+export type { userDto, userSimpleDto, roomDetailDto, roomMessageDto, roomListDto, userInRoomListDto };

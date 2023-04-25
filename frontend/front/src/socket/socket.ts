@@ -1,6 +1,7 @@
 import { io } from 'socket.io-client';
 import { useAtom } from "jotai";
 import * as chatAtom from '../components/atom/SocketAtom';
+import * as userAtom from '../components/atom/UserAtom';
 import type * as chatType from '../socket/chatting.dto';
 
 const URL = "http://localhost:4000";
@@ -70,6 +71,7 @@ export function OnSocketChatEvent() {
   const [userBlockList, setUserBlockList] = useAtom(chatAtom.userBlockListAtom);
   const [dmHistoryList, setDmHistoryList] = useAtom(chatAtom.dmHistoryListAtom);
   const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
+  const [userInfo, setUserInfo] = useAtom(userAtom.UserAtom);
 
   socket.on("room-list-notify", ({
     action,
@@ -99,10 +101,6 @@ export function OnSocketChatEvent() {
         setRoomList({ ...newRoomList });
         break;
       }
-      default: {
-        // error case
-        break;
-      }
     }
   });
 
@@ -125,6 +123,8 @@ export function OnSocketChatEvent() {
       detail: {
         userList: { ...userList },
         messageList: [],
+        myRoomStatus: 'normal',
+        myRoomPower: 'member'
       }
     };
     setRoomList({ ...roomList, ...newRoomList });
@@ -140,17 +140,25 @@ export function OnSocketChatEvent() {
   }) => {
     switch (action) {
       case 'ban': {
-        emitRoomLeave(roomId, { roomList, setRoomList, focusRoom, setFocusRoom }, true);
+        emitRoomLeave({ roomList, setRoomList, focusRoom, setFocusRoom }, roomId, true);
         break;
       }
       case 'kick': {
-        emitRoomLeave(roomId, { roomList, setRoomList, focusRoom, setFocusRoom })
+        emitRoomLeave({ roomList, setRoomList, focusRoom, setFocusRoom }, roomId)
         break;
       }
       case 'mute': {
+        const tempRoomList: chatType.roomListDto = { ...roomList[roomId] };
+        const newDetail: Partial<chatType.roomDetailDto> = { ...tempRoomList[roomId].detail, myRoomStatus: 'mute' };
+        const newRoomList: chatType.roomListDto = { ...tempRoomList[roomId], ...newDetail };
+        setRoomList({ ...roomList, ...newRoomList });
         break;
       }
       case 'admit-admin': {
+        const tempRoomList: chatType.roomListDto = { ...roomList[roomId] };
+        const newDetail: Partial<chatType.roomDetailDto> = { ...tempRoomList[roomId].detail, myRoomPower: 'admin' };
+        const newRoomList: chatType.roomListDto = { ...tempRoomList[roomId], ...newDetail };
+        setRoomList({ ...roomList, ...newRoomList });
         break;
       }
     }
@@ -193,17 +201,18 @@ export function OnSocketChatEvent() {
         break;
       }
       case false: {
-        const newRoomList: chatType.roomListDto = { ...roomList[roomId] };
-        const newMessageList: chatType.roomMessageDto[] = newRoomList[roomId].detail?.messageList || [];
-        if (newMessageList !== undefined) {
-          newMessageList.push({
-            userId: from,
-            message,
-            isMe: false,
-          });
-          console.log(`message from ${from} is received`);
-          setRoomList({ ...roomList, ...newRoomList });
-        }
+        console.log(`message from ${from} is received: ${message}`);
+        const newMessage: chatType.roomMessageDto = {
+          userId: from,
+          message,
+          isMe: false
+        };
+        const tempRoomList: chatType.roomListDto = { ...roomList[roomId] };
+        const newMessageList: chatType.roomMessageDto[] = tempRoomList[roomId].detail?.messageList || [];
+        newMessageList.push(newMessage);
+        const newDetail: Partial<chatType.roomDetailDto> = { ...tempRoomList[roomId].detail, messageList: [...newMessageList] };
+        const newRoomList: chatType.roomListDto = { ...tempRoomList, ...newDetail };
+        setRoomList({ ...roomList, ...newRoomList });
         break;
       }
     }
@@ -211,24 +220,34 @@ export function OnSocketChatEvent() {
 
 }
 
-export function emitRoomList() {
+export function emitRoomList(
+  {
+    setRoomList
+  }: {
+    setRoomList: React.Dispatch<React.SetStateAction<chatType.roomListDto>>,
+  }
+) {
   socket.emit("room-list", ({
     roomList
   }: {
     roomList: chatType.roomListDto;
   }) => {
-
+    setRoomList({ ...roomList });
   });
 }
 
-export function emitRoomCreate({ roomName, roomCheck = false, roomPass = '' }: {
+export function emitRoomCreate(
+  {
+    roomList,
+    setRoomList
+  }: {
+    roomList: chatType.roomListDto,
+    setRoomList: React.Dispatch<React.SetStateAction<chatType.roomListDto>>,
+  },
   roomName: string,
-  roomCheck?: boolean
-  roomPass?: string,
-}, { roomList, setRoomList }: {
-  roomList: chatType.roomListDto,
-  setRoomList: React.Dispatch<React.SetStateAction<chatType.roomListDto>>,
-}) {
+  roomCheck: boolean = false,
+  roomPass: string = ''
+) {
   console.log("emitRoomCreate", `roomName: ${roomName}, roomType: ${roomCheck}, roomPass: ${roomPass}`);
   const roomType = roomCheck ? 'private' : roomPass ? 'protected' : 'open';
   socket.emit("room-create", {
@@ -244,7 +263,7 @@ export function emitRoomCreate({ roomName, roomCheck = false, roomPass = '' }: {
   }) => {
     switch (status) {
       case true: {
-        console.log("room create success");
+        console.log("room-create success");
         const newRoomList: chatType.roomListDto = {};
         newRoomList[payload as number] = {
           roomName: roomName,
@@ -255,7 +274,7 @@ export function emitRoomCreate({ roomName, roomCheck = false, roomPass = '' }: {
         break;
       }
       case false: {
-        console.log("room create fail");
+        console.log("room-create fail");
         break;
       }
     };
@@ -264,15 +283,19 @@ export function emitRoomCreate({ roomName, roomCheck = false, roomPass = '' }: {
 
 export function emitRoomJoin(
   {
+    roomList,
+    setRoomList,
     focusRoom,
     setFocusRoom
   }: {
+    roomList: chatType.roomListDto,
+    setRoomList: React.Dispatch<React.SetStateAction<chatType.roomListDto>>,
     focusRoom: number,
     setFocusRoom: React.Dispatch<React.SetStateAction<number>>,
-  }) {
-  const roomId = 1;
-  const roomPass = "aoiresnt";
-
+  },
+  roomId: number,
+  roomPass: string = ''
+) {
   socket.emit("room-join", {
     roomId,
     roomPass,
@@ -283,10 +306,24 @@ export function emitRoomJoin(
   }: {
     status: 'ok' | 'ko',
     reason?: string,
-    userList?: chatType.userDto,
+    userList?: chatType.userInRoomListDto,
   }) => {
     switch (status) {
       case 'ok': {
+        console.log(`room-join success: ${roomList[roomId].roomName}`);
+        const newRoomList: chatType.roomListDto = {};
+        newRoomList[roomId] = {
+          roomName: roomList[roomId].roomName,
+          roomType: roomList[roomId].roomType,
+          isJoined: true,
+          detail: {
+            userList: { ...userList },
+            messageList: [],
+            myRoomStatus: 'normal',
+            myRoomPower: 'member'
+          }
+        };
+        setRoomList({ ...roomList, ...newRoomList });
         setFocusRoom(roomId);
         break;
       }
@@ -298,16 +335,20 @@ export function emitRoomJoin(
 }
 
 export function emitRoomLeave(
-  roomId: number,
   {
-    roomList, setRoomList, focusRoom, setFocusRoom
+    roomList,
+    setRoomList,
+    focusRoom,
+    setFocusRoom
   }: {
     roomList: chatType.roomListDto,
     setRoomList: React.Dispatch<React.SetStateAction<chatType.roomListDto>>,
     focusRoom: number,
     setFocusRoom: React.Dispatch<React.SetStateAction<number>>,
   },
-  ban: boolean = false) {
+  roomId: number,
+  ban: boolean = false
+) {
   socket.emit("room-leave", {
     roomId, ban
   }, (status: 'leave' | 'delete') => {
@@ -335,59 +376,145 @@ export function emitRoomLeave(
   });
 }
 
-export function emitRoomInAction() {
-  const roomId = 1;
-  const action = 'ban';
-
+export function emitRoomInAction(
+  {
+    roomList,
+    setRoomList,
+  }: {
+    roomList: chatType.roomListDto,
+    setRoomList: React.Dispatch<React.SetStateAction<chatType.roomListDto>>,
+  },
+  roomId: number,
+  action: 'ban' | 'kick' | 'mute' | 'admit-admin',
+  targetId: number,
+) {
   socket.emit("room-inaction", {
     roomId,
     action,
+    targetId,
   }, ({
     status,
-    reason,
+    payload,
   }: {
     status: 'ok' | 'ko',
-    reason?: string,
+    payload?: string,
   }) => {
-
+    switch (status) {
+      case 'ok': {
+        console.log(`room-inaction in ${roomId} to ${targetId} with ${action} OK`);
+        switch (action) {
+          case 'mute': {
+            const tempRoomList: chatType.roomListDto = { ...roomList[roomId] };
+            const newDetail: Partial<chatType.roomDetailDto> = { ...tempRoomList[roomId].detail };
+            const newUserList: chatType.userInRoomListDto = { ...newDetail.userList };
+            newUserList[targetId].userRoomStatus = 'mute';
+            newDetail.userList = { ...newUserList };
+            const newRoomList: chatType.roomListDto = { ...tempRoomList[roomId], ...newDetail };
+            setRoomList({ ...roomList, ...newRoomList });
+            break;
+          }
+          case 'admit-admin': {
+            const tempRoomList: chatType.roomListDto = { ...roomList[roomId] };
+            const newDetail: Partial<chatType.roomDetailDto> = { ...tempRoomList[roomId].detail };
+            const newUserList: chatType.userInRoomListDto = { ...newDetail.userList };
+            newUserList[targetId].userRoomPower = 'admin';
+            newDetail.userList = { ...newUserList };
+            const newRoomList: chatType.roomListDto = { ...tempRoomList[roomId], ...newDetail };
+            setRoomList({ ...roomList, ...newRoomList });
+            break;
+          }
+        }
+        break;
+      }
+      case 'ko': {
+        console.log(`room-inaction in ${roomId} to ${targetId} with ${action} failed: ${payload}`);
+        break;
+      }
+    }
   });
 }
 
-export function emitUserBlock() {
-  const targetId = 1;
-
+export function emitUserBlock(
+  {
+    userBlockList,
+    setUserBlockList,
+  }: {
+    userBlockList: chatType.userSimpleDto,
+    setUserBlockList: React.Dispatch<React.SetStateAction<chatType.userSimpleDto>>,
+  },
+  targetId: number,
+) {
   socket.emit("user-block", {
     targetId
   }, ({
     status,
-    reason,
+    payload
   }: {
-    status: 'ok' | 'ko',
-    reason?: string,
+    status: 'on' | 'off' | 'ko',
+    payload?: string,
   }) => {
-
+    switch (status) {
+      case 'on': {
+        const newBlockUser: chatType.userSimpleDto = {};
+        newBlockUser[targetId] = {
+          blocked: true
+        }
+        setUserBlockList({ ...userBlockList, ...newBlockUser });
+        break;
+      }
+      case 'off': {
+        const newBlockList: chatType.userSimpleDto = { ...userBlockList };
+        delete newBlockList[targetId];
+        setUserBlockList({ ...newBlockList });
+        break;
+      }
+      case 'ko': {
+        console.log(`user-block failed: ${payload}`);
+        break;
+      }
+    }
   });
 }
 
-export function emitUserInvite() {
-  const targetId = 1;
-
+export function emitUserInvite(
+  {
+    userList,
+  }: {
+    userList: chatType.userDto,
+  },
+  targetId: number,
+  roomId: number,
+) {
   socket.emit("user-invite", {
-    targetId
+    targetId,
+    roomId
   }, ({
     status,
-    reason,
+    payload,
   }: {
     status: 'ok' | 'ko',
-    reason?: string,
+    payload?: string,
   }) => {
-
+    switch (status) {
+      case 'ok': {
+        break;
+      }
+      case 'ko': {
+        console.log(`user-invite ${userList[targetId].userDisplayName} failed: ${payload}`);
+        break;
+      }
+    }
   });
 }
 
-export function emitUserList() {
-  const userId = 1;
-
+export function emitUserList(
+  {
+    setUserList
+  }: {
+    setUserList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
+  },
+  userId: number,
+) {
   socket.emit("user-list", {
     userId
   }, ({
@@ -395,27 +522,37 @@ export function emitUserList() {
   }: {
     userList: chatType.userDto,
   }) => {
-
+    setUserList({ ...userList })
   });
 }
 
-export function emitUserBlockList() {
-  const userId = 1;
-
+export function emitUserBlockList(
+  {
+    setUserBlockList
+  }: {
+    setUserBlockList: React.Dispatch<React.SetStateAction<chatType.userSimpleDto>>,
+  },
+  userId: number
+) {
   socket.emit("user-block-list", {
     userId
   }, ({
     userList,
   }: {
-    userList: chatType.userDto,
+    userList: chatType.userSimpleDto,
   }) => {
-
+    setUserBlockList({ ...userList });
   });
 }
 
-export function emitDmHistoryList() {
-  const userId = 1;
-
+export function emitDmHistoryList(
+  {
+    setDmHistoryList
+  }: {
+    setDmHistoryList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
+  },
+  userId: number
+) {
   socket.emit("dm-history-list", {
     userId
   }, ({
@@ -423,11 +560,12 @@ export function emitDmHistoryList() {
   }: {
     userList: chatType.userDto,
   }) => {
-
+    setDmHistoryList({ ...userList });
   });
 }
 
-export function emitFollowingList() { //NOTE: API
+export function emitFollowingList() {
+  //TODO: NOTE: API
   // const userId = 1;
 
   // socket.emit("following-list", {
@@ -441,22 +579,51 @@ export function emitFollowingList() { //NOTE: API
   // });
 }
 
-export function emitMessage() {
-  const type = 'room';
-  const to = 1;
-  const message = "test message";
+export function emitMessage(
+  {
+    userInfo,
+    roomList,
+    setRoomList
+  }: {
+    userInfo: userAtom.userType,
+    roomList: chatType.roomListDto,
+    setRoomList: React.Dispatch<React.SetStateAction<chatType.roomListDto>>,
+  },
+  roomId: number,
+  to: number,
+  message: string,
+) {
 
   socket.emit("message", {
-    type,
-    to,
+    roomId,
     message
   }, ({
     status,
-    reason,
+    payload,
   }: {
     status: 'ok' | 'ko',
-    reason?: 'string'
+    payload?: 'string'
   }) => {
-
+    switch (status) {
+      case 'ok': {
+        console.log(`message to ${roomList[roomId].roomName} is sended: ${message}`);
+        const newMessage: chatType.roomMessageDto = {
+          userId: userInfo.uid,
+          message,
+          isMe: true
+        };
+        const tempRoomList: chatType.roomListDto = { ...roomList[roomId] };
+        const newMessageList: chatType.roomMessageDto[] = tempRoomList[roomId].detail?.messageList || [];
+        newMessageList.push(newMessage);
+        const newDetail: Partial<chatType.roomDetailDto> = { ...tempRoomList[roomId].detail, messageList: [...newMessageList] };
+        const newRoomList: chatType.roomListDto = { ...tempRoomList, ...newDetail };
+        setRoomList({ ...roomList, ...newRoomList });
+        break;
+      }
+      case 'ko': {
+        console.log(`message to ${to} is failed: ${payload}`);
+        break;
+      }
+    }
   });
 }

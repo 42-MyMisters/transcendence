@@ -19,7 +19,7 @@ export default function RoomModal() {
   PressKey(["Escape"], () => { setRoomModal(false); });
 
   const acceptHandler = () => {
-    socket.emitRoomCreate({ roomName, roomCheck, roomPass }, { roomList, setRoomList });
+    socket.emitRoomCreate({ roomList, setRoomList }, roomName, roomCheck, roomPass);
   };
 
   return (
