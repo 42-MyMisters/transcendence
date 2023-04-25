@@ -6,6 +6,7 @@ import Waiting from "../components/GamePage/Waiting";
 import BackGround from "../components/BackGround";
 import TopBar from "../components/TopBar";
 
+
 export default function GamePage() {
   const [showComponent, setShowComponent] = useState(true);
 

@@ -6,6 +6,7 @@ import { typeORMConfig } from './configs/typeorm.config';
 import { DatabaseModule } from './database/database.module';
 import { GameModule } from './game/game.module';
 import { LoginModule } from './login/login.module';
+import { EventsModule } from './socket/events.module';
 import { TesterModule } from './tester/tester.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
@@ -13,12 +14,10 @@ import { UserModule } from './user/user.module';
 @Module({
   imports: [
 		TypeOrmModule.forRoot(typeORMConfig),
-		DatabaseModule,
-		AuthModule,
-		UserModule,
 		LoginModule,
 		GameModule,
 		TesterModule,
+		EventsModule,
   ],
 	controllers: [AppController],
 	providers: [AppService],

@@ -1,23 +1,24 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, Logger, NotFoundException, UnauthorizedException } from "@nestjs/common";
+import { ConflictException, ForbiddenException, Injectable, Logger, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import * as bcrypt from 'bcrypt';
 import config from "config";
 import { authenticator } from "otplib";
 import { toDataURL } from 'qrcode';
 import { DatabaseService } from "src/database/database.service";
-import { UserFollow } from "../database/entity/user-follow.entity";
-import { User } from "../database/entity/user.entity";
+import { UserFollow } from "src/database/entity/user-follow.entity";
+import { User } from "src/database/entity/user.entity";
+import { UserBlock } from "../database/entity/user-block.entity";
 import { IntraUserDto } from "./dto/IntraUser.dto";
 import { PasswordDto } from "./dto/Password.dto";
 import { UserProfileDto } from "./dto/UserProfile.dto";
-import { find } from "rxjs";
 
 
 @Injectable()
 export class UserService {
-	constructor(private readonly databaseService: DatabaseService
-		){}
+	constructor(
+		private readonly databaseService: DatabaseService
+	) { }
 
-	async addNewUserTest(user: User){
+	async addNewUserTest(user: User) {
 		return await this.databaseService.saveUser(user);
 	}
 
@@ -29,45 +30,45 @@ export class UserService {
 		else
 			throw new ForbiddenException('User Not Created');
 	}
-	
-	async getUserByIntraDto(intraUserDto: IntraUserDto){
+
+	async getUserByIntraDto(intraUserDto: IntraUserDto) {
 		const findUser = await this.databaseService.findUserByUid(intraUserDto.id);
 		if (this.isUserExist(findUser))
-		return findUser;
+			return findUser;
 		else {
 			const newUser = await this.addNewUser(intraUserDto);
 			return newUser;
 		}
 	}
 
-	async getUserByUid(uid: number){
+	async getUserByUid(uid: number) {
 		return await this.databaseService.findUserByUid(uid);
 	}
-	
-	async getUserByNickname(nickname: string){
+
+	async getUserByNickname(nickname: string) {
 		const findUser = await this.databaseService.findUserByNickname(nickname);
 		if (this.isUserExist(findUser))
 			return findUser;
-			else
+		else
 			throw new NotFoundException('user not found');
-		}
-		
-		
+	}
+
+
 	async showUsers() {
 		return await this.databaseService.findAllUsersWithGames();
 	}
-		
+
 	async setUserNickname(user: User, changeNickname: string) {
 		this.databaseService.updateUserNickname(user.uid, changeNickname);
 	}
-		
-	async setUserRefreshToken(user: User, refresh_token: string){
+
+	async setUserRefreshToken(user: User, refresh_token: string) {
 		const refreshTokenPayload = refresh_token.split('.')[1];
 		const updatedRefreshToken = await bcrypt.hash(refreshTokenPayload, config.get<number>('hash.password.saltOrRounds'));
 		await this.databaseService.updateUserRefreshToken(user.uid, updatedRefreshToken);
 	}
 
-	async setUserTwoFactorEnabled(user: User, isEnabled: boolean){
+	async setUserTwoFactorEnabled(user: User, isEnabled: boolean) {
 		await this.databaseService.updateUserTwoFactorEnabled(user.uid, isEnabled);
 	}
 
@@ -81,14 +82,13 @@ export class UserService {
 		await this.databaseService.updateUserPassword(user.uid, cryptedPassword);
 	}
 
-	async setUserProfileUrl(user: User, profileUrl: string){
+	async setUserProfileUrl(user: User, profileUrl: string) {
 		this.databaseService.updateUserProfileImgUrl(user.uid, profileUrl)
 	}
 
-	async logout(user: User){
+	async logout(user: User) {
 		await this.deleteRefreshToken(user.uid);
 	}
-ß
 	// TODO ? ::  existingFollowing 조회없이, 바로 저장해보고 try catch 로 예외처리?
 	async follow(curUser: User, userToFollow: User): Promise<void> {
 		const existingFollowing = await this.databaseService.findFollowingByUid(curUser.uid, userToFollow.uid);
@@ -104,18 +104,30 @@ export class UserService {
 
 	// TODO ? ::  existingFollowing 조회없이, 바로 저장해보고 try catch 로 예외처리?
 	async unfollow(curUser: User, userToUnfollow: User): Promise<void> {
-		const existingFollowing = await this.databaseService.findFollowingByUid(curUser.uid, userToUnfollow.uid);
-		if (!existingFollowing) {
-			throw new Error('You are not following this user.');
-		}
-		await this.databaseService.deleteFollow(existingFollowing);
+		// const existingFollowing = await this.databaseService.findFollowingByUid(curUser.uid, userToUnfollow.uid);
+		// if (!existingFollowing) {
+		// 	throw new Error('You are not following this user.');
+		// }
+		await this.databaseService.deleteFollow(curUser.uid, userToUnfollow.uid);
 	}
 
-	isTwoFactorEnabled(user: User){
-		if (user.twoFactorEnabled)
-			return true;
-		else 
-			return false;
+	async block(curUser: User, userToBlock: User): Promise<void> {
+		const existingUserBlock = await this.databaseService.findBlockByUid(curUser.uid, userToBlock.uid);
+		if (existingUserBlock) {
+			throw new Error('You are already blocked this user.');
+		}
+		const block = new UserBlock();
+		block.fromUserId = curUser.uid;
+		block.targetToBlock = userToBlock;
+		await this.databaseService.saveBlock(block);
+	}
+
+	async unblock(curUser: User, userToUnblock: User): Promise<void> {
+		await this.databaseService.deleteBlock(curUser.uid, userToUnblock.uid);
+	}
+
+	isTwoFactorEnabled(user: User) {
+		return user.twoFactorEnabled;
 	}
 
 	async isTwoFactorCodeValid(twoFactorCode: string, user: User) {
@@ -136,7 +148,7 @@ export class UserService {
 		return { secret, qr: await this.genQrCodeURL(otpAuthUrl) };
 	}
 
-	async toggleTwoFactor(uid: number) : Promise<Object | null> {
+	async toggleTwoFactor(uid: number): Promise<Object | null> {
 		const findUser = await this.databaseService.findUserByUid(uid);
 		if (this.isUserExist(findUser)) {
 			if (findUser.twoFactorEnabled) {
@@ -170,22 +182,22 @@ export class UserService {
 		return user !== null;
 	}
 
-	async getUserWithFollowing(uid: number){
-		const user = await User.findOne({ 
+	async getUserWithFollowing(uid: number) {
+		const user = await User.findOne({
 			where: { uid },
 			join: {
 				alias: "user",
-				leftJoinAndSelect: {follwings : "user.following" }
+				leftJoinAndSelect: { follwings: "user.following" }
 			}
-		  });
+		});
 
 	}
 
 
 
 
-	async getUserProfile(uid: number){
-		const findUser = await User.findOne({ where: { uid }});
+	async getUserProfile(uid: number) {
+		const findUser = await User.findOne({ where: { uid } });
 
 		if (!this.isUserExist(findUser))
 			throw new NotFoundException(`${uid} user not found`);
@@ -202,6 +214,6 @@ export class UserService {
 		// userDto.followings = followingUserDtos;
 		return userDto;
 		//GAME 조회
-	
+
 	}
 }

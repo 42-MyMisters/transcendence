@@ -11,11 +11,9 @@ import { UserController } from './user.controller';
 import { UserService } from './user.service';
 
 @Module({
-  imports: [
-    DatabaseModule, AuthModule
-  ],
+  imports: [DatabaseModule, AuthModule],
   controllers: [UserController],
   providers: [UserService, Jwt2faAuthGuard, Jwt2faStrategy, LocalAuthGuard, LocalStrategy, JwtRefreshGuard, JwtRefreshStrategy],
-  exports: [UserService, Jwt2faAuthGuard, Jwt2faStrategy, LocalAuthGuard, LocalStrategy, JwtRefreshGuard, JwtRefreshStrategy],
+  exports: [UserService, AuthModule, DatabaseModule],
 })
-export class UserModule {}
+export class UserModule { }
