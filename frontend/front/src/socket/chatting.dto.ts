@@ -32,4 +32,19 @@ type roomDto = {
 	}
 }
 
-export type { userDto, roomDto, joinRoomDto, roomMessageDto };
+type roomListDto = {
+	[key: number]: {
+		roomName: string
+		roomType: 'open' | 'protected';
+	}
+}
+
+type userListDto = {
+	[key: number]: {
+		userDisplayName: string;
+		userRoomStatus: 'normal' | 'mute' | 'ban' | 'kick';
+		userRoomPower: 'owner' | 'admin' | 'member';
+	}
+}
+
+export type { userDto, roomDto, joinRoomDto, roomMessageDto, roomListDto, userListDto };

@@ -1,6 +1,7 @@
 import { io } from 'socket.io-client';
 import { useAtom } from "jotai";
-import { focusRoomAtom } from '../components/atom/SocketAtom';
+import * as chatAtom from '../components/atom/SocketAtom';
+import type * as chatType from '../socket/chatting.dto';
 
 const URL = "http://localhost:4000";
 const NameSpace = "/sock";
@@ -17,8 +18,7 @@ export const socket = io(`${URL}${NameSpace}`, {
 	// path: "/socket.io",
 });
 
-export const OnSocketEvent = () => {
-
+export function OnSocketEvent() {
 	// catch all incoming events
 	socket.onAny((eventName, ...args) => {
 		console.log("incoming ", eventName, args);
@@ -62,66 +62,216 @@ export const OnSocketEvent = () => {
 		console.log(err.message); // prints the message associated with the error
 	});
 
+	//------------------------------------------------------------------------------------------
+
+	socket.on("room-list-notify", ({
+		action,
+		userList,
+	}: {
+		action: 'add' | 'delete';
+		userList: {
+			[key: number]: {
+				roomName: string;
+				roomType: 'open' | 'protected';
+			}
+		}
+	}) => {
+
+	});
+
+
+	socket.on("room-join", ({
+		roomId,
+		roomName,
+		userList = {}
+	}: {
+		roomId: number,
+		roomName: string,
+		userList: chatType.userListDto
+	}) => {
+
+	});
+
+
+	socket.on("room-inaction", ({
+		roomId,
+		action
+	}: {
+		roomId: number;
+		action: 'ban' | 'kick' | 'mute' | 'admit-admin'
+	}) => {
+
+	});
+
+
+	socket.on("user-update", ({
+		userId,
+		userDisplayName,
+		userProfileUrl,
+		userStatus
+	}: {
+		userId: number,
+		userDisplayName: string
+		userProfileUrl: string;
+		userStatus: 'online' | 'offline' | 'inGame';
+	}) => {
+
+	});
 
 }
 
+export function emitRoomList() {
+	socket.emit("room-list", ({
+		roomList
+	}: {
+		roomList: chatType.roomListDto;
+	}) => {
 
-export const emitDeleteRoom = (room: string) => {
-	socket.emit("delete-Room", { room });
-};
+	});
+}
 
-export const emitMessage = (roomName: string, message: string) => {
-	socket.emit("message", { roomName, message });
-};
+export function emitRoomCreate() {
+	const roomName = 'test_room_name';
+	const roomType = 'open';
+	const roomPass = "aoiresnt";
 
-export const emitRoomList = () => {
-	socket.emit("room-list");
-};
-export const emitCreateRoom = (roomName: string) => {
-	socket.emit("create-room", { roomName });
-};
+	socket.emit("room-create", {
+		roomName,
+		roomType,
+		roomPass,
+	}, ({
+		status,
+		reason,
+	}: {
+		status: 'ok' | 'ko',
+		reason?: string,
+	}) => {
 
-export const emitJoinRoom = (roomName: string) => {
-	socket.emit("join-room", { roomName });
-};
+	});
+}
 
-export const emitLeaveRoom = (roomName: string) => {
-	socket.emit("leave-room", { roomName });
-};
+export function emitRoomJoin() {
+	const roomId = 1;
+	const roomPass = "aoiresnt";
 
+	socket.emit("room-join", {
+		roomId,
+		roomPass,
+	}, ({
+		status,
+		reason,
+		userList,
+	}: {
+		status: 'ok' | 'ko',
+		reason?: string,
+		userList?: chatType.userListDto,
+	}) => {
 
+	});
+}
 
-/**
- * TODO: 1. 최초 연결시, 방 목록, dm 목록, 유저 목록(팔로워)을 받아온다.
- * 채팅 화면은 아무것도 연결 안되어 있는 상태. 방 클릭하면 그 방으로 접속 시도
- */
+export function emitRoomLeave() {
+	const roomId = 1;
 
-/**
- * TODO: 2. 방 클릭시, 방에 접속한다.
- * protected 방이면 비민 번호를 입력후, 맞으면 접속
- * 채팅 화면이 접속한 방 정보로 변경.
- */
+	socket.emit("room-leave", {
+		roomId,
+	}, ({
+		userList,
+	}: {
+		userList: chatType.userListDto,
+	}) => {
 
-/**
- * TODO: 3. 유저 클릭시, 유저랑 DM.
- * NOTE: 상대가 나를, 내가 상대를 block 되어 있으면?
- */
+	});
+}
 
-/**
- * TODO: 4. 방에서 유저 클릭시 userInfoModal을 띄우고 각 기능 수행
- */
+export function emitRoomInAction() {
+	const roomId = 1;
+	const action = 'ban';
 
-/**
- * TODO: 5. 채팅 엔터, 버튼 클릭시 현재 접속한 방에 메시지 전송
- * 아무런 방에 접속하지 않은채 메시지 전송시, 아무것도 안되게
- */
+	socket.emit("room-inaction", {
+		roomId,
+		action,
+	}, ({
+		status,
+		reason,
+	}: {
+		status: 'ok' | 'ko',
+		reason?: string,
+	}) => {
 
-/**
- * TODO: 6. 채팅방에서 나가기
- * 방장이면 방 삭제??
- * 권환 초기화 및 방 정보 초기화
- */
+	});
+}
 
-/**
- * TODO: 7. 채팅방에서 상호작용
- */
+export function emitUserIgnore() {
+	const targetId = 1;
+
+	socket.emit("user-ignore", {
+		targetId
+	}, ({
+		status,
+		reason,
+	}: {
+		status: 'ok' | 'ko',
+		reason?: string,
+	}) => {
+
+	});
+}
+
+export function emitUserInvite() {
+	const targetId = 1;
+
+	socket.emit("user-invite", {
+		targetId
+	}, ({
+		status,
+		reason,
+	}: {
+		status: 'ok' | 'ko',
+		reason?: string,
+	}) => {
+
+	});
+}
+
+export function emitUserList() {
+	const userId = 1;
+
+	socket.emit("user-list", {
+		userId
+	}, ({
+		userList,
+	}: {
+		userList: chatType.userListDto,
+	}) => {
+
+	});
+}
+
+export function emitDmHistoryList() {
+	const userId = 1;
+
+	socket.emit("dm-history-list", {
+		userId
+	}, ({
+		userList,
+	}: {
+		userList: chatType.userListDto,
+	}) => {
+
+	});
+}
+
+export function emitFollowingList() {
+	const userId = 1;
+
+	socket.emit("following-list", {
+		userId
+	}, ({
+		userList,
+	}: {
+		userList: chatType.userListDto,
+	}) => {
+
+	});
+}
