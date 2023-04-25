@@ -12,7 +12,7 @@ import { User } from "./entity/user.entity";
     TypeOrmModule.forFeature([UserFollow]),
     TypeOrmModule.forFeature([UserBlock]),
     TypeOrmModule.forFeature([Game]),
-],
+  ],
   controllers: [],
   providers: [DatabaseService],
   exports: [DatabaseService],  

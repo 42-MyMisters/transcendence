@@ -9,7 +9,7 @@ export class User extends BaseEntity {
 	@PrimaryColumn()
 	uid: number;
 
-	@Column({nullable: true, type: 'varchar', length: 60})
+	@Column({ nullable: true, type: 'varchar', length: 60 })
 	password: string | null;
 
 	@Column({ unique: true, nullable: true, type: 'varchar' })
@@ -18,7 +18,7 @@ export class User extends BaseEntity {
 	@Column({ unique: true })
 	nickname: string;
 
-	@Column({nullable: true, type: 'varchar', length: 60})
+	@Column({ nullable: true, type: 'varchar', length: 60 })
 	refreshToken: string | null;
 
 	@Column()
@@ -27,8 +27,8 @@ export class User extends BaseEntity {
 	@Column()
 	twoFactorEnabled: boolean;
 
-	@Column({nullable: true, type: 'varchar'})
-	twoFactorSecret: string | null; 
+	@Column({ nullable: true, type: 'varchar' })
+	twoFactorSecret: string | null;
 
 	@OneToMany(type => UserFollow, follower => follower.fromUser,)
 	followers: UserFollow[];
