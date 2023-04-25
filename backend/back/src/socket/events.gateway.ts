@@ -57,12 +57,12 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
       const user = await this.userService.getUserByUid(uid);
       if (this.userService.isUserExist(user)) {
         socket.data.user = user;
+        console.log(`user: ${userRecord[uid]}`)
         if (userRecord[uid] === undefined) {
-          userRecord[uid] = { socket:socket, status: 1, blockedUsers:user.blockedUsers.map(blockedUsers => blockedUsers.targetToBlockId) }
-        } else {
-          this.logger.log(`${socket.id} already connected user. disconnect socket.`);
-          socket.disconnect();
-        }
+          userRecord[uid] = { socket:socket, status: 1, blockedUsers:[] }
+          // userRecord[uid] = { socket:socket, status: 1, blockedUsers:user.blockedUsers.map(blockedUsers => blockedUsers.targetToBlockId) }
+          this.logger.log(`${socket.data.user.nickname} connected.`);
+        } 
       } else {
         throw new UnauthorizedException("User not found.");
       }

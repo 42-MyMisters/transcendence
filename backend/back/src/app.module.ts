@@ -14,9 +14,6 @@ import { UserModule } from './user/user.module';
 @Module({
   imports: [
 		TypeOrmModule.forRoot(typeORMConfig),
-		DatabaseModule,
-		AuthModule,
-		UserModule,
 		LoginModule,
 		GameModule,
 		TesterModule,
