@@ -14,6 +14,7 @@ import { changeNameModalAtom } from "../components/atom/ModalAtom";
 export default function ProfilePage() {
   const [changeNameModal, setchangeNameModal] = useAtom(changeNameModalAtom);
 
+
   return (
     <BackGround>
       <TopBar />

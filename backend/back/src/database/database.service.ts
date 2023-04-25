@@ -17,12 +17,12 @@ export class DatabaseService {
     ) {}
 
     //USER CREATE
-    async saveUser(user: User): Promise<User>{
+    async saveUser(user: User): Promise<User> {
         return await this.userRepository.save(user);
     }
     
     // USER READ
-    async findAllUser(): Promise<User[]>{
+    async findAllUser(): Promise<User[]> {
         return await this.userRepository.find();
     }
     // THIS MIGHT NOT WORK
@@ -31,7 +31,7 @@ export class DatabaseService {
         return users;
     }
     
-    async findUserByUid(uid: number): Promise<User | null>{
+    async findUserByUid(uid: number): Promise<User | null> {
         const user = await this.userRepository.findOneBy({uid});
         return user;
     }
@@ -41,18 +41,17 @@ export class DatabaseService {
 		return user;
     }
 
-    async findUserByEmail(email: string): Promise<User | null>{
+    async findUserByEmail(email: string): Promise<User | null> {
         const user = await this.userRepository.findOneBy({email});
 		return user;
     }
-
 
     // USER UPDATE
     async updateUser(user: User){
         await this.userRepository.save(user);
     }
     
-    async updateUserNickname(uid: number, nickname: string){
+    async updateUserNickname(uid: number, nickname: string) {
         try{
             await this.userRepository.update({uid}, {nickname});
         } catch (error) {
@@ -60,7 +59,7 @@ export class DatabaseService {
         }
     }
 
-    async updateUserRefreshToken(uid: number, refreshToken: string | null){
+    async updateUserRefreshToken(uid: number, refreshToken: string | null) {
         try {
             await this.userRepository.update({uid},{refreshToken});
         } catch (error){

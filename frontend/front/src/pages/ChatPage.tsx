@@ -15,7 +15,7 @@ import RoomModal from "../components/ChatPage/RoomModal";
 import RoomInviteModal from "../components/ChatPage/RoomInviteModal";
 
 import { useEffect, useState } from 'react';
-import { socket } from "../socket/socket";
+import * as socket from "../socket/socket";
 import * as chatAtom from '../components/atom/SocketAtom';
 import type * as chatType from '../socket/chatting.dto';
 
@@ -24,40 +24,15 @@ export default function ChatPage() {
   const [roomModal, setRoomModal] = useAtom(roomModalAtom);
   const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);
 
+  const [isFirstLogin, setIsFirstLogin] = useAtom(chatAtom.isFirstLoginAtom);
   const [userList, setUserList] = useAtom(chatAtom.userListAtom);
   const [userHistory, setUserHistory] = useAtom(chatAtom.userHistoryAtom);
   const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
   const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
-  const [isFirstLogin, setIsFirstLogin] = useAtom(chatAtom.isFirstLoginAtom);
-
-  socket.on("init", (data) => {
-    console.log("init event : established connection with server, ", data);
-  });
-
-  socket.on("message", ({ roomName, from, message }) => {
-    const findRoom = roomList[roomName];
-    if (findRoom === undefined) {
-      // not join room
-    } else {
-      if (findRoom.joinDetail === undefined) {
-        findRoom.joinDetail = { userList: {}, messageList: [] };
-      };
-    }
-    const isExistUser = findRoom.joinDetail.userList[from];
-    if (isExistUser === undefined) {
-      // add user to userList
-    }
-    const newRoomList = { ...roomList };
-    newRoomList[roomName].joinDetail.messageList = [...findRoom.joinDetail.messageList, { from, message, isMe: false }];
-    setRoomList(newRoomList);
-  });
 
 
   if (isFirstLogin) { // socket init info stage
-    socket.emit('room-list', (ack) => {
-
-    });
-
+    // call init event
     setIsFirstLogin(false);
   }
 

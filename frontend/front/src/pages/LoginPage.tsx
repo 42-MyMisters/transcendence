@@ -54,9 +54,9 @@ export default function LoginPage() {
       } else {
         if (hasLogin === false) {
           console.log("haslogin : false, move to chat page ", `token: ${localStorage.getItem("refreshToken")}`);
-          setHasLogin(true);
           socket.socket.connect(); //NOTE : when error ocurred, how to handle?
           socket.OnSocketEvent();
+          setHasLogin(true);
           navigate("/chat");
         } //NOTE: need to else case?
       }
