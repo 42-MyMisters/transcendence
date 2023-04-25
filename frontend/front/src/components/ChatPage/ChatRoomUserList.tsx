@@ -33,12 +33,14 @@ export default function ChatRoomUserList() {
       <div className="ChatRoomUsers">
         <UserObj
           nickName="User1"
+          profileImage="/src/smile.png"
           status="online"
           power="Owner"
           callBack={onClickInfo}
         />
         <UserObj
           nickName="User2"
+          profileImage="/src/smile.png"
           status="ingame"
           power="Manager"
           callBack={onClickInfo}
