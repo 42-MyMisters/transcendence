@@ -94,7 +94,7 @@ export const UserAtom = atom<User | null>({
     {
       uid: 0,
       nickname: "yotak",
-      profileUrl: "../../assets.smile.png",
+      profileUrl: "/smile.png",
       status: "online",
       createdAt: "string",
       followings: ["yotak"],

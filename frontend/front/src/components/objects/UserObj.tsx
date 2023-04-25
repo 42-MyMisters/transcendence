@@ -30,7 +30,15 @@ export default function UserObj({
         callBack();
       }}
     >
-      <div className="UserProfile" />
+      <div
+        className="UserProfile"
+        style={{
+          backgroundImage: `url(${profileImage})`,
+          backgroundSize: "50px",
+          width: "50px",
+          height: "50px",
+        }}
+      />
       <div
         className="UserStatus"
         style={
