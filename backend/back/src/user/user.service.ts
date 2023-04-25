@@ -7,6 +7,7 @@ import { DatabaseService } from "src/database/database.service";
 import { UserFollow } from "src/database/entity/user-follow.entity";
 import { User } from "src/database/entity/user.entity";
 import { UserBlock } from "../database/entity/user-block.entity";
+import { FollowingUserDto } from "./dto/FollowingUser.dto";
 import { IntraUserDto } from "./dto/IntraUser.dto";
 import { PasswordDto } from "./dto/Password.dto";
 import { UserProfileDto } from "./dto/UserProfile.dto";
@@ -197,6 +198,16 @@ export class UserService {
 	async getUserFollowing(uid: number): Promise<UserFollow[]> {
 		const findFollowing = await this.databaseService.findAllFollowingByUid(uid);
 		return findFollowing;
+	}
+	async getFollowingUserInfo(uid: number): Promise<FollowingUserDto[] | null> {
+		const findFollowingUser = await this.getUserFollowing(uid);
+		if (findFollowingUser.length === 0){
+			return null;
+		}
+		const followingUserDtos = await Promise.all(findFollowingUser.map(async (userFollow) => {
+			return await FollowingUserDto.mapUserFollowToFollowingUserDto(userFollow);
+		}));
+		return followingUserDtos;
 	}
 
 	async getUserProfile(uid: number): Promise<UserProfileDto>{

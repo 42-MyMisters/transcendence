@@ -7,8 +7,10 @@ import sharp from 'sharp';
 import { AuthService } from 'src/auth/auth.service';
 import { Jwt2faAuthGuard } from 'src/auth/jwt-2fa/jwt-2fa-auth.guard';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
+import { UserFollow } from 'src/database/entity/user-follow.entity';
 import { UserService } from 'src/user/user.service';
 import { changeNicknameDto } from './dto/ChangeNickname.dto';
+import { FollowingUserDto } from './dto/FollowingUser.dto';
 import { PasswordDto } from './dto/Password.dto';
 import { UserProfileDto } from './dto/UserProfile.dto';
 
@@ -174,9 +176,17 @@ export class UserController {
 		res.sendFile(filePath);
 	}
 
+	@swagger.ApiOperation({
+		summary: '현재 로그인한 유저의 Following 유저 정보 조회',
+		description: '현재 로그인한 유저의 Following 한 유저의 정보를 조회',
+	})
+	@swagger.ApiOkResponse({
+		description: '현재 로그인한 유저의 Following한 유저 정보 조회 성공',
+		type: [FollowingUserDto[]],
+	})	
 	@Get('/following')
 	@UseGuards(Jwt2faAuthGuard)
-	async getUserFollowing(@Req() request){
-		return await this.userService.getUserFollowing(request.user);
+	async getUserFollowing(@Req() request): Promise<FollowingUserDto[] | null>{
+		return await this.userService.getFollowingUserInfo(request.user.uid);
 	}
 }
