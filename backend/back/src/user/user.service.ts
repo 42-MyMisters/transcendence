@@ -18,6 +18,11 @@ export class UserService {
 		private readonly databaseService: DatabaseService
 	) { }
 
+
+	isUserExist = (user: User | null): user is User => {
+		return user !== null;
+	}
+
 	async addNewUserTest(user: User) {
 		return await this.databaseService.saveUser(user);
 	}
@@ -178,9 +183,6 @@ export class UserService {
 		throw new UnauthorizedException('User not found!');
 	}
 
-	isUserExist = (user: User | null): user is User => {
-		return user !== null;
-	}
 
 	async getUserWithFollowing(uid: number) {
 		const user = await User.findOne({
@@ -190,28 +192,21 @@ export class UserService {
 				leftJoinAndSelect: { follwings: "user.following" }
 			}
 		});
-
 	}
 
-	async getUserProfile(uid: number){
+	async getUserFollowing(uid: number): Promise<UserFollow[]> {
+		const findFollowing = await this.databaseService.findAllFollowingByUid(uid);
+		return findFollowing;
+	}
+
+	async getUserProfile(uid: number): Promise<UserProfileDto>{
 		const findUser = await this.databaseService.findUserByUid(uid);
-
-
 		if (!this.isUserExist(findUser))
 			throw new NotFoundException(`${uid} user not found`);
-
-		// const followings = findUser.followings;
-		// console.log(followings);
-		// console.log(Array.from(followings));
-		// const followingArray = Array.from(followings);
-		// const followingUserDtos = await Promise.all(followingArray.map(async (userFollow) => {
-		//   return await FollowingUserDto.mapUserFollowToFollowingUserDto(userFollow);
-		// }));
-		const findFollwing = await this.databaseService.findAllFollowingByUid(uid);
+		const findFollwing = await this.getUserFollowing(uid);
 		const userDto = await UserProfileDto.fromUserEntity(findUser, findFollwing);
-		// userDto.followings = followingUserDtos;
 		return userDto;
-		//GAME 조회
-
 	}
+	
+	//GAME 조회
 }

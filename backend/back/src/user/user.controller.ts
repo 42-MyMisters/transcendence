@@ -173,4 +173,10 @@ export class UserController {
 		const filePath = path.join(__dirname, `../../uploads/${filename}`);
 		res.sendFile(filePath);
 	}
+
+	@Get('/following')
+	@UseGuards(Jwt2faAuthGuard)
+	async getUserFollowing(@Req() request){
+		return await this.userService.getUserFollowing(request.user);
+	}
 }
