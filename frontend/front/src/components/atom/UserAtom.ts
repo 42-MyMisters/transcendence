@@ -1,55 +1,5 @@
 import { atom, useAtom } from "jotai";
 
-// interface User {
-//   uid: number;
-//   password: string;
-//   email: string;
-//   nickname: string;
-//   refreshToken: string;
-//   profileUrl: string;
-//   twoFactorEnabled: boolean;
-//   twoFactorSecret: string;
-//   followers: [
-//     {
-//       fromUserId: number;
-//       targetToFollowId: number;
-//       fromUser: string;
-//       targetToFollow: string;
-//       createdAt: string;
-//     }
-//   ];
-//   followings: [
-//     {
-//       fromUserId: number;
-//       targetToFollowId: number;
-//       fromUser: string;
-//       targetToFollow: string;
-//       createdAt: string;
-//     }
-//   ];
-//   wonGames: [
-//     {
-//       gid: number;
-//       winner: string;
-//       loser: string;
-//       winnerScore: number;
-//       loserScore: number;
-//       createdAt: string;
-//     }
-//   ];
-//   lostGames: [
-//     {
-//       gid: number;
-//       winner: string;
-//       loser: string;
-//       winnerScore: number;
-//       loserScore: number;
-//       createdAt: string;
-//     }
-//   ];
-//   createdAt: string;
-// }
-
 interface User {
   uid: number;
   nickname: string;
@@ -135,4 +85,87 @@ interface User {
   };
 }
 
-export const UserAtom = atom<User | null>(null);
+export const UserAtom = atom<User | null>({
+  uid: 1,
+  nickname: "yuhwang",
+  profileUrl: "/smile.png",
+  ELO: 0,
+  followings: [
+    {
+      uid: 0,
+      nickname: "yotak",
+      profileUrl: "../../assets.smile.png",
+      status: "online",
+      createdAt: "string",
+      followings: ["yotak"],
+    },
+  ],
+  games: {
+    gid: 0,
+    winner: {
+      uid: 1,
+      password: "string",
+      email: "string",
+      nickname: "yuhwang",
+      refreshToken: "string",
+      profileUrl: "../../assets.smile.png",
+      twoFactorEnabled: true,
+      twoFactorSecret: "string",
+      followers: [
+        {
+          fromUserId: 0,
+          targetToFollowId: 0,
+          fromUser: "yuhwang",
+          targetToFollow: "yotak",
+          createdAt: "string",
+        },
+      ],
+      followings: [
+        {
+          fromUserId: 0,
+          targetToFollowId: 0,
+          fromUser: "yotak",
+          targetToFollow: "yuhwang",
+          createdAt: "string",
+        },
+      ],
+      wonGames: ["string"],
+      lostGames: ["string"],
+      createdAt: "string",
+    },
+    loser: {
+      uid: 0,
+      password: "string",
+      email: "string",
+      nickname: "yotak",
+      refreshToken: "string",
+      profileUrl: "../../assets.smile.png",
+      twoFactorEnabled: true,
+      twoFactorSecret: "string",
+      followers: [
+        {
+          fromUserId: 0,
+          targetToFollowId: 0,
+          fromUser: "string",
+          targetToFollow: "string",
+          createdAt: "string",
+        },
+      ],
+      followings: [
+        {
+          fromUserId: 0,
+          targetToFollowId: 0,
+          fromUser: "string",
+          targetToFollow: "string",
+          createdAt: "string",
+        },
+      ],
+      wonGames: ["string"],
+      lostGames: ["string"],
+      createdAt: "string",
+    },
+    winnerScore: 5,
+    loserScore: 4,
+    createdAt: "string",
+  },
+});

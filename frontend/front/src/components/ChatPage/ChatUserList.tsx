@@ -7,8 +7,20 @@ export default function ChatUserList() {
     <div className="ChatListBG ChatUserList">
       <div className="ChatListTxt">User List</div>
       <div className="ChatUsers">
-        <UserObj nickName="User1" status="online" power="" callBack={() => {}} />
-        <UserObj nickName="User2" status="ingame" power="" callBack={() => {}} />
+        <UserObj
+          nickName="User1"
+          profileImage="/src/smile.png"
+          status="online"
+          power=""
+          callBack={() => {}}
+        />
+        <UserObj
+          nickName="User2"
+          profileImage="/src/smile.png"
+          status="ingame"
+          power=""
+          callBack={() => {}}
+        />
       </div>
     </div>
   );

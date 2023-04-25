@@ -4,11 +4,13 @@ import "../../styles/UserObj.css";
 
 export default function UserObj({
   nickName,
+  profileImage,
   status,
   power,
   callBack,
 }: {
   nickName: string;
+  profileImage: string;
   status: string;
   power: string;
   callBack: () => void;
