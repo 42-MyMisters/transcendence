@@ -7,6 +7,11 @@ import { UserService } from 'src/user/user.service';
 
 interface MessagePayload {
   roomName: string;
+  content: Message;
+}
+
+interface Message {
+  username: string;
   message: string;
 }
 
@@ -16,19 +21,31 @@ interface SocketInfo {
   blockedUsers: number[];
 }
 
-interface ConnectedUser {
-  uid: number;
+interface RoomMember {
+  // uid: number;
+  user: User;
   nickname: string;
-  status: number;
+  userRoomStatus: string; // 'normal' | 'mute' | 'ban' | 'kick'
+  userRoomPower: string; // 'owner' | 'admin' | 'member'
+}
+// userStatus: string; // 'offline' | 'online' | 'inGame'
+// roomList?: number[];
+
+interface RoomTitlePayload {
+  // roomNumber: number;
+  roomName: string;
+  roomType: string;
 }
 
 interface RoomInfo {
+  roomNumber: number;
   roomName: string;
   roomType: string;
+  roomMembers: RoomMember[];
+  roomOwner: number;
+  roomAdmins: number[];
+  bannedUsers?: number[];
   roomPass?: string;
-  roomOwner?: string;
-  roomManager?: string[];
-  roomUsers?: ConnectedUser[];
 }
 
 interface RoomListPayload {
@@ -41,9 +58,15 @@ interface RoomPayload {
   reason: string;
 }
 
+interface ChatRoomUpdatePayload {
+  action: string;
+  roomInfo: RoomInfo;
+}
 
+// TODO : Redis?
 const userRecord: Record<number, SocketInfo> = {};
 const createdRooms: Record<string, User[]> = {};
+const roomList: Record<number, RoomInfo> = {};
 
 @WebSocketGateway({ namespace: 'sock', cors: { origin: '*' } })
 export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
@@ -105,14 +128,13 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
   @SubscribeMessage('message')
   handleMessage(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() { roomName, message }: MessagePayload,
+    @MessageBody() { roomName, content }: MessagePayload,
   ) {
     socket.broadcast
       .to(roomName)
-      .emit('message', { username: socket.id, message });
+      .emit('message', content);
 
-
-    return { username: socket.id, message };
+    return { roomName, content };
   }
 
   @SubscribeMessage('room-list')
@@ -155,10 +177,10 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
     @ConnectedSocket() socket: Socket,
     @MessageBody() roomName: string,
   ) {
-    socket.leave(roomName); // leave room
     socket.broadcast
       .to(roomName)
       .emit('message', { message: `${socket.id} is left.` });
+    socket.leave(roomName); // leave room
 
     return { success: true };
   }
