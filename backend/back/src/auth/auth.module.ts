@@ -13,9 +13,10 @@ import { AuthService } from './auth.service';
 				expiresIn: config.get<string>('jwt.expiresIn'),
 			}
 		}),
-		PassportModule.register({ defaultStrategy: 'jwt'}),
+		PassportModule.register({ defaultStrategy: 'jwt' }),
+		DatabaseModule,
 	],
-  providers: [DatabaseModule, AuthService, JwtService],
-  exports: [AuthService, JwtModule],
+  providers: [AuthService],
+  exports: [AuthService],
 })
 export class AuthModule {}

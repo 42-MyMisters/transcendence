@@ -1,6 +1,7 @@
 import { Game } from "src/database/entity/game.entity";
+import { IntraUserDto } from "src/user/dto/IntraUser.dto";
+import { UserBlock } from "src/database/entity/user-block.entity";
 import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, PrimaryColumn } from "typeorm";
-import { IntraUserDto } from "../../user/dto/IntraUser.dto";
 import { UserFollow } from "./user-follow.entity";
 
 @Entity()
@@ -8,7 +9,7 @@ export class User extends BaseEntity {
 	@PrimaryColumn()
 	uid: number;
 
-	@Column({nullable: true, type: 'varchar'})
+	@Column({ nullable: true, type: 'varchar', length: 60 })
 	password: string | null;
 
 	@Column({ unique: true, nullable: true, type: 'varchar' })
@@ -17,7 +18,7 @@ export class User extends BaseEntity {
 	@Column({ unique: true })
 	nickname: string;
 
-	@Column({nullable: true, type: 'varchar'})
+	@Column({ nullable: true, type: 'varchar', length: 60 })
 	refreshToken: string | null;
 
 	@Column()
@@ -26,14 +27,17 @@ export class User extends BaseEntity {
 	@Column()
 	twoFactorEnabled: boolean;
 
-	@Column({nullable: true, type: 'varchar'})
-	twoFactorSecret: string | null; 
+	@Column({ nullable: true, type: 'varchar' })
+	twoFactorSecret: string | null;
 
 	@OneToMany(type => UserFollow, follower => follower.fromUser,)
 	followers: UserFollow[];
 
 	@OneToMany(type => UserFollow, following => following.targetToFollow)
 	followings: UserFollow[];
+
+	@OneToMany(type => UserBlock, userBlock => userBlock.targetToBlockId, { lazy: true })
+	blockedUsers: UserBlock[];
 
 	@OneToMany(type => Game, games => games.winner, { lazy: true })
 	wonGames: Game[];

@@ -15,12 +15,16 @@ import { TFAEnabledAtom } from "../components/atom/LoginAtom";
 import ChatPage from "./ChatPage";
 import { useNavigate } from "react-router-dom";
 
+import * as socket from "../socket/socket";
+import { hasLoginAtom } from '../components/atom/SocketAtom';
+
 export default function LoginPage() {
   /* localstorage에 없는데 cookie에 있으면 로그인이 된거다 */
   /* localstorage에 있으면 로그인 된거다 */
   const [refreshToken, setRefreshToken] = useAtom(refreshTokenAtom);
   const [cookie, setCookie] = useAtom(cookieAtom);
   const [TFAEnabled, setTFAEnabled] = useAtom(TFAEnabledAtom);
+  const [hasLogin, setHasLogin] = useAtom(hasLoginAtom);
 
   const cookieIMade = "refreshToken";
   const [cookies, setCookies, removeCookie] = useCookies([cookieIMade]);
@@ -48,7 +52,13 @@ export default function LoginPage() {
       if (decoded.twoFactorEnabled) {
         setTFAEnabled(true);
       } else {
-        navigate("/chat");
+        if (hasLogin === false) {
+          console.log("haslogin : false, move to chat page ", `token: ${localStorage.getItem("refreshToken")}`);
+          socket.socket.connect(); //NOTE : when error ocurred, how to handle?
+          socket.OnSocketEvent();
+          setHasLogin(true);
+          navigate("/chat");
+        } //NOTE: need to else case?
       }
     }
   }, [setTFAEnabled]);

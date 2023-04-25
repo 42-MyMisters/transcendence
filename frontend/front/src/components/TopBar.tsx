@@ -43,7 +43,11 @@ function ChatBtn() {
 }
 
 function QueueBtn() {
-  return <div className="TopBarBtn">Queue</div>;
+  return (
+    <div className="TopBarBtn">
+      <NavLink to="/game" className="AStyle" style={getNavLinkStyle} >Queue</NavLink>
+    </div>
+  );
 }
 
 function ProfileBtn() {

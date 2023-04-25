@@ -3,9 +3,9 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import config from 'config';
 import { authenticator } from 'otplib';
+import { User } from 'src/database/entity/user.entity';
 import { IntraTokenDto } from 'src/user/dto/IntraToken.dto';
 import { IntraUserDto } from 'src/user/dto/IntraUser.dto';
-import { User } from 'src/database/entity/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -144,4 +144,15 @@ export class AuthService {
 			throw new UnauthorizedException(errMsg);
 		}
 	}
+
+	async jwtVerify(token: string): Promise<number> {
+		try {
+			const payload = await this.jwtService.verify(token);
+			return payload.uid;
+		} catch(e) {
+			console.log(e);
+			throw new UnauthorizedException("user not found");
+		}
+	}
+
 }
