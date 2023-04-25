@@ -3,6 +3,8 @@ version: "3.9"
 networks:
   nw-db:
     driver: bridge
+  nw-nginx:
+    driver: bridge
 
 services:
   backend:
@@ -21,6 +23,7 @@ services:
       nw-db: {}
     env_file:
       - ./config/.env
+      - ./config/.postgres.env
     depends_on:
       postgres:
         condition: service_healthy
@@ -77,6 +80,23 @@ services:
       postgres:
         condition: service_healthy
 
+  # nginx:
+  #   container_name: nginx
+  #   build:
+  #     context: ./nginx
+  #     dockerfile: ./Dockerfile
+  #   restart: always
+  #   networks:
+  #     nw-nginx:
+  #       aliases:
+  #         - nginx
+  #   ports:
+  #     - "443:443"
+  #     - "80:80"
+  #   env_file:
+  #     - .env
+
+  
 # volumes:
 #   v_react:
 #     driver: local
