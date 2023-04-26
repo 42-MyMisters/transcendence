@@ -8,7 +8,7 @@ import { DatabaseModule } from 'src/database/database.module';
 
 @Module({
   imports: [
-	DatabaseModule, LoginModule, UserModule, AuthModule
+	DatabaseModule, UserModule, AuthModule
   ],
 	controllers: [TesterController],
 	providers: [TesterService],

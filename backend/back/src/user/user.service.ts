@@ -7,6 +7,7 @@ import { DatabaseService } from "src/database/database.service";
 import { UserFollow } from "src/database/entity/user-follow.entity";
 import { User } from "src/database/entity/user.entity";
 import { UserBlock } from "../database/entity/user-block.entity";
+import { FollowingUserDto } from "./dto/FollowingUser.dto";
 import { IntraUserDto } from "./dto/IntraUser.dto";
 import { PasswordDto } from "./dto/Password.dto";
 import { UserProfileDto } from "./dto/UserProfile.dto";
@@ -17,6 +18,11 @@ export class UserService {
 	constructor(
 		private readonly databaseService: DatabaseService
 	) { }
+
+
+	isUserExist = (user: User | null): user is User => {
+		return user !== null;
+	}
 
 	async addNewUserTest(user: User) {
 		return await this.databaseService.saveUser(user);
@@ -55,7 +61,7 @@ export class UserService {
 
 
 	async showUsers() {
-		return await this.databaseService.findAllUsersWithGames();
+		return await this.databaseService.findAllUser();
 	}
 
 	async setUserNickname(user: User, changeNickname: string) {
@@ -178,9 +184,6 @@ export class UserService {
 		throw new UnauthorizedException('User not found!');
 	}
 
-	isUserExist = (user: User | null): user is User => {
-		return user !== null;
-	}
 
 	async getUserWithFollowing(uid: number) {
 		const user = await User.findOne({
@@ -190,30 +193,31 @@ export class UserService {
 				leftJoinAndSelect: { follwings: "user.following" }
 			}
 		});
-
 	}
 
+	async getUserFollowing(uid: number): Promise<UserFollow[]> {
+		const findFollowing = await this.databaseService.findAllFollowingByUid(uid);
+		return findFollowing;
+	}
+	async getFollowingUserInfo(uid: number): Promise<FollowingUserDto[] | null> {
+		const findFollowingUser = await this.getUserFollowing(uid);
+		if (findFollowingUser.length === 0){
+			return null;
+		}
+		const followingUserDtos = await Promise.all(findFollowingUser.map(async (userFollow) => {
+			return await FollowingUserDto.mapUserFollowToFollowingUserDto(userFollow);
+		}));
+		return followingUserDtos;
+	}
 
-
-
-	async getUserProfile(uid: number) {
-		const findUser = await User.findOne({ where: { uid } });
-
+	async getUserProfile(uid: number): Promise<UserProfileDto>{
+		const findUser = await this.databaseService.findUserByUid(uid);
 		if (!this.isUserExist(findUser))
 			throw new NotFoundException(`${uid} user not found`);
-
-		// const followings = findUser.followings;
-		// console.log(followings);
-		// console.log(Array.from(followings));
-		// const followingArray = Array.from(followings);
-		// const followingUserDtos = await Promise.all(followingArray.map(async (userFollow) => {
-		//   return await FollowingUserDto.mapUserFollowToFollowingUserDto(userFollow);
-		// }));
-
-		const userDto = await UserProfileDto.fromUserEntity(findUser);
-		// userDto.followings = followingUserDtos;
+		const findFollwing = await this.getUserFollowing(uid);
+		const userDto = await UserProfileDto.fromUserEntity(findUser, findFollwing);
 		return userDto;
-		//GAME 조회
-
 	}
+	
+	//GAME 조회
 }

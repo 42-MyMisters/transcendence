@@ -16,4 +16,4 @@ import { UserService } from './user.service';
   providers: [UserService, Jwt2faAuthGuard, Jwt2faStrategy, LocalAuthGuard, LocalStrategy, JwtRefreshGuard, JwtRefreshStrategy],
   exports: [UserService, AuthModule, DatabaseModule],
 })
-export class UserModule { }
+export class UserModule {}

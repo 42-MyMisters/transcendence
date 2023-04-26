@@ -15,13 +15,6 @@ export class FollowingUserDto {
         dto.nickname = userFollow.targetToFollow.nickname;
         dto.profileUrl = userFollow.targetToFollow.profileUrl;
         dto.createdAt = userFollow.createdAt;
-
-        // validate DTO object using class-validator
-        await validateOrReject(dto);
         return dto;
   }
-
-
-    @Type(() => FollowingUserDto)
-    followings?: FollowingUserDto[];
 };
