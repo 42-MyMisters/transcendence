@@ -17,14 +17,13 @@ import { UserAtom } from "../components/atom/UserAtom";
 import { useEffect, useState } from "react";
 
 import * as socket from "../socket/socket";
-import * as chatAtom from '../components/atom/SocketAtom';
-import type * as chatType from '../socket/chatting.dto';
+import * as chatAtom from "../components/atom/SocketAtom";
+import type * as chatType from "../socket/chatting.dto";
 
 export default function ChatPage() {
   const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
   const [roomModal, setRoomModal] = useAtom(roomModalAtom);
   const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);
-
 
   const [userInfo, setUserInfo] = useAtom(UserAtom);
   const [isFirstLogin, setIsFirstLogin] = useAtom(chatAtom.isFirstLoginAtom);

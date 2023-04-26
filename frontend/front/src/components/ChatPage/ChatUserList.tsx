@@ -26,14 +26,14 @@ export default function ChatUserList() {
         }
         <UserObj
           nickName="User1"
-          profileImage="/src/smile.png"
+          profileImage="/smile.png"
           status="online"
           power=""
           callBack={() => { }}
         />
         <UserObj
           nickName="User2"
-          profileImage="/src/smile.png"
+          profileImage="/smile.png"
           status="ingame"
           power=""
           callBack={() => { }}

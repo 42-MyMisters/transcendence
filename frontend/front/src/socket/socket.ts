@@ -616,7 +616,7 @@ export function emitMessage(
           userId: userInfo.uid,
           message,
           isMe: true,
-          number: roomList[roomId].detail?.messageList?.length!
+          number: roomList[roomId].detail?.messageList.length!
         });
         const newDetail: Partial<chatType.roomDetailDto> = { ...roomList[roomId].detail, messageList: [...newMessageList] };
         const newRoomList: chatType.roomListDto = { ...roomList, ...newDetail };
