@@ -6,20 +6,21 @@ import "../../styles/RoomModal.css";
 
 import { useState } from 'react';
 import * as chatAtom from '../atom/SocketAtom';
-
 import * as socket from "../../socket/socket";
 
 export default function RoomModal() {
-  const [roomModal, setRoomModal] = useAtom(roomModalAtom);
+  const [, setRoomModal] = useAtom(roomModalAtom);
   const [roomName, setRoomName] = useState("");
   const [roomPass, setRoomPass] = useState("");
   const [roomCheck, setRoomCheck] = useState(false);
   const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
+  const [, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
 
   PressKey(["Escape"], () => { setRoomModal(false); });
 
   const acceptHandler = () => {
-    socket.emitRoomCreate({ roomList, setRoomList }, roomName, roomCheck, roomPass);
+    // socket.emitRoomCreate({ roomList, setRoomList, setFocusRoom }, roomName, roomCheck, roomPass);
+    socket.emitRoomCreate(roomName, roomCheck, roomPass);
     setRoomModal(false);
   };
 

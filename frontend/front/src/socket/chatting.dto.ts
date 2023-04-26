@@ -3,7 +3,6 @@ type userDto = {
 		userDisplayName: string;
 		userProfileUrl: string;
 		userStatus: 'online' | 'offline' | 'inGame';
-		hasDmHistory: boolean;
 	}
 }
 type userSimpleDto = {
@@ -16,6 +15,7 @@ type roomMessageDto = {
 	userId: number;
 	message: string;
 	isMe: boolean;
+	number: number;
 	date?: string;
 }
 
@@ -38,7 +38,7 @@ type roomListDto = {
 	[key: number]: {
 		roomName: string
 		roomType: 'open' | 'protected' | 'private';
-		isJoined: boolean;
+		isJoined?: boolean;
 		// kickList?: number[];
 		detail?: roomDetailDto;
 	}

@@ -1,20 +1,19 @@
 import { atom, useAtom } from "jotai";
 
-interface userType {
+interface UserType {
   uid: number;
   nickname: string;
   profileUrl: string;
   ELO: number;
-  followings: [
-    {
-      uid: number;
-      nickname: string;
-      profileUrl: string;
-      status: string;
-      createdAt: string;
-      followings: [string];
-    }
-  ];
+  followings:
+  {
+    uid: number;
+    nickname: string;
+    profileUrl: string;
+    status: string;
+    createdAt: string;
+    followings: [string];
+  }[],
   games: {
     gid: number;
     winner: {
@@ -85,12 +84,20 @@ interface userType {
   };
 }
 
-export const UserAtom = atom<userType>({
+export const UserAtom = atom<UserType>({
   uid: 1,
   nickname: "yuhwang",
   profileUrl: "/smile.png",
   ELO: 0,
   followings: [
+    {
+      uid: 0,
+      nickname: "yotak",
+      profileUrl: "/smile.png",
+      status: "online",
+      createdAt: "string",
+      followings: ["yotak"],
+    },
     {
       uid: 0,
       nickname: "yotak",
@@ -170,4 +177,4 @@ export const UserAtom = atom<userType>({
   },
 });
 
-export type { userType };
+export type { UserType };

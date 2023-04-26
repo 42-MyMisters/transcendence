@@ -6,7 +6,7 @@ import * as chatAtom from '../atom/SocketAtom';
 
 // 채팅페이지 왼쪽 아래 total User list
 export default function ChatUserList() {
-  const [userList, _] = useAtom(chatAtom.userListAtom);
+  const [userList,] = useAtom(chatAtom.userListAtom);
 
   return (
     <div className="ChatListBG ChatUserList">
@@ -20,7 +20,7 @@ export default function ChatUserList() {
               profileImage={userList[Number(key[0])].userProfileUrl}
               status={userList[Number(key[0])].userStatus}
               power=""
-              callBack={() => { }}
+              callBack={() => { }} // TODO: need to implement callback
             />
           ))
         }

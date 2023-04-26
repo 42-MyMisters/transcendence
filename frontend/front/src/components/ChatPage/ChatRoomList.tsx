@@ -4,17 +4,11 @@ import { roomModalAtom } from "../../components/atom/ModalAtom";
 import "../../styles/ChatList.css";
 import ChatRoom from "../objects/ChatRoom";
 
-import { socket } from "../../socket/socket";
 import * as chatAtom from '../atom/SocketAtom';
-import { useEffect } from 'react';
 
 export default function ChatRoomList() {
-  const [roomModal, setRoomModal] = useAtom(roomModalAtom);
-  const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
-
-  // useEffect(() => {
-  //   // arrayRoomList = Object.entries(roomList);
-  // }, [roomList]);
+  const [, setRoomModal] = useAtom(roomModalAtom);
+  const [roomList,] = useAtom(chatAtom.roomListAtom);
 
   const roomClickHandler = (roomName: string) => {
     console.log(`roomCLickHandler ${roomName}`);
@@ -28,7 +22,10 @@ export default function ChatRoomList() {
       <div className="ChatRooms">
         {
           Object.entries(roomList).map((key) => (
-            <ChatRoom key={Number(key[0])} roomName={roomList[Number(key[0])].roomName} type={roomList[Number(key[0])].roomType}></ChatRoom>
+            <ChatRoom
+              key={Number(key[0])}
+              roomName={roomList[Number(key[0])].roomName}
+              type={roomList[Number(key[0])].roomType} /> // TODO: need to implement callback onClick
           ))
         }
         <ChatRoom roomName="room1" type="Protected" ></ChatRoom>

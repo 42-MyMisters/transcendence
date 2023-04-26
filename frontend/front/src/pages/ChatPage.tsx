@@ -33,6 +33,7 @@ export default function ChatPage() {
   const [userList, setUserList] = useAtom(chatAtom.userListAtom);
   const [userBlockList, setUserBlockList] = useAtom(chatAtom.userBlockListAtom);
   const [dmHistoryList, setDmHistoryList] = useAtom(chatAtom.dmHistoryListAtom);
+  const [followingList, setFollowingList] = useAtom(chatAtom.followingListAtom);
   const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
 
   const getMyInfo = () => {
@@ -52,10 +53,17 @@ export default function ChatPage() {
   const getRoomList = () => {
     console.log(`getRoomList ${JSON.stringify(roomList)}}`);
   }
+  const getUserList = () => {
+    console.log(`getUserList ${JSON.stringify(userList)}}`);
+  }
+  const getFollowingList = () => {
+    console.log(`getFollowingList ${JSON.stringify(followingList)}}`);
+  }
 
   if (isFirstLogin) {
     getMyInfo();
     socket.OnSocketChatEvent();
+    socket.emitFollowingList({ setFollowingList });
     // init data request
     // socket.emitUserBlockList();
     // socket.emitDmHistoryList();
@@ -67,6 +75,8 @@ export default function ChatPage() {
     <BackGround>
       <button onClick={getMyInfo}> /user/me</button>
       <button onClick={getRoomList}> roomList</button>
+      <button onClick={getUserList}> userList</button>
+      <button onClick={getFollowingList}> FollowList</button>
       <TopBar />
       {userInfoModal ? <UserInfoModal /> : null}
       {roomModal ? <RoomModal /> : null}
@@ -75,6 +85,6 @@ export default function ChatPage() {
       <ChatUserList />
       <ChatArea />
       <ChatRoomUserList />
-    </BackGround>
+    </BackGround >
   );
 }
