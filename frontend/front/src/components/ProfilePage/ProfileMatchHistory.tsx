@@ -29,7 +29,7 @@ export default function ProfileMatchHistory() {
                 RightSideNickName={game.loser.nickname}
               />
             )
-          )}
+          ) ?? null}
           {/* {records.map(
             (record: {
               LeftSideNickName: string;
