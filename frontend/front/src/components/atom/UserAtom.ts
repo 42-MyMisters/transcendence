@@ -5,16 +5,14 @@ interface User {
   nickname: string;
   profileUrl: string;
   ELO: number;
-  followings: [
-    {
-      uid: number;
-      nickname: string;
-      profileUrl: string;
-      status: string;
-      createdAt: string;
-      followings: [string];
-    }
-  ];
+  followings: {
+    uid: number;
+    nickname: string;
+    profileUrl: string;
+    status: string;
+    createdAt: string;
+    followings: [string];
+  }[];
   games: {
     gid: number;
     winner: {
@@ -26,24 +24,20 @@ interface User {
       profileUrl: string;
       twoFactorEnabled: true;
       twoFactorSecret: string;
-      followers: [
-        {
-          fromUserId: number;
-          targetToFollowId: number;
-          fromUser: string;
-          targetToFollow: string;
-          createdAt: string;
-        }
-      ];
-      followings: [
-        {
-          fromUserId: number;
-          targetToFollowId: number;
-          fromUser: string;
-          targetToFollow: string;
-          createdAt: string;
-        }
-      ];
+      followers: {
+        fromUserId: number;
+        targetToFollowId: number;
+        fromUser: string;
+        targetToFollow: string;
+        createdAt: string;
+      }[];
+      followings: {
+        fromUserId: number;
+        targetToFollowId: number;
+        fromUser: string;
+        targetToFollow: string;
+        createdAt: string;
+      }[];
       wonGames: [string];
       lostGames: [string];
       createdAt: string;
@@ -57,24 +51,20 @@ interface User {
       profileUrl: string;
       twoFactorEnabled: true;
       twoFactorSecret: string;
-      followers: [
-        {
-          fromUserId: number;
-          targetToFollowId: number;
-          fromUser: string;
-          targetToFollow: string;
-          createdAt: string;
-        }
-      ];
-      followings: [
-        {
-          fromUserId: number;
-          targetToFollowId: number;
-          fromUser: string;
-          targetToFollow: string;
-          createdAt: string;
-        }
-      ];
+      followers: {
+        fromUserId: number;
+        targetToFollowId: number;
+        fromUser: string;
+        targetToFollow: string;
+        createdAt: string;
+      }[];
+      followings: {
+        fromUserId: number;
+        targetToFollowId: number;
+        fromUser: string;
+        targetToFollow: string;
+        createdAt: string;
+      }[];
       wonGames: [string];
       lostGames: [string];
       createdAt: string;
@@ -96,6 +86,54 @@ export const UserAtom = atom<User | null>({
       nickname: "yotak",
       profileUrl: "/smile.png",
       status: "online",
+      createdAt: "string",
+      followings: ["yotak"],
+    },
+    {
+      uid: 0,
+      nickname: "yotak",
+      profileUrl: "/smile.png",
+      status: "ingame",
+      createdAt: "string",
+      followings: ["yotak"],
+    },
+    {
+      uid: 0,
+      nickname: "yotak",
+      profileUrl: "/smile.png",
+      status: "ingame",
+      createdAt: "string",
+      followings: ["yotak"],
+    },
+    {
+      uid: 0,
+      nickname: "yotak",
+      profileUrl: "/smile.png",
+      status: "offline",
+      createdAt: "string",
+      followings: ["yotak"],
+    },
+    {
+      uid: 0,
+      nickname: "yotak",
+      profileUrl: "/smile.png",
+      status: "ingame",
+      createdAt: "string",
+      followings: ["yotak"],
+    },
+    {
+      uid: 0,
+      nickname: "yotak",
+      profileUrl: "/smile.png",
+      status: "ingame",
+      createdAt: "string",
+      followings: ["yotak"],
+    },
+    {
+      uid: 0,
+      nickname: "yotak",
+      profileUrl: "/smile.png",
+      status: "ingame",
       createdAt: "string",
       followings: ["yotak"],
     },
