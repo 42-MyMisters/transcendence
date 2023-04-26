@@ -1,7 +1,7 @@
 import { useAtom } from "jotai";
 import { inviteModalAtom } from "../../components/atom/ModalAtom";
 import { userInfoModalAtom } from "../../components/atom/ModalAtom";
-import { useCallback } from 'react';
+import { useCallback } from "react";
 
 import "../../styles/ChatRoomUserList.css";
 import UserObj from "../objects/UserObj";
@@ -33,14 +33,14 @@ export default function ChatRoomUserList() {
       <div className="ChatRoomUsers">
         <UserObj
           nickName="User1"
-          profileImage="/src/smile.png"
+          profileImage="/smile.png"
           status="online"
           power="Owner"
           callBack={onClickInfo}
         />
         <UserObj
           nickName="User2"
-          profileImage="/src/smile.png"
+          profileImage="/smile.png"
           status="ingame"
           power="Manager"
           callBack={onClickInfo}
