@@ -162,4 +162,6 @@ input[id="checkbox_TFA"]:checked + label::before {
 
   width: 550px;
   height: 560px;
+
+  overflow: auto;
 }

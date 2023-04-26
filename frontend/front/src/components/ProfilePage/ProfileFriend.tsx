@@ -30,16 +30,7 @@ export default function ProfileFriend() {
     <div className="ProfileFriendFrame">
       <div className="ProfileFriendTitle">friends</div>
       <div className="ProfileFriendBG">
-        <div className="ProfileFriendList">
-          {followings}
-          {/* <UserObj
-            nickName="yotak"
-            profileImage="/smile.png"
-            status="online"
-            power=""
-            callBack={() => {}}
-          /> */}
-        </div>
+        <div className="ProfileFriendList">{followings}</div>
       </div>
     </div>
   );

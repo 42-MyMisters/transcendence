@@ -72,14 +72,14 @@ interface User {
     winnerScore: number;
     loserScore: number;
     createdAt: string;
-  };
+  }[];
 }
 
 export const UserAtom = atom<User | null>({
   uid: 1,
   nickname: "yuhwang",
   profileUrl: "/smile.png",
-  ELO: 0,
+  ELO: 1000,
   followings: [
     {
       uid: 0,
@@ -97,113 +97,75 @@ export const UserAtom = atom<User | null>({
       createdAt: "string",
       followings: ["yotak"],
     },
+  ],
+  games: [
     {
-      uid: 0,
-      nickname: "yotak",
-      profileUrl: "/smile.png",
-      status: "ingame",
+      gid: 0,
+      winner: {
+        uid: 1,
+        password: "string",
+        email: "string",
+        nickname: "yuhwang",
+        refreshToken: "string",
+        profileUrl: "../../assets.smile.png",
+        twoFactorEnabled: true,
+        twoFactorSecret: "string",
+        followers: [
+          {
+            fromUserId: 0,
+            targetToFollowId: 0,
+            fromUser: "yuhwang",
+            targetToFollow: "yotak",
+            createdAt: "string",
+          },
+        ],
+        followings: [
+          {
+            fromUserId: 0,
+            targetToFollowId: 0,
+            fromUser: "yotak",
+            targetToFollow: "yuhwang",
+            createdAt: "string",
+          },
+        ],
+        wonGames: ["string"],
+        lostGames: ["string"],
+        createdAt: "string",
+      },
+      loser: {
+        uid: 0,
+        password: "string",
+        email: "string",
+        nickname: "yotak",
+        refreshToken: "string",
+        profileUrl: "../../assets.smile.png",
+        twoFactorEnabled: true,
+        twoFactorSecret: "string",
+        followers: [
+          {
+            fromUserId: 0,
+            targetToFollowId: 0,
+            fromUser: "string",
+            targetToFollow: "string",
+            createdAt: "string",
+          },
+        ],
+        followings: [
+          {
+            fromUserId: 0,
+            targetToFollowId: 0,
+            fromUser: "string",
+            targetToFollow: "string",
+            createdAt: "string",
+          },
+        ],
+        wonGames: ["string"],
+        lostGames: ["string"],
+        createdAt: "string",
+      },
+      winnerScore: 5,
+      loserScore: 4,
       createdAt: "string",
-      followings: ["yotak"],
-    },
-    {
-      uid: 0,
-      nickname: "yotak",
-      profileUrl: "/smile.png",
-      status: "offline",
-      createdAt: "string",
-      followings: ["yotak"],
-    },
-    {
-      uid: 0,
-      nickname: "yotak",
-      profileUrl: "/smile.png",
-      status: "ingame",
-      createdAt: "string",
-      followings: ["yotak"],
-    },
-    {
-      uid: 0,
-      nickname: "yotak",
-      profileUrl: "/smile.png",
-      status: "ingame",
-      createdAt: "string",
-      followings: ["yotak"],
-    },
-    {
-      uid: 0,
-      nickname: "yotak",
-      profileUrl: "/smile.png",
-      status: "ingame",
-      createdAt: "string",
-      followings: ["yotak"],
     },
   ],
-  games: {
-    gid: 0,
-    winner: {
-      uid: 1,
-      password: "string",
-      email: "string",
-      nickname: "yuhwang",
-      refreshToken: "string",
-      profileUrl: "../../assets.smile.png",
-      twoFactorEnabled: true,
-      twoFactorSecret: "string",
-      followers: [
-        {
-          fromUserId: 0,
-          targetToFollowId: 0,
-          fromUser: "yuhwang",
-          targetToFollow: "yotak",
-          createdAt: "string",
-        },
-      ],
-      followings: [
-        {
-          fromUserId: 0,
-          targetToFollowId: 0,
-          fromUser: "yotak",
-          targetToFollow: "yuhwang",
-          createdAt: "string",
-        },
-      ],
-      wonGames: ["string"],
-      lostGames: ["string"],
-      createdAt: "string",
-    },
-    loser: {
-      uid: 0,
-      password: "string",
-      email: "string",
-      nickname: "yotak",
-      refreshToken: "string",
-      profileUrl: "../../assets.smile.png",
-      twoFactorEnabled: true,
-      twoFactorSecret: "string",
-      followers: [
-        {
-          fromUserId: 0,
-          targetToFollowId: 0,
-          fromUser: "string",
-          targetToFollow: "string",
-          createdAt: "string",
-        },
-      ],
-      followings: [
-        {
-          fromUserId: 0,
-          targetToFollowId: 0,
-          fromUser: "string",
-          targetToFollow: "string",
-          createdAt: "string",
-        },
-      ],
-      wonGames: ["string"],
-      lostGames: ["string"],
-      createdAt: "string",
-    },
-    winnerScore: 5,
-    loserScore: 4,
-    createdAt: "string",
-  },
 });
