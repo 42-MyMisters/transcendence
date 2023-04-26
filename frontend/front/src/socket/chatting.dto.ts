@@ -21,7 +21,6 @@ type roomMessageDto = {
 
 type userInRoomListDto = {
 	[key: number]: {
-		userDisplayName: string;
 		userRoomStatus: 'normal' | 'mute' | 'ban' | 'kick';
 		userRoomPower: 'owner' | 'admin' | 'member';
 	}

@@ -11,11 +11,14 @@ import { useEffect } from 'react';
 export default function ChatRoomList() {
   const [roomModal, setRoomModal] = useAtom(roomModalAtom);
   const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
-  // let arrayRoomList = Object.entries(roomList);
 
-  useEffect(() => {
-    // arrayRoomList = Object.entries(roomList);
-  }, [roomList]);
+  // useEffect(() => {
+  //   // arrayRoomList = Object.entries(roomList);
+  // }, [roomList]);
+
+  const roomClickHandler = (roomName: string) => {
+    console.log(`roomCLickHandler ${roomName}`);
+  };
 
 
   return (
@@ -24,13 +27,13 @@ export default function ChatRoomList() {
       <div className="ChatRoomListPlusBtn" onClick={() => setRoomModal(true)} />
       <div className="ChatRooms">
         {
-          // arrayRoomList.map((key) => (
-          // <ChatRoom roomName={roomList[key[0]].roomName} type={roomList[key[0]].type}></ChatRoom>
-          // ))
+          Object.entries(roomList).map((key) => (
+            <ChatRoom key={Number(key[0])} roomName={roomList[Number(key[0])].roomName} type={roomList[Number(key[0])].roomType}></ChatRoom>
+          ))
         }
-        <ChatRoom roomName="room1" type="Protected"></ChatRoom>
+        <ChatRoom roomName="room1" type="Protected" ></ChatRoom>
         <ChatRoom roomName="room2" type="Private"></ChatRoom>
       </div>
-    </div>
+    </div >
   );
 }

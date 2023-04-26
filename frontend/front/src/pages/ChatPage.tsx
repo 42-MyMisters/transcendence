@@ -56,11 +56,9 @@ export default function ChatPage() {
   if (isFirstLogin) {
     getMyInfo();
     socket.OnSocketChatEvent();
-
     // init data request
     // socket.emitUserBlockList();
     // socket.emitDmHistoryList();
-
     // socket.emitRoomList();
     setIsFirstLogin(false);
   }
