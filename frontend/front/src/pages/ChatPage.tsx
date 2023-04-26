@@ -16,7 +16,6 @@ import RoomInviteModal from "../components/ChatPage/RoomInviteModal";
 import { UserAtom } from "../components/atom/UserAtom";
 import { useEffect, useState } from "react";
 
-import { useEffect, useState } from 'react';
 import * as socket from "../socket/socket";
 import * as chatAtom from '../components/atom/SocketAtom';
 import type * as chatType from '../socket/chatting.dto';
@@ -28,15 +27,6 @@ export default function ChatPage() {
 
 
   const [userInfo, setUserInfo] = useAtom(UserAtom);
-
-  useEffect(() => {
-    fetch("http://localhost:4000/user/me")
-      .then((response) => response.json())
-      .then((response) => {
-        console.log(response);
-      });
-  });
-
   const [isFirstLogin, setIsFirstLogin] = useAtom(chatAtom.isFirstLoginAtom);
 
   const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
@@ -45,7 +35,26 @@ export default function ChatPage() {
   const [dmHistoryList, setDmHistoryList] = useAtom(chatAtom.dmHistoryListAtom);
   const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
 
+  const getMyInfo = () => {
+    fetch("http://localhost:4000/user/me", {
+      credentials: "include",
+      method: "GET",
+    })
+      .then((response) => response.json())
+      .then((response) => {
+        console.log(response);
+        setUserInfo(response);
+      }).catch((error) => {
+        console.log(`error: ${error}`);
+      });
+  };
+
+  const getRoomList = () => {
+    console.log(`getRoomList ${JSON.stringify(roomList)}}`);
+  }
+
   if (isFirstLogin) {
+    getMyInfo();
     socket.OnSocketChatEvent();
 
     // init data request
@@ -56,9 +65,10 @@ export default function ChatPage() {
     setIsFirstLogin(false);
   }
 
-
   return (
     <BackGround>
+      <button onClick={getMyInfo}> /user/me</button>
+      <button onClick={getRoomList}> roomList</button>
       <TopBar />
       {userInfoModal ? <UserInfoModal /> : null}
       {roomModal ? <RoomModal /> : null}

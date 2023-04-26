@@ -7,21 +7,22 @@ import { ReactElement } from "react";
 
 export default function ProfileFriend() {
   const [userInfo, setUserInfo] = useAtom(UserAtom);
-  const followings = userInfo?.followings.map(
+  const followings = userInfo.followings.map(
     (following: {
       uid: number;
       nickname: string;
       profileUrl: string;
       status: string;
       createdAt: string;
-      followings: [string];
+      followings: string[];
     }): ReactElement => (
       <UserObj
+        key={following.uid}
         nickName={following.nickname}
         profileImage={following.profileUrl}
         status={following.status}
         power="profile"
-        callBack={() => {}}
+        callBack={() => { }}
       />
     )
   );

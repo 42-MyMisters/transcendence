@@ -85,7 +85,7 @@ interface userType {
   };
 }
 
-export const UserAtom = atom<userType | null>({
+export const UserAtom = atom<userType>({
   uid: 1,
   nickname: "yuhwang",
   profileUrl: "/smile.png",

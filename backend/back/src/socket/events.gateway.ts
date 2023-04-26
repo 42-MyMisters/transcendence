@@ -155,8 +155,9 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
     const exists = createdRooms[roomName];
     if (exists !== undefined) {
       console.log(`${roomName} room is already created.`);
-      return { status: false, payload: `${roomName} room is already created.` };
+      return { status: 'ko', payload: `${roomName} room is already created.` };
     }
+
 
     socket.join(roomName);
     createdRooms[roomName] = [socket.data.user];
@@ -165,7 +166,7 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
 
 
 
-    return { status: true, payload: roomName };
+    return { status: 'ok', payload: roomName };
   }
 
   @SubscribeMessage('join-room')

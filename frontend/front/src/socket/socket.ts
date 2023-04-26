@@ -248,7 +248,6 @@ export function emitRoomCreate(
   roomCheck: boolean = false,
   roomPass: string = ''
 ) {
-  console.log("emitRoomCreate", `roomName: ${roomName}, roomType: ${roomCheck}, roomPass: ${roomPass}`);
   const roomType = roomCheck ? 'private' : roomPass ? 'protected' : 'open';
   socket.emit("room-create", {
     roomName,
@@ -257,23 +256,27 @@ export function emitRoomCreate(
   }, ({
     status,
     payload,
+    roomId,
   }: {
-    status: boolean,
+    status: 'ok' | 'ko',
     payload: string | number,
+    roomId: number,
   }) => {
     switch (status) {
-      case true: {
+      case 'ok': {
         console.log("room-create success");
         const newRoomList: chatType.roomListDto = {};
+        // newRoomList[roomId] = { TODO: change to roomId
         newRoomList[payload as number] = {
           roomName: roomName,
           roomType: roomType,
           isJoined: true,
         }
         setRoomList({ ...roomList, ...newRoomList });
+        console.log(`${roomList[payload as number]}`);
         break;
       }
-      case false: {
+      case 'ko': {
         console.log("room-create fail");
         break;
       }
@@ -310,7 +313,7 @@ export function emitRoomJoin(
   }) => {
     switch (status) {
       case 'ok': {
-        console.log(`room-join success: ${roomList[roomId].roomName}`);
+        console.log(`room - join success: ${roomList[roomId].roomName} `);
         const newRoomList: chatType.roomListDto = {};
         newRoomList[roomId] = {
           roomName: roomList[roomId].roomName,
@@ -401,7 +404,7 @@ export function emitRoomInAction(
   }) => {
     switch (status) {
       case 'ok': {
-        console.log(`room-inaction in ${roomId} to ${targetId} with ${action} OK`);
+        console.log(`room - inaction in ${roomId} to ${targetId} with ${action} OK`);
         switch (action) {
           case 'mute': {
             const tempRoomList: chatType.roomListDto = { ...roomList[roomId] };
@@ -427,7 +430,7 @@ export function emitRoomInAction(
         break;
       }
       case 'ko': {
-        console.log(`room-inaction in ${roomId} to ${targetId} with ${action} failed: ${payload}`);
+        console.log(`room - inaction in ${roomId} to ${targetId} with ${action} failed: ${payload} `);
         break;
       }
     }
@@ -469,7 +472,7 @@ export function emitUserBlock(
         break;
       }
       case 'ko': {
-        console.log(`user-block failed: ${payload}`);
+        console.log(`user - block failed: ${payload} `);
         break;
       }
     }
@@ -500,7 +503,7 @@ export function emitUserInvite(
         break;
       }
       case 'ko': {
-        console.log(`user-invite ${userList[targetId].userDisplayName} failed: ${payload}`);
+        console.log(`user - invite ${userList[targetId].userDisplayName} failed: ${payload} `);
         break;
       }
     }
@@ -606,7 +609,7 @@ export function emitMessage(
   }) => {
     switch (status) {
       case 'ok': {
-        console.log(`message to ${roomList[roomId].roomName} is sended: ${message}`);
+        console.log(`message to ${roomList[roomId].roomName} is sended: ${message} `);
         const newMessage: chatType.roomMessageDto = {
           userId: userInfo.uid,
           message,
@@ -621,7 +624,7 @@ export function emitMessage(
         break;
       }
       case 'ko': {
-        console.log(`message to ${to} is failed: ${payload}`);
+        console.log(`message to ${to} is failed: ${payload} `);
         break;
       }
     }

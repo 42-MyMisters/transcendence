@@ -20,6 +20,7 @@ export default function RoomModal() {
 
   const acceptHandler = () => {
     socket.emitRoomCreate({ roomList, setRoomList }, roomName, roomCheck, roomPass);
+    setRoomModal(false);
   };
 
   return (

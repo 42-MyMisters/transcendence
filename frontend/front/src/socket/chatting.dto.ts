@@ -35,6 +35,7 @@ type roomDetailDto = {
 }
 
 type roomListDto = {
+	// [key: number]: {
 	[key: number]: {
 		roomName: string
 		roomType: 'open' | 'protected' | 'private';
