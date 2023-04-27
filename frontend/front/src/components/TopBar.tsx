@@ -2,6 +2,9 @@ import { Cookies } from "react-cookie";
 import "../styles/TopBar.css";
 import { Link, NavLink } from "react-router-dom";
 
+import { useAtom } from "jotai";
+import { refreshTokenAtom } from "./atom/LoginAtom";
+
 export default function TopBar() {
   return (
     <div className="TopBarBG">
@@ -45,7 +48,9 @@ function ChatBtn() {
 function QueueBtn() {
   return (
     <div className="TopBarBtn">
-      <NavLink to="/game" className="AStyle" style={getNavLinkStyle} >Queue</NavLink>
+      <NavLink to="/game" className="AStyle" style={getNavLinkStyle}>
+        Queue
+      </NavLink>
     </div>
   );
 }
@@ -61,12 +66,16 @@ function ProfileBtn() {
 }
 
 function LogoutBtn() {
+  const [, setRefreshToken] = useAtom(refreshTokenAtom);
   function LogOut() {
     localStorage.clear();
+    setRefreshToken(false);
   }
   return (
     <div className="TopBarBtn" onClick={LogOut}>
-      Logout
+      <Link className="AStyle" to="/">
+        Logout
+      </Link>
     </div>
   );
 }
