@@ -6,7 +6,7 @@ import TopBar from "../components/TopBar";
 import ProfileImage from "../components/ProfilePage/ProfileImage";
 import ProfileFriend from "../components/ProfilePage/ProfileFriend";
 import ProfileMatchHistory from "../components/ProfilePage/ProfileMatchHistory";
-import ChangeNameModal from "../components/ProfilePage/ChangNameModal";
+import ChangeNameModal from "../components/ProfilePage/ChangeNameModal";
 
 import { useAtom } from "jotai";
 import { changeNameModalAtom } from "../components/atom/ModalAtom";
