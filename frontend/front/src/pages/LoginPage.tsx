@@ -15,7 +15,7 @@ import { TFAEnabledAtom } from "../components/atom/LoginAtom";
 import ChatPage from "./ChatPage";
 import { useNavigate } from "react-router-dom";
 
-import * as socket from "../socket/socket";
+import * as socket from "../socket/chat.socket";
 import { hasLoginAtom } from '../components/atom/SocketAtom';
 
 export default function LoginPage() {
@@ -55,7 +55,7 @@ export default function LoginPage() {
         if (hasLogin === false) {
           console.log("haslogin : false, move to chat page ", `token: ${localStorage.getItem("refreshToken")}`);
           socket.socket.connect(); //NOTE : when error ocurred, how to handle?
-          socket.OnSocketEvent();
+          socket.OnSocketCoreEvent();
           setHasLogin(true);
           navigate("/chat");
         } //NOTE: need to else case?

@@ -41,7 +41,17 @@
   height: 600px;
 
   background-color: white;
-  overflow-y: scroll;
+}
+
+.PlayerRecoreList {
+  position: absolute;
+  left: 30px;
+  top: 30px;
+
+  width: 550px;
+  height: 540px;
+
+  overflow: auto;
 }
 
 div::-webkit-scrollbar {
@@ -49,13 +59,15 @@ div::-webkit-scrollbar {
 }
 
 .PlayerRecordWrap {
-  position: absolute;
+  /* position: absolute; */
 
-  top: 30px;
-  left: 30px;
+  /* top: 30px;
+  left: 30px; */
 
   width: 550px;
   height: 30px;
+
+  margin-bottom: 20px;
 
   background-color: darkseagreen;
 }
@@ -69,7 +81,7 @@ div::-webkit-scrollbar {
 
   font-weight: 400;
   font-size: 30px;
-  line-height: 36px;
+  line-height: 30px;
 }
 
 .LeftSideScore {
@@ -81,7 +93,7 @@ div::-webkit-scrollbar {
 
   font-weight: 400;
   font-size: 30px;
-  line-height: 36px;
+  line-height: 30px;
 }
 
 .RightSideNickName {
@@ -92,7 +104,7 @@ div::-webkit-scrollbar {
 
   font-weight: 400;
   font-size: 30px;
-  line-height: 36px;
+  line-height: 30px;
 
   text-align: right;
 }
@@ -105,7 +117,7 @@ div::-webkit-scrollbar {
 
   font-weight: 400;
   font-size: 30px;
-  line-height: 36px;
+  line-height: 30px;
 
   text-align: right;
 }
@@ -118,7 +130,7 @@ div::-webkit-scrollbar {
 
   font-weight: 400;
   font-size: 30px;
-  line-height: 36px;
+  line-height: 30px;
 
   text-align: center;
 }

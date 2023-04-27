@@ -1,0 +1,70 @@
+import { io } from 'socket.io-client';
+import { useAtom } from "jotai";
+// import * as chatAtom from '../components/atom/SocketAtom';
+// import type * as gameType from './game.dto';
+
+const URL = "http://localhost:4000";
+
+const GameNameSpace = "/game";
+export const gameSocket = io(`${URL}${GameNameSpace}`, {
+  auth: (cb) => {
+    cb({ token: localStorage.getItem("refreshToken") });
+  },
+  autoConnect: false,
+  transports: ["websocket"],
+  // reconnectionDelay: 1000, // defaults to 1000
+  // reconnectionDelayMax: 10000, // defaults to 5000
+  // withCredentials: true,
+  // path: "/socket.io",
+});
+
+export function OnSocketCoreEvent() {
+
+  // catch all incoming events
+  gameSocket.onAny((eventName, ...args) => {
+    console.log("incoming ", eventName, args);
+  });
+
+  // catch all outgoing events
+  gameSocket.prependAny((eventName, ...args) => {
+    console.log("outgoing ", eventName, args);
+  });
+
+  gameSocket.on("connect", () => {
+    if (gameSocket.connected) {
+      //This attribute describes whether the socket is currently connected to the server.
+      if (gameSocket.recovered) {
+        // any missed packets will be received
+      } else {
+        // new or unrecoverable session
+        console.log("gameSocket connected : " + gameSocket.id);
+      }
+    }
+  });
+
+  //https://socket.io/docs/v4/client-socket-instance/#disconnect
+  gameSocket.on("disconnect", (reason) => {
+    /**
+     *  BAD, will throw an error
+     *  gameSocket.emit("disconnect");
+    */
+    if (reason === "io server disconnect") {
+      // the disconnection was initiated by the server, you need to reconnect manually
+    }
+    // else the socket will automatically try to reconnect
+    console.log("gameSocket disconnected");
+  });
+
+  // the connection is denied by the server in a middleware function
+  gameSocket.on("connect_error", (err) => {
+    if (err.message === "unauthorized") {
+      // handle each case
+    }
+    console.log(err.message); // prints the message associated with the error
+  });
+}
+
+export function OnSocketGameEvent() {
+  // const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
+
+}

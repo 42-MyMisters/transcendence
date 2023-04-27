@@ -14,7 +14,9 @@ async function bootstrap(): Promise<void> {
   const port: any = serverConfig.port;
 
   app.enableCors({
-    origin: '*',
+    origin: ['http://localhost:3000'],
+    methods: ['GET', 'POST', 'PATCH'],
+    credentials: true,
   });
 
   setSwagger(app);

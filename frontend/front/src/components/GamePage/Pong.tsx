@@ -39,7 +39,7 @@ function drawText(
 ) {
   if (context) {
     context.fillStyle = color;
-    context.font = "50px";
+    context.font = "50px Arial";
     context.fillText(text.toString(), x, y);
   }
 }
@@ -64,7 +64,7 @@ export function game() {
     //ball
     drawCircle(ball.x, ball.y, ball.radius, ball.color, context);
     //score
-    drawText(me.score, WIDTH / 4, HEIGHT / 5, "WHITE", context);
-    drawText(opponent.score, 3 * (WIDTH / 4), HEIGHT / 5, "WHITE", context);
+    drawText(me.score, WIDTH / 4, 50, "WHITE", context);
+    drawText(opponent.score, 3 * (WIDTH / 4), 50, "WHITE", context);
   }
 }
