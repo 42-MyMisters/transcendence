@@ -7,3 +7,5 @@ export const inviteModalAtom = atom(false);
 export const userInfoModalAtom = atom(false);
 
 export const changeNameModalAtom = atom(false);
+
+export const passwordInputModalAtom = atom(false);

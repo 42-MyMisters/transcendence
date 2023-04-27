@@ -9,10 +9,13 @@ import { useAtom } from "jotai";
 import { userInfoModalAtom } from "../components/atom/ModalAtom";
 import { inviteModalAtom } from "../components/atom/ModalAtom";
 import { roomModalAtom } from "../components/atom/ModalAtom";
+import { passwordInputModalAtom } from "../components/atom/ModalAtom";
 
 import UserInfoModal from "../components/ChatPage/UserInfoModal";
 import RoomModal from "../components/ChatPage/RoomModal";
 import RoomInviteModal from "../components/ChatPage/RoomInviteModal";
+import PasswordModal from "../components/ChatPage/PasswordModal";
+
 import { UserAtom } from "../components/atom/UserAtom";
 import { useEffect, useState } from "react";
 
@@ -24,6 +27,7 @@ export default function ChatPage() {
   const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
   const [roomModal, setRoomModal] = useAtom(roomModalAtom);
   const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);
+  const [pwInputModal, setPwInputModal] = useAtom(passwordInputModalAtom);
 
   const [userInfo, setUserInfo] = useAtom(UserAtom);
   const [isFirstLogin, setIsFirstLogin] = useAtom(chatAtom.isFirstLoginAtom);
@@ -44,20 +48,21 @@ export default function ChatPage() {
       .then((response) => {
         console.log(response);
         setUserInfo(response);
-      }).catch((error) => {
+      })
+      .catch((error) => {
         console.log(`error: ${error}`);
       });
   };
 
   const getRoomList = () => {
     console.log(`getRoomList ${JSON.stringify(roomList)}}`);
-  }
+  };
   const getUserList = () => {
     console.log(`getUserList ${JSON.stringify(userList)}}`);
-  }
+  };
   const getFollowingList = () => {
     console.log(`getFollowingList ${JSON.stringify(followingList)}}`);
-  }
+  };
 
   if (isFirstLogin) {
     getMyInfo();
@@ -80,10 +85,11 @@ export default function ChatPage() {
       {userInfoModal ? <UserInfoModal /> : null}
       {roomModal ? <RoomModal /> : null}
       {inviteModal ? <RoomInviteModal /> : null}
+      {pwInputModal ? <PasswordModal /> : null}
       <ChatRoomList />
       <ChatUserList />
       <ChatArea />
       <ChatRoomUserList />
-    </BackGround >
+    </BackGround>
   );
 }
