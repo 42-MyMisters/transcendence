@@ -26,29 +26,56 @@ export default function ChatPage() {
   const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);
 
   const [userInfo, setUserInfo] = useAtom(UserAtom);
+  const [isFirstLogin, setIsFirstLogin] = useAtom(chatAtom.isFirstLoginAtom);
 
-  useEffect(() => {
-    fetch("http://localhost:4000/user/me")
+  const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
+  const [userList, setUserList] = useAtom(chatAtom.userListAtom);
+  const [userBlockList, setUserBlockList] = useAtom(chatAtom.userBlockListAtom);
+  const [dmHistoryList, setDmHistoryList] = useAtom(chatAtom.dmHistoryListAtom);
+  const [followingList, setFollowingList] = useAtom(chatAtom.followingListAtom);
+  const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
+
+  const getMyInfo = () => {
+    fetch("http://localhost:4000/user/me", {
+      credentials: "include",
+      method: "GET",
+    })
       .then((response) => response.json())
       .then((response) => {
         console.log(response);
+        setUserInfo(response);
+      }).catch((error) => {
+        console.log(`error: ${error}`);
       });
-  });
+  };
 
-  const [isFirstLogin, setIsFirstLogin] = useAtom(chatAtom.isFirstLoginAtom);
-  const [userList, setUserList] = useAtom(chatAtom.userListAtom);
-  const [userHistory, setUserHistory] = useAtom(chatAtom.userHistoryAtom);
-  const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
-  const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
+  const getRoomList = () => {
+    console.log(`getRoomList ${JSON.stringify(roomList)}}`);
+  }
+  const getUserList = () => {
+    console.log(`getUserList ${JSON.stringify(userList)}}`);
+  }
+  const getFollowingList = () => {
+    console.log(`getFollowingList ${JSON.stringify(followingList)}}`);
+  }
 
   if (isFirstLogin) {
-    // socket init info stage
-    // call init event
+    getMyInfo();
+    socket.OnSocketChatEvent();
+    socket.emitFollowingList({ setFollowingList });
+    // init data request
+    // socket.emitUserBlockList();
+    // socket.emitDmHistoryList();
+    // socket.emitRoomList();
     setIsFirstLogin(false);
   }
 
   return (
     <BackGround>
+      <button onClick={getMyInfo}> /user/me</button>
+      <button onClick={getRoomList}> roomList</button>
+      <button onClick={getUserList}> userList</button>
+      <button onClick={getFollowingList}> FollowList</button>
       <TopBar />
       {userInfoModal ? <UserInfoModal /> : null}
       {roomModal ? <RoomModal /> : null}
@@ -57,6 +84,6 @@ export default function ChatPage() {
       <ChatUserList />
       <ChatArea />
       <ChatRoomUserList />
-    </BackGround>
+    </BackGround >
   );
 }

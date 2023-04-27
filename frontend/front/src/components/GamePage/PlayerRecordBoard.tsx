@@ -41,6 +41,7 @@ export default function PlayerRecordBoard({
       RightSideNickName: string;
     }): ReactElement => (
       <PlayerRecordLine
+        key={record.LeftSideNickName + record.RightSideNickName + record.LeftSideScore + record.RightSideScore}
         LeftSideNickName={record.LeftSideNickName}
         LeftSideScore={record.LeftSideScore}
         RightSideScore={record.RightSideScore}

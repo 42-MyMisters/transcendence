@@ -1,6 +1,6 @@
 import { atom, useAtom } from "jotai";
 
-interface User {
+interface UserType {
   uid: number;
   nickname: string;
   profileUrl: string;
@@ -75,7 +75,7 @@ interface User {
   }[];
 }
 
-export const UserAtom = atom<User | null>({
+export const UserAtom = atom<UserType>({
   uid: 1,
   nickname: "yuhwang",
   profileUrl: "/smile.png",
@@ -166,6 +166,7 @@ export const UserAtom = atom<User | null>({
       winnerScore: 5,
       loserScore: 4,
       createdAt: "string",
-    },
-  ],
+    }],
 });
+
+export type { UserType };

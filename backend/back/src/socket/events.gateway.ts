@@ -69,18 +69,17 @@ const createdRooms: Record<string, User[]> = {};
 const roomList: Record<number, RoomInfo> = {};
 
 @WebSocketGateway({ namespace: 'sock', cors: { origin: '*' } })
-export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
-	constructor(
+export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+  constructor(
     private userService: UserService,
-		private authService: AuthService,
-	) {}
+    private authService: AuthService,
+  ) { }
 
   private logger = new Logger('Gateway');
 
   @WebSocketServer()
   nsp: Namespace;
-  
+
   afterInit() {
     this.nsp.adapter.on('delete-room', (room) => {
       const deletedRoom = Object.keys(createdRooms).find(
@@ -108,14 +107,14 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
         socket.data.user = user;
         console.log(`user: ${userRecord[uid]}`)
         if (userRecord[uid] === undefined) {
-          userRecord[uid] = { socket:socket, status: 1, blockedUsers:[] }
+          userRecord[uid] = { socket: socket, status: 1, blockedUsers: [] }
           // userRecord[uid] = { socket:socket, status: 1, blockedUsers:user.blockedUsers.map(blockedUsers => blockedUsers.targetToBlockId) }
           this.logger.log(`${socket.data.user.nickname} connected.`);
-        } 
+        }
       } else {
         throw new UnauthorizedException("User not found.");
       }
-    } catch(e) {
+    } catch (e) {
       this.logger.log(`${socket.id} invalid connection. disconnect socket.`);
       socket.disconnect();
     }
@@ -142,21 +141,32 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
     return Object.keys(createdRooms);
   }
 
-  @SubscribeMessage('create-room')
+  @SubscribeMessage('room-create')
   handleCreateRoom(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() roomName: string,
+    @MessageBody()
+    {
+      roomName,
+      roomType,
+      roomPass,
+    }: { roomName: string; roomType?: boolean; roomPass?: string },
   ) {
+    console.log(`roomName: ${roomName}, roomType: ${roomType}, roomPass: ${roomPass}`);
     const exists = createdRooms[roomName];
     if (exists !== undefined) {
-      return { success: false, payload: `${roomName} room is already created.` };
+      console.log(`${roomName} room is already created.`);
+      return { status: 'ko', payload: `${roomName} room is already created.` };
     }
+
 
     socket.join(roomName);
     createdRooms[roomName] = [socket.data.user];
-    this.nsp.emit('create-room', roomName);
+    // this.nsp.emit('create-room', roomName);
+    console.log(`${roomName} room is created.`);
 
-    return { success: true, payload: roomName };
+
+
+    return { status: 'ok', payload: roomName };
   }
 
   @SubscribeMessage('join-room')

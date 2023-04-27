@@ -3,34 +3,30 @@ import UserObj from "../objects/UserObj";
 
 import { useAtom } from "jotai";
 import { UserAtom } from "../atom/UserAtom";
-import { ReactElement } from "react";
 
 export default function ProfileFriend() {
-  const [userInfo, setUserInfo] = useAtom(UserAtom);
-  const followings = userInfo?.followings.map(
-    (following: {
-      uid: number;
-      nickname: string;
-      profileUrl: string;
-      status: string;
-      createdAt: string;
-      followings: [string];
-    }): ReactElement => (
-      <UserObj
-        nickName={following.nickname}
-        profileImage={following.profileUrl}
-        status={following.status}
-        power="profile"
-        callBack={() => {}}
-      />
-    )
-  );
+  const [userInfo,] = useAtom(UserAtom);
 
   return (
     <div className="ProfileFriendFrame">
       <div className="ProfileFriendTitle">friends</div>
       <div className="ProfileFriendBG">
-        <div className="ProfileFriendList">{followings}</div>
+        <div className="ProfileFriendList">
+          {
+            userInfo.followings.map((key) => {
+              return (
+                <UserObj
+                  key={key.uid}
+                  nickName={key.nickname}
+                  profileImage={key.profileUrl}
+                  status={key.status}
+                  power="profile"
+                  callBack={() => { }}
+                />
+              );
+            })
+          }
+        </div>
       </div>
     </div>
   );

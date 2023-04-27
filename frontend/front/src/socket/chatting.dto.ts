@@ -5,46 +5,43 @@ type userDto = {
 		userStatus: 'online' | 'offline' | 'inGame';
 	}
 }
+type userSimpleDto = {
+	[key: number]: {
+		blocked: boolean;
+	}
+}
 
 type roomMessageDto = {
 	userId: number;
 	message: string;
 	isMe: boolean;
+	number: number;
 	date?: string;
 }
 
-type joinRoomDto = {
-	userList: {
-		[key: number]: {
-			userRoomStatus: 'normal' | 'mute' | 'ban' | 'kick';
-			userRoomPower: 'owner' | 'admin' | 'member';
-		}
-	},
-	messageList: roomMessageDto[],
-	// myRoomStatus: 'normal' | 'mute' | 'ban' | 'kick',
-}
-
-type roomDto = {
-	[key: string]: {
-		roomType: 'open' | 'protected' | 'private' | 'dm';
-		isJoined: boolean;
-		joinDetail?: joinRoomDto;
-	}
-}
-
-type roomListDto = {
+type userInRoomListDto = {
 	[key: number]: {
-		roomName: string
-		roomType: 'open' | 'protected';
-	}
-}
-
-type userListDto = {
-	[key: number]: {
-		userDisplayName: string;
 		userRoomStatus: 'normal' | 'mute' | 'ban' | 'kick';
 		userRoomPower: 'owner' | 'admin' | 'member';
 	}
 }
 
-export type { userDto, roomDto, joinRoomDto, roomMessageDto, roomListDto, userListDto };
+type roomDetailDto = {
+	userList: userInRoomListDto,
+	messageList: roomMessageDto[],
+	myRoomStatus: 'normal' | 'mute' | 'ban' | 'kick',
+	myRoomPower: 'owner' | 'admin' | 'member';
+}
+
+type roomListDto = {
+	// [key: number]: {
+	[key: number]: {
+		roomName: string
+		roomType: 'open' | 'protected' | 'private';
+		isJoined?: boolean;
+		// kickList?: number[];
+		detail?: roomDetailDto;
+	}
+}
+
+export type { userDto, userSimpleDto, roomDetailDto, roomMessageDto, roomListDto, userInRoomListDto };
