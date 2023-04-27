@@ -79,7 +79,7 @@ export function OnSocketChatEvent() {
     roomName,
     roomType,
   }: {
-    action: 'add' | 'delete';
+    action: 'add' | 'delete' | 'edit';
     roomId: number;
     roomName: string;
     roomType: 'open' | 'protected' | 'private';
@@ -99,6 +99,17 @@ export function OnSocketChatEvent() {
         const newRoomList: chatType.roomListDto = { ...roomList };
         delete newRoomList[roomId];
         setRoomList({ ...newRoomList });
+        break;
+      }
+      case 'edit': {
+        const newRoomList: chatType.roomListDto = {};
+        newRoomList[roomId] = {
+          roomName,
+          roomType,
+          isJoined: roomList[roomId].isJoined,
+          detail: roomList[roomId].detail
+        };
+        setRoomList({ ...roomList, ...newRoomList });
         break;
       }
     }
@@ -431,6 +442,41 @@ export function emitRoomInAction(
   });
 }
 
+export function emitRoomPasswordEdit(
+  {
+    roomList,
+    setRoomList,
+  }: {
+    roomList: chatType.roomListDto,
+    setRoomList: React.Dispatch<React.SetStateAction<chatType.roomListDto>>,
+  },
+  roomId: number,
+  password: string
+) {
+  socket.emit("room-password-edit", {
+    roomId,
+    password,
+  }, ({
+    status,
+    payload,
+  }: {
+    status: 'ok' | 'ko',
+    payload?: string,
+  }) => {
+    switch (status) {
+      case 'ok': {
+        console.log(`room password edit - OK`);
+        break;
+      }
+      case 'ko': {
+        console.log(`room password edit - KO`);
+        alert(`Room Password Edit is faild: ${payload}`);
+        break;
+      }
+    }
+  });
+}
+
 export function emitUserBlock(
   {
     userBlockList,
@@ -565,8 +611,10 @@ export function emitDmHistoryList(
 
 export function emitFollowingList(
   {
+    followingList,
     setFollowingList
   }: {
+    followingList: chatType.userDto,
     setFollowingList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
   }) {
   console.log('emit following list');
@@ -577,8 +625,25 @@ export function emitFollowingList(
     .then((response) => response.json())
     .then((response) => {
       console.log(response);
-    }).catch((error) => {
-      console.log(`error: ${error}`);
+      let tempFollowingList: chatType.userDto = {};
+      response.map((
+        user: {
+          uid: number,
+          nickname: string,
+          profileUrl: string,
+        }) => {
+        if (followingList[user.uid] === undefined) {
+          tempFollowingList[user.uid] = {
+            userDisplayName: user.nickname,
+            userProfileUrl: user.profileUrl,
+            userStatus: 'offline'
+          }
+          setFollowingList({ ...followingList, ...tempFollowingList });
+        }
+        return undefined
+      });
+    })
+    .catch((error) => {
     });
   return undefined
 }

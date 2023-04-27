@@ -67,7 +67,7 @@ export default function ChatPage() {
   if (isFirstLogin) {
     getMyInfo();
     socket.OnSocketChatEvent();
-    socket.emitFollowingList({ setFollowingList });
+    socket.emitFollowingList({ followingList, setFollowingList });
     // init data request
     // socket.emitUserBlockList();
     // socket.emitDmHistoryList();
