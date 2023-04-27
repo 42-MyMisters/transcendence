@@ -5,27 +5,27 @@ import { useAtom } from "jotai";
 import { UserAtom } from "../atom/UserAtom";
 
 export default function ProfileFriend() {
-  const [userInfo,] = useAtom(UserAtom);
+  const [userInfo] = useAtom(UserAtom);
 
   return (
     <div className="ProfileFriendFrame">
       <div className="ProfileFriendTitle">friends</div>
       <div className="ProfileFriendBG">
         <div className="ProfileFriendList">
-          {
-            userInfo.followings.map((key) => {
-              return (
-                <UserObj
-                  key={key.uid}
-                  nickName={key.nickname}
-                  profileImage={key.profileUrl}
-                  status={key.status}
-                  power="profile"
-                  callBack={() => { }}
-                />
-              );
-            })
-          }
+          {userInfo !== null
+            ? userInfo.followings.map((key) => {
+                return (
+                  <UserObj
+                    key={key.uid}
+                    nickName={key.nickname}
+                    profileImage={key.profileUrl}
+                    status={key.status}
+                    power="profile"
+                    callBack={() => {}}
+                  />
+                );
+              })
+            : null}
         </div>
       </div>
     </div>
