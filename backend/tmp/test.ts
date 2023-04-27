@@ -18,6 +18,7 @@ class Game {
   private time: number;
   private p1_score: number;
   private p2_score: number;
+  private now: number;
   private score_max = 5;
   
   constructor(id: number) {
@@ -36,7 +37,8 @@ class Game {
     return this.running;
   }
 
-  async gameStart() {
+  gameStart() {
+    this.now = Date.now();
     const interval = setInterval(() => {
       this.update();
       if (this.isRunning() == false) {
@@ -46,12 +48,12 @@ class Game {
     }, this.fps);
   }
 
-  async update() {
+  update() {
     this.time += this.fps;
     if (this.time > 0 && this.isRunning() == true) {
         this.ballX += this.ballSpeedX;
         this.ballY += this.ballSpeedY;
-        console.log(`update: id: ${this.id}, time: ${this.time}, ${this.ballX}, ${this.ballY}`);
+        console.log(`update: id: ${this.id}, ingame time: ${this.time}, time from start: ${Date.now() - this.now}`);
     }
     if (this.p1_score > this.score_max || this.p2_score > this.score_max) {
       this.running = false;
@@ -71,40 +73,15 @@ class Game {
   }
 }
 
-// const game = new Game(1);
-// const interval = setInterval(() => {
-//   game.update();
-//   if (game.tmp > 10) {
-//     clearInterval(interval);
-//   }
-// }, 500);
-// let ballX = 0;
-// let ballY = 0;
-// let tmp = 0;
-
-// function update() {
-//   if (tmp < 100) {
-//       console.log(`update: ${tmp}, ${ballX}, ${ballY}`);
-//       tmp += 1
-//       ballX += 1
-//       ballY += 1
-//   }
-// }
-
-const map = new Map();
-// const map = new Map<number, Game>();
+const map = new Map<number, Game>();
 
 map.set(1, new Game(1));
 map.set(2, new Game(2));
 
 map.get(1)?.gameStart();
 
-const now = Date.now();
-console.log('asdfasdfasdf');
-
-while(Date.now() - now < 10000) {
-}
-
-map.get(2)?.gameStart();
+setTimeout(() => {
+  map.get(2)?.gameStart();
+}, 5000);
 
 console.log('dddddddddd');

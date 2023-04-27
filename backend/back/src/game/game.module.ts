@@ -1,13 +1,11 @@
 import { Module } from '@nestjs/common';
-import { AuthModule } from 'src/auth/auth.module';
-import { DatabaseModule } from 'src/database/database.module';
+import { UserModule } from 'src/user/user.module';
 import { GameGateway } from './game.gateway';
 import { GameService } from './game.service';
 
 @Module({
-
-  imports: [DatabaseModule, AuthModule],
+  imports: [UserModule],
   providers: [GameService, GameGateway],
   exports: [GameService],
-}  )
+})
 export class GameModule {}
