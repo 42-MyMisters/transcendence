@@ -2,7 +2,7 @@ import { io } from 'socket.io-client';
 import { useAtom } from "jotai";
 import * as chatAtom from '../components/atom/SocketAtom';
 import * as userAtom from '../components/atom/UserAtom';
-import type * as chatType from '../socket/chatting.dto';
+import type * as chatType from './chat.dto';
 
 const URL = "http://localhost:4000";
 const NameSpace = "/sock";
@@ -113,6 +113,11 @@ export function OnSocketChatEvent() {
         break;
       }
     }
+  });
+
+  socket.on("room-clear", () => {
+    setRoomList({});
+    setFocusRoom(-1);
   });
 
   socket.on("room-join", ({
@@ -551,7 +556,21 @@ export function emitUserInvite(
     }
   });
 }
-
+export function emitTest(
+  message: string,
+) {
+  console.log(`emit test: ${message}`);
+  socket.emit("test", {
+    message
+  }, ({
+    fromServer
+  }: {
+    fromServer: string
+  }) => {
+    alert(`fromServer: ${fromServer}`);
+  });
+  return undefined
+}
 export function emitUserList(
   {
     setUserList
@@ -573,8 +592,10 @@ export function emitUserList(
 
 export function emitUserBlockList(
   {
+    userBlockList,
     setUserBlockList
   }: {
+    userBlockList: chatType.userSimpleDto,
     setUserBlockList: React.Dispatch<React.SetStateAction<chatType.userSimpleDto>>,
   },
   userId: number
@@ -592,8 +613,10 @@ export function emitUserBlockList(
 
 export function emitDmHistoryList(
   {
+    dmHistoryList,
     setDmHistoryList
   }: {
+    dmHistoryList: chatType.userDto,
     setDmHistoryList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
   },
   userId: number

@@ -1,5 +1,5 @@
 import { atom, createStore } from "jotai";
-import type * as DTO from '../../socket/chatting.dto';
+import type * as DTO from '../../socket/chat.dto';
 
 
 export const roomListAtom = atom<DTO.roomListDto>({});
