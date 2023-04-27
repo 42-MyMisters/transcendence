@@ -7,7 +7,9 @@ import "../../styles/ProfileModal.css";
 export default function ChangeNameModal() {
   const [changeNameModal, setchangeNameModal] = useAtom(changeNameModalAtom);
 
-  PressKey(["Escape"], () => { setchangeNameModal(false); });
+  PressKey(["Escape"], () => {
+    setchangeNameModal(false);
+  });
 
   return (
     <>
