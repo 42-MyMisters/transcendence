@@ -2,10 +2,10 @@ export const WIDTH = 1150;
 export const HEIGHT = 600;
 
 export const START_X = 100;
-export const START_Y = 0;
+export const START_Y = 225;
 
 export const me = {
-  x: 0,
+  x: 10,
   y: START_Y,
   width: 20,
   height: 150,
@@ -14,11 +14,11 @@ export const me = {
 };
 
 export const opponent = {
-  x: WIDTH - 20,
-  y: START_Y + HEIGHT / 2 - 150 / 2,
+  x: WIDTH - 30,
+  y: START_Y,
   width: 20,
   height: 150,
-  color: "WHITE",
+  color: "#CA6A71",
   score: 0,
 };
 
