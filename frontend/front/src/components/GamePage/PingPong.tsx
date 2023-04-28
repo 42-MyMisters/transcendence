@@ -2,11 +2,30 @@ import "../../styles/BackGround.css";
 import "../../styles/PingPong.css";
 
 import React, { useEffect } from "react";
-import { game } from "./Pong";
+import { useAtom } from "jotai";
+
+import { Game } from "./Pong";
+import { GameCoordinateAtom, GameCoordinate } from "../atom/GameAtom";
+import { PressKey } from "../../event/pressKey";
 
 export default function PingPong() {
+  const [coordinate, setCoordinate] = useAtom(GameCoordinateAtom);
+
+  PressKey(["ArrowUp"], () => {
+    let tmp = coordinate;
+    tmp.leftY -= 10;
+    setCoordinate(tmp);
+    Game(coordinate);
+  });
+  PressKey(["ArrowDown"], () => {
+    let tmp = coordinate;
+    tmp.leftY += 10;
+    setCoordinate(tmp);
+    Game(coordinate);
+  });
+
   useEffect(() => {
-    game();
+    Game(coordinate);
   }, []);
 
   return (
