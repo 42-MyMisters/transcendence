@@ -1,4 +1,7 @@
-import { atom } from "jotai";
+import { atom, createStore } from "jotai";
+// import type * as DTO from '../../socket/game.dto';
+
+export const isQueueAtom = atom<boolean>(false);
 
 export interface GameCoordinate {
   leftY: number;

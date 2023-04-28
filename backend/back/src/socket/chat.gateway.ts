@@ -1,9 +1,18 @@
-import { Logger, UnauthorizedException } from '@nestjs/common';
-import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import { Namespace, Socket } from 'socket.io';
-import { AuthService } from 'src/auth/auth.service';
-import { User } from 'src/database/entity/user.entity';
-import { UserService } from 'src/user/user.service';
+import { Logger, UnauthorizedException } from "@nestjs/common";
+import {
+  ConnectedSocket,
+  MessageBody,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  OnGatewayInit,
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
+} from "@nestjs/websockets";
+import { Namespace, Socket } from "socket.io";
+import { AuthService } from "src/auth/auth.service";
+import { User } from "src/database/entity/user.entity";
+import { UserService } from "src/user/user.service";
 
 interface MessagePayload {
   roomName: string;
@@ -68,46 +77,38 @@ const userRecord: Record<number, SocketInfo> = {};
 const createdRooms: Record<string, User[]> = {};
 const roomList: Record<number, RoomInfo> = {};
 
-@WebSocketGateway({ namespace: 'sock', cors: { origin: '*' } })
-export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+@WebSocketGateway({ namespace: "sock", cors: { origin: "*" } })
+export class EventsGateway
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private userService: UserService,
-    private authService: AuthService,
+    private authService: AuthService
   ) { }
 
-  private logger = new Logger('Gateway');
+  private logger = new Logger("Gateway");
 
   @WebSocketServer()
   nsp: Namespace;
 
   afterInit() {
-    this.nsp.adapter.on('delete-room', (room) => {
-      const deletedRoom = Object.keys(createdRooms).find(
-        (createdRoom) => createdRoom === room,
-      );
-      if (!deletedRoom) return;
-
-
-      this.nsp.emit('delete-room', deletedRoom);
-      if (createdRooms[deletedRoom] !== undefined) {
-        delete createdRooms[deletedRoom];
-      }
-    });
-
-    this.logger.log('socket initialized');
+    this.nsp.emit("room-clear");
+    this.logger.log("socket initialized");
   }
-
 
   async handleConnection(@ConnectedSocket() socket: Socket) {
     try {
-      this.logger.log(`${socket.id} socket connected.`);
-      const uid = await this.authService.jwtVerify(socket.handshake.auth.token)
+      this.logger.log(`\n\n${socket.id} socket connected.`);
+      const uid = await this.authService.jwtVerify(socket.handshake.auth.token);
       const user = await this.userService.getUserByUid(uid);
       if (this.userService.isUserExist(user)) {
         socket.data.user = user;
-        console.log(`user: ${userRecord[uid]}`)
+        console.log(`user: ${userRecord[uid]}`);
         if (userRecord[uid] === undefined) {
-          userRecord[uid] = { socket: socket, status: 1, blockedUsers: [] }
+          userRecord[uid] = {
+            socket: socket,
+            status: 1,
+            blockedUsers: [],
+          };
           // userRecord[uid] = { socket:socket, status: 1, blockedUsers:user.blockedUsers.map(blockedUsers => blockedUsers.targetToBlockId) }
           this.logger.log(`${socket.data.user.nickname} connected.`);
         }
@@ -124,24 +125,31 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
     this.logger.log(`${socket.id} socket disconnected`);
   }
 
-  @SubscribeMessage('message')
+  @SubscribeMessage("test")
+  handleTest(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() { message }: { message: string }
+  ) {
+    console.log(`fromClient: ${message}`);
+    return { fromServer: message };
+  }
+
+  @SubscribeMessage("message")
   handleMessage(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() { roomName, content }: MessagePayload,
+    @MessageBody() { roomName, content }: MessagePayload
   ) {
-    socket.broadcast
-      .to(roomName)
-      .emit('message', content);
+    socket.broadcast.to(roomName).emit("message", content);
 
     return { roomName, content };
   }
 
-  @SubscribeMessage('room-list')
+  @SubscribeMessage("room-list")
   handleRoomList() {
     return Object.keys(createdRooms);
   }
 
-  @SubscribeMessage('room-create')
+  @SubscribeMessage("room-create")
   handleCreateRoom(
     @ConnectedSocket() socket: Socket,
     @MessageBody()
@@ -149,47 +157,46 @@ export class EventsGateway implements OnGatewayInit, OnGatewayConnection, OnGate
       roomName,
       roomType,
       roomPass,
-    }: { roomName: string; roomType?: boolean; roomPass?: string },
+    }: { roomName: string; roomType?: boolean; roomPass?: string }
   ) {
-    console.log(`roomName: ${roomName}, roomType: ${roomType}, roomPass: ${roomPass}`);
+    console.log(
+      `roomName: ${roomName}, roomType: ${roomType}, roomPass: ${roomPass}`
+    );
     const exists = createdRooms[roomName];
     if (exists !== undefined) {
       console.log(`${roomName} room is already created.`);
-      return { status: 'ko', payload: `${roomName} room is already created.` };
+      return { status: "ko", payload: `${roomName} room is already created.` };
     }
-
 
     socket.join(roomName);
     createdRooms[roomName] = [socket.data.user];
     // this.nsp.emit('create-room', roomName);
     console.log(`${roomName} room is created.`);
 
-
-
-    return { status: 'ok', payload: roomName };
+    return { status: "ok", payload: roomName };
   }
 
-  @SubscribeMessage('join-room')
+  @SubscribeMessage("join-room")
   handleJoinRoom(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() roomName: string,
+    @MessageBody() roomName: string
   ) {
     socket.join(roomName); // join room
     socket.broadcast
       .to(roomName)
-      .emit('message', { message: `${socket.id} is entered.` });
+      .emit("message", { message: `${socket.id} is entered.` });
 
     return { success: true };
   }
 
-  @SubscribeMessage('leave-room')
+  @SubscribeMessage("leave-room")
   handleLeaveRoom(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() roomName: string,
+    @MessageBody() roomName: string
   ) {
     socket.broadcast
       .to(roomName)
-      .emit('message', { message: `${socket.id} is left.` });
+      .emit("message", { message: `${socket.id} is left.` });
     socket.leave(roomName); // leave room
 
     return { success: true };

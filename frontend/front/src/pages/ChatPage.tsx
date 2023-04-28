@@ -6,10 +6,7 @@ import ChatArea from "../components/ChatPage/ChatArea";
 import ChatRoomUserList from "../components/ChatPage/ChatRoomUserList";
 
 import { useAtom } from "jotai";
-import { userInfoModalAtom } from "../components/atom/ModalAtom";
-import { inviteModalAtom } from "../components/atom/ModalAtom";
-import { roomModalAtom } from "../components/atom/ModalAtom";
-import { passwordInputModalAtom } from "../components/atom/ModalAtom";
+import { userInfoModalAtom, passwordInputModalAtom, roomModalAtom, inviteModalAtom } from "../components/atom/ModalAtom";
 
 import UserInfoModal from "../components/ChatPage/UserInfoModal";
 import RoomModal from "../components/ChatPage/RoomModal";
@@ -19,9 +16,9 @@ import PasswordModal from "../components/ChatPage/PasswordModal";
 import { UserAtom } from "../components/atom/UserAtom";
 import { useEffect, useState } from "react";
 
-import * as socket from "../socket/socket";
+import * as socket from "../socket/chat.socket";
 import * as chatAtom from "../components/atom/SocketAtom";
-import type * as chatType from "../socket/chatting.dto";
+import type * as chatType from "../socket/chat.dto";
 
 export default function ChatPage() {
   const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
@@ -51,6 +48,7 @@ export default function ChatPage() {
       })
       .catch((error) => {
         console.log(`error: ${error}`);
+        //TODO : add refresh token
       });
   };
 
@@ -63,15 +61,18 @@ export default function ChatPage() {
   const getFollowingList = () => {
     console.log(`getFollowingList ${JSON.stringify(followingList)}}`);
   };
+  const emitTester = () => {
+    socket.emitTest("hello")
+  };
 
   if (isFirstLogin) {
     getMyInfo();
     socket.OnSocketChatEvent();
-    socket.emitFollowingList({ setFollowingList });
-    // init data request
-    // socket.emitUserBlockList();
-    // socket.emitDmHistoryList();
-    // socket.emitRoomList();
+    socket.emitUserBlockList({ userBlockList, setUserBlockList });
+    socket.emitFollowingList({ userList, setUserList, followingList, setFollowingList });
+    socket.emitDmHistoryList({ userList, setUserList, dmHistoryList, setDmHistoryList });
+    socket.emitUserList({ userList, setUserList });
+    socket.emitRoomList({ setRoomList });
     setIsFirstLogin(false);
   }
 
@@ -81,6 +82,7 @@ export default function ChatPage() {
       <button onClick={getRoomList}> roomList</button>
       <button onClick={getUserList}> userList</button>
       <button onClick={getFollowingList}> FollowList</button>
+      <button onClick={emitTester}> emitTest</button>
       <TopBar />
       {userInfoModal ? <UserInfoModal /> : null}
       {roomModal ? <RoomModal /> : null}

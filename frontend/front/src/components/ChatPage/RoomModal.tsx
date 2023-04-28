@@ -6,7 +6,7 @@ import "../../styles/RoomModal.css";
 
 import { useState } from 'react';
 import * as chatAtom from '../atom/SocketAtom';
-import * as socket from "../../socket/socket";
+import * as socket from "../../socket/chat.socket";
 
 export default function RoomModal() {
   const [, setRoomModal] = useAtom(roomModalAtom);

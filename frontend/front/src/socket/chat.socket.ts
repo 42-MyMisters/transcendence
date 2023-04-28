@@ -2,7 +2,7 @@ import { io } from 'socket.io-client';
 import { useAtom } from "jotai";
 import * as chatAtom from '../components/atom/SocketAtom';
 import * as userAtom from '../components/atom/UserAtom';
-import type * as chatType from '../socket/chatting.dto';
+import type * as chatType from './chat.dto';
 
 const URL = "http://localhost:4000";
 const NameSpace = "/sock";
@@ -79,7 +79,7 @@ export function OnSocketChatEvent() {
     roomName,
     roomType,
   }: {
-    action: 'add' | 'delete';
+    action: 'add' | 'delete' | 'edit';
     roomId: number;
     roomName: string;
     roomType: 'open' | 'protected' | 'private';
@@ -101,7 +101,23 @@ export function OnSocketChatEvent() {
         setRoomList({ ...newRoomList });
         break;
       }
+      case 'edit': {
+        const newRoomList: chatType.roomListDto = {};
+        newRoomList[roomId] = {
+          roomName,
+          roomType,
+          isJoined: roomList[roomId].isJoined,
+          detail: roomList[roomId].detail
+        };
+        setRoomList({ ...roomList, ...newRoomList });
+        break;
+      }
     }
+  });
+
+  socket.on("room-clear", () => {
+    setRoomList({});
+    setFocusRoom(-1);
   });
 
   socket.on("room-join", ({
@@ -431,6 +447,41 @@ export function emitRoomInAction(
   });
 }
 
+export function emitRoomPasswordEdit(
+  {
+    roomList,
+    setRoomList,
+  }: {
+    roomList: chatType.roomListDto,
+    setRoomList: React.Dispatch<React.SetStateAction<chatType.roomListDto>>,
+  },
+  roomId: number,
+  password: string
+) {
+  socket.emit("room-password-edit", {
+    roomId,
+    password,
+  }, ({
+    status,
+    payload,
+  }: {
+    status: 'ok' | 'ko',
+    payload?: string,
+  }) => {
+    switch (status) {
+      case 'ok': {
+        console.log(`room password edit - OK`);
+        break;
+      }
+      case 'ko': {
+        console.log(`room password edit - KO`);
+        alert(`Room Password Edit is faild: ${payload}`);
+        break;
+      }
+    }
+  });
+}
+
 export function emitUserBlock(
   {
     userBlockList,
@@ -505,36 +556,50 @@ export function emitUserInvite(
     }
   });
 }
-
+export function emitTest(
+  message: string,
+) {
+  console.log(`emit test: ${message}`);
+  socket.emit("test", {
+    message
+  }, ({
+    fromServer
+  }: {
+    fromServer: string
+  }) => {
+    alert(`fromServer: ${fromServer}`);
+  });
+  return undefined
+}
 export function emitUserList(
   {
+    userList,
     setUserList
   }: {
+    userList: chatType.userDto,
     setUserList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
   },
-  userId: number,
 ) {
   socket.emit("user-list", {
-    userId
   }, ({
-    userList,
+    userListFromServer,
   }: {
-    userList: chatType.userDto,
+    userListFromServer: chatType.userDto,
   }) => {
-    setUserList({ ...userList })
+    setUserList({ ...userList, ...userListFromServer })
   });
 }
 
 export function emitUserBlockList(
   {
+    userBlockList,
     setUserBlockList
   }: {
+    userBlockList: chatType.userSimpleDto,
     setUserBlockList: React.Dispatch<React.SetStateAction<chatType.userSimpleDto>>,
   },
-  userId: number
 ) {
   socket.emit("user-block-list", {
-    userId
   }, ({
     userList,
   }: {
@@ -546,14 +611,18 @@ export function emitUserBlockList(
 
 export function emitDmHistoryList(
   {
+    userList,
+    setUserList,
+    dmHistoryList,
     setDmHistoryList
   }: {
+    userList: chatType.userDto,
+    setUserList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
+    dmHistoryList: chatType.userDto,
     setDmHistoryList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
   },
-  userId: number
 ) {
   socket.emit("dm-history-list", {
-    userId
   }, ({
     userList,
   }: {
@@ -565,8 +634,14 @@ export function emitDmHistoryList(
 
 export function emitFollowingList(
   {
+    userList,
+    setUserList,
+    followingList,
     setFollowingList
   }: {
+    userList: chatType.userDto,
+    setUserList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
+    followingList: chatType.userDto,
     setFollowingList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
   }) {
   console.log('emit following list');
@@ -577,8 +652,27 @@ export function emitFollowingList(
     .then((response) => response.json())
     .then((response) => {
       console.log(response);
-    }).catch((error) => {
-      console.log(`error: ${error}`);
+      let tempFollowingList: chatType.userDto = {};
+      response.map((
+        user: {
+          uid: number,
+          nickname: string,
+          profileUrl: string,
+        }) => {
+        if (followingList[user.uid] === undefined) {
+          tempFollowingList[user.uid] = {
+            userDisplayName: user.nickname,
+            userProfileUrl: user.profileUrl,
+            userStatus: 'offline'
+          }
+          setFollowingList({ ...followingList, ...tempFollowingList });
+        }
+        setUserList({ ...followingList, ...userList })
+        return undefined
+      });
+    })
+    .catch((error) => {
+      // refersh token and retry
     });
   return undefined
 }

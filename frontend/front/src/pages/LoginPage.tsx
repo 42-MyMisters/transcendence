@@ -15,7 +15,7 @@ import { TFAEnabledAtom } from "../components/atom/LoginAtom";
 import ChatPage from "./ChatPage";
 import { useNavigate } from "react-router-dom";
 
-import * as socket from "../socket/socket";
+import * as socket from "../socket/chat.socket";
 import { hasLoginAtom } from '../components/atom/SocketAtom';
 
 export default function LoginPage() {
