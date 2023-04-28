@@ -90,7 +90,7 @@ export const UserAtom = atom<UserType>({
       followings: ["yotak"],
     },
     {
-      uid: 0,
+      uid: 1,
       nickname: "yotak",
       profileUrl: "/smile.png",
       status: "ingame",

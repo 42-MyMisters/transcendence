@@ -14,67 +14,29 @@ import { AuthService } from "src/auth/auth.service";
 import { User } from "src/database/entity/user.entity";
 import { UserService } from "src/user/user.service";
 
-interface MessagePayload {
-  roomName: string;
-  content: Message;
-}
-
-interface Message {
-  username: string;
-  message: string;
-}
-
-interface SocketInfo {
+interface UserInfo {
   socket: Socket;
-  status: number;
+  status: 'online' | 'offline' | 'inGame';
   blockedUsers: number[];
 }
 
 interface RoomMember {
-  // uid: number;
-  user: User;
-  nickname: string;
-  userRoomStatus: string; // 'normal' | 'mute' | 'ban' | 'kick'
-  userRoomPower: string; // 'owner' | 'admin' | 'member'
-}
-// userStatus: string; // 'offline' | 'online' | 'inGame'
-// roomList?: number[];
-
-interface RoomTitlePayload {
-  // roomNumber: number;
-  roomName: string;
-  roomType: string;
+  userRoomStatus: 'normal' | 'mute' | 'ban' | 'kick';
+  userRoomPower: 'owner' | 'admin' | 'member';
 }
 
 interface RoomInfo {
   roomNumber: number;
   roomName: string;
-  roomType: string;
-  roomMembers: RoomMember[];
+  roomType: 'open' | 'protected' | 'private';
+  roomMembers: Record<number, RoomMember>;
   roomOwner: number;
   roomAdmins: number[];
-  bannedUsers?: number[];
+  bannedUsers: number[];
   roomPass?: string;
 }
 
-interface RoomListPayload {
-  roomName: string;
-  roomType: string;
-}
-
-interface RoomPayload {
-  status: string;
-  reason: string;
-}
-
-interface ChatRoomUpdatePayload {
-  action: string;
-  roomInfo: RoomInfo;
-}
-
-// TODO : Redis?
-const userRecord: Record<number, SocketInfo> = {};
-const createdRooms: Record<string, User[]> = {};
+const userList: Record<number, UserInfo> = {};
 const roomList: Record<number, RoomInfo> = {};
 
 @WebSocketGateway({ namespace: "sock", cors: { origin: "*" } })
@@ -102,14 +64,13 @@ export class EventsGateway
       const user = await this.userService.getUserByUid(uid);
       if (this.userService.isUserExist(user)) {
         socket.data.user = user;
-        console.log(`user: ${userRecord[uid]}`);
-        if (userRecord[uid] === undefined) {
-          userRecord[uid] = {
+        console.log(`user: ${userList[uid]}`);
+        if (userList[uid] === undefined) {
+          userList[uid] = {
             socket: socket,
-            status: 1,
-            blockedUsers: [],
+            status: 'online',
+            blockedUsers: user.blockedUsers.map(blockedUsers => blockedUsers.targetToBlockId),
           };
-          // userRecord[uid] = { socket:socket, status: 1, blockedUsers:user.blockedUsers.map(blockedUsers => blockedUsers.targetToBlockId) }
           this.logger.log(`${socket.data.user.nickname} connected.`);
         }
       } else {

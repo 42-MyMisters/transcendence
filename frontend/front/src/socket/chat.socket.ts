@@ -323,10 +323,12 @@ export function emitRoomList(
   }: {
     roomList: chatType.roomListDto;
   }) => {
-    Object.entries(roomList).forEach(([key, value]) => {
-      value.isJoined = false;
-    });
-    setRoomList({ ...roomList });
+    if (roomList !== undefined && roomList !== null) {
+      Object.entries(roomList).forEach(([key, value]) => {
+        value.isJoined = false;
+      });
+      setRoomList({ ...roomList });
+    }
   });
 }
 

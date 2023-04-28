@@ -14,6 +14,7 @@ import RoomInviteModal from "../components/ChatPage/RoomInviteModal";
 import PasswordModal from "../components/ChatPage/PasswordModal";
 
 import { UserAtom } from "../components/atom/UserAtom";
+import type * as userType from "../components/atom/UserAtom";
 import { useEffect, useState } from "react";
 
 import * as socket from "../socket/chat.socket";
@@ -44,11 +45,12 @@ export default function ChatPage() {
       .then((response) => response.json())
       .then((response) => {
         console.log(response);
+        let tempUser: userType.UserType = { ...userInfo };
+        tempUser.nickname = response.nickname.slipt('#')[0];
         setUserInfo(response);
       })
       .catch((error) => {
         console.log(`error: ${error}`);
-        //TODO : add refresh token
       });
   };
 
