@@ -27,8 +27,10 @@ export default function ChangeNameModal() {
       body: format,
     })
       .then((response) => {
+        let tmp = userInfo;
+        tmp.nickname = newName;
+        setUserInfo(tmp);
         console.log(response);
-        userInfo.nickname = newName;
         setchangeNameModal(false);
       })
       .catch((error) => {
