@@ -6,10 +6,7 @@ import ChatArea from "../components/ChatPage/ChatArea";
 import ChatRoomUserList from "../components/ChatPage/ChatRoomUserList";
 
 import { useAtom } from "jotai";
-import { userInfoModalAtom } from "../components/atom/ModalAtom";
-import { inviteModalAtom } from "../components/atom/ModalAtom";
-import { roomModalAtom } from "../components/atom/ModalAtom";
-import { passwordInputModalAtom } from "../components/atom/ModalAtom";
+import { userInfoModalAtom, passwordInputModalAtom, roomModalAtom, inviteModalAtom } from "../components/atom/ModalAtom";
 
 import UserInfoModal from "../components/ChatPage/UserInfoModal";
 import RoomModal from "../components/ChatPage/RoomModal";
@@ -71,10 +68,10 @@ export default function ChatPage() {
   if (isFirstLogin) {
     getMyInfo();
     socket.OnSocketChatEvent();
-    socket.emitFollowingList({ followingList, setFollowingList });
-    socket.emitUserBlockList({ userBlockList, setUserBlockList }, userInfo.uid);
-    socket.emitDmHistoryList({ dmHistoryList, setDmHistoryList }, userInfo.uid);
-    socket.emitUserList({ setUserList }, userInfo.uid);
+    socket.emitUserBlockList({ userBlockList, setUserBlockList });
+    socket.emitFollowingList({ userList, setUserList, followingList, setFollowingList });
+    socket.emitDmHistoryList({ userList, setUserList, dmHistoryList, setDmHistoryList });
+    socket.emitUserList({ userList, setUserList });
     socket.emitRoomList({ setRoomList });
     setIsFirstLogin(false);
   }

@@ -573,20 +573,20 @@ export function emitTest(
 }
 export function emitUserList(
   {
+    userList,
     setUserList
   }: {
+    userList: chatType.userDto,
     setUserList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
   },
-  userId: number,
 ) {
   socket.emit("user-list", {
-    userId
   }, ({
-    userList,
+    userListFromServer,
   }: {
-    userList: chatType.userDto,
+    userListFromServer: chatType.userDto,
   }) => {
-    setUserList({ ...userList })
+    setUserList({ ...userList, ...userListFromServer })
   });
 }
 
@@ -598,10 +598,8 @@ export function emitUserBlockList(
     userBlockList: chatType.userSimpleDto,
     setUserBlockList: React.Dispatch<React.SetStateAction<chatType.userSimpleDto>>,
   },
-  userId: number
 ) {
   socket.emit("user-block-list", {
-    userId
   }, ({
     userList,
   }: {
@@ -613,16 +611,18 @@ export function emitUserBlockList(
 
 export function emitDmHistoryList(
   {
+    userList,
+    setUserList,
     dmHistoryList,
     setDmHistoryList
   }: {
+    userList: chatType.userDto,
+    setUserList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
     dmHistoryList: chatType.userDto,
     setDmHistoryList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
   },
-  userId: number
 ) {
   socket.emit("dm-history-list", {
-    userId
   }, ({
     userList,
   }: {
@@ -634,9 +634,13 @@ export function emitDmHistoryList(
 
 export function emitFollowingList(
   {
+    userList,
+    setUserList,
     followingList,
     setFollowingList
   }: {
+    userList: chatType.userDto,
+    setUserList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
     followingList: chatType.userDto,
     setFollowingList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
   }) {
@@ -663,10 +667,12 @@ export function emitFollowingList(
           }
           setFollowingList({ ...followingList, ...tempFollowingList });
         }
+        setUserList({ ...followingList, ...userList })
         return undefined
       });
     })
     .catch((error) => {
+      // refersh token and retry
     });
   return undefined
 }

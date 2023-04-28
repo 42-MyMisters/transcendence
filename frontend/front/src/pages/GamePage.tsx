@@ -16,7 +16,6 @@ export default function GamePage() {
 
   if (isQueue === false) {
     console.log("gameSocket connect");
-    alert("gamSocket connect");
     gameSocket.gameSocket.connect();
     setIsQueue(true);
   }
