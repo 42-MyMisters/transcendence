@@ -1,0 +1,68 @@
+.ChangeImageModalBG {
+  position: absolute;
+
+  width: 1440px;
+  height: 1024px;
+
+  z-index: 998;
+  background-color: #ffffff;
+  opacity: 0.5;
+}
+
+.ChangeImageModal {
+  position: absolute;
+
+  height: 220px;
+  width: 460px;
+  left: 490px;
+  top: 432px;
+
+  z-index: 999;
+  background: #959595;
+}
+
+.ChangeImageForm label {
+  position: absolute;
+
+  height: 50px;
+  width: 200px;
+  left: 30px;
+  top: 30px;
+
+  font-size: 30px;
+}
+
+.ChangeImageForm input {
+  position: absolute;
+
+  height: 50px;
+  width: 400px;
+  left: 30px;
+  top: 80px;
+
+  font-size: 30px;
+}
+
+.ChangeImage {
+  position: absolute;
+
+  height: 50px;
+  width: 180px;
+  left: 30px;
+  top: 150px;
+
+  font-size: 30px;
+  text-align: center;
+}
+
+.ChangeImageCancel {
+  position: absolute;
+
+  height: 50px;
+  width: 180px;
+  left: 250px;
+  top: 150px;
+
+  font-size: 30px;
+  text-align: center;
+}

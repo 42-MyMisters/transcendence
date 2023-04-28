@@ -6,7 +6,6 @@ import { useState } from "react";
 
 import { PressKey } from "../../event/pressKey";
 import "../../styles/ProfileModal.css";
-import { error } from "console";
 
 export default function ChangeNameModal() {
   const [changeNameModal, setchangeNameModal] = useAtom(changeNameModalAtom);
@@ -18,6 +17,10 @@ export default function ChangeNameModal() {
   });
 
   const handleChangeName = () => {
+    if (newName.length < 2 || newName.trim().length < 2) {
+      setNewName("");
+      return;
+    }
     const format = JSON.stringify({ nickname: newName });
     console.log(format);
     fetch("http://localhost:4000/user/nickname", {
@@ -47,6 +50,9 @@ export default function ChangeNameModal() {
           <input
             id="SaveName"
             type="text"
+            // pattern=".{1, 8}"
+            // required
+            // title="1 to 8 characters"
             maxLength={8}
             value={newName}
             onChange={(e) => {
