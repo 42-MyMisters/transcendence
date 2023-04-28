@@ -66,26 +66,29 @@ export class LoginController {
 		const userData = await this.authService.intraSignIn(code);
 		const user = await this.userService.getUserByIntraDto(userData);
 
-		const { access_token, refresh_token } = await this.authService.login(user);
-		await this.userService.setUserRefreshToken(user, refresh_token);
+		const tokenSet = await this.authService.login(user);
+		await this.userService.setUserRefreshToken(user, tokenSet.refresh_token);
 
-		res.cookie('accessToken', access_token,
+		res.cookie('accessToken', tokenSet.access_token,
 			{
 				httpOnly: true,
 				sameSite: 'strict',
 				// secure: true //only https option
 			});
-		res.cookie('refreshToken', refresh_token);
+		res.cookie('refreshToken', tokenSet.refresh_token);
 		return res.redirect('http://localhost:3000/');
 	}
 
-	// For Test
-	@Get('/logout')
-	@UseGuards(Jwt2faAuthGuard)
-	async red(@Req() request){
-		await this.logout(request);
-	}
 
+
+	@swagger.ApiQuery({
+		description: '로그아웃 ',
+		required: true,
+	})
+	@swagger.ApiOperation({
+		summary: '로그아웃 요청 처리',
+		description: 'AccessToken 제거, Refresh 토큰 제거(만료)',
+	})
 	@Post('/signout')
 	@UseGuards(Jwt2faAuthGuard)
 	async logout(@Req() request) {
@@ -126,33 +129,7 @@ export class LoginController {
 		return await this.authService.refreshAccessToken(refresh_token, user);
 	}
 
-	// login with email & password.
-	@Post('/email')
-	@UseGuards(LocalAuthGuard)
-	loginWithEmail(@Req() request) {
-		if (request.user.twoFactorEnabled) {
-			throw new UnauthorizedException('2fa required.');
-		}
-		return this.authService.genAccessToken(request.user, false);
-	}
-
-
-	@Post('/2fa/toggle/confirm')
-	@UseGuards(JwtAuthGuard)
-	async authConfirm(@Req() request, @Body() body) {
-		Logger.log('2fa toggle confirm');
-		const isCodeValid = await this.authService.isTwoFactorCodeValid(
-			body.twoFactorCode,
-			request.user,
-		);
-		if (!isCodeValid) {
-			Logger.log('2fa confirmation failed. try again.');
-			throw new UnauthorizedException('Wrong authentication code');
-		}
-		await this.userService.setUserTwoFactorEnabled(request.user, true);
-		return await this.authService.loginWith2fa(request.user);
-	}
-
+	
 	// /2fa/auth will return new accessToken.
 	@Post('/2fa/auth')
 	@UseGuards(JwtAuthGuard)
@@ -167,20 +144,24 @@ export class LoginController {
 		}
 		const tokens = await this.authService.loginWith2fa(request.user);
 		request.cookie('accessToken', tokens.accessToken,
-			{
-				httpOnly: true,
-				sameSite: 'strict',
-				// secure: true //only https option
-			}
+		{
+			httpOnly: true,
+			sameSite: 'strict',
+			// secure: true //only https option
+		}
 		);
 		await this.userService.setUserRefreshToken(request.user, tokens.refreshToken);
 	}
-
-	@Post('/myProfile')
-	@UseGuards(Jwt2faAuthGuard)
-	async showMyUserProfile(){
+	
+	// login with email & password.
+	@Post('/email')
+	@UseGuards(LocalAuthGuard)
+	loginWithEmail(@Req() request) {
+		if (request.user.twoFactorEnabled) {
+			throw new UnauthorizedException('2fa required.');
+		}
+		return this.authService.genAccessToken(request.user, false);
 	}
-
 	//For Debug Controller
 	@Post('/test')
 	@UseGuards(Jwt2faAuthGuard)
@@ -194,6 +175,14 @@ export class LoginController {
 		console.log(request);
 		return this.userService.showUsers();
 	}
+
+	// For Test
+	@Get('/logout')
+	@UseGuards(Jwt2faAuthGuard)
+	async red(@Req() request){
+		await this.logout(request);
+	}
+	
 
 }
 	
