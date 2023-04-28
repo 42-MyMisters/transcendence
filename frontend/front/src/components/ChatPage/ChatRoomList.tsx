@@ -25,9 +25,9 @@ export default function ChatRoomList() {
         {Object.entries(roomList).map((key) => (
           <ChatRoom
             key={Number(key[0])}
-            roomName={roomList[Number(key[0])].roomName}
-            type={roomList[Number(key[0])].roomType}
-            isJoin={roomList[Number(key[0])].isJoined || false}
+            roomName={roomList[Number(key[0])]?.roomName}
+            type={roomList[Number(key[0])]?.roomType}
+            isJoin={roomList[Number(key[0])]?.isJoined || false}
           /> // TODO: need to implement callback onClick
         ))}
         {/* onClick={() => setPasswordModal(true)} */}

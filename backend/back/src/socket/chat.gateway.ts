@@ -77,23 +77,28 @@ export class EventsGateway
 
 	async handleConnection(@ConnectedSocket() socket: Socket) {
 		try {
-			this.logger.log(`\n\n${socket.id} socket connected.`);
+			this.logger.log(`${socket.id} socket connected.`);
 			const uid = await this.authService.jwtVerify(socket.handshake.auth.token);
 			const user = await this.userService.getUserByUid(uid);
 			if (this.userService.isUserExist(user)) {
 				socket.data.user = user;
+				socket.data.roomList = [];
 				if (userList[uid] === undefined) {
 					userList[uid] = {
 						socket: socket,
 						status: 'online',
-						blockedUsers: []
+						blockedUsers: [],
 					};
 					try { // TODO: check
 						console.log(user?.blockedUsers.map((blockedUsers) => blockedUsers.targetToBlockId));
 					} catch (e) {
 						console.log("blockedUsers is undefined");
 					}
-					this.logger.log(`${socket.data.user.nickname} connected.`);
+					this.logger.log(`${socket.data.user.nickname} first connected.`);
+					this.EmitUserUpdate(socket);
+				} else {
+					userList[socket.data.user.uid].status = 'online';
+					this.logger.log(`${socket.data.user.nickname} refreshed.`);
 				}
 			} else {
 				throw new UnauthorizedException("User not found.");
@@ -106,6 +111,24 @@ export class EventsGateway
 
 	handleDisconnect(@ConnectedSocket() socket: Socket) {
 		this.logger.log(`${socket.id} socket disconnected`);
+		this.logger.log(`${socket.data.roomList}`);
+		console.log('disconnected');
+		userList[socket.data.user.uid].status = 'offline';
+		this.EmitUserUpdate(socket);
+		socket.data.roomList.map((roomNumber: number) => {
+			let roomMemberCount = 0;
+			Object.entries(roomList[roomNumber].roomMembers).forEach(() => {
+				roomMemberCount++;
+				if (roomMemberCount === 1) {
+					this.EmitRoomListNotify(socket, { action: 'delete', roomName: roomList[roomNumber].roomName, roomId: roomNumber, roomType: roomList[roomNumber].roomType });
+					delete roomList[roomNumber];
+				} else {
+					this.EmitRoomInAction(socket, { roomId: roomNumber, action: 'leave', targetId: socket.data.user.uid });
+					delete roomList[roomNumber].roomMembers[socket.data.user.uid];
+				}
+			});
+		});
+		// delete userList[socket.data.user.uid];
 	}
 
 	@SubscribeMessage("test")
@@ -147,13 +170,13 @@ export class EventsGateway
 				roomPass: roomPass, // TODO : 암호화
 			}
 			roomList[ROOM_NUMBER] = newRoom;
+			socket.data.roomList.push(ROOM_NUMBER);
 			socket.join(ROOM_NUMBER.toString());
 			if (roomType !== 'private') {
 				this.EmitRoomListNotify(socket, { action: 'add', roomId: ROOM_NUMBER, roomName: trimmedRoomName, roomType });
 			}
 			this.EmitRoomJoin(socket, { roomId: ROOM_NUMBER, roomName: trimmedRoomName, roomType, roomMembers, myPower: 'owner', status: 'ok' });
 			ROOM_NUMBER++;
-			console.log(roomList);
 		} else {
 			return { status: 'ko' };
 		}
@@ -175,7 +198,8 @@ export class EventsGateway
 	}
 
 	@SubscribeMessage("user-list")
-	handleUserList(@ConnectedSocket() socket: Socket) {
+	// handleUserList(@ConnectedSocket() socket: Socket) {
+	handleUserList() {
 		const tempUserList: Record<number, ClientUserDto> = {};
 		for (const [uid, userInfo] of Object.entries(userList)) {
 			tempUserList[uid] = {
@@ -185,6 +209,23 @@ export class EventsGateway
 			};
 		}
 		return { userListFromServer: tempUserList };
+	}
+
+	@SubscribeMessage("message")
+	handleMessage(
+		@ConnectedSocket() socket: Socket,
+		@MessageBody() {
+			roomId,
+			message
+		}: {
+			roomId: number,
+			message: string
+		}) {
+		if (roomList[roomId] === undefined) {
+			return { status: 'ko' };
+		}
+		this.EmitMessage(socket, { roomId, message });
+		return { status: 'ok' };
 	}
 
 	EmitRoomJoin(socket: Socket, {
@@ -219,12 +260,35 @@ export class EventsGateway
 		})
 	}
 
+	EmitRoomInAction(socket: Socket, {
+		roomId,
+		action,
+		targetId
+	}) {
+		this.nsp.to(roomId.toString()).emit("room-in-action", {
+			roomId,
+			action,
+			targetId,
+		});
+	}
+
 	EmitUserUpdate(socket: Socket) {
 		socket.broadcast.emit("user-update", {
 			userId: socket.data.user.uid,
 			userDisplayName: socket.data.user.nickname.split('#', 2)[0],
 			userProfileUrl: socket.data.user.profileUrl,
 			userStatus: userList[socket.data.user.uid].status,
+		});
+	}
+
+	EmitMessage(socket: Socket, {
+		roomId,
+		message,
+	}) {
+		socket.to(String(roomId)).emit("message", {
+			roomId,
+			from: socket.data.user.uid,
+			message,
 		});
 	}
 
