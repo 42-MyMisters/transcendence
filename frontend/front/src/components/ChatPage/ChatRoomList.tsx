@@ -27,11 +27,12 @@ export default function ChatRoomList() {
             key={Number(key[0])}
             roomName={roomList[Number(key[0])].roomName}
             type={roomList[Number(key[0])].roomType}
+            isJoin={roomList[Number(key[0])].isJoined || false}
           /> // TODO: need to implement callback onClick
         ))}
         {/* onClick={() => setPasswordModal(true)} */}
-        <ChatRoom roomName="room1" type="Protected"></ChatRoom>
-        <ChatRoom roomName="room2" type="Private"></ChatRoom>
+        <ChatRoom roomName="room1" type="protected" isJoin={false} ></ChatRoom>
+        <ChatRoom roomName="room2" type="private" isJoin={false}></ChatRoom>
       </div>
     </div>
   );

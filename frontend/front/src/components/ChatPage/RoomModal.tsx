@@ -34,11 +34,11 @@ export default function RoomModal() {
         </div>
         <div className="RoomNameForm">
           <label htmlFor="RoomName">RoomName</label>
-          <input id="RoomName" type="text" placeholder="방 이름을 입력하세요." onChange={(e) => setRoomName(e.target.value)}></input>
+          <input id="RoomName" maxLength={12} minLength={1} type="text" placeholder="방 이름을 입력하세요." onChange={(e) => setRoomName(e.target.value)}></input>
         </div>
         <div className="PasswordFrom">
           <label htmlFor="Password">Password</label>
-          <input id="Password" type="password" placeholder="비밀 번호를 입력하세요." onChange={(e) => setRoomPass(e.target.value)}></input>
+          <input id="Password" maxLength={20} minLength={4} type="password" placeholder="비밀 번호를 입력하세요." onChange={(e) => setRoomPass(e.target.value)}></input>
         </div>
         <button className="Accept" onClick={acceptHandler}>Accept</button>
         {/* <button className="Accept" >Accept</button> */}

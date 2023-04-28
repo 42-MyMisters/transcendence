@@ -32,21 +32,24 @@ export default function ChatRoomUserList() {
 
   return (
     <div className="ChatRoomUserListBG">
-      <div className="ChatRoomNameTxt">RoomName</div>
+      <div className="ChatRoomNameTxt">
+        {
+          focusRoom === -1 ? '' : roomList[focusRoom]?.roomName
+        }
+      </div>
       <div className="ChatRoomSettingBtn" />
       <div className="ChatRoomInviteBtn" onClick={onClickInvite} />
       <div className="ChatRoomExitBtn" />
       <div className="ChatRoomUsers">
         {
           focusRoom === -1 ? null :
-            // Object.entries(inRoomUserList).map((key) => (
             Object.entries(roomList[focusRoom]?.detail?.userList!).map((key) => (
               <UserObj
                 key={Number(key[0])}
-                nickName={userList[Number(key[0])].userDisplayName}
-                profileImage={userList[Number(key[0])].userProfileUrl}
-                status={userList[Number(key[0])].userStatus}
-                power={key[1].userRoomPower}
+                nickName={userList[Number(key[0])]?.userDisplayName}
+                profileImage={userList[Number(key[0])]?.userProfileUrl}
+                status={userList[Number(key[0])]?.userStatus}
+                power={key[1]?.userRoomPower}
                 callBack={onClickInfo}
               />
             ))

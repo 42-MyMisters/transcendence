@@ -92,6 +92,10 @@ export function OnSocketChatEvent() {
           roomType,
           isJoined: false,
         };
+        console.log("room add");
+        console.log(newRoomList);
+        console.log("room list");
+        console.log(roomList);
         setRoomList({ ...roomList, ...newRoomList });
         break;
       }
@@ -674,7 +678,7 @@ export function emitFollowingList(
       });
     })
     .catch((error) => {
-      // refersh token and retry
+      // TODO: refersh token and retry
     });
   return undefined
 }
