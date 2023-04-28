@@ -1,4 +1,7 @@
+import { PressKey } from "../../event/pressKey";
+import { GameCoordinateAtom, GameCoordinate } from "../atom/GameAtom";
 import { me, opponent, net, ball, HEIGHT, WIDTH } from "./GameInfo";
+import { useAtom } from "jotai";
 
 function drawRect(
   x: number,
@@ -50,7 +53,7 @@ function drawNet(context: CanvasRenderingContext2D) {
   }
 }
 
-export function game() {
+export function Game(gameInfo: GameCoordinate) {
   const canvas = document.getElementById("pong") as HTMLCanvasElement;
   const context = canvas?.getContext("2d");
 
@@ -59,8 +62,8 @@ export function game() {
     //net
     drawNet(context);
     //bar
-    drawRect(me.x, me.y, me.width, me.height, me.color, context);
-    drawRect(opponent.x, opponent.y, opponent.width, opponent.height, opponent.color, context);
+    drawRect(me.x, gameInfo.leftY, me.width, me.height, me.color, context);
+    drawRect(opponent.x, gameInfo.rightY, opponent.width, opponent.height, opponent.color, context);
     //ball
     drawCircle(ball.x, ball.y, ball.radius, ball.color, context);
     //score
