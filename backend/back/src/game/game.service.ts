@@ -3,11 +3,15 @@ import { Socket } from 'socket.io';
 
 @Injectable()
 export class GameService {
-  private games = new Map<string, Game>();
+  private games: Map<string, Game>;
+  constructor(
+    ) {
+      this.games = new Map<string, Game>();
+  }
 
   createGame(gameId: string, p1: Socket, p2: Socket) {
     try{
-      this.games.set(gameId, new Game(gameId));
+      this.games.set(gameId, new Game(gameId, p1, p2));
     } catch (e) {
       return new InternalServerErrorException("Fail to create game.")
     }
@@ -23,17 +27,9 @@ export class GameService {
 }
 
 class Game {
-  // frame per sec
-  private fps = 41;
-  private canvasWidth = 600;
-  private canvasHeight = 400;
-  private ballRadius = 10;
-  private paddleHeight = 100;
-  private paddleWidth = 10;
-  private paddleSpeed = 10;
-  private ballSpeedX = 5;
-  private ballSpeedY = 0;
-  private id: string;
+  
+  private ballSpeedX: number;
+  private ballSpeedY: number;
   private ballX: number;
   private ballY: number;
   private paddle1Y: number;
@@ -41,35 +37,57 @@ class Game {
   private running: boolean;
   private round: number;
   private roundTime: number;
-  private p1Score: number;
-  private p2Score: number;
-  private score_max = 5;
-  private socket: Socket;
   private now: number;
   
-  constructor(id: string) {
-    this.id = id;
-    this.ballX = this.canvasWidth / 2;
-    this.ballY = this.canvasHeight / 2;
-    this.paddle1Y = this.canvasHeight / 2;
-    this.paddle2Y = this.canvasHeight / 2;
+  private p1Score: number;
+  private p2Score: number;
+  private p1KeyUp: boolean;
+  private p2KeyUp: boolean;
+  private p1KeyDown: boolean;
+  private p2KeyDown: boolean;
+  
+  constructor(
+    private readonly id: string,
+    private readonly p1: Socket,
+    private readonly p2: Socket,
+    // Fixed param set
+    private readonly fps = 41,
+    private readonly canvasWidth = 600,
+    private readonly canvasHeight = 400,
+    private readonly ballRadius = 10,
+    private readonly paddleHeight = 100,
+    private readonly paddleWidth = 5,
+    private readonly paddleSpeed = 0,
+    private readonly paddleSpeedMax = canvasHeight / 20,
+    private readonly maxScore = 5,
+    ) {
     this.running = true;
     // countdown time 3sec
-    this.roundTime = -3000;
     this.p1Score = 0;
     this.p2Score = 0;
     this.now = Date.now();
+    this.init();
   }
-
+  
   isRunning() {
     return this.running;
+  }
+  
+  init() {
+    this.ballX = this.canvasWidth / 2;
+    this.ballY = this.canvasHeight / 2;
+    this.ballSpeedX = this.canvasWidth / 80;
+    this.ballSpeedY = this.canvasHeight / 80;
+    this.paddle1Y = this.canvasHeight / 2;
+    this.paddle2Y = this.canvasHeight / 2;
+    this.roundTime = -3000;
   }
 
   gameStart() {
     this.now = Date.now();
     const interval = setInterval(() => {
       this.update();
-      if (this.isRunning() == false || this.round ) {
+      if (this.isRunning() == false) {
         // save data to db
         clearInterval(interval);
       }
@@ -77,18 +95,15 @@ class Game {
   }
 
   update() {
-    if (this.p1Score < this.score_max && this.p2Score < this.score_max) {
+    if (this.p1Score < this.maxScore && this.p2Score < this.maxScore) {
       // 3 sec count down.
       this.roundTime += this.fps;
       if (this.roundTime > 0 && this.isRunning() == true) {
         this.ballX += this.ballSpeedX;
         this.ballY += this.ballSpeedY;
         this.collisionCheck();
-        if (this.hitPaddleCheck() === 3) {
-          // startNewRound()
-        }
-        this.socket.to(this.id).emit('status', this.getState());
         console.log(`update: id: ${this.id}, ingame time: ${this.roundTime}, time from start: ${Date.now() - this.now}`);
+        this.p1.to(this.id).emit('status', this.getState());
       }
     } else {
       if (this.p1Score > this.p2Score) {
@@ -100,7 +115,7 @@ class Game {
       this.running = false;
     }
   }
-
+  
   collisionCheck() {
     if (this.ballY < 0 + this.ballRadius) {
       this.ballY = 2 * this.ballRadius - this.ballY;
@@ -109,24 +124,27 @@ class Game {
       this.ballY = 2 * this.canvasHeight - this.ballY ;
       this.ballSpeedY = -this.ballSpeedY;
     }
+    if (this.hitPaddleCheck() === 0) {
+      // startNewRound()
+    }
   }
 
   hitPaddleCheck(): number {
-    if (this.ballX < this.ballRadius) {
+    if (this.ballX < this.ballRadius + this.paddleWidth) {
       if (this.ballY < this.paddle1Y - this.paddleHeight / 2 || this.ballY > this.paddle1Y + this.paddleHeight / 2 ) {
         console.log('p2 scored');
         this.p2Score++;
-        return 3;
+        this.init();
       } else {
         this.ballX = 2 * this.ballRadius - this.ballX;
         this.ballSpeedX = -this.ballSpeedX;
         return 1;
       }
-    } else if (this.ballX > this.canvasWidth - this.ballRadius) {
+    } else if (this.ballX > this.canvasWidth - this.ballRadius - this.paddleWidth) {
       if (this.ballY < this.paddle2Y - this.paddleHeight / 2 || this.ballY > this.paddle2Y + this.paddleHeight / 2 ) {
         console.log('p1 scored');
         this.p1Score++;
-        return 3;
+        this.init();
       } else {
         this.ballX = 2 * this.ballRadius - this.ballX;
         this.ballSpeedX = -this.ballSpeedX;
