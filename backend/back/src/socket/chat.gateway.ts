@@ -178,13 +178,11 @@ export class EventsGateway
 	handleUserList(@ConnectedSocket() socket: Socket) {
 		const tempUserList: Record<number, ClientUserDto> = {};
 		for (const [uid, userInfo] of Object.entries(userList)) {
-			// if (socket.data.user.uid !== uid) {
 			tempUserList[uid] = {
 				userDisplayName: userInfo.socket.data.user.nickname.split('#', 2)[0],
 				userProfileUrl: userInfo.socket.data.user.profileUrl,
 				userStatus: userInfo.status,
 			};
-			// }
 		}
 		return { userListFromServer: tempUserList };
 	}

@@ -18,7 +18,7 @@ import type * as userType from "../components/atom/UserAtom";
 import { useEffect, useState } from "react";
 
 import * as socket from "../socket/chat.socket";
-import * as chatAtom from "../components/atom/SocketAtom";
+import * as chatAtom from "../components/atom/ChatAtom";
 import type * as chatType from "../socket/chat.dto";
 import { GetMyInfo } from '../event/api.request';
 
@@ -289,6 +289,7 @@ export default function ChatPage() {
         const newMessageList: chatType.roomMessageDto[] = roomList[roomId].detail?.messageList!;
         newMessageList.push({
           userId: from,
+          userName: userList[from].userDisplayName,
           message,
           isMe: false,
           number: roomList[roomId].detail?.messageList.length!

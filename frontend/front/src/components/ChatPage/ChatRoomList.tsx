@@ -5,7 +5,7 @@ import { passwordInputModalAtom } from "../../components/atom/ModalAtom";
 import "../../styles/ChatList.css";
 import ChatRoom from "../objects/ChatRoom";
 
-import * as chatAtom from "../atom/SocketAtom";
+import * as chatAtom from "../atom/ChatAtom";
 
 export default function ChatRoomList() {
   const [, setRoomModal] = useAtom(roomModalAtom);

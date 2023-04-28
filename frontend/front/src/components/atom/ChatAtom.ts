@@ -14,16 +14,4 @@ export const hasLoginAtom = atom<boolean>(false);
 export const isFirstLoginAtom = atom<boolean>(true);
 export const focusRoomAtom = atom<number>(-1);
 
-// export const socketFirstTouch = atom<boolean>(false);
-// export const storeSocketInit = createStore();
 
-// storeSocketInit.set(socketFirstTouch, false);
-
-// export const readWriteAtom = atom(
-// 	(get) => {
-// 		get(socketFirstTouch)
-// 	},
-// 	(get, set, newState: boolean) => {
-// 		set(socketFirstTouch, newState)
-// 	}
-// )

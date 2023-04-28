@@ -1,6 +1,6 @@
 import "../../styles/ChatArea.css";
 import SpeechBubble from "../objects/SpeechBubble";
-import * as chatAtom from '../atom/SocketAtom';
+import * as chatAtom from '../atom/ChatAtom';
 import { useAtom } from 'jotai';
 
 export default function ChatArea() {

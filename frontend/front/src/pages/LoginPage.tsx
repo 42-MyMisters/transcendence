@@ -16,7 +16,7 @@ import ChatPage from "./ChatPage";
 import { useNavigate } from "react-router-dom";
 
 import * as socket from "../socket/chat.socket";
-import { hasLoginAtom } from '../components/atom/SocketAtom';
+import { hasLoginAtom } from '../components/atom/ChatAtom';
 
 export default function LoginPage() {
   /* localstorage에 없는데 cookie에 있으면 로그인이 된거다 */

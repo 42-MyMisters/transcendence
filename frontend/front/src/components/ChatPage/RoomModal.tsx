@@ -5,7 +5,7 @@ import { PressKey } from "../../event/pressKey";
 import "../../styles/RoomModal.css";
 
 import { useState } from 'react';
-import * as chatAtom from '../atom/SocketAtom';
+import * as chatAtom from '../atom/ChatAtom';
 import * as socket from "../../socket/chat.socket";
 
 export default function RoomModal() {

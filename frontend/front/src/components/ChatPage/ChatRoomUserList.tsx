@@ -6,7 +6,7 @@ import { useCallback } from "react";
 import "../../styles/ChatRoomUserList.css";
 import UserObj from "../objects/UserObj";
 
-import * as chatAtom from '../atom/SocketAtom';
+import * as chatAtom from '../atom/ChatAtom';
 
 export default function ChatRoomUserList() {
   const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);

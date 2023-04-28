@@ -13,6 +13,7 @@ type userSimpleDto = {
 
 type roomMessageDto = {
 	userId: number;
+	userName: string;
 	message: string;
 	isMe: boolean;
 	number: number;

@@ -2,7 +2,7 @@ import "../../styles/ChatList.css";
 import UserObj from "../objects/UserObj";
 
 import { useAtom } from "jotai";
-import * as chatAtom from '../atom/SocketAtom';
+import * as chatAtom from '../atom/ChatAtom';
 
 // 채팅페이지 왼쪽 아래 total User list
 export default function ChatUserList() {

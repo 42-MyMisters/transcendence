@@ -1,6 +1,6 @@
 import { io } from 'socket.io-client';
 import { useAtom } from "jotai";
-import * as chatAtom from '../components/atom/SocketAtom';
+import * as chatAtom from '../components/atom/ChatAtom';
 import * as userAtom from '../components/atom/UserAtom';
 import type * as chatType from './chat.dto';
 
@@ -301,6 +301,7 @@ export function OnSocketChatEvent() {
         const newMessageList: chatType.roomMessageDto[] = roomList[roomId].detail?.messageList!;
         newMessageList.push({
           userId: from,
+          userName: userList[from].userDisplayName,
           message,
           isMe: false,
           number: roomList[roomId].detail?.messageList.length!
@@ -714,6 +715,7 @@ export function emitMessage(
         const newMessageList: chatType.roomMessageDto[] = roomList[roomId].detail?.messageList!;
         newMessageList.push({
           userId: userInfo.uid,
+          userName: userInfo.nickname,
           message,
           isMe: true,
           number: roomList[roomId].detail?.messageList.length!
