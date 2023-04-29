@@ -327,6 +327,7 @@ export function emitRoomList(
     setRoomList: React.Dispatch<React.SetStateAction<chatType.roomListDto>>,
   }
 ) {
+  console.log('emit room list');
   socket.emit("room-list", ({
     roomList
   }: {
@@ -716,17 +717,6 @@ export function emitMessage(
     switch (status) {
       case 'ok': {
         console.log(`message to ${roomList[roomId].roomName} is sended: ${message} `);
-        // const newMessageList: chatType.roomMessageDto[] = roomList[roomId].detail?.messageList!;
-        // newMessageList.unshift({
-        //   userId: userInfo.uid,
-        //   userName: userInfo.nickname,
-        //   message,
-        //   isMe: true,
-        //   number: roomList[roomId].detail?.messageList.length!
-        // });
-        // const newDetail: Partial<chatType.roomDetailDto> = { ...roomList[roomId].detail, messageList: [...newMessageList] };
-        // const newRoomList: chatType.roomListDto = { ...roomList, ...newDetail };
-        // setRoomList({ ...roomList, ...newRoomList });
         break;
       }
       case 'ko': {

@@ -33,9 +33,12 @@ type ClientRoomListDto = {
 }
 
 interface UserInfo {
-	socket: Socket;
+	socket?: Socket;
 	status: userStatus;
 	blockedUsers: number[];
+	userId?: number;
+	userDisplayName?: string;
+	userUrl?: string;
 }
 
 interface RoomMember {
@@ -54,9 +57,44 @@ interface RoomInfo {
 	roomPass?: string;
 }
 
-const userList: Record<number, UserInfo> = {};
-const roomList: Record<number, RoomInfo> = {};
-let ROOM_NUMBER = 1;
+const userList: Record<number, UserInfo> = {
+	0: {
+		status: 'online',
+		blockedUsers: [],
+		userId: 0,
+		userDisplayName: 'Norminette',
+		userUrl: "https://pbs.twimg.com/profile_images/1150849282913779713/piO0pkT5_400x400.jpg"
+	},
+	1: {
+		status: 'offline',
+		blockedUsers: [],
+		userId: 1,
+		userDisplayName: 'Elon Musk',
+		userUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Elon_Musk_Royal_Society_%28crop2%29.jpg/1200px-Elon_Musk_Royal_Society_%28crop2%29.jpg",
+	},
+};
+const roomList: Record<number, RoomInfo> = {
+	0: {
+		roomNumber: 0,
+		roomName: 'Open Lobby',
+		roomType: 'open',
+		roomMembers: {},
+		roomOwner: -1,
+		roomAdmins: [],
+		bannedUsers: [],
+	},
+	1: {
+		roomNumber: 0,
+		roomName: 'Protected Lobby',
+		roomType: 'protected',
+		roomMembers: {},
+		roomOwner: -1,
+		roomAdmins: [],
+		bannedUsers: [],
+		roomPass: '42',
+	},
+};
+let ROOM_NUMBER = 2;
 
 @WebSocketGateway({ namespace: "sock", cors: { origin: "*" } })
 export class EventsGateway
@@ -81,8 +119,8 @@ export class EventsGateway
 			const uid = await this.authService.jwtVerify(socket.handshake.auth.token);
 			const user = await this.userService.getUserByUid(uid);
 			if (this.userService.isUserExist(user)) {
-				this.nsp.emit("room-clear");
-				this.nsp.emit("user-clear");
+				this.nsp.to(socket.id).emit("room-clear");
+				this.nsp.to(socket.id).emit("user-clear");
 
 				socket.data.user = user;
 				socket.data.roomList = [];
@@ -91,6 +129,8 @@ export class EventsGateway
 						socket: socket,
 						status: 'online',
 						blockedUsers: [],
+						userId: user.uid,
+						userDisplayName: user.nickname.split('#', 2)[0],
 					};
 					try { // TODO: check
 						console.log(user?.blockedUsers.map((blockedUsers) => blockedUsers.targetToBlockId));
@@ -222,11 +262,20 @@ export class EventsGateway
 	handleUserList() {
 		const tempUserList: Record<number, ClientUserDto> = {};
 		for (const [uid, userInfo] of Object.entries(userList)) {
-			tempUserList[uid] = {
-				userDisplayName: userInfo.socket.data.user.nickname.split('#', 2)[0],
-				userProfileUrl: userInfo.socket.data.user.profileUrl,
-				userStatus: userInfo.status,
-			};
+			if (uid === '0' || uid === '1') {
+				tempUserList[uid] = {
+					userDisplayName: userInfo.userDisplayName || 'test user',
+					userProfileUrl: userInfo.userUrl || 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/42_Logo.svg/2048px-42_Logo.svg.png',
+					userStatus: userInfo.status,
+				}
+			}
+			else {
+				tempUserList[uid] = {
+					userDisplayName: userInfo.socket?.data.user.nickname.split('#', 2)[0],
+					userProfileUrl: userInfo.socket?.data.user.profileUrl,
+					userStatus: userInfo.status,
+				};
+			}
 		}
 		return { userListFromServer: tempUserList };
 	}

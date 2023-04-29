@@ -31,8 +31,6 @@ export default function ChatRoomList() {
           /> // TODO: need to implement callback onClick
         ))}
         {/* onClick={() => setPasswordModal(true)} */}
-        <ChatRoom key="-2" roomName="room1" type="protected" isJoin={false} ></ChatRoom>
-        <ChatRoom key="-3" roomName="room2" type="private" isJoin={false}></ChatRoom>
       </div>
     </div>
   );

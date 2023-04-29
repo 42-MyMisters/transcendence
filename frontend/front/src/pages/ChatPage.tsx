@@ -124,6 +124,7 @@ export default function ChatPage() {
       const cleanRoomList: chatType.roomListDto = {};
       setRoomList({ ...cleanRoomList });
       setFocusRoom(-1);
+      socket.emitRoomList({ setRoomList });
     });
     return () => {
       socket.socket.off("room-clear");
@@ -134,6 +135,7 @@ export default function ChatPage() {
     socket.socket.on("user-clear", () => {
       const cleanUserList: chatType.userDto = {};
       setUserList({ ...cleanUserList });
+      socket.emitUserList({ userList, setUserList });
     });
     return () => {
       socket.socket.off("room-clear");
