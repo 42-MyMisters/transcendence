@@ -37,7 +37,7 @@ export default function UserInfoModal() {
         <div className="kick">kick</div>
         <div className="ban">ban</div>
         <div className="mute">mute</div>
-        <div className="manager">manager</div>
+        <div className="manager">admin</div>
       </div>
     </>
   );

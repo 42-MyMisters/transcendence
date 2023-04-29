@@ -39,6 +39,7 @@ interface UserInfo {
 	userId?: number;
 	userDisplayName?: string;
 	userUrl?: string;
+	socketList?: number[];
 }
 
 interface RoomMember {
@@ -161,11 +162,14 @@ export class EventsGateway
 						userId: user.uid,
 						userDisplayName: user.nickname.split('#', 2)[0],
 						userUrl: user.profileUrl,
+						// socketList: [userList[uid].socketList?.map( ), socket.id],
 					};
 					try { // TODO: check
-						console.log(user?.blockedUsers.map((blockedUsers) => blockedUsers.targetToBlockId));
+						user?.blockedUsers.map((blockedUsers) => {
+							console.log(blockedUsers.targetToBlockId)
+						});
 					} catch (e) {
-						console.log("blockedUsers is undefined");
+						this.logger.warn("blockedUsers is undefined");
 					}
 					this.logger.log(`${socket.data.user.nickname} first connected.`);
 				} else {
@@ -195,9 +199,9 @@ export class EventsGateway
 				roomMemberCount++;
 			});
 			if (roomMemberCount === 1) {
-				this.EmitRoomListNotify(socket, { action: 'delete', roomName: roomList[roomId].roomName, roomId, roomType: roomList[roomId].roomType });
+				this.nsp.emit("room-list-notify", { action: 'delete', roomName: roomList[roomId].roomName, roomId, roomType: roomList[roomId].roomType });
 				delete roomList[roomId];
-				this.logger.verbose(`Room ${roomId} deleted.\n`);
+				this.logger.debug(`Room ${roomId} deleted.\n`);
 				action = 'delete';
 			} else {
 				socket.to(roomId.toString()).emit("room-in-action", {
@@ -280,9 +284,9 @@ export class EventsGateway
 			socket.data.roomList.push(ROOM_NUMBER);
 			socket.join(ROOM_NUMBER.toString());
 			if (roomType !== 'private') {
-				this.EmitRoomListNotify(socket, { action: 'add', roomId: ROOM_NUMBER, roomName: trimmedRoomName, roomType });
+				this.nsp.emit("room-list-notify", { action: 'add', roomId: ROOM_NUMBER, roomName: trimmedRoomName, roomType });
 			}
-			this.EmitRoomJoin(socket, { roomId: ROOM_NUMBER, roomName: trimmedRoomName, roomType, roomMembers, myPower: 'owner', status: 'ok' });
+			this.nsp.to(socket.id).emit("room-join", { roomId: ROOM_NUMBER, roomName: trimmedRoomName, roomType, roomMembers, myPower: 'owner', status: 'ok' });
 			ROOM_NUMBER++;
 		} else {
 			return { status: 'ko' };
@@ -294,7 +298,35 @@ export class EventsGateway
 	handleRoomList(@ConnectedSocket() socket: Socket) {
 		const tempRoomList: Record<number, ClientRoomListDto> = {};
 		for (const [roomId, roomInfo] of Object.entries(roomList)) {
-			if (roomInfo.roomType !== 'private') {
+			if (roomInfo.roomMembers[socket?.data?.user?.uid] !== undefined) {
+				this.logger.debug(`room ${roomId} is joined`);
+				socket.join(roomId.toString());
+				this.nsp.to(socket.id).emit("room-join", {
+					roomId,
+					roomName: roomList[roomId].roomName,
+					roomType: roomList[roomId].roomType,
+					userList: roomList[roomId].roomMembers,
+					myPower: roomList[roomId].roomMembers[socket.data.user.uid].userRoomPower,
+					status: 'ok'
+				});
+				this.nsp.to(socket.id).emit('room-in-action', {
+					roomId,
+					action: 'newMember',
+					targetId: socket.data.user.uid,
+				});
+				// tempRoomList[roomId] = {
+				// 	roomName: roomInfo.roomName,
+				// 	roomType: roomInfo.roomType,
+				// 	isJoined: true,
+				// 	detail: {
+				// 		userList: roomInfo.roomMembers,
+				// 		messageList: [],
+				// 		myRoomStatus: roomInfo.roomMembers[socket.data.user.uid].userRoomStatus,
+				// 		myPower: roomInfo.roomMembers[socket.data.user.uid].userRoomPower,
+				// 	}
+				// };
+			} else if (roomInfo.roomType !== 'private') {
+				//   if (roomInfo.roomType !== 'private') {
 				tempRoomList[roomId] = {
 					roomName: roomInfo.roomName,
 					roomType: roomInfo.roomType,
@@ -309,7 +341,7 @@ export class EventsGateway
 		@ConnectedSocket() socket: Socket,
 		@MessageBody() {
 			roomId,
-			roomPass,
+			roomPass = '',
 		}: {
 			roomId: number;
 			roomPass?: string;
@@ -329,11 +361,11 @@ export class EventsGateway
 					roomList[roomId].roomMembers[socket.data.user.uid] = newMember;
 					socket.join(roomId.toString());
 					socket.data.roomList.push(roomId);
-					this.EmitRoomJoin(socket, {
+					this.nsp.to(socket.id).emit("room-join", {
 						roomId,
 						roomName: roomList[roomId].roomName,
 						roomType: roomList[roomId].roomType,
-						roomMembers: roomList[roomId].roomMembers,
+						userList: roomList[roomId].roomMembers,
 						myPower: 'member',
 						status: 'ok'
 					});
@@ -413,39 +445,6 @@ export class EventsGateway
 			message,
 		});
 		return { status: 'ok' };
-	}
-
-	EmitRoomJoin(socket: Socket, {
-		roomId,
-		roomName,
-		roomType,
-		roomMembers,
-		myPower,
-		status
-	}) {
-		this.nsp.to(socket.id).emit("room-join", {
-			roomId,
-			roomName,
-			roomType,
-			userList: roomMembers,
-			myPower,
-			status,
-		})
-	}
-
-	EmitRoomListNotify(socket: Socket, {
-		action,
-		roomId,
-		roomName,
-		roomType,
-	}) {
-		this.logger.log(`room-list-notify : ${action} ${roomId} ${roomName} ${roomType}`);
-		this.nsp.emit("room-list-notify", {
-			action,
-			roomId,
-			roomName,
-			roomType,
-		})
 	}
 
 	@SubscribeMessage("server-room-list")
