@@ -119,7 +119,6 @@ export default function ChatPage() {
           };
           console.log(`room-list-notify new: ${JSON.stringify(newRoomList)}`);
           console.log(`room-list-notify origin: ${JSON.stringify(roomList)}`);
-
           setRoomList({ ...roomList, ...newRoomList });
           break;
         }
@@ -127,7 +126,7 @@ export default function ChatPage() {
           const newRoomList: chatType.roomListDto = { ...roomList };
           delete newRoomList[roomId];
           setRoomList({ ...newRoomList });
-          if (focusRoom === roomId) {
+          if (focusRoom == roomId) {
             setFocusRoom(-1);
           }
           break;
@@ -148,7 +147,7 @@ export default function ChatPage() {
     return () => {
       socket.socket.off("room-list-notify");
     };
-  }, [roomList]);
+  }, [roomList, focusRoom]);
 
   useEffect(() => {
     socket.socket.on("room-clear", () => {
