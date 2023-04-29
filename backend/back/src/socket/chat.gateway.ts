@@ -216,7 +216,7 @@ export class EventsGateway
 	handleDisconnect(@ConnectedSocket() socket: Socket) {
 		this.logger.log(`${socket.id} socket disconnected`);
 		this.logger.log(`${socket.data.roomList}`);
-		if (socket.data?.user?.uid !== undefined) {
+		if (userList[socket.data.user.uid] !== undefined) {
 			userList[socket.data.user.uid].status = 'offline';
 			socket.broadcast.emit("user-update", {
 				userId: socket.data.user.uid,
