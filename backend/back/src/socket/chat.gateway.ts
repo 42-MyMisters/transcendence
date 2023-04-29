@@ -160,6 +160,7 @@ export class EventsGateway
 						blockedUsers: [],
 						userId: user.uid,
 						userDisplayName: user.nickname.split('#', 2)[0],
+						userUrl: user.profileUrl,
 					};
 					try { // TODO: check
 						console.log(user?.blockedUsers.map((blockedUsers) => blockedUsers.targetToBlockId));
@@ -188,28 +189,33 @@ export class EventsGateway
 
 	deleteRoomLogic(socket: Socket, roomId: number) {
 		let roomMemberCount = 0;
-		Object.entries(roomList[roomId].roomMembers).forEach(() => {
-			roomMemberCount++;
-		});
-		if (roomMemberCount === 1) {
-			this.EmitRoomListNotify(socket, { action: 'delete', roomName: roomList[roomId].roomName, roomId, roomType: roomList[roomId].roomType });
-			delete roomList[roomId];
-		} else {
-			socket.to(roomId.toString()).emit("room-in-action", {
-				roomId,
-				action: 'leave',
-				targetId: socket.data.user.uid,
+		let action: 'delete' | 'leave' = 'leave'
+		if (roomList[roomId] !== undefined) {
+			Object.entries(roomList[roomId]?.roomMembers).forEach(() => {
+				roomMemberCount++;
 			});
-			delete roomList[roomId].roomMembers[socket.data.user.uid];
+			if (roomMemberCount === 1) {
+				this.EmitRoomListNotify(socket, { action: 'delete', roomName: roomList[roomId].roomName, roomId, roomType: roomList[roomId].roomType });
+				delete roomList[roomId];
+				this.logger.verbose(`Room ${roomId} deleted.\n`);
+				action = 'delete';
+			} else {
+				socket.to(roomId.toString()).emit("room-in-action", {
+					roomId,
+					action: 'leave',
+					targetId: socket.data.user.uid,
+				});
+				delete roomList[roomId].roomMembers[socket.data.user.uid];
+			}
+			socket.leave(roomId.toString());
+			delete socket.data.roomList[roomId];
+			return action;
 		}
-		socket.leave(roomId.toString());
-		delete socket.data.roomList[roomId];
 	}
 
 	handleDisconnect(@ConnectedSocket() socket: Socket) {
 		this.logger.log(`${socket.id} socket disconnected`);
 		this.logger.log(`${socket.data.roomList}`);
-		console.log('disconnected');
 		userList[socket.data.user.uid].status = 'offline';
 		socket.broadcast.emit("user-update", {
 			userId: socket.data.user.uid,
@@ -356,7 +362,12 @@ export class EventsGateway
 		}: {
 			roomId: number;
 		}) {
-		this.deleteRoomLogic(socket, roomId);
+		this.logger.log(`${socket.id}:${socket.data.user.nickname} leave room ${roomId}`);
+		if (this.deleteRoomLogic(socket, roomId) === 'leave') {
+			return ({ status: 'ok' });
+		} else {
+			return ({ status: 'ko' });
+		}
 	}
 
 	@SubscribeMessage("user-list")
@@ -435,16 +446,22 @@ export class EventsGateway
 		})
 	}
 
-	EmitRoomInAction(socket: Socket, {
-		roomId,
-		action,
-		targetId
-	}) {
-		this.logger.log(`room-in-action : ${action} ${roomId} ${targetId}`);
-		this.nsp.to(roomId.toString()).emit("room-in-action", {
-			roomId,
-			action,
-			targetId,
+	@SubscribeMessage("server-room-list")
+	handleServerRoomList(@ConnectedSocket() socket: Socket) {
+		this.logger.verbose("server-room-list");
+		Object.entries(roomList).forEach(([roomId, roomInfo]) => {
+			console.log(`\n${roomInfo.roomName} :${roomId}:  ${roomInfo.roomType} ${roomInfo.roomPass}`);
+			Object.entries(roomInfo.roomMembers).forEach(([uid, memberInfo]) => {
+				console.log(`\t${userList[uid].userDisplayName}:${uid}: \t\t${memberInfo.userRoomStatus} ${memberInfo.userRoomPower}`);
+			});
+		});
+	}
+
+	@SubscribeMessage("server-user-list")
+	handleServerUserList(@ConnectedSocket() socket: Socket) {
+		this.logger.verbose("server-user-list");
+		Object.entries(userList).forEach(([uid, userInfo]) => {
+			console.log(`\n${userInfo.userDisplayName}:${uid}: ${userInfo.status}`);
 		});
 	}
 

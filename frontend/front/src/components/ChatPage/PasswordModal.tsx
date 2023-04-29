@@ -39,7 +39,7 @@ export default function PasswordModal() {
       <div className="PasswordModal">
         <div className="PasswordForm">
           <label htmlFor="Password">Password</label>
-          <input id="Password" type="text" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => handleEnterEvent(e)}></input>
+          <input id="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => handleEnterEvent(e)}></input>
         </div>
         <button className="Password" onClick={handleJoinRoom}>Join</button>
         <button className="PasswordCancel" onClick={() => setPwInputModal(false)}>

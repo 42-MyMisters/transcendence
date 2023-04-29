@@ -180,15 +180,24 @@ export function emitRoomLeave(
 ) {
   socket.emit("room-leave", {
     roomId
-  }, () => {
-    const roomName = roomList[roomId].roomName;
-    console.log(`room leaved: ${roomId}:${roomName} `);
-    const newRoomList: chatType.roomListDto = { ...roomList[roomId] };
-    newRoomList[roomId].isJoined = false;
-    newRoomList[roomId].detail = undefined;
-    setRoomList({ ...roomList, ...newRoomList });
-    if (focusRoom === roomId) {
-      setFocusRoom(-1);
+  }, ({
+    status,
+  }: {
+    status: 'ok' | 'ko',
+  }) => {
+    if (status === 'ok') {
+      console.log(`callback: room leaved: ${roomList[roomId].roomName}`);
+      const newRoomList: chatType.roomListDto = {};
+      newRoomList[roomId] = {
+        roomName: roomList[roomId].roomName,
+        roomType: roomList[roomId].roomType,
+        isJoined: false,
+        detail: {} as chatType.roomDetailDto,
+      }
+      setRoomList({ ...roomList, ...newRoomList });
+      if (focusRoom === roomId) {
+        setFocusRoom(-1);
+      }
     }
   });
 }

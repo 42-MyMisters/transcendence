@@ -40,10 +40,29 @@ export default function ChatPage() {
   const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
 
   const getRoomList = () => {
-    console.log(`getRoomList ${JSON.stringify(roomList)}}`);
+    console.log("\n\ngetRoomList");
+    Object.entries(roomList).forEach(([key, value]) => {
+      if (value.detail !== undefined) {
+        console.log(`[ ${value.roomName} ] - ${value.roomType}`);
+        Object.entries(value.detail).forEach(([key, value]) => {
+          if (key === "userList") {
+            Object.entries(value).forEach(([key, value]) => {
+              console.log(`uid: ${key}, value: ${JSON.stringify(value)}`);
+            });
+          } else {
+            console.log(`key: ${key}, value: ${JSON.stringify(value)}`);
+          }
+        });
+      } else {
+        console.log(`[ ${value.roomName} ] \nvalue: ${JSON.stringify(value)}`);
+      }
+    })
   };
   const getUserList = () => {
-    console.log(`getUserList ${JSON.stringify(userList)}}`);
+    console.log("\n\ngetUserList");
+    Object.entries(userList).forEach(([key, value]) => {
+      console.log(`[ ${value.userDisplayName} ]\nkey: ${key}, value: ${JSON.stringify(value)}`);
+    })
   };
   const getFollowingList = () => {
     console.log(`getFollowingList ${JSON.stringify(followingList)}}`);
@@ -56,6 +75,14 @@ export default function ChatPage() {
   }
   const showMyinfo = () => {
     console.log(`showMyinfo ${JSON.stringify(userInfo)}}`);
+  }
+  const showServerUser = () => {
+    console.log('\nshow server user list');
+    socket.socket.emit('server-user-list');
+  }
+  const showServerRoom = () => {
+    console.log('\nshow server room list');
+    socket.socket.emit('server-room-list');
   }
 
   if (isFirstLogin) {
@@ -100,6 +127,9 @@ export default function ChatPage() {
           const newRoomList: chatType.roomListDto = { ...roomList };
           delete newRoomList[roomId];
           setRoomList({ ...newRoomList });
+          if (focusRoom === roomId) {
+            setFocusRoom(-1);
+          }
           break;
         }
         case 'edit': {
@@ -107,8 +137,8 @@ export default function ChatPage() {
           newRoomList[roomId] = {
             roomName,
             roomType,
-            isJoined: roomList[roomId].isJoined,
-            detail: roomList[roomId].detail
+            isJoined: roomList[roomId].isJoined || false,
+            detail: roomList[roomId].detail || {} as chatType.roomDetailDto,
           };
           setRoomList({ ...roomList, ...newRoomList });
           break;
@@ -220,9 +250,7 @@ export default function ChatPage() {
         case 'ban':
         case 'leave':
         case 'kick': {
-          if (targetId === userInfo.uid) {
-            // socket.emitRoomLeave({ roomList, setRoomList, focusRoom, setFocusRoom }, roomId)
-          } else {
+          if (targetId !== userInfo.uid) {
             const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
             delete newUserList[targetId];
             const newDetail: Partial<chatType.roomDetailDto> = { ...roomList[roomId].detail, userList: { ...newUserList } };
@@ -357,6 +385,8 @@ export default function ChatPage() {
       <button onClick={getUserList}> userList</button>
       <button onClick={getFollowingList}> FollowList</button>
       <button onClick={emitTester}> emitTest</button>
+      <button onClick={showServerUser}> show server user</button>
+      <button onClick={showServerRoom}> show server room</button>
       <TopBar />
       {userInfoModal ? <UserInfoModal /> : null}
       {roomModal ? <RoomModal /> : null}
