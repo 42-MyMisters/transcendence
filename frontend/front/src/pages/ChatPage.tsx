@@ -288,7 +288,8 @@ export default function ChatPage() {
         case false: {
           console.log(`message from ${from} is received: ${message}`);
           const newMessageList: chatType.roomMessageDto[] = roomList[roomId].detail?.messageList!;
-          newMessageList.push({
+          // newMessageList.push({
+          newMessageList.unshift({
             userId: from,
             userName: userList[from].userDisplayName,
             message,

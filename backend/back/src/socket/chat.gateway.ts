@@ -27,7 +27,7 @@ interface ClientUserDto {
 }
 
 type ClientRoomListDto = {
-	roomName: string
+	roomName: string;
 	roomType: 'open' | 'protected' | 'private';
 }
 
@@ -95,11 +95,11 @@ export class EventsGateway
 						console.log("blockedUsers is undefined");
 					}
 					this.logger.log(`${socket.data.user.nickname} first connected.`);
-					this.EmitUserUpdate(socket);
 				} else {
 					userList[socket.data.user.uid].status = 'online';
 					this.logger.log(`${socket.data.user.nickname} refreshed.`);
 				}
+				this.EmitUserUpdate(socket);
 			} else {
 				throw new UnauthorizedException("User not found.");
 			}
@@ -167,7 +167,7 @@ export class EventsGateway
 				roomOwner: socket.data.user.uid,
 				roomAdmins: [],
 				bannedUsers: [],
-				roomPass: roomPass, // TODO : 암호화
+				roomPass: roomPass ?? '', // TODO : 암호화
 			}
 			roomList[ROOM_NUMBER] = newRoom;
 			socket.data.roomList.push(ROOM_NUMBER);
@@ -252,6 +252,7 @@ export class EventsGateway
 		roomName,
 		roomType,
 	}) {
+		this.logger.log(`room-list-notify : ${action} ${roomId} ${roomName} ${roomType}`);
 		this.nsp.emit("room-list-notify", {
 			action,
 			roomId,
@@ -265,6 +266,7 @@ export class EventsGateway
 		action,
 		targetId
 	}) {
+		this.logger.log(`room-in-action : ${action} ${roomId} ${targetId}`);
 		this.nsp.to(roomId.toString()).emit("room-in-action", {
 			roomId,
 			action,
@@ -273,6 +275,7 @@ export class EventsGateway
 	}
 
 	EmitUserUpdate(socket: Socket) {
+		this.logger.log(`user-update : ${socket.data.user.uid} ${socket.data.user.nickname} ${socket.data.user.profileUrl} ${userList[socket.data.user.uid].status}`);
 		socket.broadcast.emit("user-update", {
 			userId: socket.data.user.uid,
 			userDisplayName: socket.data.user.nickname.split('#', 2)[0],
@@ -285,6 +288,7 @@ export class EventsGateway
 		roomId,
 		message,
 	}) {
+		this.logger.log(`message : to:${roomId}  from:${socket.data.user.uid} ${message}`);
 		socket.to(String(roomId)).emit("message", {
 			roomId,
 			from: socket.data.user.uid,

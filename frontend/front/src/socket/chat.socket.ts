@@ -712,7 +712,7 @@ export function emitMessage(
       case 'ok': {
         console.log(`message to ${roomList[roomId].roomName} is sended: ${message} `);
         const newMessageList: chatType.roomMessageDto[] = roomList[roomId].detail?.messageList!;
-        newMessageList.push({
+        newMessageList.unshift({
           userId: userInfo.uid,
           userName: userInfo.nickname,
           message,
