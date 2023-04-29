@@ -179,7 +179,7 @@ export function emitRoomLeave(
   ban: boolean = false
 ) {
   socket.emit("room-leave", {
-    roomId, ban
+    roomId
   }, () => {
     const roomName = roomList[roomId].roomName;
     console.log(`room leaved: ${roomId}:${roomName} `);
@@ -205,7 +205,7 @@ export function emitRoomInAction(
   action: 'ban' | 'kick' | 'mute' | 'admin',
   targetId: number,
 ) {
-  socket.emit("room-inaction", {
+  socket.emit("room-in-action", {
     roomId,
     action,
     targetId,

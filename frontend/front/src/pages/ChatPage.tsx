@@ -191,7 +191,7 @@ export default function ChatPage() {
   }, [roomList]);
 
   useEffect(() => {
-    socket.socket.on("room-inaction", ({
+    socket.socket.on("room-in-action", ({
       roomId,
       action,
       targetId
@@ -217,33 +217,11 @@ export default function ChatPage() {
           }
           break;
         }
-        case 'ban': {
-          if (targetId === userInfo.uid) {
-            socket.emitRoomLeave({ roomList, setRoomList, focusRoom, setFocusRoom }, roomId, true);
-          } else {
-            const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
-            delete newUserList[targetId];
-            const newDetail: Partial<chatType.roomDetailDto> = { ...roomList[roomId].detail, userList: { ...newUserList } };
-            const newRoomList: chatType.roomListDto = { ...roomList[roomId], ...newDetail };
-            setRoomList({ ...roomList, ...newRoomList });
-          }
-          break;
-        }
-        case 'leave': {
-          if (targetId === userInfo.uid) {
-            return;
-          } else {
-            const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
-            delete newUserList[targetId];
-            const newDetail: Partial<chatType.roomDetailDto> = { ...roomList[roomId].detail, userList: { ...newUserList } };
-            const newRoomList: chatType.roomListDto = { ...roomList[roomId], ...newDetail };
-            setRoomList({ ...roomList, ...newRoomList });
-          }
-          break;
-        }
+        case 'ban':
+        case 'leave':
         case 'kick': {
           if (targetId === userInfo.uid) {
-            socket.emitRoomLeave({ roomList, setRoomList, focusRoom, setFocusRoom }, roomId)
+            // socket.emitRoomLeave({ roomList, setRoomList, focusRoom, setFocusRoom }, roomId)
           } else {
             const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
             delete newUserList[targetId];
@@ -286,7 +264,7 @@ export default function ChatPage() {
       }
     });
     return () => {
-      socket.socket.off("room-inaction");
+      socket.socket.off("room-in-action");
     }
   }, [roomList, userInfo]);
 

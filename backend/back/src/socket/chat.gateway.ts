@@ -186,6 +186,26 @@ export class EventsGateway
 		}
 	}
 
+	deleteRoomLogic(socket: Socket, roomId: number) {
+		let roomMemberCount = 0;
+		Object.entries(roomList[roomId].roomMembers).forEach(() => {
+			roomMemberCount++;
+		});
+		if (roomMemberCount === 1) {
+			this.EmitRoomListNotify(socket, { action: 'delete', roomName: roomList[roomId].roomName, roomId, roomType: roomList[roomId].roomType });
+			delete roomList[roomId];
+		} else {
+			socket.to(roomId.toString()).emit("room-in-action", {
+				roomId,
+				action: 'leave',
+				targetId: socket.data.user.uid,
+			});
+			delete roomList[roomId].roomMembers[socket.data.user.uid];
+		}
+		socket.leave(roomId.toString());
+		delete socket.data.roomList[roomId];
+	}
+
 	handleDisconnect(@ConnectedSocket() socket: Socket) {
 		this.logger.log(`${socket.id} socket disconnected`);
 		this.logger.log(`${socket.data.roomList}`);
@@ -197,20 +217,10 @@ export class EventsGateway
 			userProfileUrl: socket.data.user.profileUrl,
 			userStatus: userList[socket.data.user.uid].status,
 		});
-		socket.data.roomList.map((roomNumber: number) => {
-			let roomMemberCount = 0;
-			Object.entries(roomList[roomNumber].roomMembers).forEach(() => {
-				roomMemberCount++;
-				if (roomMemberCount === 1) {
-					this.EmitRoomListNotify(socket, { action: 'delete', roomName: roomList[roomNumber].roomName, roomId: roomNumber, roomType: roomList[roomNumber].roomType });
-					delete roomList[roomNumber];
-				} else {
-					this.EmitRoomInAction(socket, { roomId: roomNumber, action: 'leave', targetId: socket.data.user.uid });
-					delete roomList[roomNumber].roomMembers[socket.data.user.uid];
-				}
-			});
+		socket.data.roomList.map((roomId: number) => {
+			this.deleteRoomLogic(socket, roomId);
 		});
-		// delete userList[socket.data.user.uid];
+		delete userList[socket.data.user.uid];
 	}
 
 	@SubscribeMessage("clear-data")
@@ -310,6 +320,7 @@ export class EventsGateway
 					}
 					roomList[roomId].roomMembers[socket.data.user.uid] = newMember;
 					socket.join(roomId.toString());
+					socket.data.roomList.push(roomId);
 					this.EmitRoomJoin(socket, {
 						roomId,
 						roomName: roomList[roomId].roomName,
@@ -342,12 +353,10 @@ export class EventsGateway
 		@ConnectedSocket() socket: Socket,
 		@MessageBody() {
 			roomId,
-			ban,
 		}: {
 			roomId: number;
-			ban?: boolean;
 		}) {
-		console.log(`room-leave: ${roomId}`);
+		this.deleteRoomLogic(socket, roomId);
 	}
 
 	@SubscribeMessage("user-list")
