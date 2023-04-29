@@ -17,7 +17,7 @@ export default function ChatArea() {
   const handleSendMessage = () => {
     const tempMessage = message.trim();
     if (tempMessage !== '') {
-      socket.emitMessage({ userInfo, roomList, setRoomList }, focusRoom, tempMessage);
+      socket.emitMessage({ roomList }, focusRoom, tempMessage);
     }
     setMessage('');
   }

@@ -19,58 +19,6 @@ export const socket = io(`${URL}${NameSpace}`, {
 	// path: "/socket.io",
 });
 
-// export function OnSocketCoreEvent() {
-// 	console.log("add core event listener");
-
-// 	// catch all incoming events
-// 	socket.onAny((eventName, ...args) => {
-// 		console.log("incoming ", eventName, args);
-// 	});
-
-// 	// catch all outgoing events
-// 	socket.prependAny((eventName, ...args) => {
-// 		console.log("outgoing ", eventName, args);
-// 	});
-
-// 	socket.on("connect", () => {
-// 		if (socket.connected) {
-// 			//This attribute describes whether the socket is currently connected to the server.
-// 			if (socket.recovered) {
-// 				// any missed packets will be received
-// 			} else {
-// 				// new or unrecoverable session
-// 				console.log("socket connected : " + socket.id);
-// 			}
-// 		}
-// 	});
-
-// 	//https://socket.io/docs/v4/client-socket-instance/#disconnect
-// 	socket.on("disconnect", (reason) => {
-// 		/**
-// 		 *  BAD, will throw an error
-// 		 *  socket.emit("disconnect");
-// 		*/
-// 		if (reason === "io server disconnect") {
-// 			// the disconnection was initiated by the server, you need to reconnect manually
-// 		}
-// 		// else the socket will automatically try to reconnect
-// 		console.log("socket disconnected");
-// 		socket.emit("test", { message: "socket disconnected" });
-// 	});
-
-// 	// the connection is denied by the server in a middleware function
-// 	socket.on("connect_error", (err) => {
-// 		if (err.message === "unauthorized") {
-// 			// handle each case
-// 		}
-// 		console.log(err.message); // prints the message associated with the error
-// 	});
-// }
-
-// export function OnSocketChatEvent() {
-// }
-
-
 export function emitRoomList(
 	{
 		setRoomList
@@ -78,7 +26,6 @@ export function emitRoomList(
 		setRoomList: React.Dispatch<React.SetStateAction<chatType.roomListDto>>,
 	}
 ) {
-	console.log('emit room list');
 	socket.emit("room-list", ({
 		roomList
 	}: {
@@ -86,7 +33,7 @@ export function emitRoomList(
 	}) => {
 		if (roomList !== undefined && roomList !== null) {
 			Object.entries(roomList).forEach(([key, value]) => {
-				value.isJoined = false;
+				value.isJoined = value.isJoined ?? false;
 			});
 			setRoomList({ ...roomList });
 		}
@@ -377,7 +324,6 @@ export function emitUserList(
 		setUserHistory: React.Dispatch<React.SetStateAction<chatType.userDto>>,
 	},
 ) {
-	console.log('emit user list');
 	socket.emit("user-list", {
 	}, ({
 		userListFromServer,
@@ -443,7 +389,6 @@ export function emitFollowingList(
 		followingList: chatType.userDto,
 		setFollowingList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
 	}) {
-	console.log('emit following list');
 	fetch('http://localhost:4000/user/following', {
 		credentials: "include",
 		method: "GET",
@@ -478,13 +423,9 @@ export function emitFollowingList(
 
 export function emitMessage(
 	{
-		userInfo,
 		roomList,
-		setRoomList
 	}: {
-		userInfo: userAtom.UserType,
 		roomList: chatType.roomListDto,
-		setRoomList: React.Dispatch<React.SetStateAction<chatType.roomListDto>>,
 	},
 	roomId: number,
 	message: string,

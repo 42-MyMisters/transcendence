@@ -296,9 +296,6 @@ export default function ChatPage() {
 							userRoomPower: 'member'
 						};
 						socket.setNewDetailToNewRoom({ roomList, setRoomList, roomId, newUserList: { ...newUserList, ...newUser } });
-						// const newDetail: Partial<chatType.roomDetailDto> = { ...roomList[roomId].detail, userList: { ...newUserList, ...newUser } };
-						// const newRoomList: chatType.roomListDto = { ...roomList[roomId], ...newDetail };
-						// setRoomList({ ...roomList, ...newRoomList });
 					}
 					break;
 				}
@@ -429,7 +426,6 @@ export default function ChatPage() {
 	if (isFirstLogin) {
 		console.log('set init data');
 		GetMyInfo({ setUserInfo });
-		// socket.OnSocketChatEvent();
 		socket.emitUserBlockList({ userBlockList, setUserBlockList });
 		socket.emitFollowingList({ userList, setUserList, followingList, setFollowingList });
 		socket.emitDmHistoryList({ userList, setUserList, dmHistoryList, setDmHistoryList });

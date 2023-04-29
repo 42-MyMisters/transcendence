@@ -201,7 +201,12 @@ export class EventsGateway
 				roomMemberCount++;
 			});
 			if (roomMemberCount === 1) {
-				this.nsp.emit("room-list-notify", { action: 'delete', roomName: roomList[roomId].roomName, roomId, roomType: roomList[roomId].roomType });
+				this.nsp.emit("room-list-notify", {
+					action: 'delete',
+					roomName: roomList[roomId].roomName,
+					roomId,
+					roomType: roomList[roomId].roomType
+				});
 				delete roomList[roomId];
 				this.logger.debug(`Room ${roomId} deleted.\n`);
 				action = 'delete';
@@ -222,20 +227,20 @@ export class EventsGateway
 	handleDisconnect(@ConnectedSocket() socket: Socket) {
 		this.logger.log(`${socket.id} socket disconnected`);
 		this.logger.log(`${socket.data.roomList}`);
-		if (userList[socket.data.user.uid] !== undefined
-			&& userList[socket.data.user.uid].socketList?.length! < 2) {
-			userList[socket.data.user.uid].status = 'offline';
-			socket.broadcast.emit("user-update", {
-				userId: socket.data.user.uid,
-				userDisplayName: socket.data.user.nickname.split('#', 2)[0],
-				userProfileUrl: socket.data.user.profileUrl,
-				userStatus: userList[socket.data.user.uid].status,
-			});
-			socket.data.roomList.map((roomId: number) => {
-				this.deleteRoomLogic(socket, roomId);
-			});
-			delete userList[socket.data.user.uid];
-		}
+		//NOTE: 커넥션 끊겼다고 모든 방 나가는 건 아니다. 서버에서 저장하고, 재 접속시 정보 불러오기.
+		// if (userList[socket.data.user.uid] !== undefined) {
+		// 	userList[socket.data.user.uid].status = 'offline';
+		// 	socket.broadcast.emit("user-update", {
+		// 		userId: socket.data.user.uid,
+		// 		userDisplayName: socket.data.user.nickname.split('#', 2)[0],
+		// 		userProfileUrl: socket.data.user.profileUrl,
+		// 		userStatus: userList[socket.data.user.uid].status,
+		// 	});
+		// 	socket.data.roomList.map((roomId: number) => {
+		// 		this.deleteRoomLogic(socket, roomId);
+		// 	});
+		// 	delete userList[socket.data.user.uid];
+		// }
 	}
 
 	@SubscribeMessage("clear-data")
@@ -271,13 +276,13 @@ export class EventsGateway
 				userRoomStatus: 'normal',
 				userRoomPower: 'owner',
 			};
-			const roomMembers: Record<number, RoomMember> = {};
-			roomMembers[socket.data.user.uid] = newMember;
+			const newRoomMembers: Record<number, RoomMember> = {};
+			newRoomMembers[socket.data.user.uid] = newMember;
 			const newRoom: RoomInfo = {
 				roomNumber: ROOM_NUMBER,
 				roomName: trimmedRoomName,
 				roomType: roomType,
-				roomMembers: roomMembers,
+				roomMembers: newRoomMembers,
 				roomOwner: socket.data.user.uid,
 				roomAdmins: [],
 				bannedUsers: [],
@@ -287,9 +292,21 @@ export class EventsGateway
 			socket.data.roomList.push(ROOM_NUMBER);
 			socket.join(ROOM_NUMBER.toString());
 			if (roomType !== 'private') {
-				this.nsp.emit("room-list-notify", { action: 'add', roomId: ROOM_NUMBER, roomName: trimmedRoomName, roomType });
+				this.nsp.emit("room-list-notify", {
+					action: 'add',
+					roomId: ROOM_NUMBER,
+					roomName: trimmedRoomName,
+					roomType
+				});
 			}
-			this.nsp.to(socket.id).emit("room-join", { roomId: ROOM_NUMBER, roomName: trimmedRoomName, roomType, roomMembers, myPower: 'owner', status: 'ok' });
+			this.nsp.to(socket.id).emit("room-join", {
+				roomId: ROOM_NUMBER,
+				roomName: trimmedRoomName,
+				roomType,
+				userList: newRoomMembers,
+				myPower: 'owner',
+				status: 'ok'
+			});
 			ROOM_NUMBER++;
 		} else {
 			return { status: 'ko' };
@@ -304,32 +321,18 @@ export class EventsGateway
 			if (roomInfo.roomMembers[socket?.data?.user?.uid] !== undefined) {
 				this.logger.debug(`room ${roomId} is joined`);
 				socket.join(roomId.toString());
-				this.nsp.to(socket.id).emit("room-join", {
-					roomId,
-					roomName: roomList[roomId].roomName,
-					roomType: roomList[roomId].roomType,
-					userList: roomList[roomId].roomMembers,
-					myPower: roomList[roomId].roomMembers[socket.data.user.uid].userRoomPower,
-					status: 'ok'
-				});
-				this.nsp.to(socket.id).emit('room-in-action', {
-					roomId,
-					action: 'newMember',
-					targetId: socket.data.user.uid,
-				});
-				// tempRoomList[roomId] = {
-				// 	roomName: roomInfo.roomName,
-				// 	roomType: roomInfo.roomType,
-				// 	isJoined: true,
-				// 	detail: {
-				// 		userList: roomInfo.roomMembers,
-				// 		messageList: [],
-				// 		myRoomStatus: roomInfo.roomMembers[socket.data.user.uid].userRoomStatus,
-				// 		myPower: roomInfo.roomMembers[socket.data.user.uid].userRoomPower,
-				// 	}
-				// };
+				tempRoomList[roomId] = {
+					roomName: roomInfo.roomName,
+					roomType: roomInfo.roomType,
+					isJoined: true,
+					detail: {
+						userList: roomInfo.roomMembers,
+						messageList: [],
+						myRoomStatus: roomInfo.roomMembers[socket.data.user.uid].userRoomStatus,
+						myPower: roomInfo.roomMembers[socket.data.user.uid].userRoomPower,
+					}
+				};
 			} else if (roomInfo.roomType !== 'private') {
-				//   if (roomInfo.roomType !== 'private') {
 				tempRoomList[roomId] = {
 					roomName: roomInfo.roomName,
 					roomType: roomInfo.roomType,
