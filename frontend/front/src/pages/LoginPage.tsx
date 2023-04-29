@@ -53,7 +53,6 @@ export default function LoginPage() {
         setTFAEnabled(true);
       } else {
         if (hasLogin === false) {
-          socket.OnSocketCoreEvent();
           socket.socket.connect();
           setHasLogin(true);
           navigate("/chat");

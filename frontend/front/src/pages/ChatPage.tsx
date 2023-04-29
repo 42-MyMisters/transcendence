@@ -38,6 +38,7 @@ export default function ChatPage() {
 	const [dmHistoryList, setDmHistoryList] = useAtom(chatAtom.dmHistoryListAtom);
 	const [followingList, setFollowingList] = useAtom(chatAtom.followingListAtom);
 	const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
+	const [socketState, setSocketState] = useAtom(chatAtom.socketStateAtom);
 
 	const getRoomList = () => {
 		console.log("\n\ngetRoomList");
@@ -67,6 +68,9 @@ export default function ChatPage() {
 	const getFollowingList = () => {
 		console.log(`getFollowingList ${JSON.stringify(followingList)}}`);
 	};
+	const showSocketState = () => {
+		console.log(`socket state: ${socketState}`);
+	};
 	const emitTester = () => {
 		socket.emitTest("hello")
 	};
@@ -85,17 +89,66 @@ export default function ChatPage() {
 		socket.socket.emit('server-room-list');
 	}
 
-	if (isFirstLogin) {
-		console.log('set init data');
-		GetMyInfo({ setUserInfo });
-		// socket.OnSocketChatEvent();
-		socket.emitUserBlockList({ userBlockList, setUserBlockList });
-		socket.emitFollowingList({ userList, setUserList, followingList, setFollowingList });
-		socket.emitDmHistoryList({ userList, setUserList, dmHistoryList, setDmHistoryList });
-		socket.emitUserList({ userList, setUserList, userHistory, setUserHistory });
-		socket.emitRoomList({ setRoomList });
-		setIsFirstLogin(false);
-	}
+	useEffect(() => {
+		socket.socket.onAny((eventName, ...args) => {
+			console.log("incoming ", eventName, args);
+		});
+		return () => {
+			socket.socket.offAny();
+		}
+	}, []);
+
+	useEffect(() => {
+		// catch all outgoing events
+		socket.socket.onAnyOutgoing((eventName, ...args) => {
+			console.log("outgoing ", eventName, args);
+		});
+		return () => {
+			socket.socket.offAnyOutgoing();
+		}
+	}, []);
+
+	useEffect(() => {
+		socket.socket.on("connect", () => {
+			if (socket.socket.connected) {
+				//This attribute describes whether the socket is currently connected to the server.
+				if (socket.socket.recovered) {
+					// any missed packets will be received
+				} else {
+					// new or unrecoverable session
+					console.log("socket connected : " + socket.socket.id);
+				}
+			}
+			setSocketState(true);
+		});
+	}, []);
+
+	useEffect(() => {
+		//https://socket.io/docs/v4/client-socket-instance/#disconnect
+		socket.socket.on("disconnect", (reason) => {
+			/**
+			 *  BAD, will throw an error
+			 *  socket.emit("disconnect");
+			*/
+			if (reason === "io server disconnect") {
+				// the disconnection was initiated by the server, you need to reconnect manually
+			}
+			// else the socket will automatically try to reconnect
+			console.log("socket disconnected");
+			socket.socket.emit("test", { message: "socket disconnected" });
+			setSocketState(false);
+		});
+	}, []);
+
+	useEffect(() => {
+		// the connection is denied by the server in a middleware function
+		socket.socket.on("connect_error", (err) => {
+			if (err.message === "unauthorized") {
+				// handle each case
+			}
+			console.log(err.message); // prints the message associated with the error
+		});
+	}, []);
 
 	useEffect(() => {
 		socket.socket.on("room-list-notify", ({
@@ -373,6 +426,18 @@ export default function ChatPage() {
 		};
 	}, [roomList, userBlockList, userList, userInfo]);
 
+	if (isFirstLogin) {
+		console.log('set init data');
+		GetMyInfo({ setUserInfo });
+		// socket.OnSocketChatEvent();
+		socket.emitUserBlockList({ userBlockList, setUserBlockList });
+		socket.emitFollowingList({ userList, setUserList, followingList, setFollowingList });
+		socket.emitDmHistoryList({ userList, setUserList, dmHistoryList, setDmHistoryList });
+		socket.emitUserList({ userList, setUserList, userHistory, setUserHistory });
+		socket.emitRoomList({ setRoomList });
+		setIsFirstLogin(false);
+	}
+
 	return (
 		<BackGround>
 			<button onClick={getMyinfo}> /user/me</button>
@@ -383,6 +448,7 @@ export default function ChatPage() {
 			<button onClick={emitTester}> emitTest</button>
 			<button onClick={showServerUser}> show server user</button>
 			<button onClick={showServerRoom}> show server room</button>
+			<button onClick={showSocketState}> socket state</button>
 			<TopBar />
 			{userInfoModal ? <UserInfoModal /> : null}
 			{roomModal ? <RoomModal /> : null}

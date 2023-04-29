@@ -151,10 +151,11 @@ export class EventsGateway
 			if (this.userService.isUserExist(user)) {
 				this.nsp.to(socket.id).emit("room-clear");
 				this.nsp.to(socket.id).emit("user-clear");
-
+				socket.join(user.nickname);
 				socket.data.user = user;
 				socket.data.roomList = [];
 				if (userList[uid] === undefined) {
+					this.logger.debug(`${socket.data.user.nickname} first connected.`);
 					userList[uid] = {
 						socket: socket,
 						status: 'online',
@@ -165,16 +166,17 @@ export class EventsGateway
 						// socketList: [userList[uid].socketList?.map( ), socket.id],
 					};
 					try { // TODO: check
-						user?.blockedUsers.map((blockedUsers) => {
-							console.log(blockedUsers.targetToBlockId)
+						user?.blockedUsers?.map((blockedUsers) => {
+							console.log(blockedUsers?.targetToBlockId)
 						});
 					} catch (e) {
 						this.logger.warn("blockedUsers is undefined");
 					}
-					this.logger.log(`${socket.data.user.nickname} first connected.`);
 				} else {
+					this.logger.debug(`${socket.data.user.nickname} refreshed.`);
 					userList[socket.data.user.uid].status = 'online';
-					this.logger.log(`${socket.data.user.nickname} refreshed.`);
+					userList[socket.data.user.uid].socket?.disconnect();
+					userList[socket.data.user.uid].socket = socket;
 				}
 				this.nsp.emit("user-update", {
 					userId: socket.data.user.uid,
@@ -220,7 +222,8 @@ export class EventsGateway
 	handleDisconnect(@ConnectedSocket() socket: Socket) {
 		this.logger.log(`${socket.id} socket disconnected`);
 		this.logger.log(`${socket.data.roomList}`);
-		if (userList[socket.data.user.uid] !== undefined) {
+		if (userList[socket.data.user.uid] !== undefined
+			&& userList[socket.data.user.uid].socketList?.length! < 2) {
 			userList[socket.data.user.uid].status = 'offline';
 			socket.broadcast.emit("user-update", {
 				userId: socket.data.user.uid,
