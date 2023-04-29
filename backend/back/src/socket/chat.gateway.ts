@@ -14,6 +14,7 @@ import { AuthService } from "src/auth/auth.service";
 import { User } from "src/database/entity/user.entity";
 import { UserBlock } from "src/database/entity/user-block.entity";
 import { UserService } from "src/user/user.service";
+import { subscribeOn } from 'rxjs';
 
 type roomType = 'open' | 'protected' | 'private';
 type userStatus = 'online' | 'offline' | 'inGame';
@@ -71,7 +72,6 @@ export class EventsGateway
 	nsp: Namespace;
 
 	afterInit() {
-		this.nsp.emit("room-clear");
 		this.logger.log("socket initialized");
 	}
 
@@ -81,6 +81,9 @@ export class EventsGateway
 			const uid = await this.authService.jwtVerify(socket.handshake.auth.token);
 			const user = await this.userService.getUserByUid(uid);
 			if (this.userService.isUserExist(user)) {
+				this.nsp.emit("room-clear");
+				this.nsp.emit("user-clear");
+
 				socket.data.user = user;
 				socket.data.roomList = [];
 				if (userList[uid] === undefined) {
@@ -139,6 +142,13 @@ export class EventsGateway
 			});
 		});
 		// delete userList[socket.data.user.uid];
+	}
+
+	@SubscribeMessage("clear-data")
+	handleClearData(@ConnectedSocket() socket: Socket) {
+		this.logger.log(`${socket.id} clear data`);
+		this.nsp.emit("room-clear");
+		this.nsp.emit("user-clear");
 	}
 
 	@SubscribeMessage("test")
@@ -234,7 +244,11 @@ export class EventsGateway
 		if (roomList[roomId] === undefined) {
 			return { status: 'ko' };
 		}
-		this.EmitMessage(socket, { roomId, message });
+		this.nsp.to(String(roomId)).emit("message", {
+			roomId,
+			from: socket.data.user.uid,
+			message,
+		});
 		return { status: 'ok' };
 	}
 
@@ -281,18 +295,6 @@ export class EventsGateway
 			roomId,
 			action,
 			targetId,
-		});
-	}
-
-	EmitMessage(socket: Socket, {
-		roomId,
-		message,
-	}) {
-		this.logger.log(`message : to:${roomId}  from:${socket.data.user.uid} ${message}`);
-		socket.to(String(roomId)).emit("message", {
-			roomId,
-			from: socket.data.user.uid,
-			message,
 		});
 	}
 

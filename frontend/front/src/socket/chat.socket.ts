@@ -55,6 +55,7 @@ export function OnSocketCoreEvent() {
     }
     // else the socket will automatically try to reconnect
     console.log("socket disconnected");
+    socket.emit("test", { message: "socket disconnected" });
   });
 
   // the connection is denied by the server in a middleware function
@@ -715,17 +716,17 @@ export function emitMessage(
     switch (status) {
       case 'ok': {
         console.log(`message to ${roomList[roomId].roomName} is sended: ${message} `);
-        const newMessageList: chatType.roomMessageDto[] = roomList[roomId].detail?.messageList!;
-        newMessageList.unshift({
-          userId: userInfo.uid,
-          userName: userInfo.nickname,
-          message,
-          isMe: true,
-          number: roomList[roomId].detail?.messageList.length!
-        });
-        const newDetail: Partial<chatType.roomDetailDto> = { ...roomList[roomId].detail, messageList: [...newMessageList] };
-        const newRoomList: chatType.roomListDto = { ...roomList, ...newDetail };
-        setRoomList({ ...roomList, ...newRoomList });
+        // const newMessageList: chatType.roomMessageDto[] = roomList[roomId].detail?.messageList!;
+        // newMessageList.unshift({
+        //   userId: userInfo.uid,
+        //   userName: userInfo.nickname,
+        //   message,
+        //   isMe: true,
+        //   number: roomList[roomId].detail?.messageList.length!
+        // });
+        // const newDetail: Partial<chatType.roomDetailDto> = { ...roomList[roomId].detail, messageList: [...newMessageList] };
+        // const newRoomList: chatType.roomListDto = { ...roomList, ...newDetail };
+        // setRoomList({ ...roomList, ...newRoomList });
         break;
       }
       case 'ko': {

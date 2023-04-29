@@ -119,10 +119,26 @@ export default function ChatPage() {
     };
   }, [roomList]);
 
-  socket.socket.on("room-clear", () => {
-    setRoomList({});
-    setFocusRoom(-1);
-  });
+  useEffect(() => {
+    socket.socket.on("room-clear", () => {
+      const cleanRoomList: chatType.roomListDto = {};
+      setRoomList({ ...cleanRoomList });
+      setFocusRoom(-1);
+    });
+    return () => {
+      socket.socket.off("room-clear");
+    };
+  }, []);
+
+  useEffect(() => {
+    socket.socket.on("user-clear", () => {
+      const cleanUserList: chatType.userDto = {};
+      setUserList({ ...cleanUserList });
+    });
+    return () => {
+      socket.socket.off("room-clear");
+    };
+  }, []);
 
   useEffect(() => {
     socket.socket.on("room-join", ({
@@ -326,16 +342,21 @@ export default function ChatPage() {
         case false: {
           console.log(`message from ${from} is received: ${message}`);
           const newMessageList: chatType.roomMessageDto[] = roomList[roomId].detail?.messageList!;
-          // newMessageList.push({
           newMessageList.unshift({
             userId: from,
             userName: userList[from].userDisplayName,
             message,
-            isMe: false,
+            isMe: userInfo.uid === from ? true : false,
             number: roomList[roomId].detail?.messageList.length!
           });
           const newDetail: Partial<chatType.roomDetailDto> = { ...roomList[roomId].detail, messageList: [...newMessageList] };
-          const newRoomList: chatType.roomListDto = { ...roomList, ...newDetail };
+          const newRoomList: chatType.roomListDto = {};
+          newRoomList[roomId] = {
+            roomName: roomList[roomId].roomName,
+            roomType: roomList[roomId].roomType,
+            isJoined: roomList[roomId].isJoined,
+            detail: newDetail as chatType.roomDetailDto
+          };
           setRoomList({ ...roomList, ...newRoomList });
           break;
         }
@@ -344,7 +365,7 @@ export default function ChatPage() {
     return () => {
       socket.socket.off("message");
     };
-  }, [roomList, userBlockList, userList]);
+  }, [roomList, userBlockList, userList, userInfo]);
 
   return (
     <BackGround>

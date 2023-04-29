@@ -36,7 +36,8 @@ export default function ChatArea() {
             roomList[focusRoom]?.detail?.messageList!.map((key) => (
               <SpeechBubble
                 key={key.number}
-                nickName={userList[key.userId]?.userDisplayName}
+                // nickName={userList[key.userId]?.userDisplayName}
+                nickName={key.userName}
                 text={key.message}
                 isMe={key.isMe}
               />
