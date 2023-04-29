@@ -26,6 +26,7 @@ export default function UserObj({
           userState: status,
           isIgnored: true,
           myPower: "owner", //[TODO] fix
+          userId: 1
         });
         callBack();
       }}
@@ -44,7 +45,7 @@ export default function UserObj({
         style={
           status === "online"
             ? { backgroundColor: "#74B667" }
-            : status === "ingame"
+            : status === "inGame"
               ? { backgroundColor: "#54B7BB" }
               : { backgroundColor: "#CA6A71" }
         }

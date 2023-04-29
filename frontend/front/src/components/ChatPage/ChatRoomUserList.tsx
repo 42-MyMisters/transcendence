@@ -8,6 +8,7 @@ import UserObj from "../objects/UserObj";
 
 import * as chatAtom from '../atom/ChatAtom';
 import { UserAtom } from "../atom/UserAtom";
+import * as socket from "../../socket/chat.socket";
 
 export default function ChatRoomUserList() {
   const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);
@@ -15,8 +16,8 @@ export default function ChatRoomUserList() {
 
   const [userInfo, setUserInfo] = useAtom(UserAtom);
   const [userList,] = useAtom(chatAtom.userListAtom);
-  const [roomList,] = useAtom(chatAtom.roomListAtom);
-  const [focusRoom,] = useAtom(chatAtom.focusRoomAtom);
+  const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
+  const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
 
   const onClickInfo = useCallback(() => {
     const handleSetRoomModal = () => {
@@ -32,11 +33,15 @@ export default function ChatRoomUserList() {
     handleSetRoomModal();
   }, []);
 
+  const onClickLeave = () => {
+    socket.emitRoomLeave({ roomList, setRoomList, focusRoom, setFocusRoom }, focusRoom);
+  };
+
   return (
     <div className="ChatRoomUserListBG">
       <div className="ChatRoomNameTxt">
         {
-          focusRoom === -1 ? '' : roomList[focusRoom]?.roomName
+          focusRoom === -1 ? '시작의 방' : roomList[focusRoom]?.roomName
         }
       </div>
       {
@@ -50,7 +55,11 @@ export default function ChatRoomUserList() {
           ? ''
           : <div className="ChatRoomInviteBtn" onClick={onClickInvite} />
       }
-      <div className="ChatRoomExitBtn" />
+      {
+        focusRoom === -1
+          ? ''
+          : <div className="ChatRoomExitBtn" onClick={onClickLeave} />
+      }
       <div className="ChatRoomUsers">
         {
           focusRoom === -1
@@ -62,8 +71,7 @@ export default function ChatRoomUserList() {
               power="owner"
               callBack={onClickInfo}
             />
-            :
-            Object.entries(roomList[focusRoom]?.detail?.userList!).map((key) => (
+            : Object.entries(roomList[focusRoom]?.detail?.userList!).map((key) => (
               <UserObj
                 key={Number(key[0])}
                 nickName={userList[Number(key[0])]?.userDisplayName}

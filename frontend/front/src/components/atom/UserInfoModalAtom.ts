@@ -6,6 +6,7 @@ interface UserInfoModalInfo {
   userState: string;
   isIgnored: boolean;
   myPower: string;
+  userId: number;
 }
 
 export const UserInfoModalInfo = atom<UserInfoModalInfo>({
@@ -13,5 +14,6 @@ export const UserInfoModalInfo = atom<UserInfoModalInfo>({
   isFollow: false,
   userState: "online",
   isIgnored: false,
-  myPower: "Owner",
+  myPower: "owner",
+  userId: 0,
 });

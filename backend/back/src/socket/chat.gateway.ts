@@ -72,6 +72,13 @@ const userList: Record<number, UserInfo> = {
 		userDisplayName: 'Elon Musk',
 		userUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Elon_Musk_Royal_Society_%28crop2%29.jpg/1200px-Elon_Musk_Royal_Society_%28crop2%29.jpg",
 	},
+	2: {
+		status: 'inGame',
+		blockedUsers: [],
+		userId: 2,
+		userDisplayName: '42_DALL',
+		userUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/%EC%9D%B4%EB%AF%BC%EC%84%9D%EA%B5%90%EC%88%98-%EC%82%AC%EC%A7%84.jpg/1200px-%EC%9D%B4%EB%AF%BC%EC%84%9D%EA%B5%90%EC%88%98-%EC%82%AC%EC%A7%84.jpg",
+	},
 };
 const roomList: Record<number, RoomInfo> = {
 	0: {
@@ -104,6 +111,10 @@ const roomList: Record<number, RoomInfo> = {
 			1: {
 				userRoomStatus: 'mute',
 				userRoomPower: 'admin',
+			},
+			2: {
+				userRoomStatus: 'normal',
+				userRoomPower: 'member',
 			}
 		},
 		roomOwner: 0,
@@ -275,12 +286,75 @@ export class EventsGateway
 		return { roomList: tempRoomList };
 	}
 
+	@SubscribeMessage("room-join")
+	handleRoomJoin(
+		@ConnectedSocket() socket: Socket,
+		@MessageBody() {
+			roomId,
+			roomPass,
+		}: {
+			roomId: number;
+			roomPass?: string;
+		}) {
+		if (roomList[roomId]) {
+			switch (roomList[roomId].roomType) {
+				case 'protected': {
+					if (roomList[roomId].roomPass !== roomPass) {
+						return ({ status: 'ko', payload: 'password incorrect' });
+					}
+				}
+				case 'open': {
+					const newMember: RoomMember = {
+						userRoomStatus: 'normal',
+						userRoomPower: 'member',
+					}
+					roomList[roomId].roomMembers[socket.data.user.uid] = newMember;
+					socket.join(roomId.toString());
+					this.EmitRoomJoin(socket, {
+						roomId,
+						roomName: roomList[roomId].roomName,
+						roomType: roomList[roomId].roomType,
+						roomMembers: roomList[roomId].roomMembers,
+						myPower: 'member',
+						status: 'ok'
+					});
+					this.nsp.to(roomId.toString()).emit('room-in-action', {
+						roomId,
+						action: 'newMember',
+						targetId: socket.data.user.uid,
+					});
+					return ({ status: 'ok' });
+				}
+				case 'private': {
+					return ({ status: 'ko', payload: 'only can join with invite' });
+				}
+				default: {
+					return ({ status: 'ko', payload: 'room type error' });
+				}
+			}
+		} else {
+			return ({ status: 'ko', payload: 'room not found' });
+		}
+	}
+
+	@SubscribeMessage("room-leave")
+	handleRoomLeave(
+		@ConnectedSocket() socket: Socket,
+		@MessageBody() {
+			roomId,
+			ban,
+		}: {
+			roomId: number;
+			ban?: boolean;
+		}) {
+		console.log(`room-leave: ${roomId}`);
+	}
+
 	@SubscribeMessage("user-list")
-	// handleUserList(@ConnectedSocket() socket: Socket) {
 	handleUserList() {
 		const tempUserList: Record<number, ClientUserDto> = {};
 		for (const [uid, userInfo] of Object.entries(userList)) {
-			if (uid === '0' || uid === '1') {
+			if (Number(uid) <= 2) {
 				tempUserList[uid] = {
 					userDisplayName: userInfo.userDisplayName || 'test user',
 					userProfileUrl: userInfo.userUrl || 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/42_Logo.svg/2048px-42_Logo.svg.png',
@@ -309,7 +383,7 @@ export class EventsGateway
 			message: string
 		}) {
 		if (roomList[roomId] === undefined) {
-			return { status: 'ko', payload: '\n\n방에 참여하세요\n선택된 방이 없습니다.' };
+			return { status: 'ko', payload: '방에 참여하세요\n선택된 방이 없습니다.' };
 		}
 		this.nsp.to(String(roomId)).emit("message", {
 			roomId,

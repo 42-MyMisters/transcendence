@@ -33,6 +33,7 @@ export default function ChatPage() {
 
   const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
   const [userList, setUserList] = useAtom(chatAtom.userListAtom);
+  const [userHistory, setUserHistory] = useAtom(chatAtom.userHistoryAtom);
   const [userBlockList, setUserBlockList] = useAtom(chatAtom.userBlockListAtom);
   const [dmHistoryList, setDmHistoryList] = useAtom(chatAtom.dmHistoryListAtom);
   const [followingList, setFollowingList] = useAtom(chatAtom.followingListAtom);
@@ -64,7 +65,7 @@ export default function ChatPage() {
     socket.emitUserBlockList({ userBlockList, setUserBlockList });
     socket.emitFollowingList({ userList, setUserList, followingList, setFollowingList });
     socket.emitDmHistoryList({ userList, setUserList, dmHistoryList, setDmHistoryList });
-    socket.emitUserList({ userList, setUserList });
+    socket.emitUserList({ userList, setUserList, userHistory, setUserHistory });
     socket.emitRoomList({ setRoomList });
     setIsFirstLogin(false);
   }
@@ -135,7 +136,7 @@ export default function ChatPage() {
     socket.socket.on("user-clear", () => {
       const cleanUserList: chatType.userDto = {};
       setUserList({ ...cleanUserList });
-      socket.emitUserList({ userList, setUserList });
+      socket.emitUserList({ userList, setUserList, userHistory, setUserHistory });
     });
     return () => {
       socket.socket.off("room-clear");
@@ -319,6 +320,7 @@ export default function ChatPage() {
         };
         setUserList({ ...userList, ...newUser });
       }
+      setUserHistory({ ...userHistory, ...userList });
     });
     return () => {
       socket.socket.off("user-update");
