@@ -16,8 +16,9 @@ export default function ChatArea() {
 
   const handleSendMessage = () => {
     const tempMessage = message.trim();
-    if (tempMessage === '') return;
-    socket.emitMessage({ userInfo, roomList, setRoomList }, focusRoom, tempMessage);
+    if (tempMessage !== '') {
+      socket.emitMessage({ userInfo, roomList, setRoomList }, focusRoom, tempMessage);
+    }
     setMessage('');
   }
 
@@ -56,7 +57,7 @@ export default function ChatArea() {
         />
         <SpeechBubble key="-1" nickName="Other" text="text" isMe={false} />
       </div>
-      <input type="text" className="ChatAreaInput" value={message} onChange={(e) => setMessage(e.target.value)} onKeyDown={(e) => handleEnterEvent(e)}></input>
+      <input type="text" className="ChatAreaInput" maxLength={256} value={message} onChange={(e) => setMessage(e.target.value)} onKeyDown={(e) => handleEnterEvent(e)}></input>
       <div className="ChatDMImg" onClick={handleSendMessage} />
     </div>
   );

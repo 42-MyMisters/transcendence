@@ -20,6 +20,7 @@ export const socket = io(`${URL}${NameSpace}`, {
 });
 
 export function OnSocketCoreEvent() {
+  console.log("add core event listener");
 
   // catch all incoming events
   socket.onAny((eventName, ...args) => {
@@ -272,6 +273,7 @@ export function OnSocketCoreEvent() {
 //     userProfileUrl: string;
 //     userStatus: 'online' | 'offline' | 'inGame';
 //   }) => {
+// if (userId !== userInfo.uid) {
 //     const newUser: chatType.userDto = {};
 //     newUser[userId] = {
 //       userDisplayName,
@@ -279,6 +281,7 @@ export function OnSocketCoreEvent() {
 //       userStatus,
 //     };
 //     setUserList({ ...userList, ...newUser });
+// }
 //   });
 
 //   socket.on("message", ({
@@ -587,6 +590,7 @@ export function emitUserList(
     setUserList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
   },
 ) {
+  console.log('emit user list');
   socket.emit("user-list", {
   }, ({
     userListFromServer,

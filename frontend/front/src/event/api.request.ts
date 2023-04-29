@@ -13,7 +13,7 @@ export function GetMyInfo({
 		.then((response) => {
 			console.log(response);
 			response.nickname = response.nickname.split('#', 2)[0];
-			setUserInfo(response);
+			setUserInfo({ ...response });
 		})
 		.catch((error) => {
 			console.log(`error: ${error}`);

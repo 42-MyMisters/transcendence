@@ -53,12 +53,14 @@ export default function LoginPage() {
         setTFAEnabled(true);
       } else {
         if (hasLogin === false) {
-          console.log("haslogin : false, move to chat page ", `token: ${localStorage.getItem("refreshToken")}`);
-          socket.socket.connect(); //NOTE : when error ocurred, how to handle?
           socket.OnSocketCoreEvent();
+          socket.socket.connect();
           setHasLogin(true);
           navigate("/chat");
-        } //NOTE: need to else case?
+        } else {
+          console.log("already login -- ??");
+          navigate("/chat");
+        }
       }
     }
   }, [setTFAEnabled]);

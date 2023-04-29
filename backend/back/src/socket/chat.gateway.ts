@@ -99,7 +99,12 @@ export class EventsGateway
 					userList[socket.data.user.uid].status = 'online';
 					this.logger.log(`${socket.data.user.nickname} refreshed.`);
 				}
-				this.EmitUserUpdate(socket);
+				this.nsp.emit("user-update", {
+					userId: socket.data.user.uid,
+					userDisplayName: socket.data.user.nickname.split('#', 2)[0],
+					userProfileUrl: socket.data.user.profileUrl,
+					userStatus: userList[socket.data.user.uid].status,
+				});
 			} else {
 				throw new UnauthorizedException("User not found.");
 			}
@@ -114,7 +119,12 @@ export class EventsGateway
 		this.logger.log(`${socket.data.roomList}`);
 		console.log('disconnected');
 		userList[socket.data.user.uid].status = 'offline';
-		this.EmitUserUpdate(socket);
+		socket.broadcast.emit("user-update", {
+			userId: socket.data.user.uid,
+			userDisplayName: socket.data.user.nickname.split('#', 2)[0],
+			userProfileUrl: socket.data.user.profileUrl,
+			userStatus: userList[socket.data.user.uid].status,
+		});
 		socket.data.roomList.map((roomNumber: number) => {
 			let roomMemberCount = 0;
 			Object.entries(roomList[roomNumber].roomMembers).forEach(() => {
@@ -271,16 +281,6 @@ export class EventsGateway
 			roomId,
 			action,
 			targetId,
-		});
-	}
-
-	EmitUserUpdate(socket: Socket) {
-		this.logger.log(`user-update : ${socket.data.user.uid} ${socket.data.user.nickname} ${socket.data.user.profileUrl} ${userList[socket.data.user.uid].status}`);
-		socket.broadcast.emit("user-update", {
-			userId: socket.data.user.uid,
-			userDisplayName: socket.data.user.nickname.split('#', 2)[0],
-			userProfileUrl: socket.data.user.profileUrl,
-			userStatus: userList[socket.data.user.uid].status,
 		});
 	}
 
