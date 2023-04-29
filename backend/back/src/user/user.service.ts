@@ -113,6 +113,13 @@ export class UserService {
 		await this.databaseService.deleteFollow(curUser.uid, userToUnfollow.uid);
 	}
 
+	async findAllBlock(curUser: User): Promise<UserBlock[] | null>{
+		const blockList = await this.databaseService.findAllBlockByUid(curUser.uid);
+		if (blockList.length === 0)
+			return null;
+		return blockList;
+	}
+
 	async block(curUser: User, userToBlock: User): Promise<void> {
 		const existingUserBlock = await this.databaseService.findBlockByUid(curUser.uid, userToBlock.uid);
 		if (existingUserBlock) {
