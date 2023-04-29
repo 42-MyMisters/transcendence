@@ -78,18 +78,36 @@ const roomList: Record<number, RoomInfo> = {
 		roomNumber: 0,
 		roomName: 'Open Lobby',
 		roomType: 'open',
-		roomMembers: {},
-		roomOwner: -1,
-		roomAdmins: [],
+		roomMembers: {
+			0: {
+				userRoomStatus: 'normal',
+				userRoomPower: 'owner',
+			},
+			1: {
+				userRoomStatus: 'mute',
+				userRoomPower: 'admin',
+			}
+		},
+		roomOwner: 0,
+		roomAdmins: [1],
 		bannedUsers: [],
 	},
 	1: {
 		roomNumber: 0,
 		roomName: 'Protected Lobby',
 		roomType: 'protected',
-		roomMembers: {},
-		roomOwner: -1,
-		roomAdmins: [],
+		roomMembers: {
+			0: {
+				userRoomStatus: 'normal',
+				userRoomPower: 'owner',
+			},
+			1: {
+				userRoomStatus: 'mute',
+				userRoomPower: 'admin',
+			}
+		},
+		roomOwner: 0,
+		roomAdmins: [1],
 		bannedUsers: [],
 		roomPass: '42',
 	},
@@ -291,7 +309,7 @@ export class EventsGateway
 			message: string
 		}) {
 		if (roomList[roomId] === undefined) {
-			return { status: 'ko' };
+			return { status: 'ko', payload: '\n\n방에 참여하세요\n선택된 방이 없습니다.' };
 		}
 		this.nsp.to(String(roomId)).emit("message", {
 			roomId,

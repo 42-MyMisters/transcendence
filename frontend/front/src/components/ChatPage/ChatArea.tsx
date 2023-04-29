@@ -32,7 +32,12 @@ export default function ChatArea() {
     <div className="ChatAreaBG">
       <div className="ChatBubbleArea">
         {
-          focusRoom === -1 ? null :
+          focusRoom === -1
+            ?
+            <SpeechBubble key="-42" nickName="Norminette" isMe={false}
+              text="채팅방을 선택해주세요. 방을 만들거나, 참여하면 채팅을 할 수 있습니다."
+            />
+            :
             roomList[focusRoom]?.detail?.messageList!.map((key) => (
               <SpeechBubble
                 key={key.number}
@@ -43,20 +48,6 @@ export default function ChatArea() {
               />
             ))
         }
-        <SpeechBubble key="-1111" nickName="Me" text="text" isMe={true} />
-        <SpeechBubble
-          key="-111"
-          nickName="Other"
-          text="texttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttext"
-          isMe={false}
-        />
-        <SpeechBubble
-          key="-11"
-          nickName="Me"
-          text="texttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttexttext"
-          isMe={true}
-        />
-        <SpeechBubble key="-1" nickName="Other" text="text" isMe={false} />
       </div>
       <input type="text" className="ChatAreaInput" maxLength={256} value={message} onChange={(e) => setMessage(e.target.value)} onKeyDown={(e) => handleEnterEvent(e)}></input>
       <div className="ChatDMImg" onClick={handleSendMessage} />

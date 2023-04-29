@@ -7,11 +7,13 @@ import "../../styles/ChatRoomUserList.css";
 import UserObj from "../objects/UserObj";
 
 import * as chatAtom from '../atom/ChatAtom';
+import { UserAtom } from "../atom/UserAtom";
 
 export default function ChatRoomUserList() {
   const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);
   const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
 
+  const [userInfo, setUserInfo] = useAtom(UserAtom);
   const [userList,] = useAtom(chatAtom.userListAtom);
   const [roomList,] = useAtom(chatAtom.roomListAtom);
   const [focusRoom,] = useAtom(chatAtom.focusRoomAtom);
@@ -42,7 +44,16 @@ export default function ChatRoomUserList() {
       <div className="ChatRoomExitBtn" />
       <div className="ChatRoomUsers">
         {
-          focusRoom === -1 ? null :
+          focusRoom === -1
+            ? <UserObj
+              key="-2"
+              nickName={userInfo.nickname}
+              profileImage={userInfo.profileUrl}
+              status={userList[Number(userInfo.uid)]?.userStatus}
+              power="owner"
+              callBack={onClickInfo}
+            />
+            :
             Object.entries(roomList[focusRoom]?.detail?.userList!).map((key) => (
               <UserObj
                 key={Number(key[0])}
@@ -54,23 +65,14 @@ export default function ChatRoomUserList() {
               />
             ))
         }
-
-        < UserObj
-          key="-1"
-          nickName="User1"
-          profileImage="/smile.png"
-          status="online"
-          power="Owner"
-          callBack={onClickInfo}
-        />
-        <UserObj
+        {/* <UserObj
           key="-2"
           nickName="User2"
           profileImage="/smile.png"
           status="ingame"
           power="Manager"
           callBack={onClickInfo}
-        />
+        /> */}
       </div>
     </div>
   );
