@@ -200,7 +200,7 @@ export class EventsGateway
 			Object.entries(roomList[roomId]?.roomMembers).forEach(() => {
 				roomMemberCount++;
 			});
-			if (roomMemberCount === 1) {
+			if (roomMemberCount <= 1) {
 				this.nsp.emit("room-list-notify", {
 					action: 'delete',
 					roomName: roomList[roomId].roomName,
@@ -217,6 +217,18 @@ export class EventsGateway
 					targetId: socket.data.user.uid,
 				});
 				delete roomList[roomId].roomMembers[socket.data.user.uid];
+				if (roomList[roomId].roomOwner === socket.data.user.uid) {
+					const newOwner = roomList[roomId].roomAdmins[0];
+					if (newOwner === undefined) {
+						const newOwner = Number(roomList[roomId].roomMembers[0]);
+						roomList[roomId].roomOwner = newOwner;
+						roomList[roomId].roomMembers[newOwner].userRoomPower = 'owner';
+					} else {
+						roomList[roomId].roomOwner = newOwner;
+						roomList[roomId].roomMembers[newOwner].userRoomPower = 'owner';
+						roomList[roomId].roomAdmins.shift();
+					}
+				}
 			}
 			socket.leave(roomId.toString());
 			delete socket.data.roomList[roomId];
@@ -227,15 +239,16 @@ export class EventsGateway
 	handleDisconnect(@ConnectedSocket() socket: Socket) {
 		this.logger.log(`${socket.id} socket disconnected`);
 		this.logger.log(`${socket.data.roomList}`);
+		if (userList[socket.data.user.uid] !== undefined) {
+			userList[socket.data.user.uid].status = 'offline';
+			socket.broadcast.emit("user-update", {
+				userId: socket.data.user.uid,
+				userDisplayName: socket.data.user.nickname.split('#', 2)[0],
+				userProfileUrl: socket.data.user.profileUrl,
+				userStatus: userList[socket.data.user.uid].status,
+			});
+		}
 		//NOTE: 커넥션 끊겼다고 모든 방 나가는 건 아니다. 서버에서 저장하고, 재 접속시 정보 불러오기.
-		// if (userList[socket.data.user.uid] !== undefined) {
-		// 	userList[socket.data.user.uid].status = 'offline';
-		// 	socket.broadcast.emit("user-update", {
-		// 		userId: socket.data.user.uid,
-		// 		userDisplayName: socket.data.user.nickname.split('#', 2)[0],
-		// 		userProfileUrl: socket.data.user.profileUrl,
-		// 		userStatus: userList[socket.data.user.uid].status,
-		// 	});
 		// 	socket.data.roomList.map((roomId: number) => {
 		// 		this.deleteRoomLogic(socket, roomId);
 		// 	});
