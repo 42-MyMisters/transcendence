@@ -25,7 +25,8 @@ export default function UserObj({
           isFollow: false,
           userState: status,
           isIgnored: true,
-          myPower: "Owner", //[TODO] fix
+          myPower: "owner", //[TODO] fix
+          userId: 1
         });
         callBack();
       }}
@@ -44,16 +45,16 @@ export default function UserObj({
         style={
           status === "online"
             ? { backgroundColor: "#74B667" }
-            : status === "ingame"
-            ? { backgroundColor: "#54B7BB" }
-            : { backgroundColor: "#CA6A71" }
+            : status === "inGame"
+              ? { backgroundColor: "#54B7BB" }
+              : { backgroundColor: "#CA6A71" }
         }
       />
       <div className="UserNickName">{nickName}</div>
-      {power === "Owner" ? (
+      {power === "owner" ? (
         <div className="UserPowerOwner" />
-      ) : power === "Manager" ? (
-        <div className="UserPowerManager" />
+      ) : power === "admin" ? (
+        <div className="UserPowerAdmin" />
       ) : null}
     </div>
   );

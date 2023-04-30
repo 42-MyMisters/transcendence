@@ -2,7 +2,7 @@ import "../../styles/ChatList.css";
 import UserObj from "../objects/UserObj";
 
 import { useAtom } from "jotai";
-import * as chatAtom from '../atom/SocketAtom';
+import * as chatAtom from '../atom/ChatAtom';
 
 // 채팅페이지 왼쪽 아래 total User list
 export default function ChatUserList() {
@@ -24,20 +24,6 @@ export default function ChatUserList() {
             />
           ))
         }
-        <UserObj
-          nickName="User1"
-          profileImage="/smile.png"
-          status="online"
-          power=""
-          callBack={() => { }}
-        />
-        <UserObj
-          nickName="User2"
-          profileImage="/smile.png"
-          status="ingame"
-          power=""
-          callBack={() => { }}
-        />
       </div>
     </div>
   );
