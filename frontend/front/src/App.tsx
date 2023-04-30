@@ -14,7 +14,7 @@ import { Provider, atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { hasLoginAtom } from './components/atom/ChatAtom';
 
 function CheckLogin({ children }: { children: JSX.Element }) {
-  const [hasLogin,] = useAtom(hasLoginAtom);
+  const [hasLogin] = useAtom(hasLoginAtom);
 
   if (!hasLogin) {
     return (
@@ -24,20 +24,14 @@ function CheckLogin({ children }: { children: JSX.Element }) {
       </>
     );
   } else {
-    return (
-      <>
-        {children}
-      </>
-    );
+    return <>{children}</>;
   }
 }
 
-
 export default function App() {
-
   return (
     <StrictMode>
-      <Provider >
+      <Provider>
         <div className="WindowWrap">
           <Router>
             <CheckLogin>
@@ -52,6 +46,6 @@ export default function App() {
           </Router>
         </div>
       </Provider>
-    </StrictMode >
+    </StrictMode>
   );
 }
