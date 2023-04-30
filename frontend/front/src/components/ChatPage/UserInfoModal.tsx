@@ -5,10 +5,12 @@ import { PressKey } from "../../event/pressKey";
 import { IoCloseOutline } from "react-icons/io5";
 import "../../styles/UserInfoModal.css";
 import { UserInfoModalInfo } from "../atom/UserInfoModalAtom";
+import * as chatAtom from "../../components/atom/ChatAtom";
 
 export default function UserInfoModal() {
   const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
   const [userInfo, setUserInfo] = useAtom(UserInfoModalInfo);
+  const [userHistory,] = useAtom(chatAtom.userHistoryAtom);
 
   PressKey(["Escape"], () => {
     setUserInfoModal(false);
@@ -35,7 +37,7 @@ export default function UserInfoModal() {
         <div className="kick">kick</div>
         <div className="ban">ban</div>
         <div className="mute">mute</div>
-        <div className="manager">manager</div>
+        <div className="manager">admin</div>
       </div>
     </>
   );

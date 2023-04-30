@@ -29,6 +29,20 @@
   color: #000;
 }
 
+.ChatRoomJoin {
+  position: absolute;
+  left: 70px;
+
+  width: 220px;
+  height: 50px;
+
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 50px;
+  align-items: center;
+  color: #0a0;
+}
+
 .ChatRoomType {
   position: absolute;
   right: 0px;
