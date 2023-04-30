@@ -1,0 +1,100 @@
+.LadderBoardWrap {
+  position: absolute;
+  left: 220px;
+  top: 144px;
+
+  width: 1000px;
+  height: 850px;
+
+  background: #d9d9d9;
+}
+
+.LadderBoardBG {
+  position: absolute;
+  left: 30px;
+  top: 25px;
+
+  width: 940px;
+  height: 800px;
+
+  background: #fff;
+}
+
+.LadderBoardHeadLine {
+  position: absolute;
+  left: 30px;
+  top: 20px;
+
+  width: 880px;
+  height: 30px;
+}
+
+.LadderLogList {
+  position: absolute;
+  left: 30px;
+  top: 80px;
+
+  width: 880px;
+  height: 690px;
+
+  overflow: auto;
+}
+
+.LadderLog {
+  width: 880px;
+  height: 30px;
+
+  margin-bottom: 20px;
+}
+
+.LadderLogRank {
+  position: absolute;
+  left: 0px;
+
+  width: 100px;
+  height: 30px;
+
+  font-weight: 400;
+  font-size: 30px;
+  align-items: center;
+  text-align: center;
+}
+
+.LadderLogNick {
+  position: absolute;
+  left: 100px;
+
+  width: 200px;
+  height: 30px;
+
+  font-weight: 400;
+  font-size: 30px;
+  align-items: center;
+  text-align: center;
+}
+
+.LadderLogRecord {
+  position: absolute;
+  left: 300px;
+
+  width: 430px;
+  height: 30px;
+
+  font-weight: 400;
+  font-size: 30px;
+  align-items: center;
+  text-align: center;
+}
+
+.LadderLogELO {
+  position: absolute;
+  right: 0px;
+
+  width: 150px;
+  height: 30px;
+
+  font-weight: 400;
+  font-size: 30px;
+  align-items: center;
+  text-align: center;
+}
