@@ -1,6 +1,6 @@
 import { Logger, UnauthorizedException } from '@nestjs/common';
 import { ConnectedSocket, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import { Socket } from 'socket.io';
+import { Namespace, Socket } from 'socket.io';
 import { AuthService } from 'src/auth/auth.service';
 import { UserService } from 'src/user/user.service';
 import { GameService } from './game.service';
@@ -27,12 +27,14 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         const p1 = this.gameQueue.pop();
         const p2 = this.gameQueue.pop();
         if (p1 !== undefined && p2 !== undefined) {
-          this.gameService.createGame(this.gameId.toString(), p1, p2);
+          p1.join(this.gameId.toString());
+          p2.join(this.gameId.toString());
+          p1.data.rooms = p1.rooms;
+          p2.data.rooms = p2.rooms;
+          console.log(`${p1.id}: joined ${this.gameId.toString()}, rooms: ${[...p1.rooms]}`);
+          console.log(`${p2.id}: joined ${this.gameId.toString()}, rooms: ${[...p2.rooms]}`);
+          this.gameService.createGame(this.gameId.toString(), this.server, p1.id, p2.id);
           this.gameService.getGame((this.gameId++).toString())?.gameStart();
-          // const p1 = userSocket.get(p1uid);
-          // const p2 = userSocket.get(p2uid);
-          // if (p1 !== undefined && p2 !== undefined) {
-          // }
         }
       }
       this.logger.log('game queue loop');
@@ -41,7 +43,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   logger = new Logger('GameGateway');
   
-  @WebSocketServer() server;
+  @WebSocketServer()
+  server: Namespace;
 
   afterInit(server: any) {
     // WebSocket 서버 초기화 작업
@@ -57,15 +60,17 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       if (this.userService.isUserExist(user)) {
         socket.data.user = user;
       } else {
+        // TODO: throw check.
         throw new UnauthorizedException("User not found.");
       }
       if (socket.handshake.auth.data === undefined) {
         this.gameQueue.push(socket);
       } else {
+        // for observer
         if (this.gameService.getGame(socket.handshake.auth.data) !== undefined) {
           socket.join(socket.handshake.auth.data);
         } else {
-          this.logger.log(`${socket.id} game is already finished.`);
+          this.logger.log(`Invalid room number.`);
           socket.disconnect();
         }
       }
@@ -76,7 +81,16 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   handleDisconnect(@ConnectedSocket() socket: Socket) {
-    this.logger.log(`${socket.id} socket disconnected`);
+    console.log(`${socket.id}: rooms: ${[...socket.data.rooms][1]}`);
+    const cur_game = this.gameService.getGame([...socket.data.rooms][1]);
+    if (cur_game === undefined) {
+      this.logger.log(`${socket.id} invalid socket connection disconnected.`);
+    } else if (cur_game.isPlayer(socket.id) === true) {
+      cur_game.playerLeft(socket.id);
+      this.logger.log(`${socket.id} player left.`);
+    } else {
+      this.logger.log(`${socket.id} observer left.`);
+    }
   }
 
   @SubscribeMessage('status')
