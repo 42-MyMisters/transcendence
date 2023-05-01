@@ -13,6 +13,7 @@ type userSimpleDto = {
 
 type roomMessageDto = {
 	userId: number;
+	userName: string;
 	message: string;
 	isMe: boolean;
 	number: number;
@@ -34,12 +35,10 @@ type roomDetailDto = {
 }
 
 type roomListDto = {
-	// [key: number]: {
 	[key: number]: {
 		roomName: string
 		roomType: 'open' | 'protected' | 'private';
 		isJoined?: boolean;
-		// kickList?: number[];
 		detail?: roomDetailDto;
 	}
 }

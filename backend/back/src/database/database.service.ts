@@ -5,6 +5,7 @@ import { User } from "src/database/entity/user.entity";
 import { DataSource, Repository } from "typeorm";
 import { Game } from "./entity/game.entity";
 import { UserBlock } from "./entity/user-block.entity";
+import { from } from "rxjs";
 
 @Injectable()
 export class DatabaseService {
@@ -134,6 +135,11 @@ export class DatabaseService {
     // USER-BLOCK READ
     async findBlockByUid(fromUid: number, toUid: number): Promise<UserBlock | null> {
         return await this.userBlockRepository.findOne({ where: { fromUserId: fromUid, targetToBlockId: toUid } });
+    }
+
+    // USER-BLOCK LIST
+    async findAllBlockByUid(fromUid: number): Promise<UserBlock[]> {
+        return await this.userBlockRepository.find({where: {fromUserId: fromUid}});
     }
 
     // USER-BLOCK DELETE
