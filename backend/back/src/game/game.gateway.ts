@@ -27,14 +27,17 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         const p1 = this.gameQueue.pop();
         const p2 = this.gameQueue.pop();
         if (p1 !== undefined && p2 !== undefined) {
-          p1.join(this.gameId.toString());
-          p2.join(this.gameId.toString());
-          p1.data.rooms = p1.rooms;
-          p2.data.rooms = p2.rooms;
-          console.log(`${p1.id}: joined ${this.gameId.toString()}, rooms: ${[...p1.rooms]}`);
-          console.log(`${p2.id}: joined ${this.gameId.toString()}, rooms: ${[...p2.rooms]}`);
-          this.gameService.createGame(this.gameId.toString(), this.server, p1.id, p2.id);
-          this.gameService.getGame((this.gameId++).toString())?.gameStart();
+          const gameId = this.gameId.toString();
+          this.gameId++;
+          p1.join(gameId);
+          p2.join(gameId);
+          p1.data.room = gameId;
+          p2.data.room = gameId;
+          this.server.to(gameId).emit('join-game', {p1: p1.data.user.uid, p2: p2.data.user.uid});
+          console.log(`${p1.id}: joined ${gameId}, rooms: ${[...p1.rooms]}`);
+          console.log(`${p2.id}: joined ${gameId}, rooms: ${[...p2.rooms]}`);
+          this.gameService.createGame(gameId, this.server, p1.id, p2.id);
+          this.gameService.getGame(gameId)?.gameStart();
         }
       }
       this.logger.log('game queue loop');
@@ -81,22 +84,32 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   handleDisconnect(@ConnectedSocket() socket: Socket) {
-    console.log(`${socket.id}: rooms: ${[...socket.data.rooms][1]}`);
-    const cur_game = this.gameService.getGame([...socket.data.rooms][1]);
-    if (cur_game === undefined) {
-      this.logger.log(`${socket.id} invalid socket connection disconnected.`);
-    } else if (cur_game.isPlayer(socket.id) === true) {
-      cur_game.playerLeft(socket.id);
-      this.logger.log(`${socket.id} player left.`);
-    } else {
-      this.logger.log(`${socket.id} observer left.`);
+    if (socket.data.room !== undefined) {
+      const cur_game = this.gameService.getGame(socket.data.room);
+      if (cur_game === undefined) {
+        this.logger.log(`${socket.id} invalid socket connection disconnected.`);
+      } else if (cur_game.isPlayer(socket.id) === true) {
+        cur_game.playerLeft(socket.id);
+        this.logger.log(`${socket.id} player left.`);
+      } else {
+        this.logger.log(`${socket.id} observer left.`);
+      }
     }
+    this.logger.log(`${socket.id} join game failed.`);
   }
 
   @SubscribeMessage('status')
   async status(socket: Socket, payload: any) {
     console.log(socket.rooms);
     console.log(payload);
+  }
+
+  @SubscribeMessage('upPress')
+  async upPress(socket: Socket, payload: any) {
+    console.log(socket.rooms);
+    console.log(payload);
+    // const curGame = this.gameService.getGame(socket.data.rooms[1]);
+    // curGame.
   }
   // @SubscribeMessage('startGame')
   // async startGame(client: any, payload: any) {

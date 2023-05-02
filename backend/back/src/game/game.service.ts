@@ -64,8 +64,8 @@ class Game {
     private readonly databaseService: DatabaseService,
     // Fixed param set
     private readonly fps = 41,
-    private readonly canvasWidth = 600,
-    private readonly canvasHeight = 400,
+    private readonly canvasWidth = 1150,
+    private readonly canvasHeight = 600,
     private readonly ballRadius = 10,
     private readonly paddleHeight = 100,
     private readonly paddleWidth = 5,
@@ -73,7 +73,7 @@ class Game {
     private readonly paddleSpeedMax = canvasHeight / 20,
     private readonly maxScore = 5,
     ) {
-    this.running = true;
+      this.running = true;
     // countdown time 3sec
     this.p1Score = 0;
     this.p2Score = 0;
@@ -92,9 +92,13 @@ class Game {
     this.ballSpeedY = this.canvasHeight / 80;
     this.paddle1Y = this.canvasHeight / 2;
     this.paddle2Y = this.canvasHeight / 2;
+    this.p1KeyUp = true;
+    this.p2KeyUp = false;
+    this.p1KeyDown = false;
+    this.p2KeyDown = false;
     this.roundTime = -3000;
   }
-
+  
   gameStart() {
     this.now = Date.now();
     const interval = setInterval(() => {
@@ -108,6 +112,7 @@ class Game {
   }
   
   update() {
+    // if p1 q
     if (this.p1Score < this.maxScore && this.p2Score < this.maxScore) {
       // 3 sec count down.
       this.roundTime += this.fps;
@@ -144,8 +149,8 @@ class Game {
             this.init();
           }
         }
-        console.log(`update: id: ${this.id}, ingame time: ${this.roundTime}, time from start: ${Date.now() - this.now}`);
-        this.nsp.to(this.id).emit('status', this.getState());
+        console.log(`update: id: ${this.id}, ingame time: ${this.roundTime}, time from start: ${Date.now() - this.now}, data: ${JSON.stringify(this.getState())}`);
+        this.nsp.to(this.id).emit('graphic', this.getState());
       }
     } else {
       if (this.p1Score > this.p2Score) {
