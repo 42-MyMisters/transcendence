@@ -1,4 +1,5 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { User } from "./user.entity";
 
 @Entity()
 export class DirectMesage extends BaseEntity {
@@ -15,6 +16,20 @@ export class DirectMesage extends BaseEntity {
     message: string | null;
 
     @CreateDateColumn()
-	createdAt: Date;
+	time: Date;
+
+    @ManyToOne(() => User, (user) => user.uid)
+    @JoinColumn({
+        name: 'sender',
+        referencedColumnName: 'uid',
+    })
+    sender: User;
+
+    @ManyToOne(() => User, (user) => user.uid)
+    @JoinColumn({
+        name: 'reciever',
+        referencedColumnName: 'uid',
+    })
+    reciever: User;
     
 }
