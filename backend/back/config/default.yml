@@ -12,3 +12,6 @@ jwt:
 
 jwt-refresh:
     exp: 200000
+
+cache:
+    exp: 0

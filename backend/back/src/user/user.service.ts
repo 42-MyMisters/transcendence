@@ -110,11 +110,14 @@ export class UserService {
 
 	// TODO ? ::  existingFollowing 조회없이, 바로 저장해보고 try catch 로 예외처리?
 	async unfollow(curUser: User, userToUnfollow: User): Promise<void> {
-		// const existingFollowing = await this.databaseService.findFollowingByUid(curUser.uid, userToUnfollow.uid);
-		// if (!existingFollowing) {
-		// 	throw new Error('You are not following this user.');
-		// }
 		await this.databaseService.deleteFollow(curUser.uid, userToUnfollow.uid);
+	}
+
+	async findAllBlock(curUser: User): Promise<UserBlock[] | null>{
+		const blockList = await this.databaseService.findAllBlockByUid(curUser.uid);
+		if (blockList.length === 0)
+			return null;
+		return blockList;
 	}
 
 	async block(curUser: User, userToBlock: User): Promise<void> {

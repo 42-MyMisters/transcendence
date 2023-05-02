@@ -13,7 +13,7 @@ export class AppController {
     description: 'send "Hello World!" to clients.',
   })
   @ApiOkResponse({ description: 'ok' })
-  getHello(): string {
+  getHello() {
     return this.appService.getHello();
   }
 }

@@ -1,0 +1,64 @@
+.GameResultModalBG {
+  position: absolute;
+
+  width: 1440px;
+  height: 1024px;
+
+  z-index: 998;
+  background-color: #ffffff;
+  opacity: 0.5;
+}
+
+.GameResultModal {
+  position: absolute;
+  left: 490px;
+  top: 440px;
+
+  width: 460px;
+  height: 280px;
+
+  z-index: 999;
+  background: #959595;
+}
+
+.GameResultModalTxt {
+  position: absolute;
+  left: 30px;
+  top: 30px;
+
+  width: 400px;
+  height: 50px;
+
+  font-weight: 400;
+  font-size: 50px;
+
+  text-align: center;
+}
+
+.GameResultModalScore {
+  position: absolute;
+  left: 30px;
+  top: 115px;
+
+  width: 400px;
+  height: 50px;
+
+  font-weight: 400;
+  font-size: 50px;
+
+  text-align: center;
+}
+
+.GameResultModalBtn {
+  position: absolute;
+  left: 180px;
+  top: 200px;
+
+  width: 100px;
+  height: 50px;
+
+  font-weight: 400;
+  font-size: 30px;
+
+  text-align: center;
+}

@@ -6,6 +6,7 @@ import { authenticator } from 'otplib';
 import { User } from 'src/database/entity/user.entity';
 import { IntraTokenDto } from 'src/user/dto/IntraToken.dto';
 import { IntraUserDto } from 'src/user/dto/IntraUser.dto';
+import { TokenSetDto } from 'src/user/dto/TokenSet.dto';
 
 @Injectable()
 export class AuthService {
@@ -84,10 +85,11 @@ export class AuthService {
 		return authenticator.verify({ token: twoFactorCode, secret: user.twoFactorSecret });
 	}
 
-	async loginWith2fa(userWithoutPw: Omit<User, 'password'>) : Promise<{refreshToken: string, accessToken: string}> {
-		const refreshToken = await this.genRefreshToken(userWithoutPw, true);
-		const accessToken = await this.genAccessToken(userWithoutPw, true);
-		return {refreshToken, accessToken};
+	async loginWith2fa(userWithoutPw: Omit<User, 'password'>) : Promise<TokenSetDto> {
+		const tokenSet = new TokenSetDto();
+		tokenSet.refreshToken = await this.genRefreshToken(userWithoutPw, true);
+		tokenSet.accessToken  = await this.genAccessToken(userWithoutPw, true);
+		return tokenSet;
 	}
 
 	async login(userWithoutPw: Omit<User, 'password'>) {

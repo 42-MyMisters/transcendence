@@ -15,8 +15,8 @@ import { TFAEnabledAtom } from "../components/atom/LoginAtom";
 import ChatPage from "./ChatPage";
 import { useNavigate } from "react-router-dom";
 
-import * as socket from "../socket/socket";
-import { hasLoginAtom } from '../components/atom/SocketAtom';
+import * as socket from "../socket/chat.socket";
+import { hasLoginAtom } from '../components/atom/ChatAtom';
 
 export default function LoginPage() {
   /* localstorage에 없는데 cookie에 있으면 로그인이 된거다 */
@@ -53,12 +53,13 @@ export default function LoginPage() {
         setTFAEnabled(true);
       } else {
         if (hasLogin === false) {
-          console.log("haslogin : false, move to chat page ", `token: ${localStorage.getItem("refreshToken")}`);
-          socket.socket.connect(); //NOTE : when error ocurred, how to handle?
-          socket.OnSocketCoreEvent();
+          socket.socket.connect();
           setHasLogin(true);
           navigate("/chat");
-        } //NOTE: need to else case?
+        } else {
+          console.log("already login -- ??");
+          navigate("/chat");
+        }
       }
     }
   }, [setTFAEnabled]);
