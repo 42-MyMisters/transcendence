@@ -22,6 +22,6 @@ export class TesterController {
       sameSite: 'strict',
       // secure: true //only https option
     });
-    return res.send(tokenSet);
+    return res.redirect('http://localhost:3000/');
   }
 }
