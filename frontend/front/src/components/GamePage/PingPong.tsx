@@ -115,18 +115,24 @@ export default function PingPong() {
 
   // document.addEventListener('keydown', onKeyDown);
   window.addEventListener('keydown', e => {
+    e.preventDefault();
     if (e.key === 'ArrowUp') {
       game.emitUpPress();
+      console.log("up press");
     } else if (e.key === 'ArrowDown') {
       game.emitDownPress();
+      console.log("down press");
     }
   });
 
   window.addEventListener('keyup', e => {
+    e.preventDefault();
     if (e.key === 'ArrowUp') {
       game.emitUpRelease();
+      console.log("up release");
     } else if (e.key === 'ArrowDown') {
       game.emitDownRelease();
+      console.log("down release");
     }
   });
 
