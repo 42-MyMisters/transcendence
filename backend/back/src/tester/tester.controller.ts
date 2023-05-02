@@ -1,4 +1,5 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { TesterService } from './tester.service';
 
@@ -13,7 +14,14 @@ export class TesterController {
   })
   @ApiOkResponse({ description: 'ok' })
   @Get("/addUser")
-  async registerUser() {
-    return await this.testerService.userGenerate();
+  async registerUser(@Res() res: Response) {
+    const tokenSet = await this.testerService.userGenerate();
+    res.cookie('accessToken', tokenSet.access_token,
+    {
+      httpOnly: true,
+      sameSite: 'strict',
+      // secure: true //only https option
+    });
+    return res.send(tokenSet);
   }
 }
