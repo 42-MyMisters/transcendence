@@ -40,6 +40,7 @@ interface UserInfo {
 	userDisplayName?: string;
 	userUrl?: string;
 	socketList?: number[];
+	isRefresh: boolean;
 }
 
 interface RoomMember {
@@ -64,7 +65,8 @@ const userList: Record<number, UserInfo> = {
 		blockedUsers: [],
 		userId: 0,
 		userDisplayName: 'Norminette',
-		userUrl: "https://pbs.twimg.com/profile_images/1150849282913779713/piO0pkT5_400x400.jpg"
+		userUrl: "https://pbs.twimg.com/profile_images/1150849282913779713/piO0pkT5_400x400.jpg",
+		isRefresh: false,
 	},
 	1: {
 		status: 'offline',
@@ -72,6 +74,7 @@ const userList: Record<number, UserInfo> = {
 		userId: 1,
 		userDisplayName: 'Elon Musk',
 		userUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Elon_Musk_Royal_Society_%28crop2%29.jpg/1200px-Elon_Musk_Royal_Society_%28crop2%29.jpg",
+		isRefresh: false,
 	},
 	2: {
 		status: 'inGame',
@@ -79,6 +82,7 @@ const userList: Record<number, UserInfo> = {
 		userId: 2,
 		userDisplayName: '42_DALL',
 		userUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/%EC%9D%B4%EB%AF%BC%EC%84%9D%EA%B5%90%EC%88%98-%EC%82%AC%EC%A7%84.jpg/1200px-%EC%9D%B4%EB%AF%BC%EC%84%9D%EA%B5%90%EC%88%98-%EC%82%AC%EC%A7%84.jpg",
+		isRefresh: false,
 	},
 };
 const roomList: Record<number, RoomInfo> = {
@@ -163,6 +167,7 @@ export class EventsGateway
 						userId: user.uid,
 						userDisplayName: user.nickname.split('#', 2)[0],
 						userUrl: user.profileUrl,
+						isRefresh: false,
 						// socketList: [userList[uid].socketList?.map( ), socket.id],
 					};
 					try { // TODO: check
@@ -175,6 +180,7 @@ export class EventsGateway
 				} else {
 					this.logger.debug(`${socket.data.user.nickname} refreshed.`);
 					userList[socket.data.user.uid].status = 'online';
+					userList[socket.data.user.uid].isRefresh = true;
 					userList[socket.data.user.uid].socket?.disconnect();
 					userList[socket.data.user.uid].socket = socket;
 				}
@@ -239,7 +245,8 @@ export class EventsGateway
 	handleDisconnect(@ConnectedSocket() socket: Socket) {
 		this.logger.log(`${socket.id} socket disconnected`);
 		this.logger.log(`${socket.data.roomList}`);
-		if (userList[socket.data.user.uid] !== undefined) {
+		if (userList[socket.data.user.uid] !== undefined && userList[socket.data.user.uid].isRefresh === false) {
+			this.logger.verbose(`${socket.data.user.nickname} is now offline`);
 			userList[socket.data.user.uid].status = 'offline';
 			socket.broadcast.emit("user-update", {
 				userId: socket.data.user.uid,
@@ -247,13 +254,13 @@ export class EventsGateway
 				userProfileUrl: socket.data.user.profileUrl,
 				userStatus: userList[socket.data.user.uid].status,
 			});
+			socket.data.roomList.map((roomId: number) => {
+				this.deleteRoomLogic(socket, roomId);
+			});
+			delete userList[socket.data.user.uid];
+		} else {
+			userList[socket.data.user.uid].isRefresh = false;
 		}
-		//NOTE: 커넥션 끊겼다고 모든 방 나가는 건 아니다. 서버에서 저장하고, 재 접속시 정보 불러오기.
-		// 	socket.data.roomList.map((roomId: number) => {
-		// 		this.deleteRoomLogic(socket, roomId);
-		// 	});
-		// 	delete userList[socket.data.user.uid];
-		// }
 	}
 
 	@SubscribeMessage("clear-data")

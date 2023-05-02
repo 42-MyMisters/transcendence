@@ -132,10 +132,11 @@ export default function ChatPage() {
 			*/
 			if (reason === "io server disconnect") {
 				// the disconnection was initiated by the server, you need to reconnect manually
+				console.log('socket disconnected by server');
+				alert(`multiple login detected!`);
 			}
 			// else the socket will automatically try to reconnect
 			console.log("socket disconnected");
-			socket.socket.emit("test", { message: "socket disconnected" });
 			setSocketState(false);
 		});
 	}, []);
