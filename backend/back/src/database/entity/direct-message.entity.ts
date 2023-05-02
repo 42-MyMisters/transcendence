@@ -2,7 +2,7 @@ import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, Pr
 import { User } from "./user.entity";
 
 @Entity()
-export class DirectMesage extends BaseEntity {
+export class DirectMessage extends BaseEntity {
     @PrimaryGeneratedColumn()
     did: number;
 
