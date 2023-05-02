@@ -109,9 +109,9 @@ export default function PingPong() {
     };
   }, [coordinate]);
 
-  useEffect(() => {
-    Game(coordinate);
-  }, []);
+  // useEffect(() => {
+  //   Game(coordinate);
+  // }, []);
 
   // document.addEventListener('keydown', onKeyDown);
   window.addEventListener('keydown', e => {
