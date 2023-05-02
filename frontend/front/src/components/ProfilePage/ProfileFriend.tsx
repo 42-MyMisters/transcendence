@@ -12,7 +12,7 @@ export default function ProfileFriend() {
       <div className="ProfileFriendTitle">friends</div>
       <div className="ProfileFriendBG">
         <div className="ProfileFriendList">
-          {userInfo !== null
+          {userInfo.followings
             ? userInfo.followings.map((key) => {
                 return (
                   <UserObj

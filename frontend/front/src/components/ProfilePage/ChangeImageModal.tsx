@@ -32,6 +32,19 @@ export default function ChangeImageModal() {
       let response = fetch("http://localhost:4000/user/profile-img-change", {
         method: "POST",
         body: blob,
+      }).then(() => {
+        fetch("http://localhost:4000/user/me", {
+          credentials: "include",
+          method: "GET",
+        })
+          .then((response) => response.json())
+          .then((response) => {
+            console.log(response);
+            setUserInfo(response);
+          })
+          .catch((error) => {
+            console.log(`error: ${error}`);
+          });
       });
     }
   };
