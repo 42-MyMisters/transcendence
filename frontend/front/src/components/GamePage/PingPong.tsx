@@ -87,6 +87,8 @@ export default function PingPong() {
 
   });
 
+  const intersectionSize: number = 5;
+
   useEffect(() => {
     game.gameSocket.on('graphic', ({
       p1,
@@ -106,6 +108,21 @@ export default function PingPong() {
         ballY: ball_y,
         rightY: p2
       }
+      // drawIntersection(temp);
+      // const leftGap = (coordinate.leftY - temp.leftY) / intersectionSize;
+      // const rightGap = (coordinate.rightY - temp.rightY) / intersectionSize;
+      // const ballGapX = (coordinate.ballX - temp.ballX) / intersectionSize;
+      // const ballGapY = (coordinate.ballY - temp.ballY) / intersectionSize;
+      // let tempCoordinate: GameCoordinate = {
+      //   ...coordinate
+      // }
+      // for (let i = 0; i < intersectionSize; i++) {
+      //   Game(tempCoordinate);
+      //   tempCoordinate.leftY += leftGap;
+      //   tempCoordinate.rightY += rightGap;
+      //   tempCoordinate.ballX += ballGapX;
+      //   tempCoordinate.ballY += ballGapY;
+      // }
       setCoordinate(temp);
       Game(coordinate);
     });
@@ -118,7 +135,6 @@ export default function PingPong() {
     Game(coordinate);
   }, []);
 
-  // detect key press only once when just push down
 
   // document.addEventListener('keydown', onKeyDown);
   // useEffect(() => {
@@ -162,28 +178,6 @@ export default function PingPong() {
   //     window.removeEventListener('keyup', handleKeyUp);
   //   }
   // }, []);
-
-  // useEffect(() => {
-
-  //   const handleKeyPress = (ev: KeyboardEvent) => {
-  //     e.preventDefault();
-  //     if (keyPress) return;
-  //     if (e.key === 'ArrowUp') {
-  //       game.emitUpPress();
-  //       console.log("up press");
-  //     } else if (e.key === 'ArrowDown') {
-  //       game.emitDownPress();
-  //       console.log("down press");
-  //     }
-  //     setKeyPresse(true);
-  //   };
-
-  //   document.addEventListener('keydown', handleKeyPress);
-
-  //   return () => {
-
-  //   };
-  // }, [keyPress, keyRelease]);
 
   useEffect(() => {
     function handleKeyPress(event: globalThis.KeyboardEvent) {
