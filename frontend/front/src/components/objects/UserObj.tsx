@@ -59,12 +59,18 @@ export default function UserObj({
               : { backgroundColor: "#CA6A71" }
         }
       />
-      <div className="UserNickName">{nickName}</div>
-      {power === "owner" ? (
-        <div className="UserPowerOwner" />
-      ) : power === "admin" ? (
-        <div className="UserPowerAdmin" />
-      ) : null}
-    </div>
+      {
+        uid === userDefaultInfo.uid
+          ? <div className="UserNickName" style={{ color: "#0a0" }}>{nickName}</div>
+          : <div className="UserNickName" >{nickName}</div>
+      }
+      {
+        power === "owner" ? (
+          <div className="UserPowerOwner" />
+        ) : power === "admin" ? (
+          <div className="UserPowerAdmin" />
+        ) : null
+      }
+    </div >
   );
 }
