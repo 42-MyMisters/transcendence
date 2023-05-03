@@ -117,12 +117,13 @@ export default function PingPong() {
       //   ...coordinate
       // }
       // for (let i = 0; i < intersectionSize; i++) {
-      //   Game(tempCoordinate);
       //   tempCoordinate.leftY += leftGap;
       //   tempCoordinate.rightY += rightGap;
       //   tempCoordinate.ballX += ballGapX;
       //   tempCoordinate.ballY += ballGapY;
+      //   Game(tempCoordinate);
       // }
+
       setCoordinate(temp);
       Game(coordinate);
     });
