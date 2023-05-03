@@ -20,6 +20,7 @@ export default function PingPong() {
   PressKey(["ArrowDown"], () => {
     let tmp = coordinate;
     tmp.leftY += 10;
+    tmp.ballX += 10;
     setCoordinate(tmp);
     Game(coordinate);
   });
