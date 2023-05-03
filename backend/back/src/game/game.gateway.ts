@@ -88,7 +88,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       const cur_game = this.gameService.getGame(socket.data.room);
       if (cur_game === undefined) {
         this.logger.log(`${socket.id} invalid socket connection disconnected.`);
-      } else if (cur_game.isPlayer(socket.id) === true) {
+      } else if (cur_game.isPlayer(socket.id)) {
         cur_game.playerLeft(socket.id);
         this.logger.log(`${socket.id} player left.`);
       } else {
@@ -106,10 +106,38 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   @SubscribeMessage('upPress')
   async upPress(socket: Socket, payload: any) {
-    console.log(socket.rooms);
-    console.log(payload);
-    // const curGame = this.gameService.getGame(socket.data.rooms[1]);
-    // curGame.
+    if (socket.data.room) {
+      const curGame = this.gameService.getGame(socket.data.room);
+      curGame?.upPress(socket.id);
+      console.log(`up button pressed.`);
+    }
+  }
+  
+  @SubscribeMessage('downPress')
+  async downPress(socket: Socket, payload: any) {
+    if (socket.data.room) {
+      const curGame = this.gameService.getGame(socket.data.room);
+      curGame?.downPress(socket.id);
+      console.log(`down button pressed.`);
+    }
+  }
+
+  @SubscribeMessage('upRelease')
+  async upRelease(socket: Socket, payload: any) {
+    if (socket.data.room) {
+      const curGame = this.gameService.getGame(socket.data.room);
+      curGame?.upRelease(socket.id);
+      console.log(`up button released.`);
+    }
+  }
+  
+  @SubscribeMessage('downRelease')
+  async downRelease(socket: Socket, payload: any) {
+    if (socket.data.room) {
+      const curGame = this.gameService.getGame(socket.data.room);
+      curGame?.downRelease(socket.id);
+      console.log(`down button released.`);
+    }
   }
   // @SubscribeMessage('startGame')
   // async startGame(client: any, payload: any) {
