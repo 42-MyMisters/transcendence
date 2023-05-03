@@ -244,6 +244,11 @@ export class EventsGateway
 					});
 				}
 			}
+			socket.to(roomId.toString()).emit('message', {
+				roomId,
+				from: socket.data.user.uid,
+				message: `${userList[socket.data.user.uid].userDisplayName} left this room`,
+			});
 			socket.leave(roomId.toString());
 			delete socket.data.roomList[roomId];
 			return action;
@@ -412,6 +417,11 @@ export class EventsGateway
 						roomId,
 						action: 'newMember',
 						targetId: socket.data.user.uid,
+					});
+					socket.to(roomId.toString()).emit('message', {
+						roomId,
+						from: socket.data.user.uid,
+						message: `${userList[socket.data.user.uid].userDisplayName} joins this room`,
 					});
 					return ({ status: 'ok' });
 				}
