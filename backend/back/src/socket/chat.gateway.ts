@@ -184,6 +184,7 @@ export class EventsGateway
 					userList[socket.data.user.uid].socket?.disconnect();
 					userList[socket.data.user.uid].socket = socket;
 				}
+				this.logger.verbose(`${userList[socket.data.user.uid].userDisplayName} is now online`);
 				this.nsp.emit("user-update", {
 					userId: socket.data.user.uid,
 					userDisplayName: socket.data.user.nickname.split('#', 2)[0],
@@ -243,26 +244,32 @@ export class EventsGateway
 	}
 
 	handleDisconnect(@ConnectedSocket() socket: Socket) {
-		this.logger.log(`${socket.id} socket disconnected`);
-		this.logger.log(`${socket.data.roomList}`);
-		if (userList[socket?.data?.user?.uid] !== undefined) {
-			if (userList[socket?.data?.user.uid].isRefresh === false) {
-				this.logger.verbose(`${socket.data.user.nickname} is now offline`);
-				userList[socket.data.user.uid].status = 'offline';
-				socket.broadcast.emit("user-update", {
-					userId: socket.data.user.uid,
-					userDisplayName: socket.data.user.nickname.split('#', 2)[0],
-					userProfileUrl: socket.data.user.profileUrl,
-					userStatus: userList[socket.data.user.uid].status,
-				});
-				socket.data.roomList.map((roomId: number) => {
-					this.deleteRoomLogic(socket, roomId);
-				});
-				delete userList[socket.data.user.uid];
-			} else {
-				userList[socket.data.user.uid].isRefresh = false;
-			}
-		}
+		this.logger.log(`${userList[socket?.data?.user?.uid].userDisplayName} : ${socket.id} socket disconnected`);
+		// if (userList[socket?.data?.user?.uid] !== undefined) {
+		// 	if (userList[socket?.data?.user.uid].isRefresh === false) {
+		// 		this.logger.verbose(`${socket.data.user.nickname} is now offline`);
+		// 		userList[socket.data.user.uid].status = 'offline';
+		// 		socket.broadcast.emit("user-update", {
+		// 			userId: socket.data.user.uid,
+		// 			userDisplayName: socket.data.user.nickname.split('#', 2)[0],
+		// 			userProfileUrl: socket.data.user.profileUrl,
+		// 			userStatus: userList[socket.data.user.uid].status,
+		// 		});
+		// 		socket.data.roomList.map((roomId: number) => {
+		// 			this.deleteRoomLogic(socket, roomId);
+		// 		});
+		// 		delete userList[socket.data.user.uid];
+		// 	} else {
+		// 		userList[socket.data.user.uid].isRefresh = false;
+		// 	}
+		this.logger.verbose(`${userList[socket.data.user.uid].userDisplayName} is now offline`);
+		userList[socket.data.user.uid].status = 'offline';
+		socket.broadcast.emit("user-update", {
+			userId: socket.data.user.uid,
+			userDisplayName: socket.data.user.nickname.split('#', 2)[0],
+			userProfileUrl: socket.data.user.profileUrl,
+			userStatus: userList[socket.data.user.uid].status,
+		});
 	}
 
 	@SubscribeMessage("clear-data")
@@ -341,7 +348,6 @@ export class EventsGateway
 		const tempRoomList: Record<number, ClientRoomListDto> = {};
 		for (const [roomId, roomInfo] of Object.entries(roomList)) {
 			if (roomInfo.roomMembers[socket?.data?.user?.uid] !== undefined) {
-				this.logger.debug(`room ${roomId} is joined`);
 				socket.join(roomId.toString());
 				tempRoomList[roomId] = {
 					roomName: roomInfo.roomName,
@@ -351,7 +357,7 @@ export class EventsGateway
 						userList: roomInfo.roomMembers,
 						messageList: [],
 						myRoomStatus: roomInfo.roomMembers[socket.data.user.uid].userRoomStatus,
-						myPower: roomInfo.roomMembers[socket.data.user.uid].userRoomPower,
+						myRoomPower: roomInfo.roomMembers[socket.data.user.uid].userRoomPower,
 					}
 				};
 			} else if (roomInfo.roomType !== 'private') {

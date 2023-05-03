@@ -50,6 +50,7 @@ export default function ChatRoomUserList() {
           roomList[focusRoom]?.detail?.myRoomPower !== 'owner'
             ? '' : <div className="ChatRoomSettingBtn" />
       }
+      {/* <div className="ChatRoomSettingBtn" /> */}
       {
         focusRoom === -1
           ? ''
