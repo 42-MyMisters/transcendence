@@ -45,7 +45,7 @@ export default function ChatPage() {
 		console.log("\n\ngetRoomList");
 		Object.entries(roomList).forEach(([key, value]) => {
 			if (value.detail !== undefined) {
-				console.log(`[ ${value.roomName} ] - ${value.roomType}`);
+				console.log(`[ ${value.roomName} : ${key}] - ${value.roomType}`);
 				Object.entries(value.detail).forEach(([key, value]) => {
 					if (key === "userList") {
 						Object.entries(value).forEach(([key, value]) => {
@@ -292,21 +292,13 @@ export default function ChatPage() {
 					if (targetId === userInfo.uid) {
 						return;
 					} else {
-						const newUserList: chatType.userInRoomListDto = { ...roomList[roomId].detail?.userList! };
 						const newUser: chatType.userInRoomListDto = {};
 						newUser[targetId] = {
 							userRoomStatus: 'normal',
 							userRoomPower: 'member'
 						};
-						// socket.setNewDetailToNewRoom({ roomList, setRoomList, roomId, newUserList: { ...newUserList, ...newUser } });
-						newUserList[targetId] = {
-							userRoomStatus: 'normal',
-							userRoomPower: 'member'
-						};
-
-						const newDetail: Partial<chatType.roomDetailDto> = { ...roomList[roomId].detail, userList: { ...newUserList } };
-						const newRoomList: chatType.roomListDto = { ...roomList[roomId], ...newDetail };
-						setRoomList({ ...roomList, ...newRoomList });
+						const newUserList: chatType.userInRoomListDto = { ...roomList[roomId].detail?.userList!, ...newUser };
+						socket.setNewDetailToNewRoom({ roomList, setRoomList, roomId, newUserList })
 					}
 					break;
 				}
@@ -438,6 +430,9 @@ export default function ChatPage() {
 		socket.emitDmHistoryList({ userList, setUserList, dmHistoryList, setDmHistoryList });
 		socket.emitUserList({ userList, setUserList, userHistory, setUserHistory });
 		socket.emitRoomList({ setRoomList });
+		if (userInfo.uid === 1) {
+			GetMyInfo({ setUserInfo });
+		}
 		setIsFirstLogin(false);
 	}
 

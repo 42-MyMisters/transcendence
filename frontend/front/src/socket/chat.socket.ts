@@ -146,6 +146,8 @@ export function emitRoomLeave(
 			if (focusRoom === roomId) {
 				setFocusRoom(-1);
 			}
+		} else {
+			console.log(`callback: room leave failed: ${roomList[roomId].roomName}`);
 		}
 	});
 }
@@ -466,8 +468,17 @@ export function setNewDetailToNewRoom({
 	roomId: number,
 	newUserList: chatType.userInRoomListDto
 }) {
-	const newDetail: Partial<chatType.roomDetailDto> = { ...roomList[roomId].detail, userList: { ...newUserList } };
-	const newRoomList: chatType.roomListDto = { ...roomList[roomId], ...newDetail };
+	const newRoomList: chatType.roomListDto = {}
+	newRoomList[roomId] = {
+		roomName: roomList[roomId].roomName,
+		roomType: roomList[roomId].roomType,
+		isJoined: roomList[roomId].isJoined,
+		detail: {
+			userList: { ...newUserList },
+			messageList: roomList[roomId].detail?.messageList || [],
+			myRoomStatus: roomList[roomId].detail?.myRoomStatus || 'normal',
+			myRoomPower: roomList[roomId].detail?.myRoomPower || 'member'
+		}
+	};
 	setRoomList({ ...roomList, ...newRoomList });
-
 }

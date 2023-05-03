@@ -106,7 +106,7 @@ const roomList: Record<number, RoomInfo> = {
 	},
 	1: {
 		roomNumber: 0,
-		roomName: 'Protected Lobby',
+		roomName: 'Protect Lobby',
 		roomType: 'protected',
 		roomMembers: {
 			0: {
@@ -225,9 +225,9 @@ export class EventsGateway
 				});
 				delete roomList[roomId].roomMembers[socket.data.user.uid];
 				if (roomList[roomId].roomOwner === socket.data.user.uid) {
-					const newOwner = roomList[roomId].roomAdmins[0];
+					let newOwner = roomList[roomId]?.roomAdmins[0];
 					if (newOwner === undefined) {
-						const newOwner = Number(roomList[roomId].roomMembers[0]);
+						newOwner = Number(Object.values(roomList[roomId].roomMembers)[0]);
 						roomList[roomId].roomOwner = newOwner;
 						roomList[roomId].roomMembers[newOwner].userRoomPower = 'owner';
 					} else {
@@ -235,6 +235,12 @@ export class EventsGateway
 						roomList[roomId].roomMembers[newOwner].userRoomPower = 'owner';
 						roomList[roomId].roomAdmins.shift();
 					}
+					// TODO emit : new owner update
+					this.nsp.to(roomId.toString()).emit("room-in-action", {
+						roomId,
+						action: 'owner',
+						targetId: newOwner,
+					});
 				}
 			}
 			socket.leave(roomId.toString());
@@ -405,6 +411,7 @@ export class EventsGateway
 						userRoomPower: 'member',
 					}
 					roomList[roomId].roomMembers[socket.data.user.uid] = newMember;
+					this.logger.debug(`${socket.id} join room ${roomId}: ${JSON.stringify(roomList[roomId].roomMembers[socket.data.user.uid])}`);
 					socket.join(roomId.toString());
 					socket.data.roomList.push(roomId);
 					this.nsp.to(socket.id).emit("room-join", {
