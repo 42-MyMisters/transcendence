@@ -427,7 +427,6 @@ export function emitMessage(
 	roomId: number,
 	message: string,
 ) {
-
 	socket.emit("message", {
 		roomId,
 		message
@@ -477,5 +476,6 @@ export function setNewDetailToNewRoom({
 		}
 	};
 	console.log(`newRoomList: ${JSON.stringify(newRoomList)}`);
+	console.log(`\n newUser list: ${JSON.stringify(newUserList)}`);
 	setRoomList({ ...roomList, ...newRoomList });
 }

@@ -418,11 +418,6 @@ export class EventsGateway
 						action: 'newMember',
 						targetId: socket.data.user.uid,
 					});
-					socket.to(roomId.toString()).emit('message', {
-						roomId,
-						from: socket.data.user.uid,
-						message: `${userList[socket.data.user.uid].userDisplayName} joins this room`,
-					});
 					return ({ status: 'ok' });
 				}
 				case 'private': {

@@ -15,6 +15,34 @@ export default function UserInfoModal() {
     setUserInfoModal(false);
   });
 
+  const Follow = () => {
+    alert("follow");
+  };
+
+  const Invite = () => {
+    alert("invite");
+  }
+
+  const Ignore = () => {
+    alert("ignore");
+  };
+
+  const Kick = () => {
+    alert("kick");
+  };
+
+  const Ban = () => {
+    alert("ban");
+  };
+
+  const Mute = () => {
+    alert("mute");
+  };
+
+  const Admin = () => {
+    alert("admin");
+  };
+
   return (
     <>
       <div className="UserInfoModalBG"></div>
@@ -31,14 +59,14 @@ export default function UserInfoModal() {
         >
           <IoCloseOutline />
         </div>
-        <div className="follow">{userInfo.isFollow ? "unfollow" : "follow"}</div>
-        <div className="invite">{userInfo.userState != "ingame" ? "invite" : "observe"}</div>
-        <div className="ignore">{userInfo.isIgnored ? "unignore" : "ignore"}</div>
-        <div className="profile">profile</div>
-        <div className="kick">kick</div>
-        <div className="ban">ban</div>
-        <div className="mute">mute</div>
-        <div className="manager">admin</div>
+        <div className="follow" onClick={Follow} >{userInfo.isFollow ? "unfollow" : "follow"}</div>
+        <div className="invite" onClick={Invite} >{userInfo.userState != "ingame" ? "invite" : "observe"}</div>
+        <div className="ignore" onClick={Ignore}>{userInfo.isIgnored ? "unignore" : "ignore"}</div>
+        <div className="profile" >profile</div>
+        <div className="kick" onClick={Kick}>kick</div>
+        <div className="ban" onClick={Ban}>ban</div>
+        <div className="mute" onClick={Mute}>mute</div>
+        <div className="manager" onClick={Admin}>admin</div>
       </div>
     </>
   );

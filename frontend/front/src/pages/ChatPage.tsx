@@ -261,6 +261,7 @@ export default function ChatPage() {
 					console.log(`room-join new: ${JSON.stringify(newRoomList)}`);
 					setRoomList({ ...roomList, ...newRoomList });
 					setFocusRoom(roomId);
+					// socket.emitMessage({ roomList }, roomId, "joins this room"); //XXX: this will cause a bug
 					break;
 				}
 				case 'ko': {
