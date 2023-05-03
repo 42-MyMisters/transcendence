@@ -33,7 +33,7 @@ export default function PingPong() {
   });
 
   // catch all outgoing events
-  game.gameSocket.prependAny((eventName, ...args) => {
+  game.gameSocket.onAnyOutgoing((eventName, ...args) => {
     console.log("outgoing ", eventName, args);
   });
 
@@ -109,9 +109,9 @@ export default function PingPong() {
     };
   }, [coordinate]);
 
-  // useEffect(() => {
-  //   Game(coordinate);
-  // }, []);
+  useEffect(() => {
+    Game(coordinate);
+  }, []);
 
   // document.addEventListener('keydown', onKeyDown);
   window.addEventListener('keydown', e => {
