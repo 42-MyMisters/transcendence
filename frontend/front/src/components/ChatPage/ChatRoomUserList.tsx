@@ -50,7 +50,6 @@ export default function ChatRoomUserList() {
           roomList[focusRoom]?.detail?.myRoomPower !== 'owner'
             ? '' : <div className="ChatRoomSettingBtn" />
       }
-      {/* <div className="ChatRoomSettingBtn" /> */}
       {
         focusRoom === -1
           ? ''
@@ -69,7 +68,7 @@ export default function ChatRoomUserList() {
               nickName={userInfo.nickname}
               profileImage={userInfo.profileUrl}
               status={userList[Number(userInfo.uid)]?.userStatus}
-              power="owner"
+              power="member"
               callBack={onClickInfo}
             />
             : Object.entries(roomList[focusRoom]?.detail?.userList!).map((key) => (

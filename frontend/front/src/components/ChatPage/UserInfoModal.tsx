@@ -10,7 +10,6 @@ import * as chatAtom from "../../components/atom/ChatAtom";
 export default function UserInfoModal() {
   const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
   const [userInfo, setUserInfo] = useAtom(UserInfoModalInfo);
-  const [userHistory,] = useAtom(chatAtom.userHistoryAtom);
 
   PressKey(["Escape"], () => {
     setUserInfoModal(false);

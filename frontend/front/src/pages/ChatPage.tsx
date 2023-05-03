@@ -33,7 +33,6 @@ export default function ChatPage() {
 
 	const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
 	const [userList, setUserList] = useAtom(chatAtom.userListAtom);
-	const [userHistory, setUserHistory] = useAtom(chatAtom.userHistoryAtom);
 	const [userBlockList, setUserBlockList] = useAtom(chatAtom.userBlockListAtom);
 	const [dmHistoryList, setDmHistoryList] = useAtom(chatAtom.dmHistoryListAtom);
 	const [followingList, setFollowingList] = useAtom(chatAtom.followingListAtom);
@@ -221,7 +220,7 @@ export default function ChatPage() {
 		socket.socket.on("user-clear", () => {
 			const cleanUserList: chatType.userDto = {};
 			setUserList({ ...cleanUserList });
-			socket.emitUserList({ userList, setUserList, userHistory, setUserHistory });
+			socket.emitUserList({ userList, setUserList });
 		});
 		return () => {
 			socket.socket.off("room-clear");
@@ -367,19 +366,18 @@ export default function ChatPage() {
 				userStatus,
 			};
 			console.log(`user-upadate: user ${userId} is ${userStatus}`);
-			if (userStatus === 'offline' && followingList[userId] === undefined) {
-				const deleteUser: chatType.userDto = { ...userList };
-				delete deleteUser[userId];
-				setUserList({ ...deleteUser });
-			} else {
-				setUserList({ ...userList, ...newUser });
-			}
-			setUserHistory({ ...userHistory, ...newUser });
+			// if (userStatus === 'offline' && followingList[userId] === undefined) {
+			// 	const deleteUser: chatType.userDto = { ...userList };
+			// 	delete deleteUser[userId];
+			// 	setUserList({ ...deleteUser });
+			// } else {
+			setUserList({ ...userList, ...newUser });
+			// }
 		});
 		return () => {
 			socket.socket.off("user-update");
 		}
-	}, [userList, userInfo, userHistory]);
+	}, [userList, userInfo]);
 
 	useEffect(() => {
 		socket.socket.on("message", ({
@@ -431,7 +429,7 @@ export default function ChatPage() {
 		socket.emitUserBlockList({ userBlockList, setUserBlockList });
 		socket.emitFollowingList({ userList, setUserList, followingList, setFollowingList });
 		socket.emitDmHistoryList({ userList, setUserList, dmHistoryList, setDmHistoryList });
-		socket.emitUserList({ userList, setUserList, userHistory, setUserHistory });
+		socket.emitUserList({ userList, setUserList });
 		socket.emitRoomList({ setRoomList });
 		if (userInfo.uid === 1) {
 			GetMyInfo({ setUserInfo });

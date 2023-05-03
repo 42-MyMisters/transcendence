@@ -269,14 +269,16 @@ export class EventsGateway
 		// 	} else {
 		// 		userList[socket.data.user.uid].isRefresh = false;
 		// 	}
-		this.logger.verbose(`${userList[socket.data.user.uid].userDisplayName} is now offline`);
-		userList[socket.data.user.uid].status = 'offline';
-		socket.broadcast.emit("user-update", {
-			userId: socket.data.user.uid,
-			userDisplayName: socket.data.user.nickname.split('#', 2)[0],
-			userProfileUrl: socket.data.user.profileUrl,
-			userStatus: userList[socket.data.user.uid].status,
-		});
+		if (socket.data?.user?.uid !== undefined) {
+			this.logger.verbose(`${userList[socket.data.user.uid].userDisplayName} is now offline`);
+			userList[socket.data.user.uid].status = 'offline';
+			socket.broadcast.emit("user-update", {
+				userId: socket.data.user.uid,
+				userDisplayName: socket.data.user.nickname.split('#', 2)[0],
+				userProfileUrl: socket.data.user.profileUrl,
+				userStatus: userList[socket.data.user.uid].status,
+			});
+		}
 	}
 
 	@SubscribeMessage("clear-data")

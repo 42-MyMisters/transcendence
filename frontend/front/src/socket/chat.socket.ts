@@ -317,13 +317,9 @@ export function emitUserList(
 	{
 		userList,
 		setUserList,
-		userHistory,
-		setUserHistory,
 	}: {
 		userList: chatType.userDto,
 		setUserList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
-		userHistory: chatType.userDto,
-		setUserHistory: React.Dispatch<React.SetStateAction<chatType.userDto>>,
 	},
 ) {
 	socket.emit("user-list", {
@@ -333,7 +329,6 @@ export function emitUserList(
 		userListFromServer: chatType.userDto,
 	}) => {
 		setUserList({ ...userList, ...userListFromServer })
-		setUserHistory({ ...userHistory, ...userListFromServer })
 	});
 }
 

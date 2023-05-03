@@ -8,7 +8,6 @@ import { UserAtom } from "../atom/UserAtom";
 // 채팅페이지 왼쪽 아래 total User list
 export default function ChatUserList() {
   const [userList] = useAtom(chatAtom.userListAtom);
-  const [userHistory] = useAtom(chatAtom.userHistoryAtom);
   const [userInfo] = useAtom(UserAtom);
   const [userBlockList] = useAtom(chatAtom.userBlockListAtom);
   const [dmHistoryList] = useAtom(chatAtom.dmHistoryListAtom);
@@ -24,9 +23,9 @@ export default function ChatUserList() {
               ? ''
               : <UserObj
                 key={Number(key[0])}
-                nickName={userHistory[Number(key[0])]?.userDisplayName}
-                profileImage={userHistory[Number(key[0])]?.userProfileUrl}
-                status={userHistory[Number(key[0])]?.userStatus}
+                nickName={userList[Number(key[0])]?.userDisplayName}
+                profileImage={userList[Number(key[0])]?.userProfileUrl}
+                status={userList[Number(key[0])]?.userStatus}
                 power=""
                 callBack={() => { }}
               />
@@ -40,9 +39,9 @@ export default function ChatUserList() {
                 ? ''
                 : <UserObj
                   key={Number(key[0])}
-                  nickName={userHistory[Number(key[0])]?.userDisplayName}
-                  profileImage={userHistory[Number(key[0])]?.userProfileUrl}
-                  status={userHistory[Number(key[0])]?.userStatus}
+                  nickName={userList[Number(key[0])]?.userDisplayName}
+                  profileImage={userList[Number(key[0])]?.userProfileUrl}
+                  status={userList[Number(key[0])]?.userStatus}
                   power=""
                   callBack={() => { }}
                 />
@@ -52,13 +51,13 @@ export default function ChatUserList() {
           Object.entries(userList).map((key) => (
             // Number(key[0]) === userInfo.uid // NOTE: 내 아이디는 안보이게
             //   ? '' :
-            userHistory[Number(key[0])].userStatus === 'offline'
+            userList[Number(key[0])].userStatus === 'offline'
               ? ''
               : <UserObj
                 key={Number(key[0])}
-                nickName={userHistory[Number(key[0])]?.userDisplayName}
-                profileImage={userHistory[Number(key[0])]?.userProfileUrl}
-                status={userHistory[Number(key[0])]?.userStatus}
+                nickName={userList[Number(key[0])]?.userDisplayName}
+                profileImage={userList[Number(key[0])]?.userProfileUrl}
+                status={userList[Number(key[0])]?.userStatus}
                 power=""
                 callBack={() => { }} // TODO: need to implement callback
               />
