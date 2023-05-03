@@ -140,7 +140,7 @@ export function emitRoomLeave(
 				roomName: roomList[roomId].roomName,
 				roomType: roomList[roomId].roomType,
 				isJoined: false,
-				detail: {} as chatType.roomDetailDto,
+				// detail: {} as chatType.roomDetailDto,
 			}
 			setRoomList({ ...roomList, ...newRoomList });
 			if (focusRoom === roomId) {
@@ -467,7 +467,8 @@ export function setNewDetailToNewRoom({
 	setRoomList: React.Dispatch<React.SetStateAction<chatType.roomListDto>>,
 	roomId: number,
 	newUserList: chatType.userInRoomListDto
-}) {
+}, status?: chatType.userRoomStatus,
+	power?: chatType.userRoomPower) {
 	const newRoomList: chatType.roomListDto = {}
 	newRoomList[roomId] = {
 		roomName: roomList[roomId].roomName,
@@ -476,9 +477,10 @@ export function setNewDetailToNewRoom({
 		detail: {
 			userList: { ...newUserList },
 			messageList: roomList[roomId].detail?.messageList || [],
-			myRoomStatus: roomList[roomId].detail?.myRoomStatus || 'normal',
-			myRoomPower: roomList[roomId].detail?.myRoomPower || 'member'
+			myRoomStatus: status || roomList[roomId].detail?.myRoomStatus || 'normal',
+			myRoomPower: power || roomList[roomId].detail?.myRoomPower || 'member'
 		}
 	};
+	console.log(`newRoomList: ${JSON.stringify(newRoomList)}`);
 	setRoomList({ ...roomList, ...newRoomList });
 }

@@ -225,17 +225,18 @@ export class EventsGateway
 				});
 				delete roomList[roomId].roomMembers[socket.data.user.uid];
 				if (roomList[roomId].roomOwner === socket.data.user.uid) {
-					let newOwner = roomList[roomId]?.roomAdmins[0];
-					if (newOwner === undefined) {
-						newOwner = Number(Object.values(roomList[roomId].roomMembers)[0]);
+					let newOwner: number;
+
+					if (roomList[roomId]?.roomAdmins[0] === undefined) {
+						newOwner = Number(Object.keys(roomList[roomId].roomMembers)[0]);
 						roomList[roomId].roomOwner = newOwner;
 						roomList[roomId].roomMembers[newOwner].userRoomPower = 'owner';
 					} else {
-						roomList[roomId].roomOwner = newOwner;
+						newOwner = roomList[roomId]?.roomAdmins[0];
+						roomList[roomId].roomOwner = newOwner
 						roomList[roomId].roomMembers[newOwner].userRoomPower = 'owner';
 						roomList[roomId].roomAdmins.shift();
 					}
-					// TODO emit : new owner update
 					this.nsp.to(roomId.toString()).emit("room-in-action", {
 						roomId,
 						action: 'owner',

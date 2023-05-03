@@ -287,6 +287,9 @@ export default function ChatPage() {
 			action: 'ban' | 'kick' | 'mute' | 'admin' | 'normal' | 'owner' | 'leave' | 'newMember';
 			targetId: number
 		}) => {
+			if (roomList[roomId].isJoined === false) {
+				return;
+			}
 			switch (action) {
 				case 'newMember': {
 					if (targetId === userInfo.uid) {
@@ -315,9 +318,9 @@ export default function ChatPage() {
 				case 'mute':
 				case 'normal': {
 					if (targetId === userInfo.uid) {
-						const newDetail: Partial<chatType.roomDetailDto> = { ...roomList[roomId].detail, myRoomStatus: action };
-						const newRoomList: chatType.roomListDto = { ...roomList[roomId], ...newDetail };
-						setRoomList({ ...roomList, ...newRoomList });
+						const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
+						newUserList[targetId] = { ...newUserList[targetId], userRoomStatus: action };
+						socket.setNewDetailToNewRoom({ roomList, setRoomList, roomId, newUserList }, action);
 					} else {
 						const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
 						newUserList[targetId] = { ...newUserList[targetId], userRoomStatus: action };
@@ -328,9 +331,9 @@ export default function ChatPage() {
 				case 'owner':
 				case 'admin': {
 					if (targetId === userInfo.uid) {
-						const newDetail: Partial<chatType.roomDetailDto> = { ...roomList[roomId].detail, myRoomPower: action };
-						const newRoomList: chatType.roomListDto = { ...roomList[roomId], ...newDetail };
-						setRoomList({ ...roomList, ...newRoomList });
+						const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
+						newUserList[targetId] = { ...newUserList[targetId], userRoomPower: action };
+						socket.setNewDetailToNewRoom({ roomList, setRoomList, roomId, newUserList }, undefined, action);
 					} else {
 						const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
 						newUserList[targetId] = { ...newUserList[targetId], userRoomPower: action };
