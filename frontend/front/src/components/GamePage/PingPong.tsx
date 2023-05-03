@@ -87,6 +87,30 @@ export default function PingPong() {
 
   });
 
+  const intersectionSize: number = 5;
+
+  const drawIntersection = (temp: {
+    leftY: number;
+    ballX: number;
+    ballY: number;
+    rightY: number;
+  }) => {
+    const leftGap = (coordinate.leftY - temp.leftY) / intersectionSize;
+    const rightGap = (coordinate.rightY - temp.rightY) / intersectionSize;
+    const ballGapX = (coordinate.ballX - temp.ballX) / intersectionSize;
+    const ballGapY = (coordinate.ballY - temp.ballY) / intersectionSize;
+    let tempCoordinate: GameCoordinate = {
+      ...coordinate
+    }
+    for (let i = 0; i < intersectionSize; i++) {
+      Game(tempCoordinate);
+      tempCoordinate.leftY += leftGap;
+      tempCoordinate.rightY += rightGap;
+      tempCoordinate.ballX += ballGapX;
+      tempCoordinate.ballY += ballGapY;
+    }
+  };
+
   useEffect(() => {
     game.gameSocket.on('graphic', ({
       p1,
@@ -106,8 +130,9 @@ export default function PingPong() {
         ballY: ball_y,
         rightY: p2
       }
+      drawIntersection(temp);
       setCoordinate(temp);
-      Game(coordinate);
+      // Game(coordinate);
     });
     return () => {
       game.gameSocket.off('graphic');
