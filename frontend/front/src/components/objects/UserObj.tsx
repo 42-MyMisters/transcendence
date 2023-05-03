@@ -17,7 +17,7 @@ export default function UserObj({
   profileImage: string;
   status: string;
   power: string;
-  callBack: () => void;
+  callBack: (uid: number) => void;
 }) {
   const [userInfo, setUserInfo] = useAtom(UserInfoModalInfo);
   const [userDefaultInfo, setUserDefaultInfo] = useAtom(UserAtom);
@@ -36,7 +36,7 @@ export default function UserObj({
             myPower: "owner", //[TODO] fix
             userId: 1
           });
-          callBack();
+          callBack(uid);
         }
       }}
     >

@@ -13,6 +13,10 @@ export default function ChatUserList() {
   const [dmHistoryList] = useAtom(chatAtom.dmHistoryListAtom);
   const [followingList] = useAtom(chatAtom.followingListAtom);
 
+  const DM = (uid: number) => {
+    alert(`DM with ${userList[uid]?.userDisplayName}`);
+  };
+
   return (
     <div className="ChatListBG ChatUserList">
       <div className="ChatListTxt">User List</div>
@@ -28,7 +32,7 @@ export default function ChatUserList() {
                 profileImage={userList[Number(key[0])]?.userProfileUrl}
                 status={userList[Number(key[0])]?.userStatus}
                 power=""
-                callBack={() => { }}
+                callBack={DM}
               />
           ))
         }
@@ -45,7 +49,7 @@ export default function ChatUserList() {
                   profileImage={userList[Number(key[0])]?.userProfileUrl}
                   status={userList[Number(key[0])]?.userStatus}
                   power=""
-                  callBack={() => { }}
+                  callBack={DM}
                 />
           ))
         }
@@ -62,7 +66,7 @@ export default function ChatUserList() {
                 profileImage={userList[Number(key[0])]?.userProfileUrl}
                 status={userList[Number(key[0])]?.userStatus}
                 power=""
-                callBack={() => { }} // TODO: need to implement callback
+                callBack={DM}
               />
           ))
         }
