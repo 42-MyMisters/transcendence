@@ -40,6 +40,7 @@ export default function ChatPage() {
 	const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
 	const [socketState, setSocketState] = useAtom(chatAtom.socketStateAtom);
 
+
 	const getRoomList = () => {
 		console.log("\n\ngetRoomList");
 		Object.entries(roomList).forEach(([key, value]) => {
@@ -134,6 +135,7 @@ export default function ChatPage() {
 				// the disconnection was initiated by the server, you need to reconnect manually
 				console.log('socket disconnected by server');
 				alert(`multiple login detected!`);
+				// localStorage.removeItem('refreshToken');
 			}
 			// else the socket will automatically try to reconnect
 			console.log("socket disconnected");

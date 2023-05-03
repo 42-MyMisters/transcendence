@@ -1,7 +1,7 @@
 import "../../styles/BackGround.css";
 import "../../styles/PingPong.css";
 
-import React, { useEffect } from "react";
+import React, { KeyboardEvent, useEffect } from "react";
 import { useAtom } from "jotai";
 
 import { Game } from "./Pong";
@@ -10,8 +10,13 @@ import { PressKey } from "../../event/pressKey";
 
 import * as game from '../../socket/game.socket';
 
+import { useState } from 'react';
+
 export default function PingPong() {
   const [coordinate, setCoordinate] = useAtom(GameCoordinateAtom);
+  const [upArrow, setUpArrow] = useState(false);
+  const [downArrow, setDownArrow] = useState(false);
+
 
   // PressKey(["ArrowUp"], () => {
   //   let tmp = coordinate;
@@ -113,28 +118,115 @@ export default function PingPong() {
     Game(coordinate);
   }, []);
 
-  // document.addEventListener('keydown', onKeyDown);
-  window.addEventListener('keydown', e => {
-    e.preventDefault();
-    if (e.key === 'ArrowUp') {
-      game.emitUpPress();
-      console.log("up press");
-    } else if (e.key === 'ArrowDown') {
-      game.emitDownPress();
-      console.log("down press");
-    }
-  });
+  // detect key press only once when just push down
 
-  window.addEventListener('keyup', e => {
-    e.preventDefault();
-    if (e.key === 'ArrowUp') {
-      game.emitUpRelease();
-      console.log("up release");
-    } else if (e.key === 'ArrowDown') {
-      game.emitDownRelease();
-      console.log("down release");
+  // document.addEventListener('keydown', onKeyDown);
+  // useEffect(() => {
+  //   const handleKeyPress = (e: globalThis.KeyboardEvent) => {
+  //     e.preventDefault();
+  //     onKeyPress(e.key);
+  //     removeEventListener('keydown', handleKeyPress);
+  //     addEventListener('keyup', handleKeyUp);
+  //   }
+
+  //   const handleKeyUp = (e: globalThis.KeyboardEvent) => {
+  //     e.preventDefault();
+  //     onKeyRelease(e.key);
+  //     removeEventListener('keyup', handleKeyUp);
+  //     addEventListener('keydown', handleKeyPress);
+  //   }
+
+  //   const onKeyRelease = (key: string) => {
+  //     if (key === 'ArrowUp') {
+  //       game.emitUpRelease();
+  //       console.log("up release");
+  //     } else if (key === 'ArrowDown') {
+  //       game.emitDownRelease();
+  //       console.log("down release");
+  //     }
+  //   };
+  //   const onKeyPress = (key: string) => {
+  //     if (key === 'ArrowUp') {
+  //       game.emitUpPress();
+  //       console.log("up press");
+  //     } else if (key === 'ArrowDown') {
+  //       game.emitDownPress();
+  //       console.log("down press");
+  //     }
+  //   };
+
+  //   window.addEventListener('keydown', handleKeyPress);
+
+  //   return () => {
+  //     window.removeEventListener('keydown', handleKeyPress);
+  //     window.removeEventListener('keyup', handleKeyUp);
+  //   }
+  // }, []);
+
+  // useEffect(() => {
+
+  //   const handleKeyPress = (ev: KeyboardEvent) => {
+  //     e.preventDefault();
+  //     if (keyPress) return;
+  //     if (e.key === 'ArrowUp') {
+  //       game.emitUpPress();
+  //       console.log("up press");
+  //     } else if (e.key === 'ArrowDown') {
+  //       game.emitDownPress();
+  //       console.log("down press");
+  //     }
+  //     setKeyPresse(true);
+  //   };
+
+  //   document.addEventListener('keydown', handleKeyPress);
+
+  //   return () => {
+
+  //   };
+  // }, [keyPress, keyRelease]);
+
+  useEffect(() => {
+    function handleKeyPress(event: globalThis.KeyboardEvent) {
+      // event.preventDefault();
+      if (event.code === "ArrowUp") {
+        if (!upArrow) {
+          setUpArrow(true);
+          game.emitUpPress();
+          console.log("up press");
+        }
+      } else if (event.code === "ArrowDown") {
+        if (!downArrow) {
+          setDownArrow(true);
+          game.emitDownPress();
+          console.log("down press");
+        }
+      }
     }
-  });
+
+    function handleKeyRelease(event: globalThis.KeyboardEvent) {
+      // event.preventDefault();
+      if (event.code === "ArrowUp") {
+        if (upArrow) {
+          setUpArrow(false);
+          game.emitUpRelease();
+          console.log("up release");
+        }
+      } else if (event.code === "ArrowDown") {
+        if (downArrow) {
+          setDownArrow(false);
+          game.emitDownRelease();
+          console.log("down release");
+        }
+      }
+    }
+    window.addEventListener("keydown", handleKeyPress);
+    window.addEventListener("keyup", handleKeyRelease);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyPress);
+      window.removeEventListener("keyup", handleKeyRelease);
+    };
+  }, [upArrow, downArrow]);
 
   return (
     <div className="QueueBackGround">
