@@ -331,7 +331,7 @@ export function emitUserList(
 		userListFromServer: chatType.userDto,
 	}) => {
 		setUserList({ ...userList, ...userListFromServer })
-		setUserHistory({ ...userHistory, ...userList })
+		setUserHistory({ ...userHistory, ...userListFromServer })
 	});
 }
 

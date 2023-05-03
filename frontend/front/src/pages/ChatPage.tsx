@@ -292,13 +292,21 @@ export default function ChatPage() {
 					if (targetId === userInfo.uid) {
 						return;
 					} else {
-						const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
+						const newUserList: chatType.userInRoomListDto = { ...roomList[roomId].detail?.userList! };
 						const newUser: chatType.userInRoomListDto = {};
 						newUser[targetId] = {
 							userRoomStatus: 'normal',
 							userRoomPower: 'member'
 						};
-						socket.setNewDetailToNewRoom({ roomList, setRoomList, roomId, newUserList: { ...newUserList, ...newUser } });
+						// socket.setNewDetailToNewRoom({ roomList, setRoomList, roomId, newUserList: { ...newUserList, ...newUser } });
+						newUserList[targetId] = {
+							userRoomStatus: 'normal',
+							userRoomPower: 'member'
+						};
+
+						const newDetail: Partial<chatType.roomDetailDto> = { ...roomList[roomId].detail, userList: { ...newUserList } };
+						const newRoomList: chatType.roomListDto = { ...roomList[roomId], ...newDetail };
+						setRoomList({ ...roomList, ...newRoomList });
 					}
 					break;
 				}
@@ -357,30 +365,26 @@ export default function ChatPage() {
 			userProfileUrl: string;
 			userStatus: 'online' | 'offline' | 'inGame';
 		}) => {
-			if (userId !== userInfo.uid) {
-				console.log(`user-upadate: user ${userId} is ${userStatus}`);
-				const newUser: chatType.userDto = {};
-				newUser[userId] = {
-					userDisplayName,
-					userProfileUrl,
-					userStatus,
-				};
-				setUserList({ ...userList, ...newUser });
+			const newUser: chatType.userDto = {};
+			newUser[userId] = {
+				userDisplayName,
+				userProfileUrl,
+				userStatus,
+			};
+			console.log(`user-upadate: user ${userId} is ${userStatus}`);
+			if (userStatus === 'offline' && followingList[userId] === undefined) {
+				const deleteUser: chatType.userDto = { ...userList };
+				delete deleteUser[userId];
+				setUserList({ ...deleteUser });
 			} else {
-				const newUser: chatType.userDto = {};
-				newUser[userId] = {
-					userDisplayName,
-					userProfileUrl,
-					userStatus: 'online',
-				};
 				setUserList({ ...userList, ...newUser });
 			}
-			setUserHistory({ ...userHistory, ...userList });
+			setUserHistory({ ...userHistory, ...newUser });
 		});
 		return () => {
 			socket.socket.off("user-update");
 		}
-	}, [userList, userInfo]);
+	}, [userList, userInfo, userHistory]);
 
 	useEffect(() => {
 		socket.socket.on("message", ({

@@ -244,7 +244,7 @@ export class EventsGateway
 	}
 
 	handleDisconnect(@ConnectedSocket() socket: Socket) {
-		this.logger.log(`${userList[socket?.data?.user?.uid].userDisplayName} : ${socket.id} socket disconnected`);
+		this.logger.log(`${userList[socket?.data?.user?.uid]?.userDisplayName} : ${socket.id} socket disconnected`);
 		// if (userList[socket?.data?.user?.uid] !== undefined) {
 		// 	if (userList[socket?.data?.user.uid].isRefresh === false) {
 		// 		this.logger.verbose(`${socket.data.user.nickname} is now offline`);
@@ -277,6 +277,18 @@ export class EventsGateway
 		this.logger.log(`${socket.id} clear data`);
 		this.nsp.emit("room-clear");
 		this.nsp.emit("user-clear");
+	}
+
+	@SubscribeMessage("chat-logout")
+	handleLogout(@ConnectedSocket() socket: Socket) {
+		this.logger.log(`${socket.id} logout`);
+		userList[socket.data.user.uid].status = 'offline';
+		this.nsp.emit("user-update", {
+			userId: socket.data.user.uid,
+			userDisplayName: socket.data.user.nickname.split('#', 2)[0],
+			userProfileUrl: socket.data.user.profileUrl,
+			userStatus: userList[socket.data.user.uid].status,
+		});
 	}
 
 	@SubscribeMessage("test")
@@ -439,7 +451,9 @@ export class EventsGateway
 	}
 
 	@SubscribeMessage("user-list")
-	handleUserList() {
+	handleUserList(
+		@ConnectedSocket() socket: Socket,
+	) {
 		const tempUserList: Record<number, ClientUserDto> = {};
 		for (const [uid, userInfo] of Object.entries(userList)) {
 			if (Number(uid) <= 2) {
@@ -448,8 +462,7 @@ export class EventsGateway
 					userProfileUrl: userInfo.userUrl || 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/42_Logo.svg/2048px-42_Logo.svg.png',
 					userStatus: userInfo.status,
 				}
-			}
-			else {
+			} else {
 				tempUserList[uid] = {
 					userDisplayName: userInfo.socket?.data.user.nickname.split('#', 2)[0],
 					userProfileUrl: userInfo.socket?.data.user.profileUrl,
