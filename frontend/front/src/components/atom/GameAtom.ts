@@ -11,8 +11,8 @@ export interface GameCoordinate {
 }
 
 export const GameCoordinateAtom = atom<GameCoordinate>({
-  leftY: 300,
+  leftY: 225,
   ballX: 500,
   ballY: 300,
-  rightY: 300,
+  rightY: 225,
 });
