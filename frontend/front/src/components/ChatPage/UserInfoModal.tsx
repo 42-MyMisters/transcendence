@@ -20,7 +20,9 @@ export default function UserInfoModal() {
       <div className="UserInfoModalBG"></div>
       <div className="UserInfoModal">
         <div className="NickName">{userInfo.nickName}</div>
-        <div className="ProfileImg"></div>
+        <div className="ProfileImg" style={{
+          backgroundImage: `url(${userInfo.profileImage})`,
+        }}></div>
         <div
           className="CloseBtn"
           onClick={() => {

@@ -1,34 +1,43 @@
 import { useAtom } from "jotai";
 import { UserInfoModalInfo } from "../atom/UserInfoModalAtom";
 import "../../styles/UserObj.css";
+import { UserAtom } from '../atom/UserAtom';
+
 
 export default function UserObj({
+  uid,
   nickName,
   profileImage,
   status,
   power,
   callBack,
 }: {
+  uid: number;
   nickName: string;
   profileImage: string;
   status: string;
   power: string;
   callBack: () => void;
 }) {
-  let [userInfo, setUserInfo] = useAtom(UserInfoModalInfo);
+  const [userInfo, setUserInfo] = useAtom(UserInfoModalInfo);
+  const [userDefaultInfo, setUserDefaultInfo] = useAtom(UserAtom);
   return (
     <div
       className="UserObj"
       onClick={() => {
-        setUserInfo({
-          nickName: nickName,
-          isFollow: false,
-          userState: status,
-          isIgnored: true,
-          myPower: "owner", //[TODO] fix
-          userId: 1
-        });
-        callBack();
+        if (uid !== userDefaultInfo.uid) {
+          setUserInfo({
+            uid: uid,
+            nickName: nickName,
+            isFollow: false,
+            userState: status,
+            profileImage: profileImage,
+            isIgnored: true,
+            myPower: "owner", //[TODO] fix
+            userId: 1
+          });
+          callBack();
+        }
       }}
     >
       <div

@@ -23,6 +23,7 @@ export default function ChatUserList() {
               ? ''
               : <UserObj
                 key={Number(key[0])}
+                uid={Number(key[0])}
                 nickName={userList[Number(key[0])]?.userDisplayName}
                 profileImage={userList[Number(key[0])]?.userProfileUrl}
                 status={userList[Number(key[0])]?.userStatus}
@@ -39,6 +40,7 @@ export default function ChatUserList() {
                 ? ''
                 : <UserObj
                   key={Number(key[0])}
+                  uid={Number(key[0])}
                   nickName={userList[Number(key[0])]?.userDisplayName}
                   profileImage={userList[Number(key[0])]?.userProfileUrl}
                   status={userList[Number(key[0])]?.userStatus}
@@ -55,6 +57,7 @@ export default function ChatUserList() {
               ? ''
               : <UserObj
                 key={Number(key[0])}
+                uid={Number(key[0])}
                 nickName={userList[Number(key[0])]?.userDisplayName}
                 profileImage={userList[Number(key[0])]?.userProfileUrl}
                 status={userList[Number(key[0])]?.userStatus}
