@@ -10,4 +10,6 @@ export const changeNameModalAtom = atom(false);
 
 export const passwordInputModalAtom = atom(false);
 
+export const changeImageModalAtom = atom(false);
+
 export const gameResultModalAtom = atom(false);

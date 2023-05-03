@@ -65,7 +65,7 @@ export function Game(gameInfo: GameCoordinate) {
     drawRect(me.x, gameInfo.leftY, me.width, me.height, me.color, context);
     drawRect(opponent.x, gameInfo.rightY, opponent.width, opponent.height, opponent.color, context);
     //ball
-    drawCircle(ball.x, ball.y, ball.radius, ball.color, context);
+    drawCircle(gameInfo.ballX, gameInfo.ballY, ball.radius, ball.color, context);
     //score
     drawText(me.score, WIDTH / 4, 50, "WHITE", context);
     drawText(opponent.score, 3 * (WIDTH / 4), 50, "WHITE", context);

@@ -245,21 +245,23 @@ export class EventsGateway
 	handleDisconnect(@ConnectedSocket() socket: Socket) {
 		this.logger.log(`${socket.id} socket disconnected`);
 		this.logger.log(`${socket.data.roomList}`);
-		if (userList[socket.data.user.uid] !== undefined && userList[socket.data.user.uid].isRefresh === false) {
-			this.logger.verbose(`${socket.data.user.nickname} is now offline`);
-			userList[socket.data.user.uid].status = 'offline';
-			socket.broadcast.emit("user-update", {
-				userId: socket.data.user.uid,
-				userDisplayName: socket.data.user.nickname.split('#', 2)[0],
-				userProfileUrl: socket.data.user.profileUrl,
-				userStatus: userList[socket.data.user.uid].status,
-			});
-			socket.data.roomList.map((roomId: number) => {
-				this.deleteRoomLogic(socket, roomId);
-			});
-			delete userList[socket.data.user.uid];
-		} else {
-			userList[socket.data.user.uid].isRefresh = false;
+		if (userList[socket?.data?.user?.uid] !== undefined) {
+			if (userList[socket?.data?.user.uid].isRefresh === false) {
+				this.logger.verbose(`${socket.data.user.nickname} is now offline`);
+				userList[socket.data.user.uid].status = 'offline';
+				socket.broadcast.emit("user-update", {
+					userId: socket.data.user.uid,
+					userDisplayName: socket.data.user.nickname.split('#', 2)[0],
+					userProfileUrl: socket.data.user.profileUrl,
+					userStatus: userList[socket.data.user.uid].status,
+				});
+				socket.data.roomList.map((roomId: number) => {
+					this.deleteRoomLogic(socket, roomId);
+				});
+				delete userList[socket.data.user.uid];
+			} else {
+				userList[socket.data.user.uid].isRefresh = false;
+			}
 		}
 	}
 
