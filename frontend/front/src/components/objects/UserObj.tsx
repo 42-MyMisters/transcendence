@@ -62,7 +62,7 @@ export default function UserObj({
       {
         uid === userDefaultInfo.uid
           ? <div className="UserNickName" style={{ color: "#0a0" }}>{nickName}</div>
-          : <div className="UserNickName" >{nickName}</div>
+          : <div className="UserNickName" style={{ color: "#333" }}>{nickName}</div>
       }
       {
         power === "owner" ? (
