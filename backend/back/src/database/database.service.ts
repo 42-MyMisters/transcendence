@@ -3,9 +3,9 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { UserFollow } from "src/database/entity/user-follow.entity";
 import { User } from "src/database/entity/user.entity";
 import { DataSource, Repository } from "typeorm";
+import { DirectMessage } from "./entity/direct-message.entity";
 import { Game } from "./entity/game.entity";
 import { UserBlock } from "./entity/user-block.entity";
-import { from } from "rxjs";
 
 @Injectable()
 export class DatabaseService {
@@ -14,6 +14,7 @@ export class DatabaseService {
         @InjectRepository(UserFollow) private userFollowRepository: Repository<UserFollow>,
         @InjectRepository(UserBlock) private userBlockRepository: Repository<UserBlock>,
         @InjectRepository(Game) private gameRepository: Repository<Game>,
+        @InjectRepository(DirectMessage) private directMessageRepository: Repository<DirectMessage>,
         private dataSource: DataSource,
     ) {}
 
@@ -150,6 +151,25 @@ export class DatabaseService {
             throw new NotFoundException("already unblocked");
         }
     }
+
+
+    // Direct Message 
+    
+    async findDMById(did: number): Promise<DirectMessage | null>{
+        return await this.directMessageRepository.findOne({where: {did}});
+    }
+
+    // is this neccesary?
+    async findDMByUserId(senderId: number): Promise<DirectMessage[] | null>{
+        return await this.directMessageRepository.find({where: {senderId}});
+    }
+    
+    async saveDM(dm: DirectMessage){
+        return await this.directMessageRepository.save(dm);
+    }
+
+
+
     
     //GAME
     
