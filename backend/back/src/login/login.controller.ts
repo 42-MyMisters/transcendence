@@ -172,6 +172,18 @@ export class LoginController {
     description: "Refresh Token이 유효하지만 해당 유저가 없을 때",
     type: ResponseErrorDto,
   })
+
+  // this is for debug
+  @Get("/oauth/refresh")
+  @UseGuards(Jwt2faAuthGuard)
+  async refAT_DEBUG(
+    @Query("ref") ref: string,
+    @Req() request,
+    @Res() res,
+  ){
+    this.refreshAccessTokens(" "+ref, request, res);
+  }
+
   @Post("/oauth/refresh")
   @UseGuards(JwtRefreshGuard)
   async refreshAccessTokens(
@@ -189,8 +201,7 @@ export class LoginController {
       httpOnly: true,
       sameSite: "strict",
       // secure: true //only https option
-    });
-    return res.redirect("http://localhost:3000/");
+    }).sendStatus(201);
   }
 
   // /2fa/auth will return new accessToken.
