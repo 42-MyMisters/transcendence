@@ -1,22 +1,23 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { Namespace } from 'socket.io';
-import { DatabaseService } from 'src/database/database.service';
-import { DIRECTION, wallX } from './game.enum';
+import { Injectable, InternalServerErrorException } from "@nestjs/common";
+import { Namespace } from "socket.io";
+import { DatabaseService } from "src/database/database.service";
+import { DIRECTION, wallX } from "./game.enum";
 
 @Injectable()
 export class GameService {
   private games: Map<string, Game>;
-  constructor(
-    private readonly databaseService: DatabaseService,
-    ) {
-      this.games = new Map<string, Game>();
+  constructor(private readonly databaseService: DatabaseService) {
+    this.games = new Map<string, Game>();
   }
 
-  createGame(gameId: string, nsp:Namespace, p1Id: string, p2Id: string) {
-    try{
-      this.games.set(gameId, new Game(gameId, nsp, p1Id, p2Id, this.databaseService));
+  createGame(gameId: string, nsp: Namespace, p1Id: string, p2Id: string) {
+    try {
+      this.games.set(
+        gameId,
+        new Game(gameId, nsp, p1Id, p2Id, this.databaseService),
+      );
     } catch (e) {
-      return new InternalServerErrorException("Fail to create game.")
+      return new InternalServerErrorException("Fail to create game.");
     }
   }
 
@@ -30,7 +31,6 @@ export class GameService {
 }
 
 class Game {
-  
   private ballSpeedX: number;
   private ballSpeedY: number;
   private ballX: number;
@@ -41,14 +41,14 @@ class Game {
   private round: number;
   private roundTime: number;
   private now: number;
-  
+
   private p1Score: number;
   private p2Score: number;
   private p1KeyUp: boolean;
   private p2KeyUp: boolean;
   private p1KeyDown: boolean;
   private p2KeyDown: boolean;
-  
+
   constructor(
     private readonly id: string,
     private readonly nsp: Namespace,
@@ -65,19 +65,19 @@ class Game {
     private readonly paddleSpeed = 10,
     private readonly paddleSpeedMax = canvasHeight / 20,
     private readonly maxScore = 5,
-    ) {
-      this.running = true;
+  ) {
+    this.running = true;
     // countdown time 3sec
     this.p1Score = 0;
     this.p2Score = 0;
     this.now = Date.now();
     this.init();
   }
-  
+
   isRunning() {
     return this.running;
   }
-  
+
   init() {
     this.ballX = this.canvasWidth / 2;
     this.ballY = this.canvasHeight / 2;
@@ -96,7 +96,7 @@ class Game {
     this.p2KeyDown = false;
     this.roundTime = -3000;
   }
-  
+
   gameStart() {
     this.now = Date.now();
     const interval = setInterval(() => {
@@ -108,7 +108,7 @@ class Game {
       }
     }, this.fps);
   }
-  
+
   update() {
     if (this.p1Score < this.maxScore && this.p2Score < this.maxScore) {
       // 3 sec count down.
@@ -121,7 +121,7 @@ class Game {
         const isHitX = this.collisionCheckX();
         if (isHitY) {
           if (this.ballY < this.ballRadius) {
-            this.ballY = 2 * this.ballRadius - this.ballY ;
+            this.ballY = 2 * this.ballRadius - this.ballY;
             this.ballSpeedY = -this.ballSpeedY;
           } else {
             this.ballY = 2 * (this.canvasHeight - this.ballRadius) - this.ballY;
@@ -133,32 +133,36 @@ class Game {
             this.ballX = 2 * (this.ballRadius + this.paddleWidth) - this.ballX;
             this.ballSpeedX = -this.ballSpeedX;
           } else {
-            console.log('p2 scored');
+            console.log("p2 scored");
             this.p2Score++;
-            this.nsp.to(this.id).emit('graphic', this.getState());
+            this.nsp.to(this.id).emit("graphic", this.getState());
             this.init();
           }
         } else if (isHitX == DIRECTION.RIGHT) {
           if (this.collisionCheckP2Paddle() === wallX.PADDLE) {
-            this.ballX = 2 * (this.canvasWidth - this.ballRadius - this.paddleWidth) - this.ballX;
+            this.ballX =
+              2 * (this.canvasWidth - this.ballRadius - this.paddleWidth) -
+              this.ballX;
             this.ballSpeedX = -this.ballSpeedX;
           } else {
-            console.log('p1 scored');
+            console.log("p1 scored");
             this.p1Score++;
-            this.nsp.to(this.id).emit('graphic', this.getState());
+            this.nsp.to(this.id).emit("graphic", this.getState());
             this.init();
           }
         }
         // console.log(`update: id: ${this.id}, ingame time: ${this.roundTime}, time from start: ${Date.now() - this.now}, data: ${JSON.stringify(this.getState())}`);
-        this.nsp.to(this.id).emit('graphic', this.getState());
+        this.nsp.to(this.id).emit("graphic", this.getState());
       }
     } else {
       if (this.p1Score > this.p2Score) {
-        console.log('p1 win');
+        console.log("p1 win");
       } else {
-        console.log('p2 win');
+        console.log("p2 win");
       }
-      this.nsp.to(this.id).emit('finished', {p1:this.p1Score, p2:this.p2Score})
+      this.nsp
+        .to(this.id)
+        .emit("finished", { p1: this.p1Score, p2: this.p2Score });
       this.running = false;
     }
   }
@@ -166,7 +170,10 @@ class Game {
   collisionCheckX() {
     if (this.ballX < this.ballRadius + this.paddleWidth) {
       return DIRECTION.LEFT;
-    } else if (this.ballX > this.canvasWidth - this.ballRadius - this.paddleWidth) {
+    } else if (
+      this.ballX >
+      this.canvasWidth - this.ballRadius - this.paddleWidth
+    ) {
       return DIRECTION.RIGHT;
     }
     return DIRECTION.NONE;
@@ -182,14 +189,20 @@ class Game {
   }
 
   collisionCheckP1Paddle() {
-    if (this.ballY >= this.paddle1Y - this.paddleHeight / 2 && this.ballY <= this.paddle1Y + this.paddleHeight / 2) {
+    if (
+      this.ballY >= this.paddle1Y - this.paddleHeight / 2 &&
+      this.ballY <= this.paddle1Y + this.paddleHeight / 2
+    ) {
       return wallX.PADDLE;
     }
     return wallX.WALL;
   }
-  
+
   collisionCheckP2Paddle() {
-    if (this.ballY >= this.paddle2Y - this.paddleHeight / 2 && this.ballY <= this.paddle2Y + this.paddleHeight / 2) {
+    if (
+      this.ballY >= this.paddle2Y - this.paddleHeight / 2 &&
+      this.ballY <= this.paddle2Y + this.paddleHeight / 2
+    ) {
       return wallX.PADDLE;
     }
     return wallX.WALL;
@@ -238,27 +251,27 @@ class Game {
       }
     }
   }
-  
+
   isPlayer(id: string): boolean {
-    return (this.p1 === id || this.p2 === id);
+    return this.p1 === id || this.p2 === id;
   }
-  
+
   upPress(id: string) {
     if (this.p1 === id) {
       this.p1KeyUp = true;
     } else {
       this.p2KeyUp = true;
     }
-    console.log('up pressed');
+    console.log("up pressed");
   }
-  
+
   upRelease(id: string) {
     if (this.p1 === id) {
       this.p1KeyUp = false;
     } else {
       this.p2KeyUp = false;
     }
-    console.log('up released');
+    console.log("up released");
   }
   downPress(id: string) {
     if (this.p1 === id) {
@@ -266,18 +279,18 @@ class Game {
     } else {
       this.p2KeyDown = true;
     }
-    console.log('down press');
+    console.log("down press");
   }
-  
+
   downRelease(id: string) {
     if (this.p1 === id) {
       this.p1KeyDown = false;
     } else {
       this.p2KeyDown = false;
     }
-    console.log('down released');
+    console.log("down released");
   }
-  
+
   playerLeft(id: string) {
     this.running = false;
     if (this.p1 == id) {
@@ -286,5 +299,4 @@ class Game {
       this.p2Score = -1;
     }
   }
-
 }

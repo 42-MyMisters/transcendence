@@ -1,51 +1,55 @@
 import { useAtom } from "jotai";
 import { UserAtom } from "../atom/UserAtom";
+import { useRef, useState } from "react";
 import { changeImageModalAtom } from "../../components/atom/ModalAtom";
 import { PressKey } from "../../event/pressKey";
-import FormData from "form-data";
 
 import "../../styles/ChangeImageModal.css";
-import { useState } from "react";
 
 export default function ChangeImageModal() {
   const [changeImageModal, setchangeImageModal] = useAtom(changeImageModalAtom);
   const [userInfo, setUserInfo] = useAtom(UserAtom);
-  const [newImage, setNewImage] = useState("");
+  const [newImage, setnewImage] = useState("");
+  const profileRef = useRef<HTMLInputElement>(null);
 
   PressKey(["Escape"], () => {
     setchangeImageModal(false);
   });
 
-  const handleOnSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    const formElement = document.getElementById("forChangeImage") as HTMLFormElement;
-    if (formElement) {
-      const formData = new FormData(formElement);
+  const handleChangeImage = () => {
+    if (profileRef.current?.files?.[0]) {
+      const newImg = URL.createObjectURL(profileRef.current?.files[0]);
+      setnewImage(newImg);
+      console.log(`new Image: ${newImg}`);
+    }
+  };
 
-      const parts: BlobPart[] = [];
+  const setNewImage = async () => {
+    const formData = new FormData();
+    formData.append("profileImage", profileRef.current?.files?.[0]!);
+    console.log(profileRef.current?.files?.[0]!.name);
 
-      for (const [name, value] of (formData as any).entries()) {
-        parts.push(`${encodeURIComponent(name)}=${encodeURIComponent(value)}`);
-      }
-
-      const blob = new Blob(parts, { type: "multipart/form-data" });
-
-      let response = fetch("http://localhost:4000/user/profile-img-change", {
-        method: "POST",
-        body: blob,
-      }).then(() => {
-        fetch("http://localhost:4000/user/me", {
+    try {
+      const response = await fetch(
+        "http://localhost:4000/user/profile-img-change",
+        {
           credentials: "include",
-          method: "GET",
-        })
-          .then((response) => response.json())
-          .then((response) => {
-            console.log(response);
-            setUserInfo(response);
-          })
-          .catch((error) => {
-            console.log(`error: ${error}`);
-          });
-      });
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (response.ok) {
+        let tmp = userInfo;
+        tmp.profileUrl = newImage;
+        setUserInfo(tmp);
+        console.log(response);
+        setchangeImageModal(false);
+      } else {
+        alert("파일 업로드에 실패했습니다.");
+      }
+    } catch (error) {
+      alert(error);
     }
   };
 
@@ -53,19 +57,24 @@ export default function ChangeImageModal() {
     <>
       <div className="ChangeImageModalBG"></div>
       <div className="ChangeImageModal">
-        <form
-          id="forChangeImage"
-          encType="multipart/form-data"
-          className="ChangeImageForm"
-          onSubmit={(e) => handleOnSubmit(e)}
-        >
-          <label htmlFor="ChangeImage">New Image</label>
-          <input id="ChangeImage" type="file" accept=".jpg,.jpeg,.png" multiple></input>
+        <form className="ChangeImageForm">
+          <label htmlFor="newImage">New Image</label>
+          <input
+            id="newImage"
+            type="file"
+            accept=".jpg,.jpeg,.png"
+            multiple={false}
+            onChange={handleChangeImage}
+            ref={profileRef}
+          ></input>
         </form>
-        <button type="submit" className="ChangeImage" onClick={() => setchangeImageModal(false)}>
+        <button type="submit" className="ChangeImage" onClick={setNewImage}>
           Save
         </button>
-        <button className="ChangeImageCancel" onClick={() => setchangeImageModal(false)}>
+        <button
+          className="ChangeImageCancel"
+          onClick={() => setchangeImageModal(false)}
+        >
           Cancel
         </button>
       </div>

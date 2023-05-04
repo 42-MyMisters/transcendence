@@ -5,31 +5,32 @@ import React, { KeyboardEvent, useEffect } from "react";
 import { useAtom } from "jotai";
 
 import { Game } from "./Pong";
-import { GameCoordinateAtom, GameCoordinate } from "../atom/GameAtom";
+import { GameCoordinateAtom, GameCoordinate, GameCanvas } from "../atom/GameAtom";
 import { PressKey } from "../../event/pressKey";
 
-import * as game from '../../socket/game.socket';
+import * as game from "../../socket/game.socket";
 
-import { useState } from 'react';
+import { useState, useRef } from "react";
 
 export default function PingPong() {
   const [coordinate, setCoordinate] = useAtom(GameCoordinateAtom);
   const [upArrow, setUpArrow] = useState(false);
   const [downArrow, setDownArrow] = useState(false);
-
+  // const [canvas, setCanvas] = useAtom(GameCanvas);
+  const canvas = useRef<HTMLCanvasElement>(null);
 
   // PressKey(["ArrowUp"], () => {
   //   let tmp = coordinate;
   //   tmp.leftY -= 10;
   //   setCoordinate(tmp);
-  //   Game(coordinate);
+  //   Game(coordinate, canvas, setCanvas});
   // });
 
   // PressKey(["ArrowDown"], () => {
   //   let tmp = coordinate;
   //   tmp.leftY += 10;
   //   setCoordinate(tmp);
-  //   Game(coordinate);
+  //   Game(coordinate, canvas, setCanvas});
   // });
 
   // catch all incoming events
@@ -59,7 +60,7 @@ export default function PingPong() {
     /**
      *  BAD, will throw an error
      *  gameSocket.emit("disconnect");
-    */
+     */
     if (reason === "io server disconnect") {
       // the disconnection was initiated by the server, you need to reconnect manually
     }
@@ -75,67 +76,51 @@ export default function PingPong() {
     console.log(err.message); // prints the message associated with the error
   });
 
-  game.gameSocket.on('join-game', ({
-    uid_left,
-    p1,
-    uid_right
-  }: {
-    uid_left: string;
-    p1: number;
-    uid_right: string;
-  }) => {
-
-  });
+  game.gameSocket.on(
+    "join-game",
+    ({ uid_left, p1, uid_right }: { uid_left: string; p1: number; uid_right: string }) => {}
+  );
 
   const intersectionSize: number = 5;
 
   useEffect(() => {
-    game.gameSocket.on('graphic', ({
-      p1,
-      ball_x,
-      ball_y,
-      p2
-    }: {
-      p1: number;
-      ball_x: number;
-      ball_y: number;
-      p2: number;
-    }) => {
-      let temp = coordinate;
-      temp = {
-        leftY: p1,
-        ballX: ball_x,
-        ballY: ball_y,
-        rightY: p2
+    game.gameSocket.on(
+      "graphic",
+      ({ p1, ball_x, ball_y, p2 }: { p1: number; ball_x: number; ball_y: number; p2: number }) => {
+        let temp = {
+          leftY: p1,
+          ballX: ball_x,
+          ballY: ball_y,
+          rightY: p2,
+        };
+        // drawIntersection(temp);
+        // const leftGap = (coordinate.leftY - temp.leftY) / intersectionSize;
+        // const rightGap = (coordinate.rightY - temp.rightY) / intersectionSize;
+        // const ballGapX = (coordinate.ballX - temp.ballX) / intersectionSize;
+        // const ballGapY = (coordinate.ballY - temp.ballY) / intersectionSize;
+        // let tempCoordinate: GameCoordinate = {
+        //   ...coordinate
+        // }
+        // for (let i = 0; i < intersectionSize; i++) {
+        //   tempCoordinate.leftY += leftGap;
+        //   tempCoordinate.rightY += rightGap;
+        //   tempCoordinate.ballX += ballGapX;
+        //   tempCoordinate.ballY += ballGapY;
+        //   Game(tempCoordinate);
+        // }
+
+        // setCoordinate(temp);
+        Game(temp, canvas);
       }
-      // drawIntersection(temp);
-      // const leftGap = (coordinate.leftY - temp.leftY) / intersectionSize;
-      // const rightGap = (coordinate.rightY - temp.rightY) / intersectionSize;
-      // const ballGapX = (coordinate.ballX - temp.ballX) / intersectionSize;
-      // const ballGapY = (coordinate.ballY - temp.ballY) / intersectionSize;
-      // let tempCoordinate: GameCoordinate = {
-      //   ...coordinate
-      // }
-      // for (let i = 0; i < intersectionSize; i++) {
-      //   tempCoordinate.leftY += leftGap;
-      //   tempCoordinate.rightY += rightGap;
-      //   tempCoordinate.ballX += ballGapX;
-      //   tempCoordinate.ballY += ballGapY;
-      //   Game(tempCoordinate);
-      // }
-
-      setCoordinate(temp);
-      Game(coordinate);
-    });
+    );
     return () => {
-      game.gameSocket.off('graphic');
+      game.gameSocket.off("graphic");
     };
-  }, [coordinate]);
-
-  useEffect(() => {
-    Game(coordinate);
   }, []);
 
+  useEffect(() => {
+    Game(coordinate, canvas);
+  }, []);
 
   // document.addEventListener('keydown', onKeyDown);
   // useEffect(() => {
@@ -225,7 +210,7 @@ export default function PingPong() {
 
   return (
     <div className="QueueBackGround">
-      <canvas id="pong" width={1150} height={600}></canvas>
+      <canvas ref={canvas} id="pong" width={1150} height={600}></canvas>
     </div>
   );
 }

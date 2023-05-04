@@ -1,5 +1,6 @@
+import React from "react";
 import { PressKey } from "../../event/pressKey";
-import { GameCoordinateAtom, GameCoordinate } from "../atom/GameAtom";
+import { GameCoordinateAtom, GameCoordinate, GameCanvas } from "../atom/GameAtom";
 import { me, opponent, net, ball, HEIGHT, WIDTH } from "./GameInfo";
 import { useAtom } from "jotai";
 
@@ -53,11 +54,15 @@ function drawNet(context: CanvasRenderingContext2D) {
   }
 }
 
-export function Game(gameInfo: GameCoordinate) {
-  const canvas = document.getElementById("pong") as HTMLCanvasElement;
-  const context = canvas?.getContext("2d");
+export function Game(gameInfo: GameCoordinate, canvas: React.RefObject<HTMLCanvasElement>) {
+  // const canvas = document.getElementById("pong") as HTMLCanvasElement;
+  // if (canvas == null) {
+  const canv = canvas.current;
+  // }
+  const context = canv?.getContext("2d");
 
   if (context) {
+    context.clearRect(0, 0, 1150, 600);
     drawRect(0, 0, 1150, 600, "black", context);
     //net
     drawNet(context);
