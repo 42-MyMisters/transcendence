@@ -8,15 +8,22 @@ import TopBar from "../components/TopBar";
 
 import { useAtom } from "jotai";
 import { isQueueAtom } from "../components/atom/GameAtom";
-import * as gameSocket from '../socket/game.socket';
+
+import { PressKey } from "../event/pressKey";
+import * as game from '../socket/game.socket';
+import { GameCoordinateAtom, GameCoordinate } from "../components/atom/GameAtom";
+
+import { Game } from "../components/GamePage/Pong";
 
 export default function GamePage() {
   const [showComponent, setShowComponent] = useState(true);
   const [isQueue, setIsQueue] = useAtom(isQueueAtom);
 
+  const [coordinate, setCoordinate] = useAtom(GameCoordinateAtom);
+
   if (isQueue === false) {
     console.log("gameSocket connect");
-    gameSocket.gameSocket.connect();
+    game.gameSocket.connect();
     setIsQueue(true);
   }
 
@@ -29,10 +36,12 @@ export default function GamePage() {
     //   };
     // }, []);
   }, []);
+
   return (
     <BackGround>
       <TopBar />
-      <div>{showComponent ? <Waiting /> : <PingPong />}</div>
+      {/* <div>{showComponent ? <Waiting /> : <PingPong />}</div> */}
+      <PingPong />
     </BackGround>
   );
 }

@@ -14,17 +14,18 @@ export default function ProfileFriend() {
         <div className="ProfileFriendList">
           {userInfo.followings
             ? userInfo.followings.map((key) => {
-                return (
-                  <UserObj
-                    key={key.uid}
-                    nickName={key.nickname}
-                    profileImage={key.profileUrl}
-                    status={key.status}
-                    power="profile"
-                    callBack={() => {}}
-                  />
-                );
-              })
+              return (
+                <UserObj
+                  key={key.uid}
+                  uid={Number(key.uid)}
+                  nickName={key.nickname}
+                  profileImage={key.profileUrl}
+                  status={key.status}
+                  power="profile"
+                  callBack={() => { }}
+                />
+              );
+            })
             : null}
         </div>
       </div>

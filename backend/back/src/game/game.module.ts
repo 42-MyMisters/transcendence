@@ -1,13 +1,12 @@
 import { Module } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { AuthModule } from 'src/auth/auth.module';
-import { DatabaseModule } from 'src/database/database.module';
+import { DatabaseService } from 'src/database/database.service';
+import { UserModule } from 'src/user/user.module';
+import { GameGateway } from './game.gateway';
 import { GameService } from './game.service';
 
 @Module({
-
-  imports: [DatabaseModule, AuthModule],
-  providers: [GameService, JwtService],
-  exports: [GameService],
-}  )
+  imports: [UserModule],
+  providers: [GameService, GameGateway],
+  exports: [],
+})
 export class GameModule {}
