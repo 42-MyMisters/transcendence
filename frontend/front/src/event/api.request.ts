@@ -18,13 +18,13 @@ export function GetMyInfo({
 					break;
 				}
 				default: {
-					console.log(`error: ${response.status}: ${response.message}\n need to refresh token`);
+					console.log(`\nGetMyInfo error: ${response.status}: ${response.message}\n need to refresh token`);
 					break;
 				}
 			}
 		})
 		.catch((error) => {
-			console.log(`catch_error: ${error}`);
+			console.log(`GetMyInfo: catch_error: ${error}`);
 		});
 
 	return undefined;
@@ -57,6 +57,6 @@ export function RefreshToken() {
 				}
 			}
 		}).catch((error) => {
-			console.log(`catch_error: ${error}`);
+			console.log(`\nRefreshToken catch_error: ${error}`);
 		});
 }
