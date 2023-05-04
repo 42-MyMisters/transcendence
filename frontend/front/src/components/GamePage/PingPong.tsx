@@ -88,10 +88,10 @@ export default function PingPong() {
       "graphic",
       ({ p1, ball_x, ball_y, p2 }: { p1: number; ball_x: number; ball_y: number; p2: number }) => {
         let temp = {
-          leftY: p1,
+          leftY: p1 - 75,
           ballX: ball_x,
           ballY: ball_y,
-          rightY: p2,
+          rightY: p2 - 75,
         };
         // drawIntersection(temp);
         // const leftGap = (coordinate.leftY - temp.leftY) / intersectionSize;
@@ -119,7 +119,10 @@ export default function PingPong() {
   }, []);
 
   useEffect(() => {
-    Game(coordinate, canvas);
+    Game({leftY: 225,
+      ballX: 1150 / 2,
+      ballY: 300,
+      rightY: 225,}, canvas);
   }, []);
 
   // document.addEventListener('keydown', onKeyDown);
