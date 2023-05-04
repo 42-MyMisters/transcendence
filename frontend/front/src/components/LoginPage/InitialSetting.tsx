@@ -24,6 +24,7 @@ export default function InitialSettingModal() {
 
     try {
       const response = await fetch("http://localhost:4000/user/profile-img-change", {
+        credentials: "include",
         method: "POST",
         body: formData,
       });
