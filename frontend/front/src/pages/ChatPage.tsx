@@ -20,7 +20,7 @@ import { useEffect, useState } from "react";
 import * as socket from "../socket/chat.socket";
 import * as chatAtom from "../components/atom/ChatAtom";
 import type * as chatType from "../socket/chat.dto";
-import { GetMyInfo } from '../event/api.request';
+import { GetMyInfo, RefreshToken } from '../event/api.request';
 
 export default function ChatPage() {
 	const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
@@ -89,6 +89,10 @@ export default function ChatPage() {
 		socket.socket.emit('server-room-list');
 	}
 
+	const tryRefreshToken = () => {
+		console.log('\nrefresh token');
+		RefreshToken();
+	}
 	useEffect(() => {
 		socket.socket.onAny((eventName, ...args) => {
 			console.log("incoming ", eventName, args);
@@ -449,6 +453,7 @@ export default function ChatPage() {
 			<button onClick={showServerUser}> show server user</button>
 			<button onClick={showServerRoom}> show server room</button>
 			<button onClick={showSocketState}> socket state</button>
+			<button onClick={tryRefreshToken}> RefreshToken</button>
 			<TopBar />
 			{userInfoModal ? <UserInfoModal /> : null}
 			{roomModal ? <RoomModal /> : null}
