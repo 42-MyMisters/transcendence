@@ -4,6 +4,7 @@ import { Link, NavLink } from "react-router-dom";
 
 import { useAtom } from "jotai";
 import { refreshTokenAtom } from "./atom/LoginAtom";
+import { LogOut } from '../event/api.request';
 import * as socket from "../socket/chat.socket";
 
 export default function TopBar() {
@@ -69,15 +70,17 @@ function ProfileBtn() {
 function LogoutBtn() {
   const [, setRefreshToken] = useAtom(refreshTokenAtom);
 
-  function LogOut() {
-    socket.socket.emit("logout");
-    socket.socket.disconnect();
-    localStorage.clear();
-    setRefreshToken(false);
-  }
+  const handleLogOut = () => {
+    LogOut(setRefreshToken);
+  };
+  // function LogOut() {
+  //   socket.socket.emit("logout");
+  //   socket.socket.disconnect();
+  //   localStorage.clear();
+  //   setRefreshToken(false);
 
   return (
-    <div className="TopBarBtn" onClick={LogOut}>
+    <div className="TopBarBtn" onClick={handleLogOut}>
       <Link className="AStyle" to="/">
         Logout
       </Link>

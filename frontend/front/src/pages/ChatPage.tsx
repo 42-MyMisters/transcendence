@@ -371,13 +371,7 @@ export default function ChatPage() {
 				userStatus,
 			};
 			console.log(`user-upadate: user ${userId} is ${userStatus}`);
-			// if (userStatus === 'offline' && followingList[userId] === undefined) {
-			// 	const deleteUser: chatType.userDto = { ...userList };
-			// 	delete deleteUser[userId];
-			// 	setUserList({ ...deleteUser });
-			// } else {
 			setUserList({ ...userList, ...newUser });
-			// }
 		});
 		return () => {
 			socket.socket.off("user-update");

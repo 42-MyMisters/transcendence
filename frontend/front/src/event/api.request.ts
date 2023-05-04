@@ -1,6 +1,8 @@
 import type { UserType } from '../components/atom/UserAtom';
+import * as socket from '../socket/chat.socket';
 
 type setUserInfo = React.Dispatch<React.SetStateAction<UserType>>;
+
 export function GetMyInfo(setUserInfo: setUserInfo) {
 
 	fetch("http://localhost:4000/user/me", {
@@ -62,4 +64,13 @@ export function RefreshToken(callback: (setUserInfo: setUserInfo) => {}) {
 			console.log(`\nRefreshToken catch_error: ${error} `);
 		});
 
+}
+
+export function LogOut(
+	setRefreshToken: React.Dispatch<React.SetStateAction<boolean>>
+) {
+	socket.socket.emit("logout");
+	socket.socket.disconnect();
+	localStorage.clear();
+	setRefreshToken(false);
 }

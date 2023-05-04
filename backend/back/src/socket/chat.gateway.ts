@@ -189,7 +189,8 @@ export class EventsGateway
 					userId: socket.data.user.uid,
 					userDisplayName: socket.data.user.nickname.split('#', 2)[0],
 					userProfileUrl: socket.data.user.profileUrl,
-					userStatus: userList[socket.data.user.uid].status,
+					// userStatus: userList[socket.data.user.uid].status,
+					userStatus: 'online',
 				});
 			} else {
 				throw new UnauthorizedException("User not found.");
