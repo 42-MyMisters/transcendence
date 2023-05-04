@@ -16,7 +16,7 @@ export default function ChangeImageModal() {
     setchangeImageModal(false);
   });
 
-  const handleOnSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleOnSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     const formElement = document.getElementById("forChangeImage") as HTMLFormElement;
     if (formElement) {
       const formData = new FormData(formElement);
@@ -29,7 +29,7 @@ export default function ChangeImageModal() {
 
       const blob = new Blob(parts, { type: "multipart/form-data" });
 
-      let response = fetch("http://localhost:4000/user/profile-img-change", {
+      fetch("http://localhost:4000/user/profile-img-change", {
         method: "POST",
         body: blob,
       }).then(() => {
@@ -62,7 +62,14 @@ export default function ChangeImageModal() {
           <label htmlFor="ChangeImage">New Image</label>
           <input id="ChangeImage" type="file" accept=".jpg,.jpeg,.png" multiple></input>
         </form>
-        <button type="submit" className="ChangeImage" onClick={() => setchangeImageModal(false)}>
+        <button
+          type="submit"
+          className="ChangeImage"
+          onClick={() => {
+            // handleOnSubmit();
+            setchangeImageModal(false);
+          }}
+        >
           Save
         </button>
         <button className="ChangeImageCancel" onClick={() => setchangeImageModal(false)}>
