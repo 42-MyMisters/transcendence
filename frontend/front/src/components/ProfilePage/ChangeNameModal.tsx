@@ -58,7 +58,7 @@ export default function ChangeNameModal() {
             onChange={(e) => {
               setNewName(e.target.value);
             }}
-          ></input>
+          />
         </div>
         <button type="submit" className="SaveName" onClick={() => handleChangeName()}>
           Save

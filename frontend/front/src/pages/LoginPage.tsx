@@ -16,7 +16,8 @@ import ChatPage from "./ChatPage";
 import { useNavigate } from "react-router-dom";
 
 import * as socket from "../socket/chat.socket";
-import { hasLoginAtom } from '../components/atom/ChatAtom';
+import { hasLoginAtom } from "../components/atom/ChatAtom";
+import InitialSettingModal from "../components/LoginPage/InitialSetting";
 
 export default function LoginPage() {
   /* localstorage에 없는데 cookie에 있으면 로그인이 된거다 */
@@ -70,6 +71,7 @@ export default function LoginPage() {
       {!refreshToken && <SignInModal />}
       {/* refresh Token이 있고 cookie가 없으면 TFAModal실행 */}
       {refreshToken && !cookie && TFAEnabled && <TFAModal />}
+      {refreshToken ? <InitialSettingModal /> : null}
     </BackGround>
   );
 }
