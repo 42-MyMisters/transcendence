@@ -75,7 +75,7 @@ export default function ChatPage() {
 		socket.emitTest("hello")
 	};
 	const getMyinfo = () => {
-		GetMyInfo({ setUserInfo });
+		GetMyInfo(setUserInfo);
 	}
 	const showMyinfo = () => {
 		console.log(`showMyinfo ${JSON.stringify(userInfo)}}`);
@@ -91,7 +91,7 @@ export default function ChatPage() {
 
 	const tryRefreshToken = () => {
 		console.log('\nrefresh token');
-		RefreshToken();
+		RefreshToken(GetMyInfo);
 	}
 	useEffect(() => {
 		socket.socket.onAny((eventName, ...args) => {
@@ -430,14 +430,14 @@ export default function ChatPage() {
 
 	if (isFirstLogin) {
 		console.log('set init data');
-		GetMyInfo({ setUserInfo });
+		GetMyInfo(setUserInfo);
 		socket.emitUserBlockList({ userBlockList, setUserBlockList });
 		socket.emitFollowingList({ userList, setUserList, followingList, setFollowingList });
 		socket.emitDmHistoryList({ userList, setUserList, dmHistoryList, setDmHistoryList });
 		socket.emitUserList({ userList, setUserList });
 		socket.emitRoomList({ setRoomList });
 		if (userInfo.uid === 1) {
-			GetMyInfo({ setUserInfo });
+			GetMyInfo(setUserInfo);
 		}
 		setIsFirstLogin(false);
 	}

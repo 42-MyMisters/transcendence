@@ -1,12 +1,7 @@
 import type { UserType } from '../components/atom/UserAtom';
 
-export function GetMyInfo({
-	setUserInfo,
-}: {
-	setUserInfo: React.Dispatch<React.SetStateAction<UserType>>;
-}): Number {
-
-	let status = 0;
+type setUserInfo = React.Dispatch<React.SetStateAction<UserType>>;
+export function GetMyInfo(setUserInfo: setUserInfo) {
 
 	fetch("http://localhost:4000/user/me", {
 		credentials: "include",
@@ -18,7 +13,7 @@ export function GetMyInfo({
 					return response.json();
 				}
 				case 401: {
-					throw new Error(`${response.status}`);
+					throw new Error(`401 - ${response.status}`);
 				}
 				default: {
 					throw new Error(`${response.status}`);
@@ -26,19 +21,18 @@ export function GetMyInfo({
 			}
 		})
 		.then((response) => {
+			console.log(`\nGetMyInfo: ${JSON.stringify(response)}`);
 			response.nickname = response.nickname.split('#', 2)[0];
 			setUserInfo({ ...response });
-			status = 200;
 		})
 		.catch((error) => {
 			console.log(`\nGetMyInfo: catch_error: ${error}`);
-			status = error;
 		});
 
-	return status;
+	return {};
 }
 
-export function RefreshToken() {
+export function RefreshToken(callback: (setUserInfo: setUserInfo) => {}) {
 	fetch("http://localhost:4000/login/oauth/refresh", {
 		credentials: "include",
 		method: "POST",
@@ -46,20 +40,18 @@ export function RefreshToken() {
 			'Accept': 'application/json',
 			'Content-Type': 'application/json',
 			'Authorization': 'Bearer ' + localStorage.getItem("refreshToken")
-			// 'Authorization': 'Bearer ' + "test"
 		}
 	})
-		// .then((response) => response.json())
 		.then((response) => {
 			console.log(`LL: ${response} ${JSON.stringify(response)}}}  ${response.status}`);
 			switch (response.status) {
-				case 200: {
-					break;
-				}
-				case 401: {
+				case 201: {
 					break;
 				}
 				case 400: {
+					break;
+				}
+				case 401: { // invalid refresh token
 					break;
 				}
 				default: {
@@ -69,4 +61,5 @@ export function RefreshToken() {
 		}).catch((error) => {
 			console.log(`\nRefreshToken catch_error: ${error} `);
 		});
+
 }
