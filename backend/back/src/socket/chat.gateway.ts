@@ -106,7 +106,7 @@ const roomList: Record<number, RoomInfo> = {
 	},
 	1: {
 		roomNumber: 0,
-		roomName: 'Protected Lobby',
+		roomName: 'Protect Lobby',
 		roomType: 'protected',
 		roomMembers: {
 			0: {
@@ -184,6 +184,7 @@ export class EventsGateway
 					userList[socket.data.user.uid].socket?.disconnect();
 					userList[socket.data.user.uid].socket = socket;
 				}
+				this.logger.verbose(`${userList[socket.data.user.uid].userDisplayName} is now online`);
 				this.nsp.emit("user-update", {
 					userId: socket.data.user.uid,
 					userDisplayName: socket.data.user.nickname.split('#', 2)[0],
@@ -224,18 +225,30 @@ export class EventsGateway
 				});
 				delete roomList[roomId].roomMembers[socket.data.user.uid];
 				if (roomList[roomId].roomOwner === socket.data.user.uid) {
-					const newOwner = roomList[roomId].roomAdmins[0];
-					if (newOwner === undefined) {
-						const newOwner = Number(roomList[roomId].roomMembers[0]);
+					let newOwner: number;
+
+					if (roomList[roomId]?.roomAdmins[0] === undefined) {
+						newOwner = Number(Object.keys(roomList[roomId].roomMembers)[0]);
 						roomList[roomId].roomOwner = newOwner;
 						roomList[roomId].roomMembers[newOwner].userRoomPower = 'owner';
 					} else {
-						roomList[roomId].roomOwner = newOwner;
+						newOwner = roomList[roomId]?.roomAdmins[0];
+						roomList[roomId].roomOwner = newOwner
 						roomList[roomId].roomMembers[newOwner].userRoomPower = 'owner';
 						roomList[roomId].roomAdmins.shift();
 					}
+					this.nsp.to(roomId.toString()).emit("room-in-action", {
+						roomId,
+						action: 'owner',
+						targetId: newOwner,
+					});
 				}
 			}
+			socket.to(roomId.toString()).emit('message', {
+				roomId,
+				from: socket.data.user.uid,
+				message: `${userList[socket.data.user.uid].userDisplayName} left this room`,
+			});
 			socket.leave(roomId.toString());
 			delete socket.data.roomList[roomId];
 			return action;
@@ -243,25 +256,16 @@ export class EventsGateway
 	}
 
 	handleDisconnect(@ConnectedSocket() socket: Socket) {
-		this.logger.log(`${socket.id} socket disconnected`);
-		this.logger.log(`${socket.data.roomList}`);
-		if (userList[socket?.data?.user?.uid] !== undefined) {
-			if (userList[socket?.data?.user.uid].isRefresh === false) {
-				this.logger.verbose(`${socket.data.user.nickname} is now offline`);
-				userList[socket.data.user.uid].status = 'offline';
-				socket.broadcast.emit("user-update", {
-					userId: socket.data.user.uid,
-					userDisplayName: socket.data.user.nickname.split('#', 2)[0],
-					userProfileUrl: socket.data.user.profileUrl,
-					userStatus: userList[socket.data.user.uid].status,
-				});
-				socket.data.roomList.map((roomId: number) => {
-					this.deleteRoomLogic(socket, roomId);
-				});
-				delete userList[socket.data.user.uid];
-			} else {
-				userList[socket.data.user.uid].isRefresh = false;
-			}
+		this.logger.log(`${userList[socket?.data?.user?.uid]?.userDisplayName} : ${socket.id} socket disconnected`);
+		if (socket.data?.user?.uid !== undefined) {
+			this.logger.verbose(`${userList[socket.data.user.uid].userDisplayName} is now offline`);
+			userList[socket.data.user.uid].status = 'offline';
+			socket.broadcast.emit("user-update", {
+				userId: socket.data.user.uid,
+				userDisplayName: socket.data.user.nickname.split('#', 2)[0],
+				userProfileUrl: socket.data.user.profileUrl,
+				userStatus: userList[socket.data.user.uid].status,
+			});
 		}
 	}
 
@@ -270,6 +274,18 @@ export class EventsGateway
 		this.logger.log(`${socket.id} clear data`);
 		this.nsp.emit("room-clear");
 		this.nsp.emit("user-clear");
+	}
+
+	@SubscribeMessage("chat-logout")
+	handleLogout(@ConnectedSocket() socket: Socket) {
+		this.logger.log(`${socket.id} logout`);
+		userList[socket.data.user.uid].status = 'offline';
+		this.nsp.emit("user-update", {
+			userId: socket.data.user.uid,
+			userDisplayName: socket.data.user.nickname.split('#', 2)[0],
+			userProfileUrl: socket.data.user.profileUrl,
+			userStatus: userList[socket.data.user.uid].status,
+		});
 	}
 
 	@SubscribeMessage("test")
@@ -341,7 +357,6 @@ export class EventsGateway
 		const tempRoomList: Record<number, ClientRoomListDto> = {};
 		for (const [roomId, roomInfo] of Object.entries(roomList)) {
 			if (roomInfo.roomMembers[socket?.data?.user?.uid] !== undefined) {
-				this.logger.debug(`room ${roomId} is joined`);
 				socket.join(roomId.toString());
 				tempRoomList[roomId] = {
 					roomName: roomInfo.roomName,
@@ -351,7 +366,7 @@ export class EventsGateway
 						userList: roomInfo.roomMembers,
 						messageList: [],
 						myRoomStatus: roomInfo.roomMembers[socket.data.user.uid].userRoomStatus,
-						myPower: roomInfo.roomMembers[socket.data.user.uid].userRoomPower,
+						myRoomPower: roomInfo.roomMembers[socket.data.user.uid].userRoomPower,
 					}
 				};
 			} else if (roomInfo.roomType !== 'private') {
@@ -387,6 +402,7 @@ export class EventsGateway
 						userRoomPower: 'member',
 					}
 					roomList[roomId].roomMembers[socket.data.user.uid] = newMember;
+					this.logger.debug(`${socket.id} join room ${roomId}: ${JSON.stringify(roomList[roomId].roomMembers[socket.data.user.uid])}`);
 					socket.join(roomId.toString());
 					socket.data.roomList.push(roomId);
 					this.nsp.to(socket.id).emit("room-join", {
@@ -433,7 +449,9 @@ export class EventsGateway
 	}
 
 	@SubscribeMessage("user-list")
-	handleUserList() {
+	handleUserList(
+		@ConnectedSocket() socket: Socket,
+	) {
 		const tempUserList: Record<number, ClientUserDto> = {};
 		for (const [uid, userInfo] of Object.entries(userList)) {
 			if (Number(uid) <= 2) {
@@ -442,8 +460,7 @@ export class EventsGateway
 					userProfileUrl: userInfo.userUrl || 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/42_Logo.svg/2048px-42_Logo.svg.png',
 					userStatus: userInfo.status,
 				}
-			}
-			else {
+			} else {
 				tempUserList[uid] = {
 					userDisplayName: userInfo.socket?.data.user.nickname.split('#', 2)[0],
 					userProfileUrl: userInfo.socket?.data.user.profileUrl,

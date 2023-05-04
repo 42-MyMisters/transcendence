@@ -77,7 +77,7 @@ interface UserType {
 
 export const UserAtom = atom<UserType>({
   uid: 1,
-  nickname: "yuhwang",
+  nickname: "InitName",
   profileUrl: "/smile.png",
   ELO: 1000,
   followings: [

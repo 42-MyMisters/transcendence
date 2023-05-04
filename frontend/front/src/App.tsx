@@ -11,7 +11,7 @@ import "./App.css";
 
 import { Provider, atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 
-import { hasLoginAtom } from './components/atom/ChatAtom';
+import { hasLoginAtom } from "./components/atom/ChatAtom";
 
 function CheckLogin({ children }: { children: JSX.Element }) {
   const [hasLogin] = useAtom(hasLoginAtom);

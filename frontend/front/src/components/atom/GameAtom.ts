@@ -16,3 +16,5 @@ export const GameCoordinateAtom = atom<GameCoordinate>({
   ballY: 300,
   rightY: 225,
 });
+
+export const GameCanvas = atom<HTMLCanvasElement | null>(null);

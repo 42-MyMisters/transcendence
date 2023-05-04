@@ -140,12 +140,14 @@ export function emitRoomLeave(
 				roomName: roomList[roomId].roomName,
 				roomType: roomList[roomId].roomType,
 				isJoined: false,
-				detail: {} as chatType.roomDetailDto,
+				// detail: {} as chatType.roomDetailDto,
 			}
 			setRoomList({ ...roomList, ...newRoomList });
 			if (focusRoom === roomId) {
 				setFocusRoom(-1);
 			}
+		} else {
+			console.log(`callback: room leave failed: ${roomList[roomId].roomName}`);
 		}
 	});
 }
@@ -315,13 +317,9 @@ export function emitUserList(
 	{
 		userList,
 		setUserList,
-		userHistory,
-		setUserHistory,
 	}: {
 		userList: chatType.userDto,
 		setUserList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
-		userHistory: chatType.userDto,
-		setUserHistory: React.Dispatch<React.SetStateAction<chatType.userDto>>,
 	},
 ) {
 	socket.emit("user-list", {
@@ -331,7 +329,6 @@ export function emitUserList(
 		userListFromServer: chatType.userDto,
 	}) => {
 		setUserList({ ...userList, ...userListFromServer })
-		setUserHistory({ ...userHistory, ...userList })
 	});
 }
 
@@ -430,7 +427,6 @@ export function emitMessage(
 	roomId: number,
 	message: string,
 ) {
-
 	socket.emit("message", {
 		roomId,
 		message
@@ -465,9 +461,21 @@ export function setNewDetailToNewRoom({
 	setRoomList: React.Dispatch<React.SetStateAction<chatType.roomListDto>>,
 	roomId: number,
 	newUserList: chatType.userInRoomListDto
-}) {
-	const newDetail: Partial<chatType.roomDetailDto> = { ...roomList[roomId].detail, userList: { ...newUserList } };
-	const newRoomList: chatType.roomListDto = { ...roomList[roomId], ...newDetail };
+}, status?: chatType.userRoomStatus,
+	power?: chatType.userRoomPower) {
+	const newRoomList: chatType.roomListDto = {}
+	newRoomList[roomId] = {
+		roomName: roomList[roomId].roomName,
+		roomType: roomList[roomId].roomType,
+		isJoined: roomList[roomId].isJoined,
+		detail: {
+			userList: { ...newUserList },
+			messageList: roomList[roomId].detail?.messageList || [],
+			myRoomStatus: status || roomList[roomId].detail?.myRoomStatus || 'normal',
+			myRoomPower: power || roomList[roomId].detail?.myRoomPower || 'member'
+		}
+	};
+	console.log(`newRoomList: ${JSON.stringify(newRoomList)}`);
+	console.log(`\n newUser list: ${JSON.stringify(newUserList)}`);
 	setRoomList({ ...roomList, ...newRoomList });
-
 }
