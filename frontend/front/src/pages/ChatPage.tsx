@@ -13,6 +13,7 @@ import RoomModal from "../components/ChatPage/RoomModal";
 import RoomInviteModal from "../components/ChatPage/RoomInviteModal";
 import PasswordModal from "../components/ChatPage/PasswordModal";
 
+import { refreshTokenAtom } from "../components/atom/LoginAtom";
 import { UserAtom } from "../components/atom/UserAtom";
 import type * as userType from "../components/atom/UserAtom";
 import { useEffect, useState } from "react";
@@ -20,7 +21,8 @@ import { useEffect, useState } from "react";
 import * as socket from "../socket/chat.socket";
 import * as chatAtom from "../components/atom/ChatAtom";
 import type * as chatType from "../socket/chat.dto";
-import { GetMyInfo, RefreshToken } from '../event/api.request';
+import { GetMyInfo, RefreshToken, LogOut } from '../event/api.request';
+import { useNavigate } from "react-router-dom";
 
 export default function ChatPage() {
 	const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
@@ -28,8 +30,10 @@ export default function ChatPage() {
 	const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);
 	const [pwInputModal, setPwInputModal] = useAtom(passwordInputModalAtom);
 
+
 	const [userInfo, setUserInfo] = useAtom(UserAtom);
 	const [isFirstLogin, setIsFirstLogin] = useAtom(chatAtom.isFirstLoginAtom);
+	const [hasLogin, setHasLogin] = useAtom(chatAtom.hasLoginAtom);
 
 	const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
 	const [userList, setUserList] = useAtom(chatAtom.userListAtom);
@@ -38,6 +42,9 @@ export default function ChatPage() {
 	const [followingList, setFollowingList] = useAtom(chatAtom.followingListAtom);
 	const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
 	const [socketState, setSocketState] = useAtom(chatAtom.socketStateAtom);
+
+	const navigate = useNavigate();
+	const [, setRefreshToken] = useAtom(refreshTokenAtom);
 
 
 	const getRoomList = () => {
@@ -138,7 +145,9 @@ export default function ChatPage() {
 				// the disconnection was initiated by the server, you need to reconnect manually
 				console.log('socket disconnected by server');
 				alert(`multiple login detected!`);
-				// localStorage.removeItem('refreshToken');
+				LogOut(setRefreshToken, navigate, "/");
+				setHasLogin(false);
+				setIsFirstLogin(true);
 			}
 			// else the socket will automatically try to reconnect
 			console.log("socket disconnected");

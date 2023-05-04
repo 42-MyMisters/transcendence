@@ -258,7 +258,8 @@ export class EventsGateway
 
 	handleDisconnect(@ConnectedSocket() socket: Socket) {
 		this.logger.log(`${userList[socket?.data?.user?.uid]?.userDisplayName} : ${socket.id} socket disconnected`);
-		if (socket.data?.user?.uid !== undefined && userList[socket.data.user.uid]?.socket?.id! === socket.id) {
+		if (socket.data?.user?.uid !== undefined && userList[socket.data.user.uid]?.socket?.id! === socket.id &&
+			userList[socket.data.user.uid]?.isRefresh === false) {
 			this.logger.verbose(`${userList[socket.data.user.uid].userDisplayName} is now offline`);
 			userList[socket.data.user.uid].status = 'offline';
 			userList[socket.data.user.uid].socket = undefined;

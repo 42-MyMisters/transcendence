@@ -1,3 +1,4 @@
+import { NavigateFunction } from 'react-router-dom';
 import type { UserType } from '../components/atom/UserAtom';
 import * as socket from '../socket/chat.socket';
 
@@ -67,10 +68,14 @@ export function RefreshToken(callback: (setUserInfo: setUserInfo) => {}) {
 }
 
 export function LogOut(
-	setRefreshToken: React.Dispatch<React.SetStateAction<boolean>>
+	setRefreshToken: React.Dispatch<React.SetStateAction<boolean>>,
+	navigate: NavigateFunction,
+	to: string
 ) {
-	socket.socket.emit("logout");
+	console.log("logout");
+	socket.socket.emit("chat-logout");
 	socket.socket.disconnect();
 	localStorage.clear();
 	setRefreshToken(false);
+	navigate(to);
 }
