@@ -24,13 +24,13 @@ function CheckLogin({ children }: { children: JSX.Element }) {
       </>
     );
   } else {
-    // return <>{children}</>;
-    return (
-      <>
-        <LoginPage />
-        {/* {children} */}
-      </>
-    );
+    return <>{children}</>;
+    // return (
+    //   <>
+    //     <LoginPage />
+    //     {/* {children} */}
+    //   </>
+    // );
   }
 }
 
