@@ -5,7 +5,7 @@ COPY ./sign.sh /sign.sh
 
 RUN chmod +x /sign.sh && /sign.sh
 
-EXPOSE 5000
+EXPOSE 443 80
 
 STOPSIGNAL SIGKILL
 
