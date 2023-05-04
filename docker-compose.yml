@@ -21,6 +21,7 @@ services:
       - "4000:4000"
     networks:
       nw-db: {}
+      nw-nginx: {}
     env_file:
       - ./config/.env
       - ./config/.postgres.env
@@ -71,7 +72,7 @@ services:
     image: dpage/pgadmin4:latest
     restart: always
     ports:
-      - "80:80"
+      - "8000:80"
     env_file:
       - ./config/.pgadmin.env
     networks:
@@ -80,21 +81,25 @@ services:
       postgres:
         condition: service_healthy
 
-  # nginx:
-  #   container_name: nginx
-  #   build:
-  #     context: ./nginx
-  #     dockerfile: ./Dockerfile
-  #   restart: always
-  #   networks:
-  #     nw-nginx:
-  #       aliases:
-  #         - nginx
-  #   ports:
-  #     - "443:443"
-  #     - "80:80"
-  #   env_file:
-  #     - .env
+  nginx:
+    container_name: nginx
+    build:
+      context: ./nginx
+      dockerfile: ./Dockerfile
+    restart: always
+    volumes:
+      - type: bind
+        source: ./backend/back/img
+        target: /img
+    networks:
+      nw-nginx:
+        aliases:
+          - nginx
+    ports:
+      - "443:443"
+      - "80:80"
+    env_file:
+      - ./config/.env
 
   
 # volumes:

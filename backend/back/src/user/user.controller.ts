@@ -159,8 +159,8 @@ export class UserController {
 			.resize(500, 500)
 			.flatten({ background: '#fff' })
 			.toFormat("jpeg", { mozjpeg: true })
-			.toFile(`uploads/${filename}`);
-			const profileUrl = `http://localhost:4000/login/get-profile/${filename}`
+			.toFile(`img/${filename}`);
+			const profileUrl = `https://localhost/images/${filename}`
 			await this.userService.setUserProfileUrl(user, profileUrl);	
 		} catch (e) {
 			Logger.error(e);
@@ -244,11 +244,11 @@ export class UserController {
 		return await this.userService.getFollowingUserInfo(request.user.uid);
 	}
 	
-	@Get('/get-profile/:filename')
-	getProfilePicture_debug(@Res() res: Response, @Param('filename') filename) {
-		const filePath = path.join(__dirname, `../../uploads/${filename}`);
-		res.sendFile(filePath);
-	}
+	// @Get('/get-profile/:filename')
+	// getProfilePicture_debug(@Res() res: Response, @Param('filename') filename) {
+	// 	const filePath = path.join(__dirname, `../../uploads/${filename}`);
+	// 	res.sendFile(filePath);
+	// }
 	
 	// set user pw
 	@Post('/setpw')

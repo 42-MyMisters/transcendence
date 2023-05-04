@@ -6,12 +6,12 @@
 #    By: seseo <seseo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/01/25 16:48:49 by seseo             #+#    #+#              #
-#    Updated: 2023/04/07 15:57:09 by seseo            ###   ########.fr        #
+#    Updated: 2023/05/03 17:47:26 by seseo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 # for docker compose
-DC		:= docker compose --env-file ./config/.env --env-file ./config/.postgres.env
+DC		:= docker-compose --env-file ./config/.env --env-file ./config/.postgres.env
 DC_SRC	:= ./docker-compose.yml
 
 DI		:= docker image
