@@ -4,7 +4,6 @@ import type * as DTO from '../../socket/chat.dto';
 
 export const roomListAtom = atom<DTO.roomListDto>({});
 export const userListAtom = atom<DTO.userDto>({});
-export const userHistoryAtom = atom<DTO.userDto>({});
 
 export const dmHistoryListAtom = atom<DTO.userDto>({});
 export const followingListAtom = atom<DTO.userDto>({});

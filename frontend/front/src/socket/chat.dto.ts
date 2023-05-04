@@ -1,3 +1,7 @@
+type userStatus = 'online' | 'offline' | 'inGame';
+type userRoomStatus = 'normal' | 'mute' | 'ban' | 'kick';
+type userRoomPower = 'owner' | 'admin' | 'member';
+
 type userDto = {
 	[key: number]: {
 		userDisplayName: string;
@@ -43,4 +47,4 @@ type roomListDto = {
 	}
 }
 
-export type { userDto, userSimpleDto, roomDetailDto, roomMessageDto, roomListDto, userInRoomListDto };
+export type { userDto, userSimpleDto, roomDetailDto, roomMessageDto, roomListDto, userInRoomListDto, userStatus, userRoomStatus, userRoomPower };

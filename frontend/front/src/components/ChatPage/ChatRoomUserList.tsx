@@ -41,7 +41,7 @@ export default function ChatRoomUserList() {
     <div className="ChatRoomUserListBG">
       <div className="ChatRoomNameTxt">
         {
-          focusRoom === -1 ? '시작의 방' : roomList[focusRoom]?.roomName
+          focusRoom === -1 ? 'My Room' : roomList[focusRoom]?.roomName
         }
       </div>
       {
@@ -65,15 +65,17 @@ export default function ChatRoomUserList() {
           focusRoom === -1
             ? <UserObj
               key="-2"
+              uid={userInfo.uid ?? -2}
               nickName={userInfo.nickname}
               profileImage={userInfo.profileUrl}
               status={userList[Number(userInfo.uid)]?.userStatus}
-              power="owner"
+              power="member"
               callBack={onClickInfo}
             />
             : Object.entries(roomList[focusRoom]?.detail?.userList!).map((key) => (
               <UserObj
                 key={Number(key[0])}
+                uid={Number(key[0])}
                 nickName={userList[Number(key[0])]?.userDisplayName}
                 profileImage={userList[Number(key[0])]?.userProfileUrl}
                 status={userList[Number(key[0])]?.userStatus}

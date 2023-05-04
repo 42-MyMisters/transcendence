@@ -18,53 +18,95 @@ export const gameSocket = io(`${URL}${GameNameSpace}`, {
   // path: "/socket.io",
 });
 
-export function OnSocketCoreEvent() {
+// export function OnSocketCoreEvent() {
 
-  // catch all incoming events
-  gameSocket.onAny((eventName, ...args) => {
-    console.log("incoming ", eventName, args);
-  });
+//   // catch all incoming events
+//   gameSocket.onAny((eventName, ...args) => {
+//     console.log("incoming ", eventName, args);
+//   });
 
-  // catch all outgoing events
-  gameSocket.prependAny((eventName, ...args) => {
-    console.log("outgoing ", eventName, args);
-  });
+//   // catch all outgoing events
+//   gameSocket.prependAny((eventName, ...args) => {
+//     console.log("outgoing ", eventName, args);
+//   });
 
-  gameSocket.on("connect", () => {
-    if (gameSocket.connected) {
-      //This attribute describes whether the socket is currently connected to the server.
-      if (gameSocket.recovered) {
-        // any missed packets will be received
-      } else {
-        // new or unrecoverable session
-        console.log("gameSocket connected : " + gameSocket.id);
-      }
-    }
-  });
+//   gameSocket.on("connect", () => {
+//     if (gameSocket.connected) {
+//       //This attribute describes whether the socket is currently connected to the server.
+//       if (gameSocket.recovered) {
+//         // any missed packets will be received
+//       } else {
+//         // new or unrecoverable session
+//         console.log("gameSocket connected : " + gameSocket.id);
+//       }
+//     }
+//   });
 
-  //https://socket.io/docs/v4/client-socket-instance/#disconnect
-  gameSocket.on("disconnect", (reason) => {
-    /**
-     *  BAD, will throw an error
-     *  gameSocket.emit("disconnect");
-    */
-    if (reason === "io server disconnect") {
-      // the disconnection was initiated by the server, you need to reconnect manually
-    }
-    // else the socket will automatically try to reconnect
-    console.log("gameSocket disconnected");
-  });
+//   //https://socket.io/docs/v4/client-socket-instance/#disconnect
+//   gameSocket.on("disconnect", (reason) => {
+//     /**
+//      *  BAD, will throw an error
+//      *  gameSocket.emit("disconnect");
+//     */
+//     if (reason === "io server disconnect") {
+//       // the disconnection was initiated by the server, you need to reconnect manually
+//     }
+//     // else the socket will automatically try to reconnect
+//     console.log("gameSocket disconnected");
+//   });
 
-  // the connection is denied by the server in a middleware function
-  gameSocket.on("connect_error", (err) => {
-    if (err.message === "unauthorized") {
-      // handle each case
-    }
-    console.log(err.message); // prints the message associated with the error
-  });
-}
+//   // the connection is denied by the server in a middleware function
+//   gameSocket.on("connect_error", (err) => {
+//     if (err.message === "unauthorized") {
+//       // handle each case
+//     }
+//     console.log(err.message); // prints the message associated with the error
+//   });
+
+// gameSocket.on('join-game', ({
+//   uid_left,
+//   p1,
+//   uid_right
+// }: {
+//   uid_left: string;
+//   p1: number;
+//   uid_right: string;
+// }) => {
+
+// });
+
+// gameSocket.on('graphic', ({
+//   p1,
+//   ball_x,
+//   ball_y,
+//   p2
+// }: {
+//   p1: number;
+//   ball_x: number;
+//   ball_y: number;
+//   p2: number;
+// }) => {
+
+// });
+// }
 
 export function OnSocketGameEvent() {
   // const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
 
+}
+
+export function emitUpPress() {
+  gameSocket.emit("upPress");
+}
+export function emitUpRelease() {
+
+  gameSocket.emit("upRelease");
+}
+
+export function emitDownPress() {
+  gameSocket.emit("downPress");
+}
+
+export function emitDownRelease() {
+  gameSocket.emit("downRelease");
 }
