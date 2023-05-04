@@ -4,30 +4,38 @@ export function GetMyInfo({
 	setUserInfo,
 }: {
 	setUserInfo: React.Dispatch<React.SetStateAction<UserType>>;
-}) {
+}): Number {
+
+	let status = 0;
+
 	fetch("http://localhost:4000/user/me", {
 		credentials: "include",
 		method: "GET",
 	})
-		.then((response) => response.json())
 		.then((response) => {
 			switch (response.status) {
 				case 200: {
-					response.nickname = response.nickname.split('#', 2)[0];
-					setUserInfo({ ...response });
-					break;
+					return response.json();
+				}
+				case 401: {
+					throw new Error(`${response.status}`);
 				}
 				default: {
-					console.log(`\nGetMyInfo error: ${response.status}: ${response.message}\n need to refresh token`);
-					break;
+					throw new Error(`${response.status}`);
 				}
 			}
 		})
+		.then((response) => {
+			response.nickname = response.nickname.split('#', 2)[0];
+			setUserInfo({ ...response });
+			status = 200;
+		})
 		.catch((error) => {
-			console.log(`GetMyInfo: catch_error: ${error}`);
+			console.log(`\nGetMyInfo: catch_error: ${error}`);
+			status = error;
 		});
 
-	return undefined;
+	return status;
 }
 
 export function RefreshToken() {
@@ -38,10 +46,12 @@ export function RefreshToken() {
 			'Accept': 'application/json',
 			'Content-Type': 'application/json',
 			'Authorization': 'Bearer ' + localStorage.getItem("refreshToken")
+			// 'Authorization': 'Bearer ' + "test"
 		}
 	})
-		.then((response) => response.json())
+		// .then((response) => response.json())
 		.then((response) => {
+			console.log(`LL: ${response} ${JSON.stringify(response)}}}  ${response.status}`);
 			switch (response.status) {
 				case 200: {
 					break;
@@ -57,6 +67,6 @@ export function RefreshToken() {
 				}
 			}
 		}).catch((error) => {
-			console.log(`\nRefreshToken catch_error: ${error}`);
+			console.log(`\nRefreshToken catch_error: ${error} `);
 		});
 }
