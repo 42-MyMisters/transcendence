@@ -155,7 +155,6 @@ export class EventsGateway
 			if (this.userService.isUserExist(user)) {
 				this.nsp.to(socket.id).emit("room-clear");
 				this.nsp.to(socket.id).emit("user-clear");
-				socket.join(user.nickname);
 				socket.data.user = user;
 				socket.data.roomList = [];
 				if (userList[uid] === undefined) {
@@ -189,7 +188,8 @@ export class EventsGateway
 					userId: socket.data.user.uid,
 					userDisplayName: socket.data.user.nickname.split('#', 2)[0],
 					userProfileUrl: socket.data.user.profileUrl,
-					userStatus: userList[socket.data.user.uid].status,
+					// userStatus: userList[socket.data.user.uid].status,
+					userStatus: 'online',
 				});
 			} else {
 				throw new UnauthorizedException("User not found.");
@@ -257,7 +257,8 @@ export class EventsGateway
 
 	handleDisconnect(@ConnectedSocket() socket: Socket) {
 		this.logger.log(`${userList[socket?.data?.user?.uid]?.userDisplayName} : ${socket.id} socket disconnected`);
-		if (socket.data?.user?.uid !== undefined && userList[socket.data.user.uid]?.socket?.id! === socket.id) {
+		if (socket.data?.user?.uid !== undefined && userList[socket.data.user.uid]?.socket?.id! === socket.id &&
+			userList[socket.data.user.uid]?.isRefresh === false) {
 			this.logger.verbose(`${userList[socket.data.user.uid].userDisplayName} is now offline`);
 			userList[socket.data.user.uid].status = 'offline';
 			userList[socket.data.user.uid].socket = undefined;
@@ -287,14 +288,6 @@ export class EventsGateway
 			userProfileUrl: socket.data.user.profileUrl,
 			userStatus: userList[socket.data.user.uid].status,
 		});
-	}
-
-	@SubscribeMessage("test")
-	handleTest(
-		@MessageBody() { message }: { message: string }
-	) {
-		console.log(`fromClient: ${message}`);
-		return { fromServer: message };
 	}
 
 	@SubscribeMessage("room-create")

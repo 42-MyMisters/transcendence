@@ -1,19 +1,22 @@
+import { NavigateFunction } from 'react-router-dom';
 import type { UserType } from '../components/atom/UserAtom';
+import * as socket from '../socket/chat.socket';
 
 type setUserInfo = React.Dispatch<React.SetStateAction<UserType>>;
-export function GetMyInfo(setUserInfo: setUserInfo) {
 
-	fetch("http://localhost:4000/user/me", {
+export async function GetMyInfo(setUserInfo: setUserInfo): Promise<number> {
+
+	let status = -1;
+
+	await fetch("http://localhost:4000/user/me", {
 		credentials: "include",
 		method: "GET",
 	})
 		.then((response) => {
 			switch (response.status) {
 				case 200: {
+					status = 200;
 					return response.json();
-				}
-				case 401: {
-					throw new Error(`401 - ${response.status}`);
 				}
 				default: {
 					throw new Error(`${response.status}`);
@@ -26,14 +29,20 @@ export function GetMyInfo(setUserInfo: setUserInfo) {
 			setUserInfo({ ...response });
 		})
 		.catch((error) => {
-			console.log(`\nGetMyInfo: catch_error: ${error}`);
+			status = error.message;
+			console.log(`\nGetMyInfo catch_error: ${error} `);
 		});
 
-	return {};
+	return status;
 }
 
-export function RefreshToken(callback: (setUserInfo: setUserInfo) => {}) {
-	fetch("http://localhost:4000/login/oauth/refresh", {
+export async function RefreshToken(
+	callback = (): any => { }
+): Promise<number> {
+	let status = -1;
+
+	console.log(`in try refresh Token`);
+	await fetch("http://localhost:4000/login/oauth/refresh", {
 		credentials: "include",
 		method: "POST",
 		headers: {
@@ -43,23 +52,32 @@ export function RefreshToken(callback: (setUserInfo: setUserInfo) => {}) {
 		}
 	})
 		.then((response) => {
-			console.log(`LL: ${response} ${JSON.stringify(response)}}}  ${response.status}`);
+			status = response.status;
 			switch (response.status) {
 				case 201: {
-					break;
-				}
-				case 400: {
-					break;
-				}
-				case 401: { // invalid refresh token
+					callback();
 					break;
 				}
 				default: {
-					break;
+					throw new Error(`${response.status}`);
 				}
 			}
 		}).catch((error) => {
 			console.log(`\nRefreshToken catch_error: ${error} `);
 		});
 
+	return status;
+}
+
+export function LogOut(
+	setRefreshToken: React.Dispatch<React.SetStateAction<boolean>>,
+	navigate: NavigateFunction,
+	to: string
+) {
+	console.log("logout");
+	socket.socket.emit("chat-logout");
+	socket.socket.disconnect();
+	localStorage.clear();
+	setRefreshToken(false);
+	navigate(to);
 }

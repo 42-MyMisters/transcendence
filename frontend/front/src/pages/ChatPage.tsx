@@ -13,6 +13,7 @@ import RoomModal from "../components/ChatPage/RoomModal";
 import RoomInviteModal from "../components/ChatPage/RoomInviteModal";
 import PasswordModal from "../components/ChatPage/PasswordModal";
 
+import { refreshTokenAtom } from "../components/atom/LoginAtom";
 import { UserAtom } from "../components/atom/UserAtom";
 import type * as userType from "../components/atom/UserAtom";
 import { useEffect, useState } from "react";
@@ -20,7 +21,8 @@ import { useEffect, useState } from "react";
 import * as socket from "../socket/chat.socket";
 import * as chatAtom from "../components/atom/ChatAtom";
 import type * as chatType from "../socket/chat.dto";
-import { GetMyInfo, RefreshToken } from '../event/api.request';
+import { GetMyInfo, RefreshToken, LogOut } from '../event/api.request';
+import { Await, useNavigate } from "react-router-dom";
 
 export default function ChatPage() {
 	const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
@@ -28,8 +30,10 @@ export default function ChatPage() {
 	const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);
 	const [pwInputModal, setPwInputModal] = useAtom(passwordInputModalAtom);
 
+
 	const [userInfo, setUserInfo] = useAtom(UserAtom);
 	const [isFirstLogin, setIsFirstLogin] = useAtom(chatAtom.isFirstLoginAtom);
+	const [hasLogin, setHasLogin] = useAtom(chatAtom.hasLoginAtom);
 
 	const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
 	const [userList, setUserList] = useAtom(chatAtom.userListAtom);
@@ -38,6 +42,9 @@ export default function ChatPage() {
 	const [followingList, setFollowingList] = useAtom(chatAtom.followingListAtom);
 	const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
 	const [socketState, setSocketState] = useAtom(chatAtom.socketStateAtom);
+
+	const navigate = useNavigate();
+	const [, setRefreshToken] = useAtom(refreshTokenAtom);
 
 
 	const getRoomList = () => {
@@ -71,12 +78,23 @@ export default function ChatPage() {
 	const showSocketState = () => {
 		console.log(`socket state: ${socketState}`);
 	};
-	const emitTester = () => {
-		socket.emitTest("hello")
-	};
-	const getMyinfo = () => {
-		GetMyInfo(setUserInfo);
+
+	async function getMyinfoHandler() {
+		const getMeResponse = await GetMyInfo(setUserInfo);
+		if (getMeResponse == 401) {
+			await refreshTokenHandler(GetMyInfo, setUserInfo);
+		}
 	}
+
+	async function refreshTokenHandler(callback: (cbArgs: any) => {}, arg: any) {
+		const refreshResponse = await RefreshToken();
+		if (refreshResponse !== 201) {
+			logOutHandler();
+		} else {
+			callback(arg);
+		}
+	}
+
 	const showMyinfo = () => {
 		console.log(`showMyinfo ${JSON.stringify(userInfo)}}`);
 	}
@@ -89,10 +107,10 @@ export default function ChatPage() {
 		socket.socket.emit('server-room-list');
 	}
 
-	const tryRefreshToken = () => {
-		console.log('\nrefresh token');
-		RefreshToken(GetMyInfo);
-	}
+	const logOutHandler = () => {
+		LogOut(setRefreshToken, navigate, '/');
+	};
+
 	useEffect(() => {
 		socket.socket.onAny((eventName, ...args) => {
 			console.log("incoming ", eventName, args);
@@ -138,7 +156,9 @@ export default function ChatPage() {
 				// the disconnection was initiated by the server, you need to reconnect manually
 				console.log('socket disconnected by server');
 				alert(`multiple login detected!`);
-				// localStorage.removeItem('refreshToken');
+				LogOut(setRefreshToken, navigate, "/");
+				setHasLogin(false);
+				setIsFirstLogin(true);
 			}
 			// else the socket will automatically try to reconnect
 			console.log("socket disconnected");
@@ -371,13 +391,7 @@ export default function ChatPage() {
 				userStatus,
 			};
 			console.log(`user-upadate: user ${userId} is ${userStatus}`);
-			// if (userStatus === 'offline' && followingList[userId] === undefined) {
-			// 	const deleteUser: chatType.userDto = { ...userList };
-			// 	delete deleteUser[userId];
-			// 	setUserList({ ...deleteUser });
-			// } else {
 			setUserList({ ...userList, ...newUser });
-			// }
 		});
 		return () => {
 			socket.socket.off("user-update");
@@ -428,32 +442,34 @@ export default function ChatPage() {
 		};
 	}, [roomList, userBlockList, userList, userInfo]);
 
-	if (isFirstLogin) {
-		console.log('set init data');
-		GetMyInfo(setUserInfo);
-		socket.emitUserBlockList({ userBlockList, setUserBlockList });
-		socket.emitFollowingList({ userList, setUserList, followingList, setFollowingList });
-		socket.emitDmHistoryList({ userList, setUserList, dmHistoryList, setDmHistoryList });
-		socket.emitUserList({ userList, setUserList });
-		socket.emitRoomList({ setRoomList });
-		if (userInfo.uid === 1) {
-			GetMyInfo(setUserInfo);
+	async function firstLogin() {
+		if (isFirstLogin) {
+			console.log('set init data');
+			await getMyinfoHandler();
 		}
+		// TODO : from serverside emit event
+		// socket.emitUserBlockList({ userBlockList, setUserBlockList });
+		// socket.emitFollowingList({ userList, setUserList, followingList, setFollowingList }, userInfo);
+		// socket.emitDmHistoryList({ userList, setUserList, dmHistoryList, setDmHistoryList });
+		// socket.emitUserList({ userList, setUserList });
+		// socket.emitRoomList({ setRoomList });
 		setIsFirstLogin(false);
+	}
+
+	if (isFirstLogin) {
+		firstLogin();
 	}
 
 	return (
 		<BackGround>
-			<button onClick={getMyinfo}> /user/me</button>
+			<button onClick={getMyinfoHandler}> /user/me</button>
 			<button onClick={showMyinfo}> show /user/me</button>
 			<button onClick={getRoomList}> roomList</button>
 			<button onClick={getUserList}> userList</button>
 			<button onClick={getFollowingList}> FollowList</button>
-			<button onClick={emitTester}> emitTest</button>
 			<button onClick={showServerUser}> show server user</button>
 			<button onClick={showServerRoom}> show server room</button>
 			<button onClick={showSocketState}> socket state</button>
-			<button onClick={tryRefreshToken}> RefreshToken</button>
 			<TopBar />
 			{userInfoModal ? <UserInfoModal /> : null}
 			{roomModal ? <RoomModal /> : null}
