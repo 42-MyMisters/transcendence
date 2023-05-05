@@ -37,6 +37,7 @@ export async function GetMyInfo(setUserInfo: setUserInfo): Promise<number> {
 }
 
 export async function RefreshToken(
+	callback = (): any => { }
 ): Promise<number> {
 	let status = -1;
 
@@ -54,6 +55,7 @@ export async function RefreshToken(
 			status = response.status;
 			switch (response.status) {
 				case 201: {
+					callback();
 					break;
 				}
 				default: {

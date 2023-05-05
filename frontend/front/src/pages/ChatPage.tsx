@@ -85,22 +85,17 @@ export default function ChatPage() {
 	async function getMyinfoHandler() {
 		const getMeResponse = await GetMyInfo(setUserInfo);
 		if (getMeResponse == 401) {
-			const refreshResponse = await refreshTokenHandler();
-			if (refreshResponse == 201) {
-				const getMeResponse = await GetMyInfo(setUserInfo);
-				if (getMeResponse !== 200) {
-					logOutHandler();
-				}
-			}
+			await refreshTokenHandler(GetMyInfo, setUserInfo);
 		}
 	}
 
-	async function refreshTokenHandler() {
+	async function refreshTokenHandler(callback: (cbArgs: any) => {}, arg: any) {
 		const refreshResponse = await RefreshToken();
 		if (refreshResponse !== 201) {
 			logOutHandler();
+		} else {
+			callback(arg);
 		}
-		return refreshResponse;
 	}
 
 	const showMyinfo = () => {
@@ -478,7 +473,6 @@ export default function ChatPage() {
 			<button onClick={showServerUser}> show server user</button>
 			<button onClick={showServerRoom}> show server room</button>
 			<button onClick={showSocketState}> socket state</button>
-			<button onClick={refreshTokenHandler}> RefreshToken</button>
 			<TopBar />
 			{userInfoModal ? <UserInfoModal /> : null}
 			{roomModal ? <RoomModal /> : null}
