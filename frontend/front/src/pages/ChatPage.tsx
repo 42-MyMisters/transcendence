@@ -81,13 +81,28 @@ export default function ChatPage() {
 	const emitTester = () => {
 		socket.emitTest("hello")
 	};
-	const getMyinfo = () => {
-		GetMyInfo(setUserInfo)
-		// if (RefreshToken(logOutHandler) === 201) {
-		// 	console.log(`redo GetMyInfo`);
-		// 	GetMyInfo(setUserInfo);
-		// }
+
+	async function getMyinfoHandler() {
+		const getMeResponse = await GetMyInfo(setUserInfo);
+		if (getMeResponse == 401) {
+			const refreshResponse = await refreshTokenHandler();
+			if (refreshResponse == 201) {
+				const getMeResponse = await GetMyInfo(setUserInfo);
+				if (getMeResponse !== 200) {
+					logOutHandler();
+				}
+			}
+		}
 	}
+
+	async function refreshTokenHandler() {
+		const refreshResponse = await RefreshToken();
+		if (refreshResponse !== 201) {
+			logOutHandler();
+		}
+		return refreshResponse;
+	}
+
 	const showMyinfo = () => {
 		console.log(`showMyinfo ${JSON.stringify(userInfo)}}`);
 	}
@@ -103,11 +118,6 @@ export default function ChatPage() {
 	const logOutHandler = () => {
 		LogOut(setRefreshToken, navigate, '/');
 	};
-
-	const tryRefreshToken = () => {
-		console.log('\nrefresh token');
-		RefreshToken(logOutHandler);
-	}
 
 	useEffect(() => {
 		socket.socket.onAny((eventName, ...args) => {
@@ -440,24 +450,26 @@ export default function ChatPage() {
 		};
 	}, [roomList, userBlockList, userList, userInfo]);
 
-	useEffect(() => {
-		async function firstLogin() {
-			if (isFirstLogin) {
-				console.log('set init data');
-				await GetMyInfo(setUserInfo);
-				socket.emitUserBlockList({ userBlockList, setUserBlockList });
-				socket.emitFollowingList({ userList, setUserList, followingList, setFollowingList });
-				socket.emitDmHistoryList({ userList, setUserList, dmHistoryList, setDmHistoryList });
-				socket.emitUserList({ userList, setUserList });
-				socket.emitRoomList({ setRoomList });
-				setIsFirstLogin(false);
-			}
+	function firstLogin() {
+		if (isFirstLogin) {
+			console.log('set init data');
+			getMyinfoHandler();
 		}
-	}, []);
+		socket.emitUserBlockList({ userBlockList, setUserBlockList });
+		socket.emitFollowingList({ userList, setUserList, followingList, setFollowingList });
+		socket.emitDmHistoryList({ userList, setUserList, dmHistoryList, setDmHistoryList });
+		socket.emitUserList({ userList, setUserList });
+		socket.emitRoomList({ setRoomList });
+		setIsFirstLogin(false);
+	}
+
+	if (isFirstLogin) {
+		firstLogin();
+	}
 
 	return (
 		<BackGround>
-			<button onClick={getMyinfo}> /user/me</button>
+			<button onClick={getMyinfoHandler}> /user/me</button>
 			<button onClick={showMyinfo}> show /user/me</button>
 			<button onClick={getRoomList}> roomList</button>
 			<button onClick={getUserList}> userList</button>
@@ -466,7 +478,7 @@ export default function ChatPage() {
 			<button onClick={showServerUser}> show server user</button>
 			<button onClick={showServerRoom}> show server room</button>
 			<button onClick={showSocketState}> socket state</button>
-			<button onClick={tryRefreshToken}> RefreshToken</button>
+			<button onClick={refreshTokenHandler}> RefreshToken</button>
 			<TopBar />
 			{userInfoModal ? <UserInfoModal /> : null}
 			{roomModal ? <RoomModal /> : null}

@@ -6,6 +6,8 @@ type setUserInfo = React.Dispatch<React.SetStateAction<UserType>>;
 
 export async function GetMyInfo(setUserInfo: setUserInfo): Promise<number> {
 
+	let status = -1;
+
 	await fetch("http://localhost:4000/user/me", {
 		credentials: "include",
 		method: "GET",
@@ -13,6 +15,7 @@ export async function GetMyInfo(setUserInfo: setUserInfo): Promise<number> {
 		.then((response) => {
 			switch (response.status) {
 				case 200: {
+					status = 200;
 					return response.json();
 				}
 				default: {
@@ -26,19 +29,18 @@ export async function GetMyInfo(setUserInfo: setUserInfo): Promise<number> {
 			setUserInfo({ ...response });
 		})
 		.catch((error) => {
-			if (error.message === "401") {
-				console.log(`\nGetMyInfo: 401`);
-			}
-			console.log(`\nGetMyInfo: catch_error: ${error}`);
+			status = error.message;
+			console.log(`\nGetMyInfo catch_error: ${error} `);
 		});
 
-	return 0;
+	return status;
 }
 
 export async function RefreshToken(
-	callback: () => void,
 ): Promise<number> {
+	let status = -1;
 
+	console.log(`in try refresh Token`);
 	await fetch("http://localhost:4000/login/oauth/refresh", {
 		credentials: "include",
 		method: "POST",
@@ -49,22 +51,20 @@ export async function RefreshToken(
 		}
 	})
 		.then((response) => {
-			console.log(`\nrefreshToken: ${response} ${JSON.stringify(response)}}}  ${response.status}`);
+			status = response.status;
 			switch (response.status) {
 				case 201: {
-					console.log(`\nrefreshToken : 201`);
 					break;
 				}
 				default: {
-					callback();
-					break;
+					throw new Error(`${response.status}`);
 				}
 			}
 		}).catch((error) => {
 			console.log(`\nRefreshToken catch_error: ${error} `);
 		});
 
-	return 0;
+	return status;
 }
 
 export function LogOut(
