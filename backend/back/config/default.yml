@@ -1,17 +1,17 @@
 server:
-  port: 4000
+    port: 4000
 
 # postgre -> create database ts-dev
 db:
-  type: "postgres"
-  port: 5432
-  database: "ts-dev"
+    type: 'postgres'
+    port: 5432
+    database: 'ts-dev'
 
 jwt:
-  expiresIn: 20
+    expiresIn: 3600
 
 jwt-refresh:
-  exp: 200000
+    exp: 200000
 
 cache:
-  exp: 0
+    exp: 0

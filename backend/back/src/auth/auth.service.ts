@@ -16,7 +16,7 @@ import { TokenSetDto } from "src/user/dto/TokenSet.dto";
 
 @Injectable()
 export class AuthService {
-  constructor(private jwtService: JwtService) {}
+  constructor(private jwtService: JwtService) { }
 
   async getUserInfoFromIntra(
     tokenObject: IntraTokenDto,
