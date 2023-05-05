@@ -1,7 +1,7 @@
 import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { Namespace } from "socket.io";
 import { DatabaseService } from "src/database/database.service";
-import { DIRECTION, wallX } from "./game.enum";
+import { Direction, GameMode, GameStatus, WallX } from "./game.enum";
 
 @Injectable()
 export class GameService {
@@ -10,14 +10,14 @@ export class GameService {
     this.games = new Map<string, Game>();
   }
 
-  createGame(gameId: string, nsp: Namespace, p1Id: string, p2Id: string) {
+  createGame(gameId: string, nsp: Namespace, p1Id: number, p2Id: number) {
     try {
       this.games.set(
         gameId,
         new Game(gameId, nsp, p1Id, p2Id, this.databaseService),
       );
     } catch (e) {
-      return new InternalServerErrorException("Fail to create game.");
+      throw new InternalServerErrorException("Fail to create game.");
     }
   }
 
@@ -39,8 +39,13 @@ class Game {
   private paddle2Y: number;
   private running: boolean;
   private round: number;
+  private gameStatus: GameStatus;
+  private gameMode: GameMode;
+  private gameModeTmp: GameMode;
+
+  private roundStartTime: number;
   private roundTime: number;
-  private now: number;
+  private prevTime: number;
 
   private p1Score: number;
   private p2Score: number;
@@ -52,11 +57,11 @@ class Game {
   constructor(
     private readonly id: string,
     private readonly nsp: Namespace,
-    private readonly p1: string,
-    private readonly p2: string,
+    private readonly p1: number,
+    private readonly p2: number,
     private readonly databaseService: DatabaseService,
     // Fixed param set
-    private readonly fps = 1000 / 50,
+    private readonly fps = 1000 / 100,
     private readonly canvasWidth = 1150,
     private readonly canvasHeight = 600,
     private readonly ballRadius = 15,
@@ -70,12 +75,15 @@ class Game {
     // countdown time 3sec
     this.p1Score = 0;
     this.p2Score = 0;
-    this.now = Date.now();
     this.init();
   }
 
   isRunning() {
     return this.running;
+  }
+
+  gameState() {
+    return this.gameStatus;
   }
 
   init() {
@@ -94,14 +102,15 @@ class Game {
     this.p2KeyUp = false;
     this.p1KeyDown = false;
     this.p2KeyDown = false;
-    this.roundTime = -3000;
   }
 
   gameStart() {
-    this.now = Date.now();
+    this.gameStatus = GameStatus.COUNTDOWN;
+    this.roundStartTime = Date.now();
+    this.prevTime = this.roundStartTime;
     const interval = setInterval(() => {
       this.update();
-      if (this.isRunning() == false) {
+      if (this.gameState() == GameStatus.FINISHED) {
         // save data to db
         // this.databaseService.save
         clearInterval(interval);
@@ -110,11 +119,11 @@ class Game {
   }
 
   update() {
-    if (this.p1Score < this.maxScore && this.p2Score < this.maxScore) {
-      // 3 sec count down.
-      this.roundTime += this.fps;
-      if (this.roundTime > 0 && this.isRunning() == true) {
-        this.updateKeyPress();
+
+    const curTime = Date.now();
+    if (this.gameState() !== GameStatus.FINISHED) {
+      if (this.isRunning() === true) {
+        this.paddleUpdate();
         this.ballX += this.ballSpeedX;
         this.ballY += this.ballSpeedY;
         const isHitY = this.collisionCheckY();
@@ -128,8 +137,8 @@ class Game {
             this.ballSpeedY = -this.ballSpeedY;
           }
         }
-        if (isHitX == DIRECTION.LEFT) {
-          if (this.collisionCheckP1Paddle() === wallX.PADDLE) {
+        if (isHitX == Direction.LEFT) {
+          if (this.collisionCheckP1Paddle() === WallX.PADDLE) {
             this.ballX = 2 * (this.ballRadius + this.paddleWidth) - this.ballX;
             this.ballSpeedX = -this.ballSpeedX;
           } else {
@@ -138,8 +147,8 @@ class Game {
             this.nsp.to(this.id).emit("graphic", this.getState());
             this.init();
           }
-        } else if (isHitX == DIRECTION.RIGHT) {
-          if (this.collisionCheckP2Paddle() === wallX.PADDLE) {
+        } else if (isHitX === Direction.RIGHT) {
+          if (this.collisionCheckP2Paddle() === WallX.PADDLE) {
             this.ballX =
               2 * (this.canvasWidth - this.ballRadius - this.paddleWidth) -
               this.ballX;
@@ -165,59 +174,10 @@ class Game {
         .emit("finished", { p1: this.p1Score, p2: this.p2Score });
       this.running = false;
     }
+    this.prevTime = curTime;
   }
 
-  collisionCheckX() {
-    if (this.ballX < this.ballRadius + this.paddleWidth) {
-      return DIRECTION.LEFT;
-    } else if (
-      this.ballX >
-      this.canvasWidth - this.ballRadius - this.paddleWidth
-    ) {
-      return DIRECTION.RIGHT;
-    }
-    return DIRECTION.NONE;
-  }
-
-  collisionCheckY() {
-    if (this.ballY > this.canvasHeight - this.ballRadius) {
-      return DIRECTION.DOWN;
-    } else if (this.ballY < this.ballRadius) {
-      return DIRECTION.UP;
-    }
-    return DIRECTION.NONE;
-  }
-
-  collisionCheckP1Paddle() {
-    if (
-      this.ballY >= this.paddle1Y - this.paddleHeight / 2 &&
-      this.ballY <= this.paddle1Y + this.paddleHeight / 2
-    ) {
-      return wallX.PADDLE;
-    }
-    return wallX.WALL;
-  }
-
-  collisionCheckP2Paddle() {
-    if (
-      this.ballY >= this.paddle2Y - this.paddleHeight / 2 &&
-      this.ballY <= this.paddle2Y + this.paddleHeight / 2
-    ) {
-      return wallX.PADDLE;
-    }
-    return wallX.WALL;
-  }
-
-  getState() {
-    return {
-      p1: this.paddle1Y,
-      ball_x: this.ballX,
-      ball_y: this.ballY,
-      p2: this.paddle2Y,
-    };
-  }
-
-  updateKeyPress() {
+  paddleUpdate() {
     if (this.p1KeyUp) {
       if (this.paddle1Y > this.paddleHeight / 2) {
         this.paddle1Y -= this.paddleSpeed;
@@ -252,48 +212,99 @@ class Game {
     }
   }
 
-  isPlayer(id: string): boolean {
-    return this.p1 === id || this.p2 === id;
+  collisionCheckX() {
+    if (this.ballX < this.ballRadius + this.paddleWidth) {
+      return Direction.LEFT;
+    } else if (
+      this.ballX >
+      this.canvasWidth - this.ballRadius - this.paddleWidth
+    ) {
+      return Direction.RIGHT;
+    }
+    return Direction.NONE;
   }
 
-  upPress(id: string) {
-    if (this.p1 === id) {
+  collisionCheckY() {
+    if (this.ballY > this.canvasHeight - this.ballRadius) {
+      return Direction.DOWN;
+    } else if (this.ballY < this.ballRadius) {
+      return Direction.UP;
+    }
+    return Direction.NONE;
+  }
+
+  collisionCheckP1Paddle() {
+    if (
+      this.ballY >= this.paddle1Y - this.paddleHeight / 2 &&
+      this.ballY <= this.paddle1Y + this.paddleHeight / 2
+    ) {
+      return WallX.PADDLE;
+    }
+    return WallX.WALL;
+  }
+
+  collisionCheckP2Paddle() {
+    if (
+      this.ballY >= this.paddle2Y - this.paddleHeight / 2 &&
+      this.ballY <= this.paddle2Y + this.paddleHeight / 2
+    ) {
+      return WallX.PADDLE;
+    }
+    return WallX.WALL;
+  }
+
+  getState() {
+    return {
+      leftY: this.paddle1Y,
+      ballX: this.ballX,
+      ballY: this.ballY,
+      rightY: this.paddle2Y,
+      time: Date.now(),
+    };
+  }
+
+  isPlayer(uid: number): boolean {
+    return this.p1 === uid || this.p2 === uid;
+  }
+
+  upPress(uid: number) {
+    if (this.p1 === uid) {
       this.p1KeyUp = true;
     } else {
       this.p2KeyUp = true;
     }
-    console.log("up pressed");
+    // console.log("up pressed");
   }
 
-  upRelease(id: string) {
-    if (this.p1 === id) {
+  upRelease(uid: number) {
+    if (this.p1 === uid) {
       this.p1KeyUp = false;
     } else {
       this.p2KeyUp = false;
     }
-    console.log("up released");
+    // console.log("up released");
   }
-  downPress(id: string) {
-    if (this.p1 === id) {
+  downPress(uid: number) {
+    if (this.p1 === uid) {
       this.p1KeyDown = true;
     } else {
       this.p2KeyDown = true;
     }
-    console.log("down press");
+    // console.log("down press");
   }
 
-  downRelease(id: string) {
-    if (this.p1 === id) {
+  downRelease(uid: number) {
+    if (this.p1 === uid) {
       this.p1KeyDown = false;
     } else {
       this.p2KeyDown = false;
     }
-    console.log("down released");
+    // console.log("down released");
   }
 
-  playerLeft(id: string) {
+  playerLeft(uid: number) {
     this.running = false;
-    if (this.p1 == id) {
+    if (this.p1 === uid) {
       this.p1Score = -1;
     } else {
       this.p2Score = -1;
