@@ -22,7 +22,7 @@ import * as socket from "../socket/chat.socket";
 import * as chatAtom from "../components/atom/ChatAtom";
 import type * as chatType from "../socket/chat.dto";
 import { GetMyInfo, RefreshToken, LogOut } from '../event/api.request';
-import { useNavigate } from "react-router-dom";
+import { Await, useNavigate } from "react-router-dom";
 
 export default function ChatPage() {
 	const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
@@ -82,7 +82,11 @@ export default function ChatPage() {
 		socket.emitTest("hello")
 	};
 	const getMyinfo = () => {
-		GetMyInfo(setUserInfo);
+		GetMyInfo(setUserInfo)
+		// if (RefreshToken(logOutHandler) === 201) {
+		// 	console.log(`redo GetMyInfo`);
+		// 	GetMyInfo(setUserInfo);
+		// }
 	}
 	const showMyinfo = () => {
 		console.log(`showMyinfo ${JSON.stringify(userInfo)}}`);
@@ -96,10 +100,15 @@ export default function ChatPage() {
 		socket.socket.emit('server-room-list');
 	}
 
+	const logOutHandler = () => {
+		LogOut(setRefreshToken, navigate, '/');
+	};
+
 	const tryRefreshToken = () => {
 		console.log('\nrefresh token');
-		RefreshToken(GetMyInfo);
+		RefreshToken(logOutHandler);
 	}
+
 	useEffect(() => {
 		socket.socket.onAny((eventName, ...args) => {
 			console.log("incoming ", eventName, args);
@@ -431,19 +440,20 @@ export default function ChatPage() {
 		};
 	}, [roomList, userBlockList, userList, userInfo]);
 
-	if (isFirstLogin) {
-		console.log('set init data');
-		GetMyInfo(setUserInfo);
-		socket.emitUserBlockList({ userBlockList, setUserBlockList });
-		socket.emitFollowingList({ userList, setUserList, followingList, setFollowingList });
-		socket.emitDmHistoryList({ userList, setUserList, dmHistoryList, setDmHistoryList });
-		socket.emitUserList({ userList, setUserList });
-		socket.emitRoomList({ setRoomList });
-		if (userInfo.uid === 1) {
-			GetMyInfo(setUserInfo);
+	useEffect(() => {
+		async function firstLogin() {
+			if (isFirstLogin) {
+				console.log('set init data');
+				await GetMyInfo(setUserInfo);
+				socket.emitUserBlockList({ userBlockList, setUserBlockList });
+				socket.emitFollowingList({ userList, setUserList, followingList, setFollowingList });
+				socket.emitDmHistoryList({ userList, setUserList, dmHistoryList, setDmHistoryList });
+				socket.emitUserList({ userList, setUserList });
+				socket.emitRoomList({ setRoomList });
+				setIsFirstLogin(false);
+			}
 		}
-		setIsFirstLogin(false);
-	}
+	}, []);
 
 	return (
 		<BackGround>

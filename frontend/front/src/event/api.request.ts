@@ -4,9 +4,9 @@ import * as socket from '../socket/chat.socket';
 
 type setUserInfo = React.Dispatch<React.SetStateAction<UserType>>;
 
-export function GetMyInfo(setUserInfo: setUserInfo) {
+export async function GetMyInfo(setUserInfo: setUserInfo): Promise<number> {
 
-	fetch("http://localhost:4000/user/me", {
+	await fetch("http://localhost:4000/user/me", {
 		credentials: "include",
 		method: "GET",
 	})
@@ -14,9 +14,6 @@ export function GetMyInfo(setUserInfo: setUserInfo) {
 			switch (response.status) {
 				case 200: {
 					return response.json();
-				}
-				case 401: {
-					throw new Error(`401 - ${response.status}`);
 				}
 				default: {
 					throw new Error(`${response.status}`);
@@ -29,14 +26,20 @@ export function GetMyInfo(setUserInfo: setUserInfo) {
 			setUserInfo({ ...response });
 		})
 		.catch((error) => {
+			if (error.message === "401") {
+				console.log(`\nGetMyInfo: 401`);
+			}
 			console.log(`\nGetMyInfo: catch_error: ${error}`);
 		});
 
-	return {};
+	return 0;
 }
 
-export function RefreshToken(callback: (setUserInfo: setUserInfo) => {}) {
-	fetch("http://localhost:4000/login/oauth/refresh", {
+export async function RefreshToken(
+	callback: () => void,
+): Promise<number> {
+
+	await fetch("http://localhost:4000/login/oauth/refresh", {
 		credentials: "include",
 		method: "POST",
 		headers: {
@@ -46,18 +49,14 @@ export function RefreshToken(callback: (setUserInfo: setUserInfo) => {}) {
 		}
 	})
 		.then((response) => {
-			console.log(`LL: ${response} ${JSON.stringify(response)}}}  ${response.status}`);
+			console.log(`\nrefreshToken: ${response} ${JSON.stringify(response)}}}  ${response.status}`);
 			switch (response.status) {
 				case 201: {
-					break;
-				}
-				case 400: {
-					break;
-				}
-				case 401: { // invalid refresh token
+					console.log(`\nrefreshToken : 201`);
 					break;
 				}
 				default: {
+					callback();
 					break;
 				}
 			}
@@ -65,6 +64,7 @@ export function RefreshToken(callback: (setUserInfo: setUserInfo) => {}) {
 			console.log(`\nRefreshToken catch_error: ${error} `);
 		});
 
+	return 0;
 }
 
 export function LogOut(
