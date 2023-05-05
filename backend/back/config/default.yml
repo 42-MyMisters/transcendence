@@ -3,9 +3,9 @@ server:
 
 # postgre -> create database ts-dev
 db:
-  type: "postgres"
+  type: 'postgres'
   port: 5432
-  database: "ts-dev"
+  database: 'ts-dev'
 
 jwt:
   expiresIn: 3600
