@@ -37,7 +37,7 @@ export default function ChatPage() {
 
 	const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
 	const [userList, setUserList] = useAtom(chatAtom.userListAtom);
-	const [userBlockList, setUserBlockList] = useAtom(chatAtom.userBlockListAtom);
+	const [blockList, setBlockList] = useAtom(chatAtom.blockListAtom);
 	const [dmHistoryList, setDmHistoryList] = useAtom(chatAtom.dmHistoryListAtom);
 	const [followingList, setFollowingList] = useAtom(chatAtom.followingListAtom);
 	const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
@@ -164,6 +164,31 @@ export default function ChatPage() {
 			socket.socket.offAnyOutgoing();
 		}
 	}, []);
+
+	useEffect(() => {
+		socket.socket.on("room-list", (responseRoomList: chatType.roomListDto) => {
+			setRoomList({ ...roomList, ...responseRoomList })
+		});
+		socket.socket.on("user-list", (responseUserList: chatType.userDto) => {
+			setUserList({ ...userList, ...responseUserList })
+		});
+		socket.socket.on("following-list", (responseFollowingList: chatType.userDto) => {
+			setFollowingList({ ...responseFollowingList })
+		});
+		socket.socket.on("dm-list", (responseDmList: chatType.userDto) => {
+			setDmHistoryList({ ...responseDmList })
+		});
+		socket.socket.on("block-list", (responseBlockList: chatType.userSimpleDto) => {
+			setBlockList({ ...responseBlockList })
+		});
+		return () => {
+			socket.socket.off("room-list");
+			socket.socket.off("user-list");
+			socket.socket.off("following-list");
+			socket.socket.off("dm-list");
+			socket.socket.off("block-list");
+		}
+	}, [userList, roomList]);
 
 	useEffect(() => {
 		socket.socket.on("room-list-update", ({
@@ -400,7 +425,7 @@ export default function ChatPage() {
 			from: number,
 			message: string
 		}) => {
-			const block = userBlockList[from] ? true : false;
+			const block = blockList[from] ? true : false;
 			switch (block) {
 				case true: {
 					console.log(`message from ${from} is blocked`);
@@ -432,7 +457,7 @@ export default function ChatPage() {
 		return () => {
 			socket.socket.off("message");
 		};
-	}, [roomList, userBlockList, userList, userInfo]);
+	}, [roomList, blockList, userList, userInfo]);
 
 	async function firstLogin() {
 		if (isFirstLogin) {

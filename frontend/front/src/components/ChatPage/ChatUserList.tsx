@@ -9,7 +9,7 @@ import { UserAtom } from "../atom/UserAtom";
 export default function ChatUserList() {
   const [userList] = useAtom(chatAtom.userListAtom);
   const [userInfo] = useAtom(UserAtom);
-  const [userBlockList] = useAtom(chatAtom.userBlockListAtom);
+  const [blockList] = useAtom(chatAtom.blockListAtom);
   const [dmHistoryList] = useAtom(chatAtom.dmHistoryListAtom);
   const [followingList] = useAtom(chatAtom.followingListAtom);
 
@@ -23,7 +23,21 @@ export default function ChatUserList() {
       <div className="ChatUsers">
         {
           Object.entries(followingList).map((key) => (
-            userList[Number(key[0])] !== undefined
+            <UserObj
+              key={Number(key[0])}
+              uid={Number(key[0])}
+              nickName={userList[Number(key[0])]?.userDisplayName}
+              profileImage={userList[Number(key[0])]?.userProfileUrl}
+              status={userList[Number(key[0])]?.userStatus}
+              chat={'normal'}
+              power=""
+              callBack={DM}
+            />
+          ))
+        }
+        {
+          Object.entries(dmHistoryList).map((key) => (
+            followingList[Number(key[0])] !== undefined
               ? ''
               : <UserObj
                 key={Number(key[0])}
@@ -38,12 +52,13 @@ export default function ChatUserList() {
           ))
         }
         {
-          Object.entries(dmHistoryList).map((key) => (
-            userList[Number(key[0])] !== undefined
+          Object.entries(userList).map((key) => (
+            // Number(key[0]) === userInfo.uid // NOTE: 내 아이디는 안보이게
+            //   ? '' :
+            userList[Number(key[0])].userStatus === 'offline'
               ? ''
-              : followingList[Number(key[0])] !== undefined
-                ? ''
-                : <UserObj
+              : followingList[Number(key[0])] === undefined && dmHistoryList[Number(key[0])] === undefined
+                ? <UserObj
                   key={Number(key[0])}
                   uid={Number(key[0])}
                   nickName={userList[Number(key[0])]?.userDisplayName}
@@ -53,24 +68,7 @@ export default function ChatUserList() {
                   power=""
                   callBack={DM}
                 />
-          ))
-        }
-        {
-          Object.entries(userList).map((key) => (
-            // Number(key[0]) === userInfo.uid // NOTE: 내 아이디는 안보이게
-            //   ? '' :
-            userList[Number(key[0])].userStatus === 'offline'
-              ? ''
-              : <UserObj
-                key={Number(key[0])}
-                uid={Number(key[0])}
-                nickName={userList[Number(key[0])]?.userDisplayName}
-                profileImage={userList[Number(key[0])]?.userProfileUrl}
-                status={userList[Number(key[0])]?.userStatus}
-                chat={'normal'}
-                power=""
-                callBack={DM}
-              />
+                : ''
           ))
         }
       </div>

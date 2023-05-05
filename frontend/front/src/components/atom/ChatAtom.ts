@@ -7,7 +7,7 @@ export const userListAtom = atom<DTO.userDto>({})
 
 export const dmHistoryListAtom = atom<DTO.userDto>({});
 export const followingListAtom = atom<DTO.userDto>({});
-export const userBlockListAtom = atom<DTO.userSimpleDto>({});
+export const blockListAtom = atom<DTO.userSimpleDto>({});
 
 export const hasLoginAtom = atom<boolean>(false);
 export const isFirstLoginAtom = atom<boolean>(true);
