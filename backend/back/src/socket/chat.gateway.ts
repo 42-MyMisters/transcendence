@@ -155,7 +155,6 @@ export class EventsGateway
 			if (this.userService.isUserExist(user)) {
 				this.nsp.to(socket.id).emit("room-clear");
 				this.nsp.to(socket.id).emit("user-clear");
-				socket.join(user.nickname);
 				socket.data.user = user;
 				socket.data.roomList = [];
 				if (userList[uid] === undefined) {
@@ -289,14 +288,6 @@ export class EventsGateway
 			userProfileUrl: socket.data.user.profileUrl,
 			userStatus: userList[socket.data.user.uid].status,
 		});
-	}
-
-	@SubscribeMessage("test")
-	handleTest(
-		@MessageBody() { message }: { message: string }
-	) {
-		console.log(`fromClient: ${message}`);
-		return { fromServer: message };
 	}
 
 	@SubscribeMessage("room-create")

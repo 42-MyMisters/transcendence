@@ -78,9 +78,6 @@ export default function ChatPage() {
 	const showSocketState = () => {
 		console.log(`socket state: ${socketState}`);
 	};
-	const emitTester = () => {
-		socket.emitTest("hello")
-	};
 
 	async function getMyinfoHandler() {
 		const getMeResponse = await GetMyInfo(setUserInfo);
@@ -445,16 +442,17 @@ export default function ChatPage() {
 		};
 	}, [roomList, userBlockList, userList, userInfo]);
 
-	function firstLogin() {
+	async function firstLogin() {
 		if (isFirstLogin) {
 			console.log('set init data');
-			getMyinfoHandler();
+			await getMyinfoHandler();
 		}
-		socket.emitUserBlockList({ userBlockList, setUserBlockList });
-		socket.emitFollowingList({ userList, setUserList, followingList, setFollowingList });
-		socket.emitDmHistoryList({ userList, setUserList, dmHistoryList, setDmHistoryList });
-		socket.emitUserList({ userList, setUserList });
-		socket.emitRoomList({ setRoomList });
+		// TODO : from serverside emit event
+		// socket.emitUserBlockList({ userBlockList, setUserBlockList });
+		// socket.emitFollowingList({ userList, setUserList, followingList, setFollowingList }, userInfo);
+		// socket.emitDmHistoryList({ userList, setUserList, dmHistoryList, setDmHistoryList });
+		// socket.emitUserList({ userList, setUserList });
+		// socket.emitRoomList({ setRoomList });
 		setIsFirstLogin(false);
 	}
 
@@ -469,7 +467,6 @@ export default function ChatPage() {
 			<button onClick={getRoomList}> roomList</button>
 			<button onClick={getUserList}> userList</button>
 			<button onClick={getFollowingList}> FollowList</button>
-			<button onClick={emitTester}> emitTest</button>
 			<button onClick={showServerUser}> show server user</button>
 			<button onClick={showServerRoom}> show server room</button>
 			<button onClick={showSocketState}> socket state</button>

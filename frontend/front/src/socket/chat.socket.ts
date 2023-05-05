@@ -385,8 +385,8 @@ export function emitFollowingList(
 		setUserList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
 		followingList: chatType.userDto,
 		setFollowingList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
-	}) {
-	fetch('http://localhost:4000/user/following', {
+	},) {
+	fetch('http://localhost:4000/user/following/', {
 		credentials: "include",
 		method: "GET",
 	})
