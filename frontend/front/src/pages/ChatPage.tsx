@@ -233,20 +233,14 @@ export default function ChatPage() {
 			const cleanRoomList: chatType.roomListDto = {};
 			setRoomList({ ...cleanRoomList });
 			setFocusRoom(-1);
-			socket.emitRoomList({ setRoomList });
 		});
-		return () => {
-			socket.socket.off("room-clear");
-		};
-	}, []);
-
-	useEffect(() => {
 		socket.socket.on("user-clear", () => {
 			const cleanUserList: chatType.userDto = {};
 			setUserList({ ...cleanUserList });
-			socket.emitUserList({ userList, setUserList });
 		});
+
 		return () => {
+			socket.socket.off("room-clear");
 			socket.socket.off("room-clear");
 		};
 	}, []);
@@ -446,13 +440,8 @@ export default function ChatPage() {
 		if (isFirstLogin) {
 			console.log('set init data');
 			await getMyinfoHandler();
+			// socket.socket.on()
 		}
-		// TODO : from serverside emit event
-		// socket.emitUserBlockList({ userBlockList, setUserBlockList });
-		// socket.emitFollowingList({ userList, setUserList, followingList, setFollowingList }, userInfo);
-		// socket.emitDmHistoryList({ userList, setUserList, dmHistoryList, setDmHistoryList });
-		// socket.emitUserList({ userList, setUserList });
-		// socket.emitRoomList({ setRoomList });
 		setIsFirstLogin(false);
 	}
 

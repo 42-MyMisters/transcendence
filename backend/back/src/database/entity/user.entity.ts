@@ -37,7 +37,7 @@ export class User extends BaseEntity {
 	followings: UserFollow[];
 
 	@OneToMany(type => UserBlock, userBlock => userBlock.targetToBlockId, { lazy: true })
-	blockedUsers: UserBlock[];
+	blockedUsersblockedUsers: UserBlock[];
 
 	@OneToMany(type => Game, games => games.winner, { lazy: true })
 	wonGames: Game[];

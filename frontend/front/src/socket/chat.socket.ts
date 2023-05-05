@@ -19,27 +19,6 @@ export const socket = io(`${URL}${NameSpace}`, {
 	// path: "/socket.io",
 });
 
-export function emitRoomList(
-	{
-		setRoomList
-	}: {
-		setRoomList: React.Dispatch<React.SetStateAction<chatType.roomListDto>>,
-	}
-) {
-	socket.emit("room-list", ({
-		roomList
-	}: {
-		roomList: chatType.roomListDto;
-	}) => {
-		if (roomList !== undefined && roomList !== null) {
-			Object.entries(roomList).forEach(([key, value]) => {
-				value.isJoined = value.isJoined ?? false;
-			});
-			setRoomList({ ...roomList });
-		}
-	});
-}
-
 export function emitRoomCreate(
 	roomName: string,
 	roomCheck: boolean = false,
@@ -189,41 +168,6 @@ export function emitRoomInAction(
 	});
 }
 
-export function emitRoomPasswordEdit(
-	{
-		roomList,
-		setRoomList,
-	}: {
-		roomList: chatType.roomListDto,
-		setRoomList: React.Dispatch<React.SetStateAction<chatType.roomListDto>>,
-	},
-	roomId: number,
-	password: string
-) {
-	socket.emit("room-password-edit", {
-		roomId,
-		password,
-	}, ({
-		status,
-		payload,
-	}: {
-		status: 'ok' | 'ko',
-		payload?: string,
-	}) => {
-		switch (status) {
-			case 'ok': {
-				console.log(`room password edit - OK`);
-				break;
-			}
-			case 'ko': {
-				console.log(`room password edit - KO`);
-				alert(`Room Password Edit is faild: ${payload}`);
-				break;
-			}
-		}
-	});
-}
-
 export function emitUserBlock(
 	{
 		userBlockList,
@@ -234,6 +178,7 @@ export function emitUserBlock(
 	},
 	targetId: number,
 ) {
+	// TODO: API call
 	socket.emit("user-block", {
 		targetId
 	}, ({
@@ -265,157 +210,6 @@ export function emitUserBlock(
 			}
 		}
 	});
-}
-
-export function emitUserInvite(
-	{
-		userList,
-	}: {
-		userList: chatType.userDto,
-	},
-	targetId: number,
-	roomId: number,
-) {
-	socket.emit("user-invite", {
-		targetId,
-		roomId
-	}, ({
-		status,
-		payload,
-	}: {
-		status: 'ok' | 'ko',
-		payload?: string,
-	}) => {
-		switch (status) {
-			case 'ok': {
-				break;
-			}
-			case 'ko': {
-				console.log(`user - invite ${userList[targetId].userDisplayName} failed: ${payload} `);
-				alert(`invite failed: ${payload}`);
-				break;
-			}
-		}
-	});
-}
-export function emitTest(
-	message: string,
-) {
-	console.log(`emit test: ${message}`);
-	socket.emit("test", {
-		message
-	}, ({
-		fromServer
-	}: {
-		fromServer: string
-	}) => {
-		alert(`fromServer: ${fromServer}`);
-	});
-	return undefined
-}
-export function emitUserList(
-	{
-		userList,
-		setUserList,
-	}: {
-		userList: chatType.userDto,
-		setUserList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
-	},
-) {
-	socket.emit("user-list", {
-	}, ({
-		userListFromServer,
-	}: {
-		userListFromServer: chatType.userDto,
-	}) => {
-		setUserList({ ...userList, ...userListFromServer })
-	});
-}
-
-export function emitUserBlockList(
-	{
-		userBlockList,
-		setUserBlockList
-	}: {
-		userBlockList: chatType.userSimpleDto,
-		setUserBlockList: React.Dispatch<React.SetStateAction<chatType.userSimpleDto>>,
-	},
-) {
-	socket.emit("user-block-list", {
-	}, ({
-		userList,
-	}: {
-		userList: chatType.userSimpleDto,
-	}) => {
-		setUserBlockList({ ...userList });
-	});
-}
-
-export function emitDmHistoryList(
-	{
-		userList,
-		setUserList,
-		dmHistoryList,
-		setDmHistoryList
-	}: {
-		userList: chatType.userDto,
-		setUserList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
-		dmHistoryList: chatType.userDto,
-		setDmHistoryList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
-	},
-) {
-	socket.emit("dm-history-list", {
-	}, ({
-		userList,
-	}: {
-		userList: chatType.userDto,
-	}) => {
-		setDmHistoryList({ ...userList });
-	});
-}
-
-export function emitFollowingList(
-	{
-		userList,
-		setUserList,
-		followingList,
-		setFollowingList
-	}: {
-		userList: chatType.userDto,
-		setUserList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
-		followingList: chatType.userDto,
-		setFollowingList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
-	},) {
-	fetch('http://localhost:4000/user/following/', {
-		credentials: "include",
-		method: "GET",
-	})
-		.then((response) => response.json())
-		.then((response) => {
-			console.log(response);
-			let tempFollowingList: chatType.userDto = {};
-			response.map((
-				user: {
-					uid: number,
-					nickname: string,
-					profileUrl: string,
-				}) => {
-				if (followingList[user.uid] === undefined) {
-					tempFollowingList[user.uid] = {
-						userDisplayName: user.nickname,
-						userProfileUrl: user.profileUrl,
-						userStatus: 'offline'
-					}
-					setFollowingList({ ...followingList, ...tempFollowingList });
-				}
-				setUserList({ ...followingList, ...userList })
-				return undefined
-			});
-		})
-		.catch((error) => {
-			// TODO: refersh token and retry
-		});
-	return undefined
 }
 
 export function emitMessage(
