@@ -37,7 +37,7 @@ export default function ChatPage() {
 
 	const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
 	const [userList, setUserList] = useAtom(chatAtom.userListAtom);
-	const [userBlockList, setUserBlockList] = useAtom(chatAtom.userBlockListAtom);
+	const [blockList, setBlockList] = useAtom(chatAtom.blockListAtom);
 	const [dmHistoryList, setDmHistoryList] = useAtom(chatAtom.dmHistoryListAtom);
 	const [followingList, setFollowingList] = useAtom(chatAtom.followingListAtom);
 	const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
@@ -115,22 +115,10 @@ export default function ChatPage() {
 		socket.socket.onAny((eventName, ...args) => {
 			console.log("incoming ", eventName, args);
 		});
-		return () => {
-			socket.socket.offAny();
-		}
-	}, []);
-
-	useEffect(() => {
 		// catch all outgoing events
 		socket.socket.onAnyOutgoing((eventName, ...args) => {
 			console.log("outgoing ", eventName, args);
 		});
-		return () => {
-			socket.socket.offAnyOutgoing();
-		}
-	}, []);
-
-	useEffect(() => {
 		socket.socket.on("connect", () => {
 			if (socket.socket.connected) {
 				//This attribute describes whether the socket is currently connected to the server.
@@ -143,9 +131,6 @@ export default function ChatPage() {
 			}
 			setSocketState(true);
 		});
-	}, []);
-
-	useEffect(() => {
 		//https://socket.io/docs/v4/client-socket-instance/#disconnect
 		socket.socket.on("disconnect", (reason) => {
 			/**
@@ -164,9 +149,6 @@ export default function ChatPage() {
 			console.log("socket disconnected");
 			setSocketState(false);
 		});
-	}, []);
-
-	useEffect(() => {
 		// the connection is denied by the server in a middleware function
 		socket.socket.on("connect_error", (err) => {
 			if (err.message === "unauthorized") {
@@ -174,30 +156,62 @@ export default function ChatPage() {
 			}
 			console.log(err.message); // prints the message associated with the error
 		});
+		return () => {
+			socket.socket.off("connect");
+			socket.socket.off("disconnect");
+			socket.socket.off("connect_error");
+			socket.socket.offAny();
+			socket.socket.offAnyOutgoing();
+		}
 	}, []);
 
 	useEffect(() => {
-		socket.socket.on("room-list-notify", ({
+		socket.socket.on("room-list", (responseRoomList: chatType.roomListDto) => {
+			setRoomList({ ...roomList, ...responseRoomList })
+		});
+		socket.socket.on("user-list", (responseUserList: chatType.userDto) => {
+			setUserList({ ...userList, ...responseUserList })
+		});
+		socket.socket.on("following-list", (responseFollowingList: chatType.userDto) => {
+			setFollowingList({ ...responseFollowingList })
+		});
+		socket.socket.on("dm-list", (responseDmList: chatType.userDto) => {
+			setDmHistoryList({ ...responseDmList })
+		});
+		socket.socket.on("block-list", (responseBlockList: chatType.userSimpleDto) => {
+			setBlockList({ ...responseBlockList })
+		});
+		return () => {
+			socket.socket.off("room-list");
+			socket.socket.off("user-list");
+			socket.socket.off("following-list");
+			socket.socket.off("dm-list");
+			socket.socket.off("block-list");
+		}
+	}, [userList, roomList]);
+
+	useEffect(() => {
+		socket.socket.on("room-list-update", ({
 			action,
 			roomId,
 			roomName,
 			roomType,
 		}: {
-			action: 'add' | 'delete' | 'edit';
+			action: 'new' | 'delete' | 'edit';
 			roomId: number;
 			roomName: string;
 			roomType: 'open' | 'protected' | 'private';
 		}) => {
 			switch (action) {
-				case 'add': {
+				case 'new': {
 					const newRoomList: chatType.roomListDto = {};
 					newRoomList[roomId] = {
 						roomName,
 						roomType,
 						isJoined: false,
 					};
-					console.log(`room-list-notify new: ${JSON.stringify(newRoomList)}`);
-					console.log(`room-list-notify origin: ${JSON.stringify(roomList)}`);
+					console.log(`room-list-update new: ${JSON.stringify(newRoomList)}`);
+					console.log(`room-list-update origin: ${JSON.stringify(roomList)}`);
 					setRoomList({ ...roomList, ...newRoomList });
 					break;
 				}
@@ -224,7 +238,7 @@ export default function ChatPage() {
 			}
 		});
 		return () => {
-			socket.socket.off("room-list-notify");
+			socket.socket.off("room-list-update");
 		};
 	}, [roomList, focusRoom]);
 
@@ -238,7 +252,6 @@ export default function ChatPage() {
 			const cleanUserList: chatType.userDto = {};
 			setUserList({ ...cleanUserList });
 		});
-
 		return () => {
 			socket.socket.off("room-clear");
 			socket.socket.off("room-clear");
@@ -279,7 +292,6 @@ export default function ChatPage() {
 					console.log(`room-join new: ${JSON.stringify(newRoomList)}`);
 					setRoomList({ ...roomList, ...newRoomList });
 					setFocusRoom(roomId);
-					// socket.emitMessage({ roomList }, roomId, "joins this room"); //XXX: this will cause a bug
 					break;
 				}
 				case 'ko': {
@@ -336,9 +348,19 @@ export default function ChatPage() {
 				case 'mute':
 				case 'normal': {
 					if (targetId === userInfo.uid) {
+						if (action === 'mute' && roomList[roomId].detail?.myRoomStatus === 'mute') {
+							return;
+						}
 						const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
 						newUserList[targetId] = { ...newUserList[targetId], userRoomStatus: action };
 						socket.setNewDetailToNewRoom({ roomList, setRoomList, roomId, newUserList }, action);
+						if (action === 'mute') {
+							setTimeout(() => {
+								const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
+								newUserList[targetId] = { ...newUserList[targetId], userRoomStatus: 'normal' };
+								socket.setNewDetailToNewRoom({ roomList, setRoomList, roomId, newUserList }, 'normal');
+							}, 10000);
+						}
 					} else {
 						const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
 						newUserList[targetId] = { ...newUserList[targetId], userRoomStatus: action };
@@ -390,7 +412,7 @@ export default function ChatPage() {
 		return () => {
 			socket.socket.off("user-update");
 		}
-	}, [userList, userInfo]);
+	}, [userList]);
 
 	useEffect(() => {
 		socket.socket.on("message", ({
@@ -402,7 +424,7 @@ export default function ChatPage() {
 			from: number,
 			message: string
 		}) => {
-			const block = userBlockList[from] ? true : false;
+			const block = blockList[from] ? true : false;
 			switch (block) {
 				case true: {
 					console.log(`message from ${from} is blocked`);
@@ -434,7 +456,7 @@ export default function ChatPage() {
 		return () => {
 			socket.socket.off("message");
 		};
-	}, [roomList, userBlockList, userList, userInfo]);
+	}, [roomList, blockList, userList, userInfo]);
 
 	async function firstLogin() {
 		if (isFirstLogin) {

@@ -14,7 +14,6 @@ import { AuthService } from "src/auth/auth.service";
 import { User } from "src/database/entity/user.entity";
 import { UserBlock } from "src/database/entity/user-block.entity";
 import { UserService } from "src/user/user.service";
-import { subscribeOn } from 'rxjs';
 
 type roomType = 'open' | 'protected' | 'private';
 type userStatus = 'online' | 'offline' | 'inGame';
@@ -39,7 +38,6 @@ interface UserInfo {
 	userId?: number;
 	userDisplayName?: string;
 	userUrl?: string;
-	socketList?: number[];
 	isRefresh: boolean;
 }
 
@@ -172,9 +170,10 @@ export class EventsGateway
 					try { // TODO: check
 						user?.blockedUsers?.map((blockedUsers) => {
 							console.log(blockedUsers?.targetToBlockId)
+							userList[uid].blockedUsers?.push(blockedUsers?.targetToBlockId);
 						});
 					} catch (e) {
-						this.logger.warn("blockedUsers is undefined");
+						this.logger.warn("in db, blockedUsers is empty");
 					}
 				} else {
 					this.logger.debug(`${socket.data.user.nickname} refreshed.`);
@@ -208,7 +207,7 @@ export class EventsGateway
 				roomMemberCount++;
 			});
 			if (roomMemberCount <= 1) {
-				this.nsp.emit("room-list-notify", {
+				this.nsp.emit("room-list-update", {
 					action: 'delete',
 					roomName: roomList[roomId].roomName,
 					roomId,
@@ -257,6 +256,9 @@ export class EventsGateway
 
 	handleDisconnect(@ConnectedSocket() socket: Socket) {
 		this.logger.log(`${userList[socket?.data?.user?.uid]?.userDisplayName} : ${socket.id} socket disconnected`);
+		socket.data.roomList?.forEach((roomId: number) => {
+			socket.leave(roomId.toString());
+		});
 		if (socket.data?.user?.uid !== undefined && userList[socket.data.user.uid]?.socket?.id! === socket.id &&
 			userList[socket.data.user.uid]?.isRefresh === false) {
 			this.logger.verbose(`${userList[socket.data.user.uid].userDisplayName} is now offline`);
@@ -269,6 +271,8 @@ export class EventsGateway
 				userStatus: userList[socket.data.user.uid].status,
 			});
 		}
+		socket.data.user = undefined;
+		socket.data.roomList = undefined;
 	}
 
 	@SubscribeMessage("clear-data")
@@ -324,8 +328,8 @@ export class EventsGateway
 			socket.data.roomList.push(ROOM_NUMBER);
 			socket.join(ROOM_NUMBER.toString());
 			if (roomType !== 'private') {
-				this.nsp.emit("room-list-notify", {
-					action: 'add',
+				this.nsp.emit("room-list-update", {
+					action: 'new',
 					roomId: ROOM_NUMBER,
 					roomName: trimmedRoomName,
 					roomType

@@ -9,7 +9,7 @@ import { UserAtom } from "../atom/UserAtom";
 export default function ChatUserList() {
   const [userList] = useAtom(chatAtom.userListAtom);
   const [userInfo] = useAtom(UserAtom);
-  const [userBlockList] = useAtom(chatAtom.userBlockListAtom);
+  const [blockList] = useAtom(chatAtom.blockListAtom);
   const [dmHistoryList] = useAtom(chatAtom.dmHistoryListAtom);
   const [followingList] = useAtom(chatAtom.followingListAtom);
 
@@ -23,7 +23,21 @@ export default function ChatUserList() {
       <div className="ChatUsers">
         {
           Object.entries(followingList).map((key) => (
-            userList[Number(key[0])] !== undefined
+            <UserObj
+              key={Number(key[0])}
+              uid={Number(key[0])}
+              nickName={userList[Number(key[0])]?.userDisplayName}
+              profileImage={userList[Number(key[0])]?.userProfileUrl}
+              status={userList[Number(key[0])]?.userStatus}
+              chat={'normal'}
+              power=""
+              callBack={DM}
+            />
+          ))
+        }
+        {
+          Object.entries(dmHistoryList).map((key) => (
+            followingList[Number(key[0])] !== undefined
               ? ''
               : <UserObj
                 key={Number(key[0])}
@@ -31,26 +45,10 @@ export default function ChatUserList() {
                 nickName={userList[Number(key[0])]?.userDisplayName}
                 profileImage={userList[Number(key[0])]?.userProfileUrl}
                 status={userList[Number(key[0])]?.userStatus}
+                chat={'normal'}
                 power=""
                 callBack={DM}
               />
-          ))
-        }
-        {
-          Object.entries(dmHistoryList).map((key) => (
-            userList[Number(key[0])] !== undefined
-              ? ''
-              : followingList[Number(key[0])] !== undefined
-                ? ''
-                : <UserObj
-                  key={Number(key[0])}
-                  uid={Number(key[0])}
-                  nickName={userList[Number(key[0])]?.userDisplayName}
-                  profileImage={userList[Number(key[0])]?.userProfileUrl}
-                  status={userList[Number(key[0])]?.userStatus}
-                  power=""
-                  callBack={DM}
-                />
           ))
         }
         {
@@ -59,15 +57,18 @@ export default function ChatUserList() {
             //   ? '' :
             userList[Number(key[0])].userStatus === 'offline'
               ? ''
-              : <UserObj
-                key={Number(key[0])}
-                uid={Number(key[0])}
-                nickName={userList[Number(key[0])]?.userDisplayName}
-                profileImage={userList[Number(key[0])]?.userProfileUrl}
-                status={userList[Number(key[0])]?.userStatus}
-                power=""
-                callBack={DM}
-              />
+              : followingList[Number(key[0])] === undefined && dmHistoryList[Number(key[0])] === undefined
+                ? <UserObj
+                  key={Number(key[0])}
+                  uid={Number(key[0])}
+                  nickName={userList[Number(key[0])]?.userDisplayName}
+                  profileImage={userList[Number(key[0])]?.userProfileUrl}
+                  status={userList[Number(key[0])]?.userStatus}
+                  chat={'normal'}
+                  power=""
+                  callBack={DM}
+                />
+                : ''
           ))
         }
       </div>
