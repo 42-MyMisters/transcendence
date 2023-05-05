@@ -24,13 +24,13 @@ export class User extends BaseEntity {
 	@Column( {type: 'varchar'} )
 	profileUrl: string;
 	
-	@Column( {type: 'varchar'} )
+	@Column( {type: 'boolean', default: false} )
 	twoFactorEnabled: boolean;
 	
 	@Column({ nullable: true, type: 'varchar' })
 	twoFactorSecret: string | null;
 	
-	@Column({type: 'integer'})
+	@Column({type: 'integer', default: 0})
 	elo: number;
 
 	@OneToMany(type => UserFollow, follower => follower.fromUser,)
@@ -57,6 +57,7 @@ export class User extends BaseEntity {
 		user.email = intraUserDto.email;
 		user.nickname = intraUserDto.login + "#" + intraUserDto.id;
 		user.profileUrl = intraUserDto.image.link;
+		user.elo = 0;
 		user.twoFactorEnabled = false;
 		return user;
 	}
