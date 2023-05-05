@@ -31,6 +31,7 @@ export default function ChatUserList() {
                 nickName={userList[Number(key[0])]?.userDisplayName}
                 profileImage={userList[Number(key[0])]?.userProfileUrl}
                 status={userList[Number(key[0])]?.userStatus}
+                chat={'normal'}
                 power=""
                 callBack={DM}
               />
@@ -48,6 +49,7 @@ export default function ChatUserList() {
                   nickName={userList[Number(key[0])]?.userDisplayName}
                   profileImage={userList[Number(key[0])]?.userProfileUrl}
                   status={userList[Number(key[0])]?.userStatus}
+                  chat={'normal'}
                   power=""
                   callBack={DM}
                 />
@@ -65,6 +67,7 @@ export default function ChatUserList() {
                 nickName={userList[Number(key[0])]?.userDisplayName}
                 profileImage={userList[Number(key[0])]?.userProfileUrl}
                 status={userList[Number(key[0])]?.userStatus}
+                chat={'normal'}
                 power=""
                 callBack={DM}
               />

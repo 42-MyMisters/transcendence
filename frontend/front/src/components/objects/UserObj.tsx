@@ -9,6 +9,7 @@ export default function UserObj({
   nickName,
   profileImage,
   status,
+  chat,
   power,
   callBack,
 }: {
@@ -16,6 +17,7 @@ export default function UserObj({
   nickName: string;
   profileImage: string;
   status: string;
+  chat: string;
   power: string;
   callBack: (uid: number) => void;
 }) {
@@ -60,9 +62,13 @@ export default function UserObj({
         }
       />
       {
-        uid === userDefaultInfo.uid
-          ? <div className="UserNickName" style={{ color: "#0a0" }}>{nickName}</div>
-          : <div className="UserNickName" style={{ color: "#333" }}>{nickName}</div>
+        uid !== userDefaultInfo.uid
+          ? chat === 'normal'
+            ? <div className="UserNickName" style={{ color: "#333" }}>{nickName}</div>
+            : <div className="UserNickName" style={{ color: "#888" }}>{nickName}</div>
+          : chat === 'normal'
+            ? <div className="UserNickName" style={{ color: "#0a0" }}>{nickName}</div>
+            : <div className="UserNickName" style={{ color: "#700" }}>{nickName}</div>
       }
       {
         power === "owner" ? (

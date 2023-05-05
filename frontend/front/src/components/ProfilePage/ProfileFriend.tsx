@@ -21,6 +21,7 @@ export default function ProfileFriend() {
                   nickName={key.nickname}
                   profileImage={key.profileUrl}
                   status={key.status}
+                  chat={'normal'}
                   power="profile"
                   callBack={() => { }}
                 />

@@ -208,7 +208,7 @@ export class EventsGateway
 				roomMemberCount++;
 			});
 			if (roomMemberCount <= 1) {
-				this.nsp.emit("room-list-notify", {
+				this.nsp.emit("room-list-update", {
 					action: 'delete',
 					roomName: roomList[roomId].roomName,
 					roomId,
@@ -324,8 +324,8 @@ export class EventsGateway
 			socket.data.roomList.push(ROOM_NUMBER);
 			socket.join(ROOM_NUMBER.toString());
 			if (roomType !== 'private') {
-				this.nsp.emit("room-list-notify", {
-					action: 'add',
+				this.nsp.emit("room-list-update", {
+					action: 'new',
 					roomId: ROOM_NUMBER,
 					roomName: trimmedRoomName,
 					roomType
