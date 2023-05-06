@@ -265,6 +265,8 @@ export class EventsGateway
 						action: 'owner',
 						targetId: newOwner,
 					});
+				} else if (roomList[roomId].roomAdmins.includes(socket.data.user.uid)) {
+					roomList[roomId].roomAdmins = roomList[roomId].roomAdmins.filter((adminId) => { return adminId !== socket.data.user.uid; });
 				}
 			}
 			socket.leave(roomId.toString());
@@ -589,6 +591,8 @@ export class EventsGateway
 		this.logger.verbose("server-room-list");
 		Object.entries(roomList).forEach(([roomId, roomInfo]) => {
 			console.log(`\n${roomInfo.roomName} :${roomId}:  ${roomInfo.roomType} ${roomInfo.roomPass}`);
+			console.log(`\towner: ${userList[roomInfo.roomOwner].userDisplayName}:${roomInfo.roomOwner}`);
+			console.log(`\tadmins: ${roomInfo.roomAdmins.map((adminId) => userList[adminId].userDisplayName).join(', ')}`);
 			Object.entries(roomInfo.roomMembers).forEach(([uid, memberInfo]) => {
 				console.log(`\t${userList[uid].userDisplayName}:${uid}: \t\t${memberInfo.userRoomStatus} ${memberInfo.userRoomPower}`);
 			});
