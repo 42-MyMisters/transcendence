@@ -250,19 +250,17 @@ export default function ChatPage() {
 
 	useEffect(() => {
 		socket.socket.on("room-clear", () => {
-			const cleanRoomList: chatType.roomListDto = {};
-			setRoomList({ ...cleanRoomList });
+			setRoomList({});
 			setFocusRoom(-1);
 		});
 		socket.socket.on("user-clear", () => {
-			const cleanUserList: chatType.userDto = {};
-			setUserList({ ...cleanUserList });
+			setUserList({});
 		});
 		return () => {
 			socket.socket.off("room-clear");
-			socket.socket.off("room-clear");
+			socket.socket.off("user-clear");
 		};
-	}, []);
+	}, [roomList, userList]);
 
 	useEffect(() => {
 		socket.socket.on("room-join", ({
@@ -413,7 +411,7 @@ export default function ChatPage() {
 		return () => {
 			socket.socket.off("user-update");
 		}
-	}, [userList]);
+	}, [userList, isFirstLogin]);
 
 	useEffect(() => {
 		socket.socket.on("message", ({

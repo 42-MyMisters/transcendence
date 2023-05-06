@@ -215,7 +215,7 @@ export class EventsGateway
 				throw new UnauthorizedException("User not found.");
 			}
 		} catch (e) {
-			this.logger.log(`${socket.id} invalid connection. disconnect socket.`);
+			this.logger.log(`${JSON.stringify(e)} ${socket.id} invalid connection. disconnect socket.`);
 			socket.disconnect();
 		}
 	}
@@ -247,12 +247,14 @@ export class EventsGateway
 				if (roomList[roomId].roomOwner === socket.data.user.uid) {
 					let newOwner: number;
 
-					if (roomList[roomId]?.roomAdmins[0] === undefined) {
+					if (roomList[roomId].roomAdmins.length === 0) {
+						this.logger.debug(`Room ${roomId} has no admin.\n`);
 						newOwner = Number(Object.keys(roomList[roomId].roomMembers)[0]);
 						roomList[roomId].roomOwner = newOwner;
 						roomList[roomId].roomMembers[newOwner].userRoomPower = 'owner';
 					} else {
-						newOwner = roomList[roomId]?.roomAdmins[0];
+						this.logger.debug(`Room ${roomId} has admin.\n`);
+						newOwner = roomList[roomId].roomAdmins[0];
 						roomList[roomId].roomOwner = newOwner
 						roomList[roomId].roomMembers[newOwner].userRoomPower = 'owner';
 						roomList[roomId].roomAdmins.shift();
@@ -264,13 +266,15 @@ export class EventsGateway
 					});
 				}
 			}
-			socket.to(roomId.toString()).emit('message', {
-				roomId,
-				from: socket.data.user.uid,
-				message: `${userList[socket.data.user.uid].userDisplayName} left this room`,
-			});
 			socket.leave(roomId.toString());
 			delete socket.data.roomList[roomId];
+			setTimeout(() => {
+				socket.to(roomId.toString()).emit('message', {
+					roomId,
+					from: socket.data.user.uid,
+					message: `${userList[socket.data.user.uid].userDisplayName} left this room`,
+				});
+			}, 100);
 			return action;
 		}
 	}
@@ -331,10 +335,6 @@ export class EventsGateway
 		const cryptedPassword = await bcrypt.hash(roomPass, saltRound)
 		const trimmedRoomName = roomName.trim();
 		if (trimmedRoomName.length > 0 && trimmedRoomName.length <= 12) {
-			// const newMember: RoomMember = {
-			// 	userRoomStatus: 'normal',
-			// 	userRoomPower: 'owner',
-			// };
 			const newRoomMembers: Record<number, RoomMember> = {};
 			newRoomMembers[socket.data.user.uid] = {
 				userRoomStatus: 'normal',
@@ -439,7 +439,7 @@ export class EventsGateway
 		}: {
 			roomId: number;
 		}) {
-		this.logger.debug(`${socket.data.user.nickname} leave room ${roomList[roomId].roomName}`);
+		this.logger.debug(`${socket.data.user.nickname} leave room ${roomList[roomId]?.roomName}`);
 		if (this.handleDeleteRoomLogic(socket, roomId) === 'leave') {
 			return ({ status: 'leave' });
 		} else {
@@ -493,6 +493,7 @@ export class EventsGateway
 						}
 						case 'member': {
 							roomList[roomId].roomMembers[targetId].userRoomPower = 'admin';
+							roomList[roomId].roomAdmins.push(targetId);
 							this.nsp.to(roomId.toString()).emit('room-in-action', {
 								roomId,
 								action,
@@ -580,6 +581,7 @@ export class EventsGateway
 				tempRoomList[roomId] = {
 					roomName: roomInfo.roomName,
 					roomType: roomInfo.roomType,
+					isJoined: false,
 				};
 			}
 		}

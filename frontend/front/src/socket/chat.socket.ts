@@ -268,11 +268,11 @@ export function setNewDetailToNewRoom({
 		detail: {
 			userList: { ...newUserList },
 			messageList: roomList[roomId].detail?.messageList || [],
-			myRoomStatus: status || roomList[roomId].detail?.myRoomStatus || 'normal',
-			myRoomPower: power || roomList[roomId].detail?.myRoomPower || 'member'
+			myRoomStatus: status || roomList[roomId].detail?.myRoomStatus! || 'normal',
+			myRoomPower: power || roomList[roomId].detail?.myRoomPower! || 'member'
 		}
 	};
-	console.log(`newRoomList: ${JSON.stringify(newRoomList)}`);
-	console.log(`\n newUser list: ${JSON.stringify(newUserList)}`);
+	console.log(`\nnewUser list: ${JSON.stringify(newUserList)}`);
+	console.log(`\nnewRoomList: ${JSON.stringify(newRoomList)}`);
 	setRoomList({ ...roomList, ...newRoomList });
 }

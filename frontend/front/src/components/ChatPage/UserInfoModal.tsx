@@ -101,9 +101,11 @@ export default function UserInfoModal() {
               : <div className="mute" onClick={Mute}>mute</div>
         }
         {
-          roomList[focusRoom]?.detail?.myRoomPower! === 'owner'
-            ? <div className="manager" onClick={Admin}>admin</div>
-            : ''
+          roomList[focusRoom]?.detail?.myRoomPower! !== 'owner'
+            ? ''
+            : userInfo.userPower === 'admin'
+              ? ''
+              : <div className="manager" onClick={Admin}>admin</div>
         }
       </div>
     </>
