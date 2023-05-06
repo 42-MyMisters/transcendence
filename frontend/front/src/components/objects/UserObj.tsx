@@ -23,11 +23,13 @@ export default function UserObj({
 }) {
   const [userInfo, setUserInfo] = useAtom(UserInfoModalInfo);
   const [userDefaultInfo, setUserDefaultInfo] = useAtom(UserAtom);
+
   return (
     <div
       className="UserObj"
       onClick={() => {
         if (uid !== userDefaultInfo.uid) {
+          console.log(`click userObj`);
           setUserInfo({
             uid: uid,
             nickName: nickName,
@@ -36,7 +38,6 @@ export default function UserObj({
             profileImage: profileImage,
             isIgnored: true,
             userPower: power,
-            userId: 1
           });
           callBack(uid);
         }

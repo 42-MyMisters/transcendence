@@ -472,14 +472,73 @@ export class EventsGateway
 	}
 
 	@SubscribeMessage("room-in-action")
-	RoomInAction(@ConnectedSocket() socket: Socket) {
-		// if (action === 'mute') { // TODO: add to server side
-		// 	setTimeout(() => {
-		// 		const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
-		// 		newUserList[targetId] = { ...newUserList[targetId], userRoomStatus: 'normal' };
-		// 		socket.setNewDetailToNewRoom({ roomList, setRoomList, roomId, newUserList }, 'normal');
-		// 	}, 10000);
-		// }
+	RoomInAction(
+		@ConnectedSocket() socket: Socket,
+		@MessageBody() {
+			roomId,
+			action,
+			targetId
+		}: {
+			roomId: number,
+			action: 'mute' | 'ban' | 'kick' | 'admin',
+			targetId: number
+		}
+	) {
+		switch (roomList[roomId].roomMembers[socket.data.user.uid].userRoomPower) {
+			case 'owner': {
+				if (action === 'admin') {
+					switch (roomList[roomId].roomMembers[targetId].userRoomPower) {
+						case 'admin': {
+							return { status: 'ko', payload: '\n이미 admin 입니다.' };
+						}
+						case 'member': {
+							roomList[roomId].roomMembers[targetId].userRoomPower = 'admin';
+							this.nsp.to(roomId.toString()).emit('room-in-action', {
+								roomId,
+								action,
+								targetId,
+							});
+							return { status: 'ok' };
+						}
+						default: {
+							return { status: 'ko', payload: '\nuserPower가 불확실합니다.' };
+						}
+					}
+				}
+			}
+			case 'admin': {
+				switch (action) {
+					case 'admin': {
+						return { status: 'ko', payload: '\n권한이 없습니다.' };
+					}
+					case 'mute': {
+
+						// setTimeout(() => {
+						// 		const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
+						// 		newUserList[targetId] = { ...newUserList[targetId], userRoomStatus: 'normal' };
+						// 		socket.setNewDetailToNewRoom({ roomList, setRoomList, roomId, newUserList }, 'normal');
+						// 	}, 10000);
+						break;
+					}
+					case 'ban': {
+						break;
+					}
+					case 'kick': {
+						break;
+					}
+					default: {
+						return { status: 'ko', payload: '\n정의되지 않은 행동입니다.' };
+					}
+				}
+				break;
+			}
+			case 'member': {
+				return { status: 'ko', payload: '\n권한이 없습니다.' };
+			}
+			default: {
+				return { status: 'ko', payload: '\nuserPower가 불확실합니다.' };
+			}
+		}
 	}
 
 	@SubscribeMessage("server-room-list")

@@ -8,7 +8,6 @@ interface UserInfoModalInfoType {
   profileImage: string;
   isIgnored: boolean;
   userPower: string;
-  userId: number;
 }
 
 export const UserInfoModalInfo = atom<UserInfoModalInfoType>({
@@ -19,5 +18,4 @@ export const UserInfoModalInfo = atom<UserInfoModalInfoType>({
   profileImage: '/smile.png',
   isIgnored: false,
   userPower: "owner",
-  userId: 0,
 });

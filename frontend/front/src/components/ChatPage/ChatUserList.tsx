@@ -53,8 +53,6 @@ export default function ChatUserList() {
         }
         {
           Object.entries(userList).map((key) => (
-            // Number(key[0]) === userInfo.uid // NOTE: 내 아이디는 안보이게
-            //   ? '' :
             userList[Number(key[0])].userStatus === 'offline'
               ? ''
               : followingList[Number(key[0])] === undefined && dmHistoryList[Number(key[0])] === undefined

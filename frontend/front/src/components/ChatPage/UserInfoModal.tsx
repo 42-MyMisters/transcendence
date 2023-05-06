@@ -21,35 +21,42 @@ export default function UserInfoModal() {
 
   const Follow = () => {
     alert("follow");
+    setUserInfoModal(false);
   };
 
   const Invite = () => {
     alert("invite");
+    setUserInfoModal(false);
   }
 
   const Ignore = () => {
     alert("ignore");
+    setUserInfoModal(false);
   };
 
   const Kick = () => {
-    alert("kick");
     socket.emitRoomInAction({ roomList, setRoomList }, focusRoom, "kick", userInfo.uid)
+    setUserInfoModal(false);
   };
 
   const Ban = () => {
-    alert("ban");
+    socket.emitRoomInAction({ roomList, setRoomList }, focusRoom, "ban", userInfo.uid)
+    setUserInfoModal(false);
   };
 
   const Mute = () => {
-    alert("mute");
+    socket.emitRoomInAction({ roomList, setRoomList }, focusRoom, "mute", userInfo.uid)
+    setUserInfoModal(false);
   };
 
   const Admin = () => {
-    alert("admin");
+    socket.emitRoomInAction({ roomList, setRoomList }, focusRoom, "admin", userInfo.uid)
+    setUserInfoModal(false);
   };
 
   const Profile = () => {
     alert("profile");
+    setUserInfoModal(false);
   };
 
   return (
