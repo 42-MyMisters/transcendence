@@ -1,8 +1,55 @@
 import { NavigateFunction } from 'react-router-dom';
 import type { UserType } from '../components/atom/UserAtom';
+import type * as chatType from '../socket/chat.dto';
 import * as socket from '../socket/chat.socket';
 
 type setUserInfo = React.Dispatch<React.SetStateAction<UserType>>;
+
+export async function DoFollow(
+	userUid: number,
+	doOrUndo: boolean,
+	followingList: chatType.userDto,
+	setFollowingList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
+	userList: chatType.userDto,
+): Promise<number> {
+
+	let status = -1;
+	const resource = doOrUndo ? "follow" : "unfollow";
+
+	await fetch('http://localhost:4000/user/' + resource + `/${userUid}`, {
+		credentials: "include",
+		method: "POST",
+	})
+		.then((response) => {
+			switch (response.status) {
+				case 201: {
+					if (doOrUndo) {
+						const tempFollowing: chatType.userDto = {};
+						tempFollowing[userUid] = {
+							...userList[userUid],
+						};
+						console.log(`\nDoFollow: ${JSON.stringify(tempFollowing)}`);
+						setFollowingList({ ...followingList, ...tempFollowing });
+					} else {
+						const tempFollowing = { ...followingList };
+						delete tempFollowing[userUid];
+						console.log(`\nDoUnFollow: ${JSON.stringify(tempFollowing)}`);
+						setFollowingList({ ...tempFollowing });
+					}
+					break;
+				}
+				default: {
+					throw new Error(`${response.status}`);
+				}
+			}
+		})
+		.catch((error) => {
+			status = error.message;
+			console.log(`\nDoFollow catch_error: ${error} `);
+		});
+
+	return status;
+}
 
 export async function GetMyInfo(setUserInfo: setUserInfo): Promise<number> {
 

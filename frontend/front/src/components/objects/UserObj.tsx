@@ -3,6 +3,7 @@ import { UserInfoModalInfo } from "../atom/UserInfoModalAtom";
 import "../../styles/UserObj.css";
 import { UserAtom } from '../atom/UserAtom';
 import * as chatAtom from '../atom/ChatAtom';
+import { useEffect } from 'react';
 
 
 export default function UserObj({
@@ -26,13 +27,14 @@ export default function UserObj({
   const [userDefaultInfo, setUserDefaultInfo] = useAtom(UserAtom);
   const [followingList, setFollowingList] = useAtom(chatAtom.followingListAtom);
   const [blockList, setBlockList] = useAtom(chatAtom.blockListAtom);
+  const [dmHistoryList] = useAtom(chatAtom.dmHistoryListAtom);
+
 
   return (
     <div
       className="UserObj"
       onClick={() => {
         if (uid !== userDefaultInfo.uid) {
-          console.log(`click userObj`);
           setUserInfo({
             uid: uid,
             nickName: nickName,
@@ -68,10 +70,16 @@ export default function UserObj({
       {
         uid !== userDefaultInfo.uid
           ? chat === 'normal'
-            ? <div className="UserNickName" style={{ color: "#333" }}>{nickName}</div>
+            ? blockList[uid] !== undefined
+              ? <div className="UserNickName" style={{ color: "#aaa" }}>{nickName}</div>
+              : followingList[uid] !== undefined
+                ? <div className="UserNickName" style={{ color: "#0af" }}>{nickName}</div>
+                : dmHistoryList[uid] !== undefined
+                  ? <div className="UserNickName" style={{ color: "#077" }}>{nickName}</div>
+                  : <div className="UserNickName" style={{ color: "#333" }}>{nickName}</div>
             : <div className="UserNickName" style={{ color: "#a55" }}>{nickName}</div>
           : chat === 'normal'
-            ? <div className="UserNickName" style={{ color: "#0a0" }}>{nickName}</div>
+            ? <div className="UserNickName" style={{ color: "#3c3" }}>{nickName}</div>
             : <div className="UserNickName" style={{ color: "#f00" }}>{nickName}</div>
       }
       {

@@ -175,22 +175,6 @@ export class EventsGateway
 						userUrl: user.profileUrl,
 						isRefresh: false,
 					};
-					try {
-						user?.blockedUsers?.map((blockedUser) => {
-							console.log(blockedUser?.targetToBlockId);
-							userList[uid].blockList?.push(blockedUser?.targetToBlockId);
-						});
-					} catch (e) {
-						this.logger.warn("in db, blockedUsers is empty");
-					}
-					try {
-						user?.followings?.map((followUser) => {
-							console.log(followUser?.targetToFollowId);
-							userList[uid].followList?.push(followUser?.targetToFollowId);
-						});
-					} catch (e) {
-						this.logger.warn("in db, blockedUsers is empty");
-					}
 				} else {
 					this.logger.debug(`${socket.data.user.nickname} refreshed.`);
 					userList[socket.data.user.uid].status = 'online';
@@ -199,11 +183,11 @@ export class EventsGateway
 					userList[socket.data.user.uid].socket = socket;
 				}
 				this.logger.verbose(`${userList[socket.data.user.uid].userDisplayName} is now online`);
-				this.nsp.to(socket.id).emit("block-list", this.handleBlockList(socket));
-				this.nsp.to(socket.id).emit("follow-list", this.handleFollowList(socket));
-				this.nsp.to(socket.id).emit("dm-list", this.handleDmList(socket));
-				this.nsp.to(socket.id).emit("user-list", this.handleUserList(socket));
-				this.nsp.to(socket.id).emit("room-list", this.handleRoomList(socket));
+				await this.handleBlockList(socket);
+				await this.handleFollowList(socket);
+				await this.handleDmList(socket);
+				this.handleRoomList(socket);
+				this.handleUserList(socket);
 
 				socket.broadcast.emit("user-update", {
 					userId: socket.data.user.uid,
@@ -610,6 +594,7 @@ export class EventsGateway
 	handleRoomList(socket: Socket) {
 		this.logger.debug(`handleRoomList ${socket.data.user.uid}`);
 		const tempRoomList: Record<number, ClientRoomListDto> = {};
+
 		for (const [roomId, roomInfo] of Object.entries(roomList)) {
 			if (roomInfo.roomMembers[socket?.data?.user?.uid] !== undefined) {
 				socket.join(roomId.toString());
@@ -632,12 +617,13 @@ export class EventsGateway
 				};
 			}
 		}
-		return tempRoomList;
+		this.nsp.to(socket.id).emit("room-list", tempRoomList);
 	}
 
 	handleUserList(socket: Socket) {
 		this.logger.debug(`handleUserList ${socket.data.user.uid}`);
 		const tempUserList: Record<number, ClientUserDto> = {};
+
 		try {
 			for (const [uid, userInfo] of Object.entries(userList)) {
 				if (Number(uid) <= 2) {
@@ -648,8 +634,8 @@ export class EventsGateway
 					}
 				} else {
 					tempUserList[uid] = {
-						userDisplayName: userInfo.socket?.data?.user.nickname.split('#', 2)[0],
-						userProfileUrl: userInfo.socket?.data?.user.profileUrl,
+						userDisplayName: userInfo.userDisplayName,
+						userProfileUrl: userInfo.userUrl,
 						userStatus: userInfo.status,
 					};
 				}
@@ -657,11 +643,14 @@ export class EventsGateway
 		} catch (error) {
 			this.logger.error(`catch-error: handleUserList - ${error}:`, error);
 		}
-		return tempUserList;
+		this.nsp.to(socket.id).emit("user-list", tempUserList);
 	}
 
-	handleBlockList(socket: Socket) {
+	async handleBlockList(socket: Socket) {
 		this.logger.debug(`handleBlockList - ${socket.data.user.uid}`);
+		const userBlock = await this.userService.findAllBlock(socket.data.user);
+		console.log(`userBlock: ${JSON.stringify(userBlock)}`);
+
 		const tempUser: Record<number, boolean> = {};
 		try {
 			userList[socket.data.user.uid].blockList.forEach((blockId) => {
@@ -670,29 +659,35 @@ export class EventsGateway
 		} catch (e) {
 			this.logger.error(`handleBlockList - ${e}`);
 		}
-		return tempUser;
+		this.nsp.to(socket.id).emit("block-list", tempUser);
 	}
 
-	handleFollowList(socket: Socket) {
+	async handleFollowList(socket: Socket) {
 		this.logger.debug(`handleFollowList - ${socket.data.user.uid}`);
+		const userFollow = await this.userService.getFollowingUserInfo(socket.data.user.uid);
+
 		const tempFollowList: Record<number, ClientUserDto> = {};
 		try {
-			socket?.data?.user?.followings?.forEach((targetId: UserFollow) => {
-				tempFollowList[targetId.targetToFollowId] = {
-					userDisplayName: targetId.fromUser.nickname,
-					userProfileUrl: targetId.fromUser.profileUrl,
-					userStatus: userList[targetId.targetToFollowId].status,
+			userFollow?.map((targetId) => {
+				tempFollowList[targetId.uid] = {
+					userDisplayName: targetId.nickname,
+					userProfileUrl: targetId.profileUrl,
+					userStatus: userList[targetId.uid]?.status || 'offline',
 				};
 			});
 		} catch (e) {
 			this.logger.error(`handleFollowList - ${e}`);
 		}
-		return tempFollowList;
+		console.log(`tempFollowList: ${JSON.stringify(tempFollowList)}`);
+		this.nsp.to(socket.id).emit("follow-list", tempFollowList);
 	}
 
-	handleDmList(socket: Socket) {
+	async handleDmList(socket: Socket) {
 		this.logger.debug(`handleDmList - ${socket.data.user.uid}`);
-		const tempDmList: Record<number, ClientUserDto> = {};
-		return tempDmList;
+
+		const tempDmList: Record<number, ClientUserDto> = {
+
+		};
+		this.nsp.to(socket.id).emit("dm-list", tempDmList);
 	}
 }

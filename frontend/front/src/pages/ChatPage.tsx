@@ -51,7 +51,7 @@ export default function ChatPage() {
 		console.log("\n\ngetRoomList");
 		Object.entries(roomList).forEach(([key, value]) => {
 			if (value.detail !== undefined) {
-				console.log(`[ ${value.roomName} : ${key}] - ${value.roomType}`);
+				console.log(`\n[ ${value.roomName} : ${key}] - ${value.roomType}`);
 				Object.entries(value.detail).forEach(([key, value]) => {
 					if (key === "userList") {
 						Object.entries(value).forEach(([key, value]) => {
@@ -72,9 +72,14 @@ export default function ChatPage() {
 			console.log(`[ ${value.userDisplayName} ]\nkey: ${key}, value: ${JSON.stringify(value)}`);
 		})
 	};
+
 	const getFollowingList = () => {
-		console.log(`getFollowingList ${JSON.stringify(followingList)}}`);
+		console.log(`\n\ngetFollowingList`);
+		Object.entries(followingList).forEach(([key, value]) => {
+			console.log(`[ ${value.userDisplayName} ]\nkey: ${key}, value: ${JSON.stringify(value)}`);
+		});
 	};
+
 	const showSocketState = () => {
 		console.log(`socket state: ${socketState}`);
 	};
@@ -175,35 +180,31 @@ export default function ChatPage() {
 	}, []);
 
 	useEffect(() => {
-		socket.socket.on("user-list", (resUserList: chatType.userDto) => {
-			console.log(`user-list ${JSON.stringify(resUserList)}`);
-			setUserList({ ...userList, ...resUserList })
-		});
-		return () => {
-			socket.socket.off("user-list");
-		};
-	}, [userList])
-
-	useEffect(() => {
 		socket.socket.on("room-list", (resRoomList: chatType.roomListDto) => {
-			setRoomList({ ...roomList, ...resRoomList });
+			setRoomList((prevRoomList) => ({ ...prevRoomList, ...resRoomList }));
 		});
-		socket.socket.on("following-list", (resFollowingList: chatType.userDto) => {
-			setFollowingList({ ...resFollowingList })
+		socket.socket.on("follow-list", (resFollowingList: chatType.userDto) => {
+			setFollowingList({ ...resFollowingList });
+			setUserList((prevUserList) => ({ ...resFollowingList, ...prevUserList }));
 		});
 		socket.socket.on("dm-list", (resDmList: chatType.userDto) => {
-			setDmHistoryList({ ...resDmList })
+			setDmHistoryList({ ...resDmList });
+			setUserList((prevUserList) => ({ ...resDmList, ...prevUserList }));
 		});
 		socket.socket.on("block-list", (resBlockList: chatType.userSimpleDto) => {
-			setBlockList({ ...resBlockList })
+			setBlockList({ ...resBlockList });
+		});
+		socket.socket.on("user-list", (resUserList: chatType.userDto) => {
+			setUserList((prevUserList) => ({ ...prevUserList, ...resUserList }))
 		});
 		return () => {
 			socket.socket.off("room-list");
-			socket.socket.off("following-list");
+			socket.socket.off("follow-list");
 			socket.socket.off("dm-list");
 			socket.socket.off("block-list");
+			socket.socket.off("user-list");
 		}
-	}, [roomList]);
+	}, [userList, roomList, followingList, dmHistoryList, blockList]);
 
 	useEffect(() => {
 		socket.socket.on("room-list-update", ({
