@@ -173,6 +173,8 @@ export default function ChatPage() {
 	useEffect(() => {
 		socket.socket.on("logout", () => {
 			LogOut(setRefreshToken, navigate, "/");
+			setHasLogin(false);
+    			setIsFirstLogin(true);
 		});
 		return () => {
 			socket.socket.off("logout");
