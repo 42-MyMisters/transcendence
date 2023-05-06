@@ -114,6 +114,8 @@ export default function ChatPage() {
 
 	const logOutHandler = () => {
 		LogOut(setRefreshToken, navigate, '/');
+		setHasLogin(false);
+		setIsFirstLogin(true);
 	};
 
 	useEffect(() => {
