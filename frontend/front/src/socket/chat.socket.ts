@@ -221,7 +221,7 @@ export function emitMessage(
 	roomId: number,
 	message: string,
 ) {
-	if (roomList[roomId].detail?.myRoomStatus === 'mute') {
+	if (roomList[roomId]?.detail?.myRoomStatus === 'mute') {
 		alert('You are muted for 10 sec in this room');
 		return;
 	}

@@ -35,6 +35,7 @@ interface UserInfo {
 	socket?: Socket;
 	status: userStatus;
 	blockedUsers: number[];
+	followingUsers: number[];
 	userId?: number;
 	userDisplayName?: string;
 	userUrl?: string;
@@ -150,6 +151,7 @@ export class EventsGateway
 			this.logger.log(`${socket.id} socket connected.`);
 			const uid = await this.authService.jwtVerify(socket.handshake.auth.token);
 			const user = await this.userService.getUserByUid(uid);
+
 			if (this.userService.isUserExist(user)) {
 				this.nsp.to(socket.id).emit("room-clear");
 				this.nsp.to(socket.id).emit("user-clear");
@@ -161,13 +163,13 @@ export class EventsGateway
 						socket: socket,
 						status: 'online',
 						blockedUsers: [],
+						followingUsers: [],
 						userId: user.uid,
 						userDisplayName: user.nickname.split('#', 2)[0],
 						userUrl: user.profileUrl,
 						isRefresh: false,
-						// socketList: [userList[uid].socketList?.map( ), socket.id],
 					};
-					try { // TODO: check
+					try {
 						user?.blockedUsers?.map((blockedUsers) => {
 							console.log(blockedUsers?.targetToBlockId)
 							userList[uid].blockedUsers?.push(blockedUsers?.targetToBlockId);
@@ -183,11 +185,16 @@ export class EventsGateway
 					userList[socket.data.user.uid].socket = socket;
 				}
 				this.logger.verbose(`${userList[socket.data.user.uid].userDisplayName} is now online`);
-				this.nsp.emit("user-update", {
+				this.nsp.to(socket.id).emit("block-list", this.handleBlockList(socket));
+				this.nsp.to(socket.id).emit("follow-list", this.handleFollowList(socket));
+				this.nsp.to(socket.id).emit("dm-list", this.handleDmList(socket));
+				this.nsp.to(socket.id).emit("user-list", this.handleUserList(socket));
+				this.nsp.to(socket.id).emit("room-list", this.handleRoomList(socket));
+
+				socket.broadcast.emit("user-update", {
 					userId: socket.data.user.uid,
 					userDisplayName: socket.data.user.nickname.split('#', 2)[0],
 					userProfileUrl: socket.data.user.profileUrl,
-					// userStatus: userList[socket.data.user.uid].status,
 					userStatus: 'online',
 				});
 			} else {
@@ -350,33 +357,6 @@ export class EventsGateway
 		return { status: 'ok' };
 	}
 
-	@SubscribeMessage("room-list")
-	handleRoomList(@ConnectedSocket() socket: Socket) {
-		const tempRoomList: Record<number, ClientRoomListDto> = {};
-		for (const [roomId, roomInfo] of Object.entries(roomList)) {
-			if (roomInfo.roomMembers[socket?.data?.user?.uid] !== undefined) {
-				socket.join(roomId.toString());
-				tempRoomList[roomId] = {
-					roomName: roomInfo.roomName,
-					roomType: roomInfo.roomType,
-					isJoined: true,
-					detail: {
-						userList: roomInfo.roomMembers,
-						messageList: [],
-						myRoomStatus: roomInfo.roomMembers[socket.data.user.uid].userRoomStatus,
-						myRoomPower: roomInfo.roomMembers[socket.data.user.uid].userRoomPower,
-					}
-				};
-			} else if (roomInfo.roomType !== 'private') {
-				tempRoomList[roomId] = {
-					roomName: roomInfo.roomName,
-					roomType: roomInfo.roomType,
-				};
-			}
-		}
-		return { roomList: tempRoomList };
-	}
-
 	@SubscribeMessage("room-join")
 	handleRoomJoin(
 		@ConnectedSocket() socket: Socket,
@@ -446,29 +426,6 @@ export class EventsGateway
 		}
 	}
 
-	@SubscribeMessage("user-list")
-	handleUserList(
-		@ConnectedSocket() socket: Socket,
-	) {
-		const tempUserList: Record<number, ClientUserDto> = {};
-		for (const [uid, userInfo] of Object.entries(userList)) {
-			if (Number(uid) <= 2) {
-				tempUserList[uid] = {
-					userDisplayName: userInfo.userDisplayName || 'test user',
-					userProfileUrl: userInfo.userUrl || 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/42_Logo.svg/2048px-42_Logo.svg.png',
-					userStatus: userInfo.status,
-				}
-			} else {
-				tempUserList[uid] = {
-					userDisplayName: userInfo.socket?.data.user.nickname.split('#', 2)[0],
-					userProfileUrl: userInfo.socket?.data.user.profileUrl,
-					userStatus: userInfo.status,
-				};
-			}
-		}
-		return { userListFromServer: tempUserList };
-	}
-
 	@SubscribeMessage("message")
 	handleMessage(
 		@ConnectedSocket() socket: Socket,
@@ -509,4 +466,61 @@ export class EventsGateway
 		});
 	}
 
+	handleRoomList(socket: Socket) {
+		const tempRoomList: Record<number, ClientRoomListDto> = {};
+		for (const [roomId, roomInfo] of Object.entries(roomList)) {
+			if (roomInfo.roomMembers[socket?.data?.user?.uid] !== undefined) {
+				socket.join(roomId.toString());
+				tempRoomList[roomId] = {
+					roomName: roomInfo.roomName,
+					roomType: roomInfo.roomType,
+					isJoined: true,
+					detail: {
+						userList: roomInfo.roomMembers,
+						messageList: [],
+						myRoomStatus: roomInfo.roomMembers[socket.data.user.uid].userRoomStatus,
+						myRoomPower: roomInfo.roomMembers[socket.data.user.uid].userRoomPower,
+					}
+				};
+			} else if (roomInfo.roomType !== 'private') {
+				tempRoomList[roomId] = {
+					roomName: roomInfo.roomName,
+					roomType: roomInfo.roomType,
+				};
+			}
+		}
+		return tempRoomList;
+	}
+
+	handleUserList(socket: Socket) {
+		const tempUserList: Record<number, ClientUserDto> = {};
+		for (const [uid, userInfo] of Object.entries(userList)) {
+			if (Number(uid) <= 2) {
+				tempUserList[uid] = {
+					userDisplayName: userInfo.userDisplayName || 'test user',
+					userProfileUrl: userInfo.userUrl || 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/42_Logo.svg/2048px-42_Logo.svg.png',
+					userStatus: userInfo.status,
+				}
+			} else {
+				tempUserList[uid] = {
+					userDisplayName: userInfo.socket?.data.user.nickname.split('#', 2)[0],
+					userProfileUrl: userInfo.socket?.data.user.profileUrl,
+					userStatus: userInfo.status,
+				};
+			}
+		}
+		return tempUserList;
+	}
+
+
+	handleBlockList(socket: Socket) {
+
+	}
+
+	handleFollowList(socket: Socket) {
+
+	}
+
+	handleDmList(socket: Socket) {
+	}
 }

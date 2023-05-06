@@ -65,10 +65,10 @@ export default function UserObj({
         uid !== userDefaultInfo.uid
           ? chat === 'normal'
             ? <div className="UserNickName" style={{ color: "#333" }}>{nickName}</div>
-            : <div className="UserNickName" style={{ color: "#888" }}>{nickName}</div>
+            : <div className="UserNickName" style={{ color: "#a55" }}>{nickName}</div>
           : chat === 'normal'
             ? <div className="UserNickName" style={{ color: "#0a0" }}>{nickName}</div>
-            : <div className="UserNickName" style={{ color: "#700" }}>{nickName}</div>
+            : <div className="UserNickName" style={{ color: "#f00" }}>{nickName}</div>
       }
       {
         power === "owner" ? (

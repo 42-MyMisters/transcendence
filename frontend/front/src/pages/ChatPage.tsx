@@ -166,29 +166,35 @@ export default function ChatPage() {
 	}, []);
 
 	useEffect(() => {
-		socket.socket.on("room-list", (responseRoomList: chatType.roomListDto) => {
-			setRoomList({ ...roomList, ...responseRoomList })
+		socket.socket.on("user-list", (resUserList: chatType.userDto) => {
+			console.log(`user-list ${JSON.stringify(resUserList)}`);
+			setUserList({ ...userList, ...resUserList })
 		});
-		socket.socket.on("user-list", (responseUserList: chatType.userDto) => {
-			setUserList({ ...userList, ...responseUserList })
+		return () => {
+			socket.socket.off("user-list");
+		};
+	}, [userList])
+
+	useEffect(() => {
+		socket.socket.on("room-list", (resRoomList: chatType.roomListDto) => {
+			setRoomList({ ...roomList, ...resRoomList });
 		});
-		socket.socket.on("following-list", (responseFollowingList: chatType.userDto) => {
-			setFollowingList({ ...responseFollowingList })
+		socket.socket.on("following-list", (resFollowingList: chatType.userDto) => {
+			setFollowingList({ ...resFollowingList })
 		});
-		socket.socket.on("dm-list", (responseDmList: chatType.userDto) => {
-			setDmHistoryList({ ...responseDmList })
+		socket.socket.on("dm-list", (resDmList: chatType.userDto) => {
+			setDmHistoryList({ ...resDmList })
 		});
-		socket.socket.on("block-list", (responseBlockList: chatType.userSimpleDto) => {
-			setBlockList({ ...responseBlockList })
+		socket.socket.on("block-list", (resBlockList: chatType.userSimpleDto) => {
+			setBlockList({ ...resBlockList })
 		});
 		return () => {
 			socket.socket.off("room-list");
-			socket.socket.off("user-list");
 			socket.socket.off("following-list");
 			socket.socket.off("dm-list");
 			socket.socket.off("block-list");
 		}
-	}, [userList, roomList]);
+	}, [roomList]);
 
 	useEffect(() => {
 		socket.socket.on("room-list-update", ({
@@ -354,13 +360,13 @@ export default function ChatPage() {
 						const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
 						newUserList[targetId] = { ...newUserList[targetId], userRoomStatus: action };
 						socket.setNewDetailToNewRoom({ roomList, setRoomList, roomId, newUserList }, action);
-						if (action === 'mute') {
-							setTimeout(() => {
-								const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
-								newUserList[targetId] = { ...newUserList[targetId], userRoomStatus: 'normal' };
-								socket.setNewDetailToNewRoom({ roomList, setRoomList, roomId, newUserList }, 'normal');
-							}, 10000);
-						}
+						// if (action === 'mute') { // TODO: add to server side
+						// 	setTimeout(() => {
+						// 		const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
+						// 		newUserList[targetId] = { ...newUserList[targetId], userRoomStatus: 'normal' };
+						// 		socket.setNewDetailToNewRoom({ roomList, setRoomList, roomId, newUserList }, 'normal');
+						// 	}, 10000);
+						// }
 					} else {
 						const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
 						newUserList[targetId] = { ...newUserList[targetId], userRoomStatus: action };
@@ -389,28 +395,32 @@ export default function ChatPage() {
 	}, [roomList, userInfo]);
 
 	useEffect(() => {
-		socket.socket.on("user-update", ({
-			userId,
-			userDisplayName,
-			userProfileUrl,
-			userStatus
-		}: {
-			userId: number,
-			userDisplayName: string
-			userProfileUrl: string;
-			userStatus: 'online' | 'offline' | 'inGame';
-		}) => {
-			const newUser: chatType.userDto = {};
-			newUser[userId] = {
+		if (isFirstLogin === false) {
+			socket.socket.on("user-update", ({
+				userId,
 				userDisplayName,
 				userProfileUrl,
-				userStatus,
-			};
-			console.log(`user-upadate: user ${userId} is ${userStatus}`);
-			setUserList({ ...userList, ...newUser });
-		});
+				userStatus
+			}: {
+				userId: number,
+				userDisplayName: string
+				userProfileUrl: string;
+				userStatus: 'online' | 'offline' | 'inGame';
+			}) => {
+				const newUser: chatType.userDto = {};
+				newUser[userId] = {
+					userDisplayName,
+					userProfileUrl,
+					userStatus,
+				};
+				console.log(`user-upadate: user ${userId} is ${userStatus}`);
+				setUserList({ ...userList, ...newUser });
+			});
+		}
 		return () => {
-			socket.socket.off("user-update");
+			if (isFirstLogin === false) {
+				socket.socket.off("user-update");
+			}
 		}
 	}, [userList]);
 
@@ -462,7 +472,6 @@ export default function ChatPage() {
 		if (isFirstLogin) {
 			console.log('set init data');
 			await getMyinfoHandler();
-			// socket.socket.on()
 		}
 		setIsFirstLogin(false);
 	}
