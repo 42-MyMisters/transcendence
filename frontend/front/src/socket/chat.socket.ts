@@ -110,23 +110,22 @@ export function emitRoomLeave(
 	}, ({
 		status,
 	}: {
-		status: 'ok' | 'ko',
+		status: 'leave' | 'delete',
 	}) => {
-		if (status === 'ok') {
+		if (status === 'leave') {
 			console.log(`callback: room leaved: ${roomList[roomId].roomName}`);
 			const newRoomList: chatType.roomListDto = {};
 			newRoomList[roomId] = {
 				roomName: roomList[roomId].roomName,
 				roomType: roomList[roomId].roomType,
 				isJoined: false,
-				// detail: {} as chatType.roomDetailDto,
 			}
 			setRoomList({ ...roomList, ...newRoomList });
 			if (focusRoom === roomId) {
 				setFocusRoom(-1);
 			}
 		} else {
-			console.log(`callback: room leave failed: ${roomList[roomId].roomName}`);
+			console.log(`callback: room delete: ${roomList[roomId].roomName}`);
 		}
 	});
 }

@@ -7,7 +7,7 @@ interface UserInfoModalInfoType {
   userState: string;
   profileImage: string;
   isIgnored: boolean;
-  myPower: string;
+  userPower: string;
   userId: number;
 }
 
@@ -18,6 +18,6 @@ export const UserInfoModalInfo = atom<UserInfoModalInfoType>({
   userState: "online",
   profileImage: '/smile.png',
   isIgnored: false,
-  myPower: "owner",
+  userPower: "owner",
   userId: 0,
 });

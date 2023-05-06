@@ -18,7 +18,7 @@ export default function UserObj({
   profileImage: string;
   status: string;
   chat: string;
-  power: string;
+  power: 'owner' | 'admin' | 'member';
   callBack: (uid: number) => void;
 }) {
   const [userInfo, setUserInfo] = useAtom(UserInfoModalInfo);
@@ -35,7 +35,7 @@ export default function UserObj({
             userState: status,
             profileImage: profileImage,
             isIgnored: true,
-            myPower: "owner", //[TODO] fix
+            userPower: power,
             userId: 1
           });
           callBack(uid);

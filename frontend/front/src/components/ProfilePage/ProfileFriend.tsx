@@ -22,7 +22,7 @@ export default function ProfileFriend() {
                   profileImage={key.profileUrl}
                   status={key.status}
                   chat={'normal'}
-                  power="profile"
+                  power="member"
                   callBack={() => { }}
                 />
               );

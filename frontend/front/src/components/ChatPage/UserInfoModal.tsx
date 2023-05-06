@@ -7,9 +7,13 @@ import "../../styles/UserInfoModal.css";
 import { UserInfoModalInfo } from "../atom/UserInfoModalAtom";
 import * as chatAtom from "../../components/atom/ChatAtom";
 
+import * as socket from "../../socket/chat.socket"
+
 export default function UserInfoModal() {
   const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
   const [userInfo, setUserInfo] = useAtom(UserInfoModalInfo);
+  const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
+  const [focusRoom] = useAtom(chatAtom.focusRoomAtom);
 
   PressKey(["Escape"], () => {
     setUserInfoModal(false);
@@ -29,6 +33,7 @@ export default function UserInfoModal() {
 
   const Kick = () => {
     alert("kick");
+    socket.emitRoomInAction({ roomList, setRoomList }, focusRoom, "kick", userInfo.uid)
   };
 
   const Ban = () => {
@@ -41,6 +46,10 @@ export default function UserInfoModal() {
 
   const Admin = () => {
     alert("admin");
+  };
+
+  const Profile = () => {
+    alert("profile");
   };
 
   return (
@@ -62,11 +71,33 @@ export default function UserInfoModal() {
         <div className="follow" onClick={Follow} >{userInfo.isFollow ? "unfollow" : "follow"}</div>
         <div className="invite" onClick={Invite} >{userInfo.userState != "ingame" ? "invite" : "observe"}</div>
         <div className="ignore" onClick={Ignore}>{userInfo.isIgnored ? "unignore" : "ignore"}</div>
-        <div className="profile" >profile</div>
-        <div className="kick" onClick={Kick}>kick</div>
-        <div className="ban" onClick={Ban}>ban</div>
-        <div className="mute" onClick={Mute}>mute</div>
-        <div className="manager" onClick={Admin}>admin</div>
+        <div className="profile" onClick={Profile}>profile</div>
+        {
+          roomList[focusRoom]?.detail?.myRoomPower! === 'member'
+            ? ''
+            : userInfo.userPower === 'owner'
+              ? ''
+              : <div className="kick" onClick={Kick}>kick</div>
+        }
+        {
+          roomList[focusRoom]?.detail?.myRoomPower! === 'member'
+            ? ''
+            : userInfo.userPower === 'owner'
+              ? ''
+              : <div className="ban" onClick={Ban}>ban</div>
+        }
+        {
+          roomList[focusRoom]?.detail?.myRoomPower! === 'member'
+            ? ''
+            : userInfo.userPower === 'owner'
+              ? ''
+              : <div className="mute" onClick={Mute}>mute</div>
+        }
+        {
+          roomList[focusRoom]?.detail?.myRoomPower! === 'owner'
+            ? <div className="manager" onClick={Admin}>admin</div>
+            : ''
+        }
       </div>
     </>
   );

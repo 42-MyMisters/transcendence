@@ -439,11 +439,11 @@ export class EventsGateway
 		}: {
 			roomId: number;
 		}) {
-		this.logger.debug(`${socket.id}:${socket.data.user.nickname} leave room ${roomId}`);
+		this.logger.debug(`${socket.data.user.nickname} leave room ${roomList[roomId].roomName}`);
 		if (this.handleDeleteRoomLogic(socket, roomId) === 'leave') {
-			return ({ status: 'ok' });
+			return ({ status: 'leave' });
 		} else {
-			return ({ status: 'ko' });
+			return ({ status: 'delete' });
 		}
 	}
 
@@ -470,6 +470,7 @@ export class EventsGateway
 			return { status: 'ok' };
 		}
 	}
+
 	@SubscribeMessage("room-in-action")
 	RoomInAction(@ConnectedSocket() socket: Socket) {
 		// if (action === 'mute') { // TODO: add to server side
