@@ -67,8 +67,8 @@ export function Game(gameInfo: GameCoordinate, canvas: React.RefObject<HTMLCanva
     //net
     drawNet(context);
     //bar
-    drawRect(me.x, gameInfo.leftY, me.width, me.height, me.color, context);
-    drawRect(opponent.x, gameInfo.rightY, opponent.width, opponent.height, opponent.color, context);
+    drawRect(me.x, gameInfo.paddle1Y, me.width, me.height, me.color, context);
+    drawRect(opponent.x, gameInfo.paddle2Y, opponent.width, opponent.height, opponent.color, context);
     //ball
     drawCircle(gameInfo.ballX, gameInfo.ballY, ball.radius, ball.color, context);
     //score

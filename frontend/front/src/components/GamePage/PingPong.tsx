@@ -11,8 +11,11 @@ import { PressKey } from "../../event/pressKey";
 import * as game from "../../socket/game.socket";
 
 import { useState, useRef } from "react";
+import { time } from "console";
+import { socket } from "../../socket/chat.socket";
 
 export default function PingPong() {
+  let ping: number;
   const [coordinate, setCoordinate] = useAtom(GameCoordinateAtom);
   const [upArrow, setUpArrow] = useState(false);
   const [downArrow, setDownArrow] = useState(false);
@@ -33,15 +36,9 @@ export default function PingPong() {
   //   Game(coordinate, canvas, setCanvas});
   // });
 
-  // catch all incoming events
-  game.gameSocket.onAny((eventName, ...args) => {
-    console.log("incoming ", eventName, args);
-  });
-
-  // catch all outgoing events
-  game.gameSocket.onAnyOutgoing((eventName, ...args) => {
-    console.log("outgoing ", eventName, args);
-  });
+  let pingInterval: NodeJS.Timer;
+  let pingTime: number;
+  let lastCoordTime: number;
 
   game.gameSocket.on("connect", () => {
     if (game.gameSocket.connected) {
@@ -51,6 +48,15 @@ export default function PingPong() {
       } else {
         // new or unrecoverable session
         console.log("gameSocket connected : " + game.gameSocket.id);
+        pingInterval = setInterval(() => {
+          const curTime = Date.now();
+          game.gameSocket.emit('ping', (pong:boolean) => {
+            if (pong) {
+              pingTime = Date.now() - curTime;
+              // console.log(`ping: ${Date.now() - curTime}`);
+            }
+          });
+        }, 1000);
       }
     }
   });
@@ -64,6 +70,7 @@ export default function PingPong() {
     if (reason === "io server disconnect") {
       // the disconnection was initiated by the server, you need to reconnect manually
     }
+    clearInterval(pingInterval);
     // else the socket will automatically try to reconnect
     console.log("gameSocket disconnected");
   });
@@ -86,43 +93,21 @@ export default function PingPong() {
   useEffect(() => {
     game.gameSocket.on(
       "graphic",
-      ({ p1, ball_x, ball_y, p2 }: { p1: number; ball_x: number; ball_y: number; p2: number }) => {
-        let temp = {
-          leftY: p1 - 75,
-          ballX: ball_x,
-          ballY: ball_y,
-          rightY: p2 - 75,
-        };
-        // drawIntersection(temp);
-        // const leftGap = (coordinate.leftY - temp.leftY) / intersectionSize;
-        // const rightGap = (coordinate.rightY - temp.rightY) / intersectionSize;
-        // const ballGapX = (coordinate.ballX - temp.ballX) / intersectionSize;
-        // const ballGapY = (coordinate.ballY - temp.ballY) / intersectionSize;
-        // let tempCoordinate: GameCoordinate = {
-        //   ...coordinate
-        // }
-        // for (let i = 0; i < intersectionSize; i++) {
-        //   tempCoordinate.leftY += leftGap;
-        //   tempCoordinate.rightY += rightGap;
-        //   tempCoordinate.ballX += ballGapX;
-        //   tempCoordinate.ballY += ballGapY;
-        //   Game(tempCoordinate);
-        // }
+      (gameCoord: GameCoordinate) => {
+        let temp = gameCoord;
+        setCoordinate(temp);
+      })
+      // return () => {
+      //   game.gameSocket.off("graphic");
+      // };
+    }, []);
 
-        // setCoordinate(temp);
-        Game(temp, canvas);
-      }
-    );
-    return () => {
-      game.gameSocket.off("graphic");
-    };
-  }, []);
+
+
+  requestAnimationFrame(() => Game(coordinate, canvas));
 
   useEffect(() => {
-    Game({leftY: 225,
-      ballX: 1150 / 2,
-      ballY: 300,
-      rightY: 225,}, canvas);
+    Game(coordinate, canvas);
   }, []);
 
   // document.addEventListener('keydown', onKeyDown);

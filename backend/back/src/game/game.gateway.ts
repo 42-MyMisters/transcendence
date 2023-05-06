@@ -35,6 +35,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
           console.log(`${p2.id}: joined ${gameId}, rooms: ${[...p2.rooms]}`);
           this.gameService.createGame(gameId, this.server, p1.data.uid, p2.data.uid);
           this.gameService.getGame(gameId)?.gameStart();
+          // this.gameService.gameStart(gameId);
         }
       }
       this.logger.log('game queue loop');

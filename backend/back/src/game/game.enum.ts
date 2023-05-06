@@ -6,7 +6,7 @@ export const enum Direction {
   RIGHT = 4
 }
 
-export const enum WallX {
+export const enum Hit {
   PADDLE = 1,
   WALL = 0,
 }
