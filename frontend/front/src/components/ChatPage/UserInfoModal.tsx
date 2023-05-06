@@ -98,7 +98,9 @@ export default function UserInfoModal() {
             ? ''
             : userInfo.userPower === 'owner'
               ? ''
-              : <div className="mute" onClick={Mute}>mute</div>
+              : roomList[focusRoom]?.detail?.userList[userInfo.uid]?.userRoomStatus === 'mute'
+                ? ''
+                : <div className="mute" onClick={Mute}>mute</div>
         }
         {
           roomList[focusRoom]?.detail?.myRoomPower! !== 'owner'

@@ -166,6 +166,15 @@ export default function ChatPage() {
 	}, []);
 
 	useEffect(() => {
+		socket.socket.on("logout", () => {
+			LogOut(setRefreshToken, navigate, "/");
+		});
+		return () => {
+			socket.socket.off("logout");
+		}
+	}, []);
+
+	useEffect(() => {
 		socket.socket.on("user-list", (resUserList: chatType.userDto) => {
 			console.log(`user-list ${JSON.stringify(resUserList)}`);
 			setUserList({ ...userList, ...resUserList })
@@ -456,6 +465,7 @@ export default function ChatPage() {
 			socket.socket.off("message");
 		};
 	}, [roomList, blockList, userList, userInfo]);
+
 
 	async function firstLogin() {
 		if (isFirstLogin) {

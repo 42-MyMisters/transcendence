@@ -124,8 +124,10 @@ export function emitRoomLeave(
 			if (focusRoom === roomId) {
 				setFocusRoom(-1);
 			}
-		} else {
+		} else if (status === 'delete') {
 			console.log(`callback: room delete: ${roomList[roomId].roomName}`);
+		} else {
+			console.log('callback: room leave failed');
 		}
 	});
 }
@@ -272,7 +274,5 @@ export function setNewDetailToNewRoom({
 			myRoomPower: power || roomList[roomId].detail?.myRoomPower! || 'member'
 		}
 	};
-	console.log(`\nnewUser list: ${JSON.stringify(newUserList)}`);
-	console.log(`\nnewRoomList: ${JSON.stringify(newRoomList)}`);
 	setRoomList({ ...roomList, ...newRoomList });
 }

@@ -20,7 +20,7 @@ import * as bcrypt from 'bcrypt';
 
 type roomType = 'open' | 'protected' | 'private';
 type userStatus = 'online' | 'offline' | 'inGame';
-type userRoomStatus = 'normal' | 'mute' | 'ban' | 'kick';
+type userRoomStatus = 'normal' | 'mute';
 type userRoomPower = 'owner' | 'admin' | 'member';
 
 interface ClientUserDto {
@@ -439,6 +439,10 @@ export class EventsGateway
 		}: {
 			roomId: number;
 		}) {
+		if (roomList[roomId] === undefined) {
+			this.nsp.to(socket.id).emit("logout");
+			return ({ status: 'error' });
+		}
 		this.logger.debug(`${socket.data.user.nickname} leave room ${roomList[roomId]?.roomName}`);
 		if (this.handleDeleteRoomLogic(socket, roomId) === 'leave') {
 			return ({ status: 'leave' });
@@ -508,17 +512,31 @@ export class EventsGateway
 				}
 			}
 			case 'admin': {
+				if (roomList[roomId].roomMembers[targetId].userRoomPower === 'owner') {
+					return { status: 'ko', payload: '\nowner에게 영향을 줄 수 없습니다.' };
+				}
 				switch (action) {
 					case 'admin': {
 						return { status: 'ko', payload: '\n권한이 없습니다.' };
 					}
 					case 'mute': {
-
-						// setTimeout(() => {
-						// 		const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
-						// 		newUserList[targetId] = { ...newUserList[targetId], userRoomStatus: 'normal' };
-						// 		socket.setNewDetailToNewRoom({ roomList, setRoomList, roomId, newUserList }, 'normal');
-						// 	}, 10000);
+						if (roomList[roomId].roomMembers[targetId].userRoomStatus === 'mute') {
+							return { status: 'ko', payload: '\n이미 mute 상태입니다.' };
+						}
+						roomList[roomId].roomMembers[targetId].userRoomStatus = 'mute';
+						this.nsp.to(roomId.toString()).emit('room-in-action', {
+							roomId,
+							action,
+							targetId,
+						});
+						setTimeout(() => {
+							roomList[roomId].roomMembers[targetId].userRoomStatus = 'normal';
+							this.nsp.to(roomId.toString()).emit('room-in-action', {
+								roomId,
+								action: 'normal',
+								targetId,
+							});
+						}, 10000);
 						break;
 					}
 					case 'ban': {
