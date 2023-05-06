@@ -389,7 +389,7 @@ export class EventsGateway
 		}) {
 		if (roomList[roomId]) {
 			if (roomList[roomId].bannedUsers.includes(socket.data.user.uid)) {
-				return ({ status: 'ko', payload: '\nbanned' });
+				return ({ status: 'ko', payload: '\nbanned for 1 min' });
 			}
 			switch (roomList[roomId].roomType) {
 				case 'protected': {
@@ -431,6 +431,7 @@ export class EventsGateway
 				}
 			}
 		} else {
+			this.nsp.to(socket.id).emit("logout");
 			return ({ status: 'ko', payload: 'room not found' });
 		}
 	}
@@ -518,9 +519,6 @@ export class EventsGateway
 			case 'admin': {
 				if (roomList[roomId].roomMembers[targetId].userRoomPower === 'owner') {
 					return { status: 'ko', payload: '\nowner에게 영향을 줄 수 없습니다.' };
-				} else if (roomList[roomId].roomMembers[socket.data.user.uid].userRoomPower !== 'owner'
-					&& roomList[roomId].roomMembers[targetId].userRoomPower === 'admin') {
-					return { status: 'ko', payload: '\nadmin이 admin에게 영향을 줄 수 없습니다.' };
 				}
 				switch (action) {
 					case 'admin': {
@@ -537,7 +535,8 @@ export class EventsGateway
 							targetId,
 						});
 						setTimeout(() => {
-							if (roomList[roomId].roomMembers[targetId] !== undefined) {
+							if (roomList[roomId].roomMembers[targetId] !== undefined
+								&& roomList[roomId].roomMembers[targetId].userRoomStatus === 'mute') {
 								roomList[roomId].roomMembers[targetId].userRoomStatus = 'normal';
 								this.nsp.to(roomId.toString()).emit('room-in-action', {
 									roomId,
@@ -552,6 +551,9 @@ export class EventsGateway
 						if (roomList[roomId].bannedUsers.includes(targetId) === false) {
 							this.logger.debug(`${socket.data.user.nickname} ban ${userList[targetId].userDisplayName} from ${roomList[roomId].roomName}`);
 							roomList[roomId].bannedUsers.push(targetId);
+							setTimeout(() => {
+								roomList[roomId].bannedUsers = roomList[roomId].bannedUsers.filter((userId) => userId !== targetId);
+							}, 60000);
 						}
 					}
 					case 'kick': {
