@@ -2,6 +2,7 @@ import { useAtom } from "jotai";
 import { UserInfoModalInfo } from "../atom/UserInfoModalAtom";
 import "../../styles/UserObj.css";
 import { UserAtom } from '../atom/UserAtom';
+import * as chatAtom from '../atom/ChatAtom';
 
 
 export default function UserObj({
@@ -23,6 +24,8 @@ export default function UserObj({
 }) {
   const [userInfo, setUserInfo] = useAtom(UserInfoModalInfo);
   const [userDefaultInfo, setUserDefaultInfo] = useAtom(UserAtom);
+  const [followingList, setFollowingList] = useAtom(chatAtom.followingListAtom);
+  const [blockList, setBlockList] = useAtom(chatAtom.blockListAtom);
 
   return (
     <div
@@ -33,10 +36,10 @@ export default function UserObj({
           setUserInfo({
             uid: uid,
             nickName: nickName,
-            isFollow: false,
+            isFollow: followingList[uid] === undefined ? false : true,
             userState: status,
             profileImage: profileImage,
-            isIgnored: true,
+            isIgnored: blockList[uid]?.blocked === undefined ? false : true,
             userPower: power,
           });
           callBack(uid);

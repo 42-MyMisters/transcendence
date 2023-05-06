@@ -37,9 +37,9 @@ export default function ChatPage() {
 
 	const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
 	const [userList, setUserList] = useAtom(chatAtom.userListAtom);
-	const [blockList, setBlockList] = useAtom(chatAtom.blockListAtom);
 	const [dmHistoryList, setDmHistoryList] = useAtom(chatAtom.dmHistoryListAtom);
 	const [followingList, setFollowingList] = useAtom(chatAtom.followingListAtom);
+	const [blockList, setBlockList] = useAtom(chatAtom.blockListAtom);
 	const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
 	const [socketState, setSocketState] = useAtom(chatAtom.socketStateAtom);
 
