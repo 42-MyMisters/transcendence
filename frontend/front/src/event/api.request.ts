@@ -21,6 +21,7 @@ export async function DoFollow(
 		method: "POST",
 	})
 		.then((response) => {
+			status = response.status;
 			switch (response.status) {
 				case 201: {
 					if (doOrUndo) {
@@ -44,7 +45,6 @@ export async function DoFollow(
 			}
 		})
 		.catch((error) => {
-			status = error.message;
 			console.log(`\nDoFollow catch_error: ${error} `);
 		});
 
