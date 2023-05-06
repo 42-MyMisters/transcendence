@@ -25,17 +25,26 @@ export default function InitialSettingModal() {
     }
 
     const formData = new FormData();
-    formData.append("profileImage", profileRef.current?.files?.[0]!);
-    console.log(profileRef.current?.files?.[0]!.name);
+    if (profileRef.current?.files?.[0]) {
+      formData.append("profileImage", profileRef.current?.files?.[0]!);
+      console.log(profileRef.current?.files?.[0]!.name);
+    }
 
     const nickNameFormat = JSON.stringify({ nickname: newName });
 
     try {
-      const profileChange = await fetch("http://localhost:4000/user/profile-img-change", {
-        credentials: "include",
-        method: "POST",
-        body: formData,
-      });
+      if (profileRef.current?.files?.[0]) {
+        const profileChange = await fetch("http://localhost:4000/user/profile-img-change", {
+          credentials: "include",
+          method: "POST",
+          body: formData,
+        });
+
+        if (!profileChange.ok) {
+          alert("파일 업로드에 실패했습니다.");
+          return;
+        }
+      }
 
       const nickNameChange = await fetch("http://localhost:4000/user/nickname", {
         credentials: "include",
@@ -44,16 +53,15 @@ export default function InitialSettingModal() {
         body: nickNameFormat,
       });
 
-      if (profileChange.ok && nickNameChange.ok) {
-        navigate("/chat");
-      } else if (!profileChange.ok) {
-        alert("파일 업로드에 실패했습니다.");
-      } else if (!nickNameChange.ok) {
+      if (!nickNameChange.ok) {
         alert("닉네임 변경에 실패했습니다.");
+        return;
       }
     } catch (error) {
       alert(error);
     }
+    console.log(newName);
+    navigate("/chat");
   };
 
   return (
