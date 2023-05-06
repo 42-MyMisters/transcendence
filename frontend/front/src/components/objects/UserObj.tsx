@@ -73,13 +73,13 @@ export default function UserObj({
             ? blockList[uid] !== undefined
               ? <div className="UserNickName" style={{ color: "#aaa" }}>{nickName}</div>
               : followingList[uid] !== undefined
-                ? <div className="UserNickName" style={{ color: "#0af" }}>{nickName}</div>
+                ? <div className="UserNickName" style={{ color: "#3b3" }}>{nickName}</div>
                 : dmHistoryList[uid] !== undefined
                   ? <div className="UserNickName" style={{ color: "#077" }}>{nickName}</div>
                   : <div className="UserNickName" style={{ color: "#333" }}>{nickName}</div>
             : <div className="UserNickName" style={{ color: "#a55" }}>{nickName}</div>
           : chat === 'normal'
-            ? <div className="UserNickName" style={{ color: "#3c3" }}>{nickName}</div>
+            ? <div className="UserNickName" style={{ color: "#0af" }}>{nickName}</div>
             : <div className="UserNickName" style={{ color: "#f00" }}>{nickName}</div>
       }
       {
