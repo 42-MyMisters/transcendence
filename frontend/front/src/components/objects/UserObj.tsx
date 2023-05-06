@@ -14,6 +14,7 @@ export default function UserObj({
   chat,
   power,
   callBack,
+  defaultColor = '#3b3'
 }: {
   uid: number;
   nickName: string;
@@ -22,6 +23,7 @@ export default function UserObj({
   chat: string;
   power: 'owner' | 'admin' | 'member';
   callBack: (uid: number) => void;
+  defaultColor?: string;
 }) {
   const [userInfo, setUserInfo] = useAtom(UserInfoModalInfo);
   const [userDefaultInfo, setUserDefaultInfo] = useAtom(UserAtom);
@@ -73,7 +75,7 @@ export default function UserObj({
             ? blockList[uid] !== undefined
               ? <div className="UserNickName" style={{ color: "#aaa" }}>{nickName}</div>
               : followingList[uid] !== undefined
-                ? <div className="UserNickName" style={{ color: "#3b3" }}>{nickName}</div>
+                ? <div className="UserNickName" style={{ color: `${defaultColor}` }}>{nickName}</div>
                 : dmHistoryList[uid] !== undefined
                   ? <div className="UserNickName" style={{ color: "#077" }}>{nickName}</div>
                   : <div className="UserNickName" style={{ color: "#333" }}>{nickName}</div>
