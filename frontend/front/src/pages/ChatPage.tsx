@@ -360,13 +360,6 @@ export default function ChatPage() {
 						const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
 						newUserList[targetId] = { ...newUserList[targetId], userRoomStatus: action };
 						socket.setNewDetailToNewRoom({ roomList, setRoomList, roomId, newUserList }, action);
-						// if (action === 'mute') { // TODO: add to server side
-						// 	setTimeout(() => {
-						// 		const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
-						// 		newUserList[targetId] = { ...newUserList[targetId], userRoomStatus: 'normal' };
-						// 		socket.setNewDetailToNewRoom({ roomList, setRoomList, roomId, newUserList }, 'normal');
-						// 	}, 10000);
-						// }
 					} else {
 						const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
 						newUserList[targetId] = { ...newUserList[targetId], userRoomStatus: action };
@@ -395,18 +388,18 @@ export default function ChatPage() {
 	}, [roomList, userInfo]);
 
 	useEffect(() => {
-		if (isFirstLogin === false) {
-			socket.socket.on("user-update", ({
-				userId,
-				userDisplayName,
-				userProfileUrl,
-				userStatus
-			}: {
-				userId: number,
-				userDisplayName: string
-				userProfileUrl: string;
-				userStatus: 'online' | 'offline' | 'inGame';
-			}) => {
+		socket.socket.on("user-update", ({
+			userId,
+			userDisplayName,
+			userProfileUrl,
+			userStatus
+		}: {
+			userId: number,
+			userDisplayName: string
+			userProfileUrl: string;
+			userStatus: 'online' | 'offline' | 'inGame';
+		}) => {
+			if (isFirstLogin === false) {
 				const newUser: chatType.userDto = {};
 				newUser[userId] = {
 					userDisplayName,
@@ -415,12 +408,10 @@ export default function ChatPage() {
 				};
 				console.log(`user-upadate: user ${userId} is ${userStatus}`);
 				setUserList({ ...userList, ...newUser });
-			});
-		}
-		return () => {
-			if (isFirstLogin === false) {
-				socket.socket.off("user-update");
 			}
+		});
+		return () => {
+			socket.socket.off("user-update");
 		}
 	}, [userList]);
 

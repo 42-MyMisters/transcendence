@@ -12,8 +12,11 @@ import {
 import { Namespace, Socket } from "socket.io";
 import { AuthService } from "src/auth/auth.service";
 import { User } from "src/database/entity/user.entity";
+import { UserFollow } from "src/database/entity/user-follow.entity";
 import { UserBlock } from "src/database/entity/user-block.entity";
 import { UserService } from "src/user/user.service";
+import * as bcrypt from 'bcrypt';
+
 
 type roomType = 'open' | 'protected' | 'private';
 type userStatus = 'online' | 'offline' | 'inGame';
@@ -34,8 +37,8 @@ type ClientRoomListDto = {
 interface UserInfo {
 	socket?: Socket;
 	status: userStatus;
-	blockedUsers: number[];
-	followingUsers: number[];
+	blockList: number[];
+	followList: number[];
 	userId?: number;
 	userDisplayName?: string;
 	userUrl?: string;
@@ -61,7 +64,8 @@ interface RoomInfo {
 const userList: Record<number, UserInfo> = {
 	0: {
 		status: 'online',
-		blockedUsers: [],
+		blockList: [],
+		followList: [],
 		userId: 0,
 		userDisplayName: 'Norminette',
 		userUrl: "https://pbs.twimg.com/profile_images/1150849282913779713/piO0pkT5_400x400.jpg",
@@ -69,7 +73,8 @@ const userList: Record<number, UserInfo> = {
 	},
 	1: {
 		status: 'offline',
-		blockedUsers: [],
+		blockList: [],
+		followList: [],
 		userId: 1,
 		userDisplayName: 'Elon Musk',
 		userUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Elon_Musk_Royal_Society_%28crop2%29.jpg/1200px-Elon_Musk_Royal_Society_%28crop2%29.jpg",
@@ -77,7 +82,8 @@ const userList: Record<number, UserInfo> = {
 	},
 	2: {
 		status: 'inGame',
-		blockedUsers: [],
+		blockList: [],
+		followList: [],
 		userId: 2,
 		userDisplayName: '42_DALL',
 		userUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/%EC%9D%B4%EB%AF%BC%EC%84%9D%EA%B5%90%EC%88%98-%EC%82%AC%EC%A7%84.jpg/1200px-%EC%9D%B4%EB%AF%BC%EC%84%9D%EA%B5%90%EC%88%98-%EC%82%AC%EC%A7%84.jpg",
@@ -104,7 +110,7 @@ const roomList: Record<number, RoomInfo> = {
 		bannedUsers: [],
 	},
 	1: {
-		roomNumber: 0,
+		roomNumber: 1,
 		roomName: 'Protect Lobby',
 		roomType: 'protected',
 		roomMembers: {
@@ -162,17 +168,25 @@ export class EventsGateway
 					userList[uid] = {
 						socket: socket,
 						status: 'online',
-						blockedUsers: [],
-						followingUsers: [],
+						blockList: [],
+						followList: [],
 						userId: user.uid,
 						userDisplayName: user.nickname.split('#', 2)[0],
 						userUrl: user.profileUrl,
 						isRefresh: false,
 					};
 					try {
-						user?.blockedUsers?.map((blockedUsers) => {
-							console.log(blockedUsers?.targetToBlockId)
-							userList[uid].blockedUsers?.push(blockedUsers?.targetToBlockId);
+						user?.blockedUsers?.map((blockedUser) => {
+							console.log(blockedUser?.targetToBlockId);
+							userList[uid].blockList?.push(blockedUser?.targetToBlockId);
+						});
+					} catch (e) {
+						this.logger.warn("in db, blockedUsers is empty");
+					}
+					try {
+						user?.followings?.map((followUser) => {
+							console.log(followUser?.targetToFollowId);
+							userList[uid].followList?.push(followUser?.targetToFollowId);
 						});
 					} catch (e) {
 						this.logger.warn("in db, blockedUsers is empty");
@@ -206,7 +220,7 @@ export class EventsGateway
 		}
 	}
 
-	deleteRoomLogic(socket: Socket, roomId: number) {
+	handleDeleteRoomLogic(socket: Socket, roomId: number) {
 		let roomMemberCount = 0;
 		let action: 'delete' | 'leave' = 'leave'
 		if (roomList[roomId] !== undefined) {
@@ -283,14 +297,14 @@ export class EventsGateway
 	}
 
 	@SubscribeMessage("clear-data")
-	handleClearData(@ConnectedSocket() socket: Socket) {
+	ClearData(@ConnectedSocket() socket: Socket) {
 		this.logger.log(`${socket.id} clear data`);
 		this.nsp.emit("room-clear");
 		this.nsp.emit("user-clear");
 	}
 
 	@SubscribeMessage("chat-logout")
-	handleLogout(@ConnectedSocket() socket: Socket) {
+	Logout(@ConnectedSocket() socket: Socket) {
 		this.logger.log(`${socket.id} logout`);
 		userList[socket.data.user.uid].status = 'offline';
 		this.nsp.emit("user-update", {
@@ -302,7 +316,7 @@ export class EventsGateway
 	}
 
 	@SubscribeMessage("room-create")
-	handleRoomCreate(
+	async RoomCreate(
 		@ConnectedSocket() socket: Socket,
 		@MessageBody() {
 			roomName,
@@ -313,15 +327,20 @@ export class EventsGateway
 			roomType: roomType;
 			roomPass?: string;
 		}) {
+		const saltRound = 10;
+		const cryptedPassword = await bcrypt.hash(roomPass, saltRound)
 		const trimmedRoomName = roomName.trim();
 		if (trimmedRoomName.length > 0 && trimmedRoomName.length <= 12) {
-			const newMember: RoomMember = {
+			// const newMember: RoomMember = {
+			// 	userRoomStatus: 'normal',
+			// 	userRoomPower: 'owner',
+			// };
+			const newRoomMembers: Record<number, RoomMember> = {};
+			newRoomMembers[socket.data.user.uid] = {
 				userRoomStatus: 'normal',
 				userRoomPower: 'owner',
 			};
-			const newRoomMembers: Record<number, RoomMember> = {};
-			newRoomMembers[socket.data.user.uid] = newMember;
-			const newRoom: RoomInfo = {
+			roomList[ROOM_NUMBER] = {
 				roomNumber: ROOM_NUMBER,
 				roomName: trimmedRoomName,
 				roomType: roomType,
@@ -329,9 +348,8 @@ export class EventsGateway
 				roomOwner: socket.data.user.uid,
 				roomAdmins: [],
 				bannedUsers: [],
-				roomPass: roomPass ?? '', // TODO : 암호화
+				roomPass: cryptedPassword ?? ''
 			}
-			roomList[ROOM_NUMBER] = newRoom;
 			socket.data.roomList.push(ROOM_NUMBER);
 			socket.join(ROOM_NUMBER.toString());
 			if (roomType !== 'private') {
@@ -342,6 +360,7 @@ export class EventsGateway
 					roomType
 				});
 			}
+			this.logger.debug(`room ${trimmedRoomName} created by ${userList[socket.data.user.uid].userDisplayName}`);
 			this.nsp.to(socket.id).emit("room-join", {
 				roomId: ROOM_NUMBER,
 				roomName: trimmedRoomName,
@@ -358,7 +377,7 @@ export class EventsGateway
 	}
 
 	@SubscribeMessage("room-join")
-	handleRoomJoin(
+	async RoomJoin(
 		@ConnectedSocket() socket: Socket,
 		@MessageBody() {
 			roomId,
@@ -370,7 +389,9 @@ export class EventsGateway
 		if (roomList[roomId]) {
 			switch (roomList[roomId].roomType) {
 				case 'protected': {
-					if (roomList[roomId].roomPass !== roomPass) {
+					if (roomId !== 1 && await bcrypt.compare(roomPass, roomList[roomId].roomPass) === false) {
+						return ({ status: 'ko', payload: 'password incorrect' });
+					} else if (roomId === 1 && roomPass !== roomList[roomId].roomPass) {
 						return ({ status: 'ko', payload: 'password incorrect' });
 					}
 				}
@@ -380,7 +401,7 @@ export class EventsGateway
 						userRoomPower: 'member',
 					}
 					roomList[roomId].roomMembers[socket.data.user.uid] = newMember;
-					this.logger.debug(`${socket.id} join room ${roomId}: ${JSON.stringify(roomList[roomId].roomMembers[socket.data.user.uid])}`);
+					this.logger.debug(`${userList[socket.data.user.uid].userDisplayName} join room ${roomList[roomId].roomName}: ${JSON.stringify(roomList[roomId].roomMembers[socket.data.user.uid])}`);
 					socket.join(roomId.toString());
 					socket.data.roomList.push(roomId);
 					this.nsp.to(socket.id).emit("room-join", {
@@ -411,15 +432,15 @@ export class EventsGateway
 	}
 
 	@SubscribeMessage("room-leave")
-	handleRoomLeave(
+	RoomLeave(
 		@ConnectedSocket() socket: Socket,
 		@MessageBody() {
 			roomId,
 		}: {
 			roomId: number;
 		}) {
-		this.logger.log(`${socket.id}:${socket.data.user.nickname} leave room ${roomId}`);
-		if (this.deleteRoomLogic(socket, roomId) === 'leave') {
+		this.logger.debug(`${socket.id}:${socket.data.user.nickname} leave room ${roomId}`);
+		if (this.handleDeleteRoomLogic(socket, roomId) === 'leave') {
 			return ({ status: 'ok' });
 		} else {
 			return ({ status: 'ko' });
@@ -427,7 +448,7 @@ export class EventsGateway
 	}
 
 	@SubscribeMessage("message")
-	handleMessage(
+	Message(
 		@ConnectedSocket() socket: Socket,
 		@MessageBody() {
 			roomId,
@@ -438,13 +459,26 @@ export class EventsGateway
 		}) {
 		if (roomList[roomId] === undefined) {
 			return { status: 'ko', payload: '방에 참여하세요\n선택된 방이 없습니다.' };
+		} else if (roomList[roomId].roomMembers[socket.data.user.uid].userRoomStatus === 'mute') {
+			return { status: 'ko', payload: 'mute 상태입니다.' };
+		} else {
+			this.nsp.to(String(roomId)).emit("message", {
+				roomId,
+				from: socket.data.user.uid,
+				message,
+			});
+			return { status: 'ok' };
 		}
-		this.nsp.to(String(roomId)).emit("message", {
-			roomId,
-			from: socket.data.user.uid,
-			message,
-		});
-		return { status: 'ok' };
+	}
+	@SubscribeMessage("room-in-action")
+	RoomInAction(@ConnectedSocket() socket: Socket) {
+		// if (action === 'mute') { // TODO: add to server side
+		// 	setTimeout(() => {
+		// 		const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
+		// 		newUserList[targetId] = { ...newUserList[targetId], userRoomStatus: 'normal' };
+		// 		socket.setNewDetailToNewRoom({ roomList, setRoomList, roomId, newUserList }, 'normal');
+		// 	}, 10000);
+		// }
 	}
 
 	@SubscribeMessage("server-room-list")
@@ -512,15 +546,36 @@ export class EventsGateway
 		return tempUserList;
 	}
 
-
 	handleBlockList(socket: Socket) {
-
+		const tempUser: Record<number, boolean> = {};
+		try {
+			userList[socket.data.user.uid].blockList.forEach((blockId) => {
+				tempUser[blockId] = true;
+			})
+		} catch (e) {
+			this.logger.error(`handleBlockList - ${e}`);
+		}
+		return tempUser;
 	}
 
 	handleFollowList(socket: Socket) {
-
+		const tempFollowList: Record<number, ClientUserDto> = {};
+		try {
+			socket?.data?.user?.followings?.forEach((targetId: UserFollow) => {
+				tempFollowList[targetId.targetToFollowId] = {
+					userDisplayName: targetId.fromUser.nickname,
+					userProfileUrl: targetId.fromUser.profileUrl,
+					userStatus: userList[targetId.targetToFollowId].status,
+				};
+			});
+		} catch (e) {
+			this.logger.error(`handleFollowList - ${e}`);
+		}
+		return tempFollowList;
 	}
 
 	handleDmList(socket: Socket) {
+		const tempDmList: Record<number, ClientUserDto> = {};
+		return tempDmList;
 	}
 }
