@@ -393,9 +393,8 @@ export class EventsGateway
 			}
 			switch (roomList[roomId].roomType) {
 				case 'protected': {
-					if (roomId !== 1 && await bcrypt.compare(roomPass, roomList[roomId].roomPass) === false) {
-						return ({ status: 'ko', payload: 'password incorrect' });
-					} else if (roomId === 1 && roomPass !== roomList[roomId].roomPass) {
+					if ((roomId !== 1 && await bcrypt.compare(roomPass, roomList[roomId].roomPass) === false)
+						|| roomId === 1 && roomPass !== roomList[roomId].roomPass) {
 						return ({ status: 'ko', payload: 'password incorrect' });
 					}
 				}
@@ -605,6 +604,7 @@ export class EventsGateway
 	}
 
 	handleRoomList(socket: Socket) {
+		this.logger.debug(`handleRoomList ${socket.data.user.uid}`);
 		const tempRoomList: Record<number, ClientRoomListDto> = {};
 		for (const [roomId, roomInfo] of Object.entries(roomList)) {
 			if (roomInfo.roomMembers[socket?.data?.user?.uid] !== undefined) {
@@ -632,26 +632,32 @@ export class EventsGateway
 	}
 
 	handleUserList(socket: Socket) {
+		this.logger.debug(`handleUserList ${socket.data.user.uid}`);
 		const tempUserList: Record<number, ClientUserDto> = {};
-		for (const [uid, userInfo] of Object.entries(userList)) {
-			if (Number(uid) <= 2) {
-				tempUserList[uid] = {
-					userDisplayName: userInfo.userDisplayName || 'test user',
-					userProfileUrl: userInfo.userUrl || 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/42_Logo.svg/2048px-42_Logo.svg.png',
-					userStatus: userInfo.status,
+		try {
+			for (const [uid, userInfo] of Object.entries(userList)) {
+				if (Number(uid) <= 2) {
+					tempUserList[uid] = {
+						userDisplayName: userInfo.userDisplayName || 'test user',
+						userProfileUrl: userInfo.userUrl || 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/42_Logo.svg/2048px-42_Logo.svg.png',
+						userStatus: userInfo.status,
+					}
+				} else {
+					tempUserList[uid] = {
+						userDisplayName: userInfo.socket?.data?.user.nickname.split('#', 2)[0],
+						userProfileUrl: userInfo.socket?.data?.user.profileUrl,
+						userStatus: userInfo.status,
+					};
 				}
-			} else {
-				tempUserList[uid] = {
-					userDisplayName: userInfo.socket?.data.user.nickname.split('#', 2)[0],
-					userProfileUrl: userInfo.socket?.data.user.profileUrl,
-					userStatus: userInfo.status,
-				};
 			}
+		} catch (error) {
+			this.logger.error(`catch-error: handleUserList - ${error}:`, error);
 		}
 		return tempUserList;
 	}
 
 	handleBlockList(socket: Socket) {
+		this.logger.debug(`handleBlockList - ${socket.data.user.uid}`);
 		const tempUser: Record<number, boolean> = {};
 		try {
 			userList[socket.data.user.uid].blockList.forEach((blockId) => {
@@ -664,6 +670,7 @@ export class EventsGateway
 	}
 
 	handleFollowList(socket: Socket) {
+		this.logger.debug(`handleFollowList - ${socket.data.user.uid}`);
 		const tempFollowList: Record<number, ClientUserDto> = {};
 		try {
 			socket?.data?.user?.followings?.forEach((targetId: UserFollow) => {
@@ -680,6 +687,7 @@ export class EventsGateway
 	}
 
 	handleDmList(socket: Socket) {
+		this.logger.debug(`handleDmList - ${socket.data.user.uid}`);
 		const tempDmList: Record<number, ClientUserDto> = {};
 		return tempDmList;
 	}

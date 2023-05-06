@@ -1,6 +1,8 @@
 import { useAtom } from "jotai";
-import { inviteModalAtom } from "../../components/atom/ModalAtom";
-import { userInfoModalAtom } from "../../components/atom/ModalAtom";
+import {
+  userInfoModalAtom,
+  inviteModalAtom
+} from "../../components/atom/ModalAtom";
 import { useCallback } from "react";
 
 import "../../styles/ChatRoomUserList.css";

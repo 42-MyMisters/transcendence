@@ -41,7 +41,7 @@ type roomDetailDto = {
 type roomListDto = {
 	[key: number]: {
 		roomName: string
-		roomType: 'open' | 'protected' | 'private';
+		roomType: 'open' | 'protected' | 'private' | 'dm';
 		isJoined: boolean;
 		detail?: roomDetailDto;
 	}

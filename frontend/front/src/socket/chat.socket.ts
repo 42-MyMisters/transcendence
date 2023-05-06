@@ -90,6 +90,18 @@ export function emitRoomJoin(
 	});
 }
 
+export function emitRoomInvite({
+	roomList,
+}: {
+	roomList: chatType.roomListDto
+},
+	roomId: number,
+	targetName: string) {
+	if (roomList[roomId].roomType === 'dm') {
+		alert('dm room cannot invite');
+	}
+}
+
 export function emitRoomLeave(
 	{
 		roomList,
