@@ -18,22 +18,38 @@ export default function InitialSettingModal() {
   const navigate = useNavigate();
 
   const setDefaultInfo = async () => {
+    if (newName.length < 2 || newName.trim().length < 2) {
+      alert("닉네임은 2글자 이상이어야 합니다.");
+      setNewName("");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("profileImage", profileRef.current?.files?.[0]!);
     console.log(profileRef.current?.files?.[0]!.name);
 
+    const nickNameFormat = JSON.stringify({ nickname: newName });
+
     try {
-      const response = await fetch("http://localhost:4000/user/profile-img-change", {
+      const profileChange = await fetch("http://localhost:4000/user/profile-img-change", {
         credentials: "include",
         method: "POST",
         body: formData,
       });
 
-      if (response.ok) {
-        console.log("hi");
+      const nickNameChange = await fetch("http://localhost:4000/user/nickname", {
+        credentials: "include",
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: nickNameFormat,
+      });
+
+      if (profileChange.ok && nickNameChange.ok) {
         navigate("/chat");
-      } else {
+      } else if (!profileChange.ok) {
         alert("파일 업로드에 실패했습니다.");
+      } else if (!nickNameChange.ok) {
+        alert("닉네임 변경에 실패했습니다.");
       }
     } catch (error) {
       alert(error);
