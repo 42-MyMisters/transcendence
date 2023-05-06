@@ -24,7 +24,7 @@ export default function ProfileFriend() {
                   chat={'normal'}
                   power="member"
                   callBack={() => { }}
-                  defaultColor={"#eee"}
+                  defaultColor={"#111"}
                 />
               );
             })
