@@ -58,7 +58,9 @@ export default function ChatRoomUserList() {
       {
         focusRoom === -1
           ? ''
-          : <div className="ChatRoomExitBtn" onClick={onClickLeave} />
+          : roomList[focusRoom]?.detail?.myRoomStatus === 'mute'
+            ? ''
+            : <div className="ChatRoomExitBtn" onClick={onClickLeave} />
       }
       <div className="ChatRoomUsers">
         {

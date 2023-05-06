@@ -259,17 +259,19 @@ export default function ChatPage() {
 
 	useEffect(() => {
 		socket.socket.on("room-clear", () => {
-			setRoomList({});
+			const newRoomList: chatType.roomListDto = {};
+			setRoomList({ ...newRoomList });
 			setFocusRoom(-1);
 		});
 		socket.socket.on("user-clear", () => {
+			console.log(`\nuser-clear: ${JSON.stringify(userList)}`)
 			setUserList({});
 		});
 		return () => {
 			socket.socket.off("room-clear");
 			socket.socket.off("user-clear");
 		};
-	}, [roomList, userList]);
+	}, [roomList, userList, setRoomList, setUserList]);
 
 	useEffect(() => {
 		socket.socket.on("room-join", ({
@@ -351,7 +353,18 @@ export default function ChatPage() {
 				case 'ban':
 				case 'leave':
 				case 'kick': {
-					if (targetId !== userInfo.uid) {
+					if (targetId === userInfo.uid) {
+						const newRoomList: chatType.roomListDto = {};
+						newRoomList[roomId] = {
+							roomName: roomList[roomId].roomName,
+							roomType: roomList[roomId].roomType,
+							isJoined: false,
+						}
+						setRoomList({ ...roomList, ...newRoomList });
+						if (focusRoom === roomId) {
+							setFocusRoom(-1);
+						}
+					} else {
 						const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
 						delete newUserList[targetId];
 						socket.setNewDetailToNewRoom({ roomList, setRoomList, roomId, newUserList });
@@ -392,7 +405,7 @@ export default function ChatPage() {
 		return () => {
 			socket.socket.off("room-in-action");
 		}
-	}, [roomList, userInfo]);
+	}, [roomList, userInfo, focusRoom]);
 
 	useEffect(() => {
 		socket.socket.on("user-update", ({

@@ -212,6 +212,7 @@ export class EventsGateway
 					userStatus: 'online',
 				});
 			} else {
+				this.logger.warn(`user not found.`);
 				throw new UnauthorizedException("User not found.");
 			}
 		} catch (e) {
@@ -387,6 +388,9 @@ export class EventsGateway
 			roomPass?: string;
 		}) {
 		if (roomList[roomId]) {
+			if (roomList[roomId].bannedUsers.includes(socket.data.user.uid)) {
+				return ({ status: 'ko', payload: '\nbanned' });
+			}
 			switch (roomList[roomId].roomType) {
 				case 'protected': {
 					if (roomId !== 1 && await bcrypt.compare(roomPass, roomList[roomId].roomPass) === false) {
@@ -514,6 +518,9 @@ export class EventsGateway
 			case 'admin': {
 				if (roomList[roomId].roomMembers[targetId].userRoomPower === 'owner') {
 					return { status: 'ko', payload: '\nowner에게 영향을 줄 수 없습니다.' };
+				} else if (roomList[roomId].roomMembers[socket.data.user.uid].userRoomPower !== 'owner'
+					&& roomList[roomId].roomMembers[targetId].userRoomPower === 'admin') {
+					return { status: 'ko', payload: '\nadmin이 admin에게 영향을 줄 수 없습니다.' };
 				}
 				switch (action) {
 					case 'admin': {
@@ -530,19 +537,33 @@ export class EventsGateway
 							targetId,
 						});
 						setTimeout(() => {
-							roomList[roomId].roomMembers[targetId].userRoomStatus = 'normal';
-							this.nsp.to(roomId.toString()).emit('room-in-action', {
-								roomId,
-								action: 'normal',
-								targetId,
-							});
+							if (roomList[roomId].roomMembers[targetId] !== undefined) {
+								roomList[roomId].roomMembers[targetId].userRoomStatus = 'normal';
+								this.nsp.to(roomId.toString()).emit('room-in-action', {
+									roomId,
+									action: 'normal',
+									targetId,
+								});
+							}
 						}, 10000);
 						break;
 					}
 					case 'ban': {
-						break;
+						if (roomList[roomId].bannedUsers.includes(targetId) === false) {
+							this.logger.debug(`${socket.data.user.nickname} ban ${userList[targetId].userDisplayName} from ${roomList[roomId].roomName}`);
+							roomList[roomId].bannedUsers.push(targetId);
+						}
 					}
 					case 'kick': {
+						delete roomList[roomId].roomMembers[targetId];
+						if (roomList[roomId].roomAdmins.includes(targetId)) {
+							roomList[roomId].roomAdmins = roomList[roomId].roomAdmins.filter((adminId) => adminId !== targetId);
+						}
+						this.nsp.to(roomId.toString()).emit('room-in-action', {
+							roomId,
+							action,
+							targetId,
+						});
 						break;
 					}
 					default: {
@@ -558,6 +579,8 @@ export class EventsGateway
 				return { status: 'ko', payload: '\nuserPower가 불확실합니다.' };
 			}
 		}
+		return { status: 'ok' };
+
 	}
 
 	@SubscribeMessage("server-room-list")
