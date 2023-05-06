@@ -10,13 +10,19 @@ import { useAtom } from "jotai";
 import { isQueueAtom } from "../components/atom/GameAtom";
 
 import { PressKey } from "../event/pressKey";
-import * as game from '../socket/game.socket';
+import * as game from "../socket/game.socket";
 import { GameCoordinateAtom, GameCoordinate } from "../components/atom/GameAtom";
 
 import { Game } from "../components/GamePage/Pong";
+import GameResultModal from "../components/GamePage/GameResultModal";
+import LadderBoard from "../components/GamePage/LadderBoard";
+import { gameResultModalAtom } from "../components/atom/ModalAtom";
 
 export default function GamePage() {
   const [showComponent, setShowComponent] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [gameResultModal, setGameResultModal] = useAtom(gameResultModalAtom);
+
   const [isQueue, setIsQueue] = useAtom(isQueueAtom);
 
   const [coordinate, setCoordinate] = useAtom(GameCoordinateAtom);
@@ -39,9 +45,26 @@ export default function GamePage() {
 
   return (
     <BackGround>
+      <button
+        onClick={() => {
+          const loading = !isLoading;
+          setIsLoading(loading);
+        }}
+      >
+        LadderRanking
+      </button>
+      <button
+        onClick={() => {
+          const gameOverModal = !gameResultModal;
+          setGameResultModal(gameOverModal);
+        }}
+      >
+        GameOver
+      </button>
+
       <TopBar />
-      {/* <div>{showComponent ? <Waiting /> : <PingPong />}</div> */}
-      <PingPong />
+      {isLoading ? <LadderBoard /> : <PingPong />}
+      {gameResultModal ? <GameResultModal result={true} leftScore={5} rightScore={4} /> : null}
     </BackGround>
   );
 }
