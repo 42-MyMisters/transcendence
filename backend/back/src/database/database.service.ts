@@ -7,6 +7,8 @@ import { DirectMessage } from "./entity/direct-message.entity";
 import { Game } from "./entity/game.entity";
 import { UserBlock } from "./entity/user-block.entity";
 
+
+
 @Injectable()
 export class DatabaseService {
     constructor(
@@ -16,31 +18,31 @@ export class DatabaseService {
         @InjectRepository(Game) private gameRepository: Repository<Game>,
         @InjectRepository(DirectMessage) private directMessageRepository: Repository<DirectMessage>,
         private dataSource: DataSource,
-    ) {}
+    ) { }
 
     //USER CREATE
     async saveUser(user: User): Promise<User> {
         return await this.userRepository.save(user);
     }
-    
+
     // USER READ
     async findAllUser(): Promise<User[]> {
         return await this.userRepository.find();
     }
-    
+
     async findUserByUid(uid: number): Promise<User | null> {
-        const user = await this.userRepository.findOneBy({uid});
+        const user = await this.userRepository.findOneBy({ uid });
         return user;
     }
-    
+
     async findUserByNickname(nickname: string): Promise<User | null> {
-		const user = await this.userRepository.findOneBy({nickname});
-		return user;
+        const user = await this.userRepository.findOneBy({ nickname });
+        return user;
     }
 
     async findUserByEmail(email: string): Promise<User | null> {
-        const user = await this.userRepository.findOneBy({email});
-		return user;
+        const user = await this.userRepository.findOneBy({ email });
+        return user;
     }
 
     async findUserWithFollowing(uid: number): Promise<User[]> {
@@ -57,13 +59,13 @@ export class DatabaseService {
 
 
     // USER UPDATE
-    async updateUser(user: User){
+    async updateUser(user: User) {
         await this.userRepository.save(user);
     }
-    
+
     async updateUserNickname(uid: number, nickname: string) {
-        try{
-            await this.userRepository.update({uid}, {nickname});
+        try {
+            await this.userRepository.update({ uid }, { nickname });
         } catch (error) {
             throw new ForbiddenException('nickname already exists');
         }
@@ -71,68 +73,68 @@ export class DatabaseService {
 
     async updateUserRefreshToken(uid: number, refreshToken: string | null) {
         try {
-            await this.userRepository.update({uid},{refreshToken});
-        } catch (error){
+            await this.userRepository.update({ uid }, { refreshToken });
+        } catch (error) {
             throw new BadRequestException(`refreshTokenUpdate Error + ${error}`);
         }
     }
 
-    async updateUserPassword(uid: number, password: string){
-        await this.userRepository.update({uid}, {password});
+    async updateUserPassword(uid: number, password: string) {
+        await this.userRepository.update({ uid }, { password });
     }
 
-    async updateUserProfileImgUrl(uid: number, profileUrl: string ){
-        await this.userRepository.update({uid}, {profileUrl});
+    async updateUserProfileImgUrl(uid: number, profileUrl: string) {
+        await this.userRepository.update({ uid }, { profileUrl });
     }
 
-    async updateUserTwoFactorEnabled(uid: number,  twoFactorEnabled: boolean){
-        await this.userRepository.update({uid}, {twoFactorEnabled});
+    async updateUserTwoFactorEnabled(uid: number, twoFactorEnabled: boolean) {
+        await this.userRepository.update({ uid }, { twoFactorEnabled });
     }
-    async updateUserTwoSecret(uid: number,  twoFactorSecret: string){
-        await this.userRepository.update({uid}, {twoFactorSecret});
+    async updateUserTwoSecret(uid: number, twoFactorSecret: string) {
+        await this.userRepository.update({ uid }, { twoFactorSecret });
     }
 
 
     // USER DELETE
-    async deleteUser(uid: number){
-        return await this.userRepository.delete({uid});
+    async deleteUser(uid: number) {
+        return await this.userRepository.delete({ uid });
     }
 
 
     // USER-FOLLOW CREATE
-    async saveFollow(userFollow: UserFollow): Promise<UserFollow>{
+    async saveFollow(userFollow: UserFollow): Promise<UserFollow> {
         return await this.userFollowRepository.save(userFollow);
     }
-    
+
     // USER-FOLLOW READ
-    async findFollowingByUid(fromUid: number, toUid: number): Promise<UserFollow | null>{
-        return await this.userFollowRepository.findOne({ where : { fromUserId: fromUid, targetToFollowId: toUid } });
+    async findFollowingByUid(fromUid: number, toUid: number): Promise<UserFollow | null> {
+        return await this.userFollowRepository.findOne({ where: { fromUserId: fromUid, targetToFollowId: toUid } });
     }
 
     async findAllFollowingByUid(fromUserId: number) {
-       return await this.userFollowRepository.find({
-        where: { fromUserId },
-        relations: ['targetToFollow'],
-      });
+        return await this.userFollowRepository.find({
+            where: { fromUserId },
+            relations: ['targetToFollow'],
+        });
     }
-    
+
     // USER-FOLLOW UPDATE
-    
-    
+
+
     // USER-FOLLOW DELETE
     async deleteFollow(fromUid: number, toUid: number) {
         // await this.userFollowRepository.remove(userFollow);
-        const result = await this.userFollowRepository.delete({fromUserId: fromUid, targetToFollowId: toUid});
+        const result = await this.userFollowRepository.delete({ fromUserId: fromUid, targetToFollowId: toUid });
         if (result.affected === 0) {
             throw new NotFoundException("already unfollowed");
         }
     }
-    
+
     // USER-BLOCK CREATE
     async saveBlock(userBlock: UserBlock): Promise<UserBlock> {
         return await this.userBlockRepository.save(userBlock);
     }
-    
+
     // USER-BLOCK READ
     async findBlockByUid(fromUid: number, toUid: number): Promise<UserBlock | null> {
         return await this.userBlockRepository.findOne({ where: { fromUserId: fromUid, targetToBlockId: toUid } });
@@ -140,37 +142,45 @@ export class DatabaseService {
 
     // USER-BLOCK LIST
     async findAllBlockByUid(fromUid: number): Promise<UserBlock[]> {
-        return await this.userBlockRepository.find({where: {fromUserId: fromUid}});
+        return await this.userBlockRepository.find({ where: { fromUserId: fromUid } });
     }
 
     // USER-BLOCK DELETE
     async deleteBlock(fromUid: number, toUid: number) {
         // await this.userBlockRepository.remove(userBlock);
-        const result = await this.userBlockRepository.delete({fromUserId: fromUid, targetToBlockId: toUid});
+        const result = await this.userBlockRepository.delete({ fromUserId: fromUid, targetToBlockId: toUid });
         if (result.affected === 0) {
             throw new NotFoundException("already unblocked");
         }
     }
 
 
-    // Direct Message 
-    
-    async findDMById(did: number): Promise<DirectMessage | null>{
-        return await this.directMessageRepository.findOne({where: {did}});
+    // Direct Message
+
+    async findDMById(did: number): Promise<DirectMessage | null> {
+        return await this.directMessageRepository.findOne({ where: { did } });
     }
 
     // is this neccesary?
-    async findDMByUserId(senderId: number): Promise<DirectMessage[] | null>{
-        return await this.directMessageRepository.find({where: {senderId}});
+    async findDMByUserId(senderId: number): Promise<DirectMessage[] | null> {
+        return await this.directMessageRepository.find({ where: { senderId } });
     }
-    
-    async saveDM(dm: DirectMessage){
+
+    async saveDM(dm: DirectMessage) {
         return await this.directMessageRepository.save(dm);
     }
 
+    async findDMSenderAndReceiver(senderId: number, receiverId: number): Promise<DirectMessage[] | null> {
+        return await this.directMessageRepository
+            .createQueryBuilder('dm')
+            .where('dm.senderId = :senderId', { senderId })
+            .andWhere('dm.receiverId = :receiverId', { receiverId })
+            .getRawMany();
+    }
 
 
-    
+
+
     //GAME
-    
+
 }

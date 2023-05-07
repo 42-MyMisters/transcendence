@@ -19,7 +19,6 @@ export default function ChatUserList() {
   // const [focusDm, setFocusDm] = useAtom(chatAtom.focusDmAtom);
 
   const DM = (targetId: number) => {
-    alert(`DM with ${userList[targetId]?.userDisplayName}`);
     if (roomList[targetId] === undefined) {
       console.log('init');
       // init logic

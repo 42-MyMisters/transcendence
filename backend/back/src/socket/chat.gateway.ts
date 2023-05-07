@@ -690,6 +690,52 @@ export class EventsGateway
 
 	}
 
+	@SubscribeMessage("dm-room-create")
+	async DmRoomCreate(
+		@ConnectedSocket() socket: Socket,
+		@MessageBody() {
+			targetId,
+		}: {
+			targetId: number,
+		}) {
+		try {
+			const myDmList = await this.databaseService.findDMSenderAndReceiver(socket.data.user.uid, targetId);
+			const targetDmlist = await this.databaseService.findDMSenderAndReceiver(targetId, socket.data.user.uid);
+			const dmUserList: Record<number, RoomMember> = {};
+			dmUserList[socket.data.user.uid] = {
+				userRoomStatus: 'normal',
+				userRoomPower: 'member'
+			}
+			dmUserList[targetId] = {
+				userRoomStatus: 'normal',
+				userRoomPower: 'member'
+			}
+			this.nsp.to(socket.id).emit('room-join', {
+				roomId: targetId,
+				roomName: 'DM',
+				roomType: 'dm',
+				userList: dmUserList,
+				myPower: 'member',
+				status: 'ok',
+			});
+			if (userList[targetId]?.socket !== undefined) {
+				this.nsp.to(userList[targetId]?.socket?.id!).emit('room-join', {
+					roomId: socket.data.user.uid,
+					roomName: 'DM',
+					roomType: 'dm',
+					userList: dmUserList,
+					myPower: 'member',
+					status: 'ok',
+					method: 'invite'
+				});
+			}
+			return { status: 'ok' };
+		} catch (e) {
+			this.logger.error(`dm-room-create ${e}`);
+		}
+		return { status: 'ko' };
+	}
+
 	@SubscribeMessage("server-room-list")
 	handleServerRoomList(@ConnectedSocket() socket: Socket) {
 		this.logger.verbose("server-room-list");

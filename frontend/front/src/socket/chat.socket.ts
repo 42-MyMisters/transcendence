@@ -325,10 +325,15 @@ export function emitDmRoomCreate({
 ) {
 	socket.emit("dm-room-create", {
 		targetId,
-	}, (
+	}, ({
+		status
+	}: {
 		status: 'ok' | 'ko',
-	) => {
-
-
+	}) => {
+		if (status === 'ok') {
+			console.log(`dm room create to ${targetId} is sended`);
+		} else {
+			console.log(`dm room create to ${targetId} is failed`);
+		}
 	});
 }

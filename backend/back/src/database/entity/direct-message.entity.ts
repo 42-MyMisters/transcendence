@@ -10,7 +10,7 @@ export class DirectMessage extends BaseEntity {
     senderId: number;
 
     @Column()
-    recieverId: number;
+    receiverId: number;
 
     @Column({ nullable: true, type: 'varchar' })
     message: string | null;
@@ -19,7 +19,7 @@ export class DirectMessage extends BaseEntity {
     time: Date;
 
     @Column({ default: false })
-    blockFromReciever: boolean;
+    blockFromReceiver: boolean;
 
     @ManyToOne(() => User, (user) => user.uid)
     @JoinColumn({
@@ -30,9 +30,9 @@ export class DirectMessage extends BaseEntity {
 
     @ManyToOne(() => User, (user) => user.uid)
     @JoinColumn({
-        name: 'reciever',
+        name: 'receiver',
         referencedColumnName: 'uid',
     })
-    reciever: User;
+    receiver: User;
 
 }
