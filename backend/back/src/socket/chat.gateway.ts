@@ -63,6 +63,8 @@ interface RoomInfo {
 	roomPass?: string;
 }
 
+const roomNumberQueue: number[] = [];
+
 const userList: Record<number, UserInfo> = {
 	0: {
 		status: 'online',
@@ -135,8 +137,10 @@ const roomList: Record<number, RoomInfo> = {
 		roomPass: '42',
 	},
 };
+
 let ROOM_NUMBER = 2;
 let ROOM_COUNT = 2;
+const MAX_ROOM_COUNT = 200;
 
 @WebSocketGateway({ namespace: "sock", cors: { origin: "*" } })
 export class EventsGateway
@@ -224,6 +228,7 @@ export class EventsGateway
 					roomType: roomList[roomId].roomType
 				});
 				delete roomList[roomId];
+				roomNumberQueue.push(roomId);
 				ROOM_COUNT--;
 				this.logger.debug(`Room ${roomId} deleted.\n`);
 				action = 'delete';
@@ -323,9 +328,16 @@ export class EventsGateway
 			roomType: roomType;
 			roomPass?: string;
 		}) {
-		if (ROOM_COUNT >= 200) {
+		if (ROOM_COUNT >= MAX_ROOM_COUNT) {
 			return { status: 'ko', payload: "\ntoo many rooms exists in live server" };
 		}
+
+		let tempRoomNumber: number | undefined = roomNumberQueue.shift();
+		if (tempRoomNumber === undefined) {
+			tempRoomNumber = ROOM_NUMBER;
+			ROOM_NUMBER++;
+		}
+
 		const trimmedRoomName = roomName.trim();
 		if (trimmedRoomName.length > 0 && trimmedRoomName.length <= 12) {
 			const newRoomMembers: Record<number, RoomMember> = {};
@@ -335,8 +347,8 @@ export class EventsGateway
 			};
 			const saltRound = 10;
 			const cryptedPassword = await bcrypt.hash(roomPass, saltRound)
-			roomList[ROOM_NUMBER] = {
-				roomNumber: ROOM_NUMBER,
+			roomList[tempRoomNumber] = {
+				roomNumber: tempRoomNumber,
 				roomName: trimmedRoomName,
 				roomType: roomType,
 				roomMembers: newRoomMembers,
@@ -345,26 +357,25 @@ export class EventsGateway
 				bannedUsers: [],
 				roomPass: cryptedPassword ?? ''
 			}
-			socket.data.roomList.push(ROOM_NUMBER);
-			socket.join(ROOM_NUMBER.toString());
+			socket.data.roomList.push(tempRoomNumber);
+			socket.join(tempRoomNumber.toString());
 			if (roomType !== 'private') {
 				this.nsp.emit("room-list-update", {
 					action: 'new',
-					roomId: ROOM_NUMBER,
+					roomId: tempRoomNumber,
 					roomName: trimmedRoomName,
 					roomType
 				});
 			}
 			this.logger.debug(`room ${trimmedRoomName} created by ${userList[socket.data.user.uid].userDisplayName}`);
 			this.nsp.to(socket.id).emit("room-join", {
-				roomId: ROOM_NUMBER,
+				roomId: tempRoomNumber,
 				roomName: trimmedRoomName,
 				roomType,
 				userList: newRoomMembers,
 				myPower: 'owner',
 				status: 'ok'
 			});
-			ROOM_NUMBER++;
 			ROOM_COUNT++;
 		} else {
 			return { status: 'ko', payload: "\nroom name must be 1 ~ 12 characters" };

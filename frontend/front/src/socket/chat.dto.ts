@@ -47,4 +47,10 @@ type roomListDto = {
 	}
 }
 
-export type { userDto, userSimpleDto, roomDetailDto, roomMessageDto, roomListDto, userInRoomListDto, userStatus, userRoomStatus, userRoomPower };
+type dmListDto = {
+	[key: number]: {
+		messageList: roomMessageDto[];
+	}
+}
+
+export type { userDto, userSimpleDto, roomDetailDto, roomMessageDto, roomListDto, userInRoomListDto, userStatus, userRoomStatus, userRoomPower, dmListDto };

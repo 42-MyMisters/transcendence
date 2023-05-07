@@ -12,9 +12,24 @@ export default function ChatUserList() {
   const [blockList] = useAtom(chatAtom.blockListAtom);
   const [dmHistoryList] = useAtom(chatAtom.dmHistoryListAtom);
   const [followingList] = useAtom(chatAtom.followingListAtom);
+  const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
+  const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
+  // const [dmList, setDmList] = useAtom(chatAtom.dmListAtom);
+  // const [focusDm, setFocusDm] = useAtom(chatAtom.focusDmAtom);
 
-  const DM = (uid: number) => {
-    alert(`DM with ${userList[uid]?.userDisplayName}`);
+  const DM = (targetId: number) => {
+    alert(`DM with ${userList[targetId]?.userDisplayName}`);
+    if (roomList[targetId] === undefined) {
+      console.log('init');
+      // init logic
+      // create room in roomList, and opposite user's roomList
+      // bring dm histroy from server
+      // setFocusRoom(targetId);
+    } else {
+      console.log('show');
+      // show logic
+      setFocusRoom(targetId);
+    }
   };
 
   return (

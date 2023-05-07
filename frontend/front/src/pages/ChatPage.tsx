@@ -35,6 +35,7 @@ export default function ChatPage() {
 	const [isFirstLogin, setIsFirstLogin] = useAtom(chatAtom.isFirstLoginAtom);
 	const [hasLogin, setHasLogin] = useAtom(chatAtom.hasLoginAtom);
 
+	const [dmList, setDmList] = useAtom(chatAtom.dmListAtom);
 	const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
 	const [userList, setUserList] = useAtom(chatAtom.userListAtom);
 	const [dmHistoryList, setDmHistoryList] = useAtom(chatAtom.dmHistoryListAtom);

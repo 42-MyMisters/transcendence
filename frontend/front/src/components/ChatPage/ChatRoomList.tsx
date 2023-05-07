@@ -32,14 +32,16 @@ export default function ChatRoomList() {
       <div className="ChatRoomListPlusBtn" onClick={() => setRoomModal(true)} />
       <div className="ChatRooms">
         {Object.entries(roomList).map((key) => (
-          <ChatRoom
-            key={key[0]}
-            roomId={Number(key[0])}
-            roomName={roomList[Number(key[0])]?.roomName}
-            type={roomList[Number(key[0])]?.roomType}
-            isJoin={roomList[Number(key[0])]?.isJoined || false}
-            callBack={roomClickHandler}
-          />
+          roomList[Number(key[0])].roomType === "dm"
+            ? ""
+            : <ChatRoom
+              key={key[0]}
+              roomId={Number(key[0])}
+              roomName={roomList[Number(key[0])]?.roomName}
+              type={roomList[Number(key[0])]?.roomType}
+              isJoin={roomList[Number(key[0])]?.isJoined || false}
+              callBack={roomClickHandler}
+            />
         ))}
       </div>
     </div>

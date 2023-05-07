@@ -22,13 +22,19 @@ export const socket = io(`${URL}${NameSpace}`, {
 export function emitRoomCreate(
 	roomName: string,
 	roomCheck: boolean = false,
-	roomPass: string = ''
+	roomPass: string = '',
+	dm: boolean = false,
 ) {
-	const roomType = roomCheck
-		? 'private'
-		: roomPass
-			? 'protected'
-			: 'open';
+	let roomType = 'open'
+	if (dm) {
+		roomType = 'dm';
+	} else {
+		roomType = roomCheck
+			? 'private'
+			: roomPass
+				? 'protected'
+				: 'open';
+	}
 	socket.emit("room-create", {
 		roomName,
 		roomType,
