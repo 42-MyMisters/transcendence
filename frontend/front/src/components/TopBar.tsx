@@ -1,10 +1,12 @@
 import { Cookies } from "react-cookie";
 import "../styles/TopBar.css";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 
 import { useAtom } from "jotai";
 import { refreshTokenAtom } from "./atom/LoginAtom";
+import { LogOut } from '../event/api.request';
 import * as socket from "../socket/chat.socket";
+import * as chatAtom from "../components/atom/ChatAtom";
 
 export default function TopBar() {
   return (
@@ -68,16 +70,19 @@ function ProfileBtn() {
 
 function LogoutBtn() {
   const [, setRefreshToken] = useAtom(refreshTokenAtom);
+  const [isFirstLogin, setIsFirstLogin] = useAtom(chatAtom.isFirstLoginAtom);
+  const [hasLogin, setHasLogin] = useAtom(chatAtom.hasLoginAtom);
 
-  function LogOut() {
-    socket.socket.emit("logout");
-    socket.socket.disconnect();
-    localStorage.clear();
-    setRefreshToken(false);
-  }
+  const navigate = useNavigate();
+
+  const handleLogOut = () => {
+    LogOut(setRefreshToken, navigate, "/");
+    setHasLogin(false);
+    setIsFirstLogin(true);
+  };
 
   return (
-    <div className="TopBarBtn" onClick={LogOut}>
+    <div className="TopBarBtn" onClick={handleLogOut}>
       <Link className="AStyle" to="/">
         Logout
       </Link>

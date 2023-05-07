@@ -19,30 +19,6 @@ export default function PingPong() {
   // const [canvas, setCanvas] = useAtom(GameCanvas);
   const canvas = useRef<HTMLCanvasElement>(null);
 
-  // PressKey(["ArrowUp"], () => {
-  //   let tmp = coordinate;
-  //   tmp.leftY -= 10;
-  //   setCoordinate(tmp);
-  //   Game(coordinate, canvas, setCanvas});
-  // });
-
-  // PressKey(["ArrowDown"], () => {
-  //   let tmp = coordinate;
-  //   tmp.leftY += 10;
-  //   setCoordinate(tmp);
-  //   Game(coordinate, canvas, setCanvas});
-  // });
-
-  // catch all incoming events
-  game.gameSocket.onAny((eventName, ...args) => {
-    console.log("incoming ", eventName, args);
-  });
-
-  // catch all outgoing events
-  game.gameSocket.onAnyOutgoing((eventName, ...args) => {
-    console.log("outgoing ", eventName, args);
-  });
-
   game.gameSocket.on("connect", () => {
     if (game.gameSocket.connected) {
       //This attribute describes whether the socket is currently connected to the server.
@@ -78,7 +54,7 @@ export default function PingPong() {
 
   game.gameSocket.on(
     "join-game",
-    ({ uid_left, p1, uid_right }: { uid_left: string; p1: number; uid_right: string }) => {}
+    ({ uid_left, p1, uid_right }: { uid_left: string; p1: number; uid_right: string }) => { }
   );
 
   const intersectionSize: number = 5;
