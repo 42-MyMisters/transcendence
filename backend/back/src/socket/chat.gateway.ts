@@ -892,40 +892,8 @@ export class EventsGateway
 		this.logger.debug(`handleDmList - ${socket.data.user.uid} `);
 
 		try {
-			// const tempDmList: Record<number, ClientUserDto> = {};
-			// const tempDmRoomList: Record<number, ClientRoomListDto> = {};
-			// type dmDTO = {
-			// 	id: number,
-			// 	senderId: number,
-			// 	receiverId: number,
-			// 	message: string | null,
-			// 	blockFromReceiver: boolean,
-			// };
 			const dmListFromMe = await this.databaseService.findDMByUserId(socket.data.user.uid);
 			const dmListToMe = await this.databaseService.findDMByUserIdReceive(socket.data.user.uid);
-			// const dmList: dmDTO[] = [];
-			// dmListFromMe?.forEach((dm) => {
-			// 	dmList.push({
-			// 		id: dm.did,
-			// 		senderId: dm.senderId,
-			// 		receiverId: dm.receiverId,
-			// 		message: dm.message,
-			// 		blockFromReceiver: dm.blockFromReceiver,
-			// 	});
-			// });
-			// dmListToMe?.forEach((dm) => {
-			// 	dmList.push({
-			// 		id: dm.did,
-			// 		senderId: dm.senderId,
-			// 		receiverId: dm.receiverId,
-			// 		message: dm.message,
-			// 		blockFromReceiver: dm.blockFromReceiver,
-			// 	});
-			// });
-			// const sortDmList = dmList.sort((a, b) => {
-			// 	return a.id - b.id;
-			// });
-			// console.log(sortDmList);
 			this.nsp.to(socket.id).emit("dm-list", dmListFromMe, dmListToMe);
 		} catch (error) {
 			this.logger.error(`handleDmList - ${error} `);
