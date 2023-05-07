@@ -13,3 +13,5 @@ export const passwordInputModalAtom = atom(false);
 export const changeImageModalAtom = atom(false);
 
 export const gameResultModalAtom = atom(false);
+
+export const gameInviteModalAtom = atom(false);
