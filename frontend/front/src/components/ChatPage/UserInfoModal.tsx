@@ -45,12 +45,6 @@ export default function UserInfoModal() {
     }
   };
 
-  const checkExist = (uid: number) => {
-    if (roomList[focusRoom].detail?.userList[uid] === undefined) {
-      setUserInfoModal(false);
-    }
-  }
-
   const infoModalOff = () => {
     setUserInfoModal(false);
   }

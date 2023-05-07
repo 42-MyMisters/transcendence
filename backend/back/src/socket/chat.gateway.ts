@@ -12,9 +12,11 @@ import {
 import { Namespace, Socket } from "socket.io";
 import { AuthService } from "src/auth/auth.service";
 import { User } from "src/database/entity/user.entity";
+import { DirectMessage } from 'src/database/entity/direct-message.entity';
 import { UserFollow } from "src/database/entity/user-follow.entity";
 import { UserBlock } from "src/database/entity/user-block.entity";
 import { UserService } from "src/user/user.service";
+import { DatabaseService } from "src/database/database.service";
 import * as bcrypt from 'bcrypt';
 
 
@@ -141,7 +143,8 @@ export class EventsGateway
 	implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
 	constructor(
 		private userService: UserService,
-		private authService: AuthService
+		private authService: AuthService,
+		private databaseService: DatabaseService,
 	) { }
 
 	private logger = new Logger("Gateway");
@@ -787,6 +790,12 @@ export class EventsGateway
 	async handleDmList(socket: Socket) {
 		this.logger.debug(`handleDmList - ${socket.data.user.uid} `);
 
+		try {
+			const dmList = await this.databaseService.findDMByUserId(socket.data.user.uid);
+			console.log(dmList);
+		} catch (error) {
+			this.logger.error(`handleDmList - ${error} `);
+		}
 		const tempDmList: Record<number, ClientUserDto> = {
 
 		};
