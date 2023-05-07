@@ -22,7 +22,7 @@ import * as socket from "../socket/chat.socket";
 import * as chatAtom from "../components/atom/ChatAtom";
 import type * as chatType from "../socket/chat.dto";
 import { GetMyInfo, RefreshToken, LogOut } from '../event/api.request';
-import { Await, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function ChatPage() {
 	const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
@@ -87,16 +87,15 @@ export default function ChatPage() {
 	async function getMyinfoHandler() {
 		const getMeResponse = await GetMyInfo(setUserInfo);
 		if (getMeResponse == 401) {
-			await refreshTokenHandler(GetMyInfo, setUserInfo);
-		}
-	}
-
-	async function refreshTokenHandler(callback: (cbArgs: any) => {}, arg: any) {
-		const refreshResponse = await RefreshToken();
-		if (refreshResponse !== 201) {
-			logOutHandler();
-		} else {
-			callback(arg);
+			const refreshResponse = await RefreshToken();
+			if (refreshResponse !== 201) {
+				logOutHandler();
+			} else {
+				const getMeResponse = await GetMyInfo(setUserInfo);
+				if (getMeResponse == 401) {
+					logOutHandler();
+				}
+			}
 		}
 	}
 
@@ -507,6 +506,7 @@ export default function ChatPage() {
 			<button onClick={showServerUser}> show server user</button>
 			<button onClick={showServerRoom}> show server room</button>
 			<button onClick={showSocketState}> socket state</button>
+
 			<TopBar />
 			{userInfoModal ? <UserInfoModal /> : null}
 			{roomModal ? <RoomModal /> : null}

@@ -26,22 +26,20 @@ export default function UserInfoModal() {
     api.LogOut(setRefreshToken, navigate, '/');
   };
 
-  async function refreshTokenHandler(callback: (a: any, b: any, c: any, d: any, e: any) => {}, arg1: any, arg2: any, arg3: any, arg4: any, arg5: any) {
-    const refreshResponse = await api.RefreshToken();
-    if (refreshResponse !== 201) {
-      logOutHandler();
-    } else {
-      callback(arg1, arg2, arg3, arg4, arg5);
-    }
-  }
-
   async function followHandler() {
     const doOrUndo: boolean = followingList[userInfo.uid] === undefined ? true : false;
 
-    const unfollowResponse = await api.DoFollow(userInfo.uid, doOrUndo, followingList, setFollowingList, userList);
-    if (unfollowResponse === 401) {
-      console.log(`in response 401, try refresh token`);
-      await refreshTokenHandler(api.DoFollow, userInfo.uid, doOrUndo, followingList, setFollowingList, userList);
+    const followResponse = await api.DoFollow(userInfo.uid, doOrUndo, followingList, setFollowingList, userList);
+    if (followResponse === 401) {
+      const refreshResponse = await api.RefreshToken();
+      if (refreshResponse !== 201) {
+        logOutHandler();
+      } else {
+        const followResponse = await api.DoFollow(userInfo.uid, doOrUndo, followingList, setFollowingList, userList);
+        if (followResponse === 401) {
+          logOutHandler();
+        }
+      }
     }
   };
 
