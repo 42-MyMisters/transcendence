@@ -24,7 +24,7 @@ export default function GameInviteModal({
         <button
           className="GameInviteModalDeclineBtn"
           onClick={() => {
-            DeclineBtn;
+            DeclineBtn();
             setGameInviteModal(false);
           }}
         >

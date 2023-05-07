@@ -35,8 +35,10 @@ export function emitRoomCreate(
 		roomPass,
 	}, ({
 		status,
+		payload,
 	}: {
 		status: 'ok' | 'ko',
+		payload?: string,
 	}) => {
 		switch (status) {
 			case 'ok': {
@@ -45,7 +47,7 @@ export function emitRoomCreate(
 			}
 			case 'ko': {
 				console.log("room-create fail");
-				alert(`${roomName} room-create fail`);
+				alert(`${roomName} room-create fail ${payload}`);
 				break;
 			}
 		};
@@ -90,16 +92,22 @@ export function emitRoomJoin(
 	});
 }
 
-export function emitRoomInvite({
-	roomList,
-}: {
-	roomList: chatType.roomListDto
-},
+export function emitRoomInvite(
 	roomId: number,
 	targetName: string) {
-	if (roomList[roomId].roomType === 'dm') {
-		alert('dm room cannot invite');
-	}
+
+	socket.emit("room-invite", { roomId, targetName }, ({
+		status,
+		payload }: {
+			status: 'ok' | 'ko';
+			payload?: string
+		}) => {
+		if (status === 'ok') {
+			console.log(`callback: room-invite success`);
+		} else {
+			alert(`room-invite fail: ${payload}`)
+		}
+	})
 }
 
 export function emitRoomLeave(
@@ -126,13 +134,19 @@ export function emitRoomLeave(
 	}) => {
 		if (status === 'leave') {
 			console.log(`callback: room leaved: ${roomList[roomId].roomName}`);
-			const newRoomList: chatType.roomListDto = {};
-			newRoomList[roomId] = {
-				roomName: roomList[roomId].roomName,
-				roomType: roomList[roomId].roomType,
-				isJoined: false,
+			if (roomList[roomId].roomType === 'private') {
+				const newRoomList: chatType.roomListDto = { ...roomList };
+				delete newRoomList[roomId];
+				setRoomList({ ...newRoomList });
+			} else {
+				const newRoomList: chatType.roomListDto = {};
+				newRoomList[roomId] = {
+					roomName: roomList[roomId].roomName,
+					roomType: roomList[roomId].roomType,
+					isJoined: false,
+				}
+				setRoomList({ ...roomList, ...newRoomList });
 			}
-			setRoomList({ ...roomList, ...newRoomList });
 			if (focusRoom === roomId) {
 				setFocusRoom(-1);
 			}
@@ -175,50 +189,6 @@ export function emitRoomInAction(
 			case 'ko': {
 				console.log(`room - inaction in ${roomId} to ${targetId} with ${action} failed: ${payload} `);
 				alert(`Room in Action [${action}] is faild: ${payload}`);
-				break;
-			}
-		}
-	});
-}
-
-export function emitUserBlock(
-	{
-		userBlockList,
-		setUserBlockList,
-	}: {
-		userBlockList: chatType.userSimpleDto,
-		setUserBlockList: React.Dispatch<React.SetStateAction<chatType.userSimpleDto>>,
-	},
-	targetId: number,
-) {
-	// TODO: API call
-	socket.emit("user-block", {
-		targetId
-	}, ({
-		status,
-		payload
-	}: {
-		status: 'on' | 'off' | 'ko',
-		payload?: string,
-	}) => {
-		switch (status) {
-			case 'on': {
-				const newBlockUser: chatType.userSimpleDto = {};
-				newBlockUser[targetId] = {
-					blocked: true
-				}
-				setUserBlockList({ ...userBlockList, ...newBlockUser });
-				break;
-			}
-			case 'off': {
-				const newBlockList: chatType.userSimpleDto = { ...userBlockList };
-				delete newBlockList[targetId];
-				setUserBlockList({ ...newBlockList });
-				break;
-			}
-			case 'ko': {
-				console.log(`user - block failed: ${payload} `);
-				alert(`block failed: ${payload}`);
 				break;
 			}
 		}
@@ -287,4 +257,54 @@ export function setNewDetailToNewRoom({
 		}
 	};
 	setRoomList({ ...roomList, ...newRoomList });
+}
+
+
+export function emitBlockUser({
+	blockList,
+	setBlockList,
+}: {
+	blockList: chatType.userSimpleDto,
+	setBlockList: React.Dispatch<React.SetStateAction<chatType.userSimpleDto>>,
+},
+	targetId: number,
+	doOrUndo: boolean,
+) {
+	if (doOrUndo) {
+		console.log(`block user: ${targetId}`);
+	} else {
+		console.log(`unblock user: ${targetId}`);
+	}
+	socket.emit("user-block", {
+		targetId,
+		doOrUndo
+	}, ({
+		status,
+		payload
+	}: {
+		status: 'on' | 'off' | 'ko',
+		payload?: string,
+	}) => {
+		switch (status) {
+			case 'on': {
+				const newBlockUser: chatType.userSimpleDto = {};
+				newBlockUser[targetId] = {
+					blocked: true
+				}
+				setBlockList({ ...blockList, ...newBlockUser });
+				break;
+			}
+			case 'off': {
+				const newBlockList: chatType.userSimpleDto = { ...blockList };
+				delete newBlockList[targetId];
+				setBlockList({ ...newBlockList });
+				break;
+			}
+			case 'ko': {
+				console.log(`user - block failed: ${payload} `);
+				alert(`block failed: ${payload}`);
+				break;
+			}
+		}
+	});
 }

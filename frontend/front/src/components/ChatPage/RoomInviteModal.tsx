@@ -16,7 +16,7 @@ export default function RoomInviteModal() {
   PressKey(["Escape"], () => { setInviteModal(false); });
 
   const handleInvite = () => {
-    socket.emitRoomInvite({ roomList }, focusRoom, nickName);
+    socket.emitRoomInvite(focusRoom, nickName);
     setNickName("");
     setInviteModal(false);
   };

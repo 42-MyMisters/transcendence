@@ -10,6 +10,7 @@ import * as chatAtom from "../../components/atom/ChatAtom";
 import { refreshTokenAtom } from "../../components/atom/LoginAtom";
 import * as socket from "../../socket/chat.socket"
 import { useNavigate } from 'react-router-dom';
+import { UserAtom } from "../../components/atom/UserAtom";
 
 export default function UserInfoModal() {
   const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
@@ -18,6 +19,7 @@ export default function UserInfoModal() {
   const [userList, setUserList] = useAtom(chatAtom.userListAtom);
   const [followingList, setFollowingList] = useAtom(chatAtom.followingListAtom);
   const [focusRoom] = useAtom(chatAtom.focusRoomAtom);
+  const [blockList, setBlockList] = useAtom(chatAtom.blockListAtom);
 
   const navigate = useNavigate();
   const [, setRefreshToken] = useAtom(refreshTokenAtom);
@@ -26,24 +28,26 @@ export default function UserInfoModal() {
     api.LogOut(setRefreshToken, navigate, '/');
   };
 
-  async function refreshTokenHandler(callback: (a: any, b: any, c: any, d: any, e: any) => {}, arg1: any, arg2: any, arg3: any, arg4: any, arg5: any) {
-    const refreshResponse = await api.RefreshToken();
-    if (refreshResponse !== 201) {
-      logOutHandler();
-    } else {
-      callback(arg1, arg2, arg3, arg4, arg5);
-    }
-  }
-
   async function followHandler() {
     const doOrUndo: boolean = followingList[userInfo.uid] === undefined ? true : false;
 
-    const unfollowResponse = await api.DoFollow(userInfo.uid, doOrUndo, followingList, setFollowingList, userList);
-    if (unfollowResponse === 401) {
-      console.log(`in response 401, try refresh token`);
-      await refreshTokenHandler(api.DoFollow, userInfo.uid, doOrUndo, followingList, setFollowingList, userList);
+    const followResponse = await api.DoFollow(userInfo.uid, doOrUndo, followingList, setFollowingList, userList);
+    if (followResponse === 401) {
+      const refreshResponse = await api.RefreshToken();
+      if (refreshResponse !== 201) {
+        logOutHandler();
+      } else {
+        const followResponse = await api.DoFollow(userInfo.uid, doOrUndo, followingList, setFollowingList, userList);
+        if (followResponse === 401) {
+          logOutHandler();
+        }
+      }
     }
   };
+
+  const infoModalOff = () => {
+    setUserInfoModal(false);
+  }
 
   PressKey(["Escape"], () => {
     setUserInfoModal(false);
@@ -51,42 +55,43 @@ export default function UserInfoModal() {
 
   const Follow = () => {
     followHandler();
-    setUserInfoModal(false);
+    infoModalOff();
   };
 
   const Invite = () => {
     alert("invite");
-    setUserInfoModal(false);
+    infoModalOff();
   }
 
   const Ignore = () => {
-    alert("ignore");
-    setUserInfoModal(false);
+    const doOrUndo: boolean = blockList[userInfo.uid] === undefined ? true : false;
+    socket.emitBlockUser({ blockList, setBlockList }, userInfo.uid, doOrUndo);
+    infoModalOff();
   };
 
   const Profile = () => {
     alert("profile");
-    setUserInfoModal(false);
+    infoModalOff();
   };
 
   const Kick = () => {
     socket.emitRoomInAction({ roomList, setRoomList }, focusRoom, "kick", userInfo.uid)
-    setUserInfoModal(false);
+    infoModalOff();
   };
 
   const Ban = () => {
     socket.emitRoomInAction({ roomList, setRoomList }, focusRoom, "ban", userInfo.uid)
-    setUserInfoModal(false);
+    infoModalOff();
   };
 
   const Mute = () => {
     socket.emitRoomInAction({ roomList, setRoomList }, focusRoom, "mute", userInfo.uid)
-    setUserInfoModal(false);
+    infoModalOff();
   };
 
   const Admin = () => {
     socket.emitRoomInAction({ roomList, setRoomList }, focusRoom, "admin", userInfo.uid)
-    setUserInfoModal(false);
+    infoModalOff();
   };
 
 
