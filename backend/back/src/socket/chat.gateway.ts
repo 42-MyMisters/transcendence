@@ -638,8 +638,8 @@ export class EventsGateway
 							targetId,
 						});
 						setTimeout(() => {
-							if (roomList[roomId].roomMembers[targetId] !== undefined
-								&& roomList[roomId].roomMembers[targetId].userRoomStatus === 'mute') {
+							if (roomList[roomId]?.roomMembers[targetId] !== undefined
+								&& roomList[roomId]?.roomMembers[targetId]?.userRoomStatus === 'mute') {
 								roomList[roomId].roomMembers[targetId].userRoomStatus = 'normal';
 								this.nsp.to(roomId.toString()).emit('room-in-action', {
 									roomId,
