@@ -10,6 +10,7 @@ import * as chatAtom from "../../components/atom/ChatAtom";
 import { refreshTokenAtom } from "../../components/atom/LoginAtom";
 import * as socket from "../../socket/chat.socket"
 import { useNavigate } from 'react-router-dom';
+import { UserAtom } from "../../components/atom/UserAtom";
 
 export default function UserInfoModal() {
   const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
@@ -18,6 +19,7 @@ export default function UserInfoModal() {
   const [userList, setUserList] = useAtom(chatAtom.userListAtom);
   const [followingList, setFollowingList] = useAtom(chatAtom.followingListAtom);
   const [focusRoom] = useAtom(chatAtom.focusRoomAtom);
+  const [blockList, setBlockList] = useAtom(chatAtom.blockListAtom);
 
   const navigate = useNavigate();
   const [, setRefreshToken] = useAtom(refreshTokenAtom);
@@ -58,7 +60,8 @@ export default function UserInfoModal() {
   }
 
   const Ignore = () => {
-    alert("ignore");
+    const doOrUndo: boolean = blockList[userInfo.uid] === undefined ? true : false;
+    socket.emitBlockUser({ blockList, setBlockList }, userInfo.uid, doOrUndo);
     setUserInfoModal(false);
   };
 

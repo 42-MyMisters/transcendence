@@ -80,6 +80,14 @@ export default function ChatPage() {
 		});
 	};
 
+	const getBlockList = () => {
+		console.log(`\n\ngetBlockList`);
+		Object.entries(blockList).forEach(([key, value]) => {
+			console.log(`[ ${userList[Number(key)].userDisplayName} ]\nkey: ${key}, value: ${JSON.stringify(value)}`);
+		});
+
+	};
+
 	const showSocketState = () => {
 		console.log(`socket state: ${socketState}`);
 	};
@@ -503,6 +511,7 @@ export default function ChatPage() {
 			<button onClick={getRoomList}> roomList</button>
 			<button onClick={getUserList}> userList</button>
 			<button onClick={getFollowingList}> FollowList</button>
+			<button onClick={getBlockList}> BlockList</button>
 			<button onClick={showServerUser}> show server user</button>
 			<button onClick={showServerRoom}> show server room</button>
 			<button onClick={showSocketState}> socket state</button>

@@ -43,7 +43,7 @@ export default function UserObj({
             isFollow: followingList[uid] === undefined ? false : true,
             userState: status,
             profileImage: profileImage,
-            isIgnored: blockList[uid]?.blocked === undefined ? false : true,
+            isIgnored: blockList[uid] === undefined ? false : true,
             userPower: power,
           });
           callBack(uid);

@@ -134,6 +134,7 @@ const roomList: Record<number, RoomInfo> = {
 	},
 };
 let ROOM_NUMBER = 2;
+let ROOM_COUNT = 2;
 
 @WebSocketGateway({ namespace: "sock", cors: { origin: "*" } })
 export class EventsGateway
@@ -220,6 +221,7 @@ export class EventsGateway
 					roomType: roomList[roomId].roomType
 				});
 				delete roomList[roomId];
+				ROOM_COUNT--;
 				this.logger.debug(`Room ${roomId} deleted.\n`);
 				action = 'delete';
 			} else {
@@ -255,13 +257,13 @@ export class EventsGateway
 			}
 			socket.leave(roomId.toString());
 			delete socket.data.roomList[roomId];
-			setTimeout(() => {
-				socket.to(roomId.toString()).emit('message', {
-					roomId,
-					from: socket.data.user.uid,
-					message: `${userList[socket.data.user.uid].userDisplayName} left this room`,
-				});
-			}, 100);
+			// setTimeout(() => {
+			// 	socket.to(roomId.toString()).emit('message', {
+			// 		roomId,
+			// 		from: socket.data.user.uid,
+			// 		message: `${userList[socket.data.user.uid].userDisplayName} left this room`,
+			// 	});
+			// }, 100);
 			return action;
 		}
 	}
@@ -318,8 +320,9 @@ export class EventsGateway
 			roomType: roomType;
 			roomPass?: string;
 		}) {
-		const saltRound = 10;
-		const cryptedPassword = await bcrypt.hash(roomPass, saltRound)
+		if (ROOM_COUNT >= 200) {
+			return { status: 'ko', payload: "\ntoo many rooms exists in live server" };
+		}
 		const trimmedRoomName = roomName.trim();
 		if (trimmedRoomName.length > 0 && trimmedRoomName.length <= 12) {
 			const newRoomMembers: Record<number, RoomMember> = {};
@@ -327,6 +330,8 @@ export class EventsGateway
 				userRoomStatus: 'normal',
 				userRoomPower: 'owner',
 			};
+			const saltRound = 10;
+			const cryptedPassword = await bcrypt.hash(roomPass, saltRound)
 			roomList[ROOM_NUMBER] = {
 				roomNumber: ROOM_NUMBER,
 				roomName: trimmedRoomName,
@@ -357,8 +362,9 @@ export class EventsGateway
 				status: 'ok'
 			});
 			ROOM_NUMBER++;
+			ROOM_COUNT++;
 		} else {
-			return { status: 'ko' };
+			return { status: 'ko', payload: "\nroom name must be 1 ~ 12 characters" };
 		}
 		return { status: 'ok' };
 	}
@@ -406,6 +412,13 @@ export class EventsGateway
 						action: 'newMember',
 						targetId: socket.data.user.uid,
 					});
+					// setTimeout(() => {
+					// 	socket.to(roomId.toString()).emit('message', {
+					// 		roomId,
+					// 		from: socket.data.user.uid,
+					// 		message: `${userList[socket.data.user.uid].userDisplayName} join this room`,
+					// 	});
+					// }, 100);
 					return ({ status: 'ok' });
 				}
 				case 'private': {
@@ -438,6 +451,41 @@ export class EventsGateway
 			return ({ status: 'leave' });
 		} else {
 			return ({ status: 'delete' });
+		}
+	}
+
+	@SubscribeMessage("user-block")
+	async UserBlock(
+		@ConnectedSocket() socket: Socket,
+		@MessageBody() {
+			targetId,
+			doOrUndo
+		}: {
+			targetId: number,
+			doOrUndo: boolean
+		}) {
+		const targetUser: User | null = await this.userService.getUserByUid(targetId);
+		console.log(`targetUser: ${JSON.stringify(targetUser)}`);
+		if (targetUser === null) {
+			return ({ status: 'ko', payload: 'user not found' });
+		}
+
+		if (doOrUndo) {
+			try {
+				await this.userService.block(socket.data.user, targetUser);
+				return ({ status: 'on' });
+			} catch (e) {
+				console.log(e);
+				return ({ status: 'ko', payload: `\n${e}` });
+			}
+		} else {
+			try {
+				await this.userService.unblock(socket.data.user, targetUser);
+				return ({ status: 'off' });
+			} catch (e) {
+				console.log(e);
+				return ({ status: 'ko', payload: `\n${e}` });
+			}
 		}
 	}
 
@@ -648,13 +696,12 @@ export class EventsGateway
 
 	async handleBlockList(socket: Socket) {
 		this.logger.debug(`handleBlockList - ${socket.data.user.uid}`);
-		const userBlock = await this.userService.findAllBlock(socket.data.user);
-		console.log(`userBlock: ${JSON.stringify(userBlock)}`);
+		const blockList = await this.userService.findAllBlock(socket.data.user);
 
 		const tempUser: Record<number, boolean> = {};
 		try {
-			userList[socket.data.user.uid].blockList.forEach((blockId) => {
-				tempUser[blockId] = true;
+			blockList?.forEach((blockId) => {
+				tempUser[blockId.targetToBlockId] = true;
 			})
 		} catch (e) {
 			this.logger.error(`handleBlockList - ${e}`);
@@ -678,7 +725,6 @@ export class EventsGateway
 		} catch (e) {
 			this.logger.error(`handleFollowList - ${e}`);
 		}
-		console.log(`tempFollowList: ${JSON.stringify(tempFollowList)}`);
 		this.nsp.to(socket.id).emit("follow-list", tempFollowList);
 	}
 

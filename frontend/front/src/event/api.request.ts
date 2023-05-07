@@ -29,12 +29,10 @@ export async function DoFollow(
 						tempFollowing[userUid] = {
 							...userList[userUid],
 						};
-						console.log(`\nDoFollow: ${JSON.stringify(tempFollowing)}`);
 						setFollowingList({ ...followingList, ...tempFollowing });
 					} else {
 						const tempFollowing = { ...followingList };
 						delete tempFollowing[userUid];
-						console.log(`\nDoUnFollow: ${JSON.stringify(tempFollowing)}`);
 						setFollowingList({ ...tempFollowing });
 					}
 					break;

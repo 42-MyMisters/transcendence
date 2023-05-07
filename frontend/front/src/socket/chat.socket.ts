@@ -35,8 +35,10 @@ export function emitRoomCreate(
 		roomPass,
 	}, ({
 		status,
+		payload,
 	}: {
 		status: 'ok' | 'ko',
+		payload?: string,
 	}) => {
 		switch (status) {
 			case 'ok': {
@@ -45,7 +47,7 @@ export function emitRoomCreate(
 			}
 			case 'ko': {
 				console.log("room-create fail");
-				alert(`${roomName} room-create fail`);
+				alert(`${roomName} room-create fail ${payload}`);
 				break;
 			}
 		};
@@ -181,50 +183,6 @@ export function emitRoomInAction(
 	});
 }
 
-export function emitUserBlock(
-	{
-		userBlockList,
-		setUserBlockList,
-	}: {
-		userBlockList: chatType.userSimpleDto,
-		setUserBlockList: React.Dispatch<React.SetStateAction<chatType.userSimpleDto>>,
-	},
-	targetId: number,
-) {
-	// TODO: API call
-	socket.emit("user-block", {
-		targetId
-	}, ({
-		status,
-		payload
-	}: {
-		status: 'on' | 'off' | 'ko',
-		payload?: string,
-	}) => {
-		switch (status) {
-			case 'on': {
-				const newBlockUser: chatType.userSimpleDto = {};
-				newBlockUser[targetId] = {
-					blocked: true
-				}
-				setUserBlockList({ ...userBlockList, ...newBlockUser });
-				break;
-			}
-			case 'off': {
-				const newBlockList: chatType.userSimpleDto = { ...userBlockList };
-				delete newBlockList[targetId];
-				setUserBlockList({ ...newBlockList });
-				break;
-			}
-			case 'ko': {
-				console.log(`user - block failed: ${payload} `);
-				alert(`block failed: ${payload}`);
-				break;
-			}
-		}
-	});
-}
-
 export function emitMessage(
 	{
 		roomList,
@@ -287,4 +245,54 @@ export function setNewDetailToNewRoom({
 		}
 	};
 	setRoomList({ ...roomList, ...newRoomList });
+}
+
+
+export function emitBlockUser({
+	blockList,
+	setBlockList,
+}: {
+	blockList: chatType.userSimpleDto,
+	setBlockList: React.Dispatch<React.SetStateAction<chatType.userSimpleDto>>,
+},
+	targetId: number,
+	doOrUndo: boolean,
+) {
+	if (doOrUndo) {
+		console.log(`block user: ${targetId}`);
+	} else {
+		console.log(`unblock user: ${targetId}`);
+	}
+	socket.emit("user-block", {
+		targetId,
+		doOrUndo
+	}, ({
+		status,
+		payload
+	}: {
+		status: 'on' | 'off' | 'ko',
+		payload?: string,
+	}) => {
+		switch (status) {
+			case 'on': {
+				const newBlockUser: chatType.userSimpleDto = {};
+				newBlockUser[targetId] = {
+					blocked: true
+				}
+				setBlockList({ ...blockList, ...newBlockUser });
+				break;
+			}
+			case 'off': {
+				const newBlockList: chatType.userSimpleDto = { ...blockList };
+				delete newBlockList[targetId];
+				setBlockList({ ...newBlockList });
+				break;
+			}
+			case 'ko': {
+				console.log(`user - block failed: ${payload} `);
+				alert(`block failed: ${payload}`);
+				break;
+			}
+		}
+	});
 }
