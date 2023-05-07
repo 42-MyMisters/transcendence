@@ -5,9 +5,11 @@ import { gameInviteModalAtom } from "../atom/ModalAtom";
 export default function GameInviteModal({
   from,
   AcceptBtn,
+  DeclineBtn,
 }: {
   from: string;
   AcceptBtn: () => void;
+  DeclineBtn: () => void;
 }) {
   const [, setGameInviteModal] = useAtom(gameInviteModalAtom);
 
@@ -19,7 +21,13 @@ export default function GameInviteModal({
         <button className="GameInviteModalAcceptBtn" onClick={AcceptBtn}>
           Accept
         </button>
-        <button className="GameInviteModalDeclineBtn" onClick={() => setGameInviteModal(false)}>
+        <button
+          className="GameInviteModalDeclineBtn"
+          onClick={() => {
+            DeclineBtn;
+            setGameInviteModal(false);
+          }}
+        >
           Decline
         </button>
       </div>

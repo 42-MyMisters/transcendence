@@ -543,6 +543,7 @@ export default function ChatPage() {
           AcceptBtn={() => {
             setGameInviteModal(false);
           }}
+          DeclineBtn={() => {}}
         />
       ) : null}
       <ChatRoomList />
