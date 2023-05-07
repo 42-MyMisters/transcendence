@@ -6,7 +6,13 @@ import ChatArea from "../components/ChatPage/ChatArea";
 import ChatRoomUserList from "../components/ChatPage/ChatRoomUserList";
 
 import { useAtom } from "jotai";
-import { userInfoModalAtom, passwordInputModalAtom, roomModalAtom, inviteModalAtom } from "../components/atom/ModalAtom";
+import {
+	userInfoModalAtom,
+	passwordInputModalAtom,
+	roomModalAtom,
+	inviteModalAtom,
+	gameInviteModalAtom,
+} from "../components/atom/ModalAtom";
 
 import UserInfoModal from "../components/ChatPage/UserInfoModal";
 import RoomModal from "../components/ChatPage/RoomModal";
@@ -21,15 +27,15 @@ import { useEffect, useState } from "react";
 import * as socket from "../socket/chat.socket";
 import * as chatAtom from "../components/atom/ChatAtom";
 import type * as chatType from "../socket/chat.dto";
-import { GetMyInfo, RefreshToken, LogOut } from '../event/api.request';
+import { GetMyInfo, RefreshToken, LogOut } from "../event/api.request";
 import { useNavigate } from "react-router-dom";
+import GameInviteModal from "../components/GamePage/GameInviteModal";
 
 export default function ChatPage() {
 	const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
 	const [roomModal, setRoomModal] = useAtom(roomModalAtom);
 	const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);
 	const [pwInputModal, setPwInputModal] = useAtom(passwordInputModalAtom);
-
 
 	const [userInfo, setUserInfo] = useAtom(UserAtom);
 	const [isFirstLogin, setIsFirstLogin] = useAtom(chatAtom.isFirstLoginAtom);
@@ -47,6 +53,7 @@ export default function ChatPage() {
 	const navigate = useNavigate();
 	const [, setRefreshToken] = useAtom(refreshTokenAtom);
 
+	const [gameInviteModal, setGameInviteModal] = useAtom(gameInviteModalAtom);
 
 	const getRoomList = () => {
 		console.log("\n\ngetRoomList");
@@ -65,13 +72,14 @@ export default function ChatPage() {
 			} else {
 				console.log(`[ ${value.roomName} ] \nvalue: ${JSON.stringify(value)}`);
 			}
-		})
+		});
 	};
+
 	const getUserList = () => {
 		console.log("\n\ngetUserList");
 		Object.entries(userList).forEach(([key, value]) => {
 			console.log(`[ ${value.userDisplayName} ]\nkey: ${key}, value: ${JSON.stringify(value)}`);
-		})
+		});
 	};
 
 	const getFollowingList = () => {
@@ -81,6 +89,11 @@ export default function ChatPage() {
 		});
 	};
 
+	const showSocketState = () => {
+		console.log(`socket state: ${socketState}`);
+	};
+
+
 	const getBlockList = () => {
 		console.log(`\n\ngetBlockList`);
 		Object.entries(blockList).forEach(([key, value]) => {
@@ -89,8 +102,24 @@ export default function ChatPage() {
 
 	};
 
-	const showSocketState = () => {
-		console.log(`socket state: ${socketState}`);
+	const showMyinfo = () => {
+		console.log(`showMyinfo ${JSON.stringify(userInfo)}}`);
+	};
+
+	const showServerUser = () => {
+		console.log("\nshow server user list");
+		socket.socket.emit("server-user-list");
+	};
+
+	const showServerRoom = () => {
+		console.log("\nshow server room list");
+		socket.socket.emit("server-room-list");
+	};
+
+	const logOutHandler = () => {
+		LogOut(setRefreshToken, navigate, "/");
+		setHasLogin(false);
+		setIsFirstLogin(true);
 	};
 
 	const quitRoomRelativeModal = () => {
@@ -115,23 +144,6 @@ export default function ChatPage() {
 		}
 	}
 
-	const showMyinfo = () => {
-		console.log(`showMyinfo ${JSON.stringify(userInfo)}}`);
-	}
-	const showServerUser = () => {
-		console.log('\nshow server user list');
-		socket.socket.emit('server-user-list');
-	}
-	const showServerRoom = () => {
-		console.log('\nshow server room list');
-		socket.socket.emit('server-room-list');
-	}
-
-	const logOutHandler = () => {
-		LogOut(setRefreshToken, navigate, '/');
-		setHasLogin(false);
-		setIsFirstLogin(true);
-	};
 
 	useEffect(() => {
 		socket.socket.onAny((eventName, ...args) => {
@@ -195,7 +207,7 @@ export default function ChatPage() {
 		});
 		return () => {
 			socket.socket.off("logout");
-		}
+		};
 	}, []);
 
 	useEffect(() => {
@@ -346,6 +358,7 @@ export default function ChatPage() {
 		};
 	}, [roomList]);
 
+
 	useEffect(() => {
 		socket.socket.on("room-in-action", ({
 			roomId,
@@ -378,13 +391,19 @@ export default function ChatPage() {
 				case 'leave':
 				case 'kick': {
 					if (targetId === userInfo.uid) {
-						const newRoomList: chatType.roomListDto = {};
-						newRoomList[roomId] = {
-							roomName: roomList[roomId].roomName,
-							roomType: roomList[roomId].roomType,
-							isJoined: false,
+						if (roomList[roomId].roomType === 'private') {
+							const newRoomList: chatType.roomListDto = { ...roomList };
+							delete newRoomList[roomId];
+							setRoomList({ ...newRoomList });
+						} else {
+							const newRoomList: chatType.roomListDto = {};
+							newRoomList[roomId] = {
+								roomName: roomList[roomId].roomName,
+								roomType: roomList[roomId].roomType,
+								isJoined: false,
+							}
+							setRoomList({ ...roomList, ...newRoomList });
 						}
-						setRoomList({ ...roomList, ...newRoomList });
 						if (focusRoom === roomId) {
 							setFocusRoom(-1);
 							quitRoomRelativeModal();
@@ -504,10 +523,9 @@ export default function ChatPage() {
 		};
 	}, [roomList, blockList, userList, userInfo]);
 
-
 	async function firstLogin() {
 		if (isFirstLogin) {
-			console.log('set init data');
+			console.log("set init data");
 			await getMyinfoHandler();
 		}
 		setIsFirstLogin(false);
@@ -517,26 +535,37 @@ export default function ChatPage() {
 		firstLogin();
 	}
 
+
 	return (
 		<BackGround>
-			{/* <button onClick={getMyinfoHandler}> /user/me</button>
+			<button onClick={getMyinfoHandler}> /user/me</button>
 			<button onClick={showMyinfo}> show /user/me</button>
 			<button onClick={getRoomList}> roomList</button>
 			<button onClick={getUserList}> userList</button>
 			<button onClick={getFollowingList}> FollowList</button>
-			<button onClick={getBlockList}> BlockList</button>
 			<button onClick={showServerUser}> show server user</button>
 			<button onClick={showServerRoom}> show server room</button>
-			<button onClick={showSocketState}> socket state</button> */}
+			<button onClick={showSocketState}> socket state</button>
+			<button onClick={showSocketState}> socket state</button>
+			<button onClick={() => setGameInviteModal(true)}> gameinvite</button>
 			<TopBar />
 			{userInfoModal ? <UserInfoModal /> : null}
 			{roomModal ? <RoomModal /> : null}
 			{inviteModal ? <RoomInviteModal /> : null}
 			{pwInputModal ? <PasswordModal /> : null}
+			{gameInviteModal ? (
+				<GameInviteModal
+					from="yuhwang"
+					AcceptBtn={() => {
+						setGameInviteModal(false);
+					}}
+					DeclineBtn={() => { }}
+				/>
+			) : null}
 			<ChatRoomList />
 			<ChatUserList />
 			<ChatArea />
 			<ChatRoomUserList />
-		</BackGround >
+		</BackGround>
 	);
 }
