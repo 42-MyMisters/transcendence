@@ -19,7 +19,11 @@ export default function ChatArea() {
   const handleSendMessage = () => {
     const tempMessage = message.trim();
     if (tempMessage !== '') {
-      socket.emitMessage({ roomList }, focusRoom, tempMessage);
+      if (roomList[focusRoom]?.roomType === 'dm') {
+        socket.emitDM(focusRoom, tempMessage);
+      } else {
+        socket.emitMessage({ roomList }, focusRoom, tempMessage);
+      }
     }
     setMessage('');
   }

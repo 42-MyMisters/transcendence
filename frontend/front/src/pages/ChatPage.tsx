@@ -41,7 +41,6 @@ export default function ChatPage() {
 	const [isFirstLogin, setIsFirstLogin] = useAtom(chatAtom.isFirstLoginAtom);
 	const [hasLogin, setHasLogin] = useAtom(chatAtom.hasLoginAtom);
 
-	const [dmList, setDmList] = useAtom(chatAtom.dmListAtom);
 	const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
 	const [userList, setUserList] = useAtom(chatAtom.userListAtom);
 	const [dmHistoryList, setDmHistoryList] = useAtom(chatAtom.dmHistoryListAtom);
@@ -78,6 +77,13 @@ export default function ChatPage() {
 	const getUserList = () => {
 		console.log("\n\ngetUserList");
 		Object.entries(userList).forEach(([key, value]) => {
+			console.log(`[ ${value.userDisplayName} ]\nkey: ${key}, value: ${JSON.stringify(value)}`);
+		});
+	};
+
+	const getDMList = () => {
+		console.log("\n\ngetDmHitoryList");
+		Object.entries(dmHistoryList).forEach(([key, value]) => {
 			console.log(`[ ${value.userDisplayName} ]\nkey: ${key}, value: ${JSON.stringify(value)}`);
 		});
 	};
@@ -218,9 +224,48 @@ export default function ChatPage() {
 			setFollowingList({ ...resFollowingList });
 			setUserList((prevUserList) => ({ ...resFollowingList, ...prevUserList }));
 		});
-		socket.socket.on("dm-list", (resDmList: chatType.userDto) => {
-			setDmHistoryList({ ...resDmList });
-			setUserList((prevUserList) => ({ ...resDmList, ...prevUserList }));
+		// socket.socket.on("dm-list", (resDmList: chatType.userDto, resRoomList: chatType.roomListDto) => {
+		// 	setDmHistoryList({ ...resDmList });
+		// 	setRoomList((prevRoomList) => ({ ...prevRoomList, ...resRoomList }));
+		// 	setUserList((prevUserList) => ({ ...resDmList, ...prevUserList }));
+		// });
+		socket.socket.on("dm-list", (dmListFromMe, dmListToMe) => {
+			const dmList: chatType.dmDto[] = [];
+			const tempDmHistroyList: chatType.userDto = {};
+			// TODO:
+			// user add to temp list
+			// 1. if in userList, copy
+			// 2. if not in userList, api request -> add
+			const tempDmRoomList: chatType.roomListDto = {};
+			// create DM room for using user.id
+			dmListFromMe.forEach((dm: chatType.dmDto) => {
+				dmList.push({
+					did: dm.did,
+					senderId: dm.senderId,
+					receiverId: dm.receiverId,
+					message: dm.message,
+					blockFromReceiver: dm.blockFromReceiver,
+				});
+			});
+			dmListToMe.forEach((dm: chatType.dmDto) => {
+				dmList.push({
+					did: dm.did,
+					senderId: dm.senderId,
+					receiverId: dm.receiverId,
+					message: dm.message,
+					blockFromReceiver: dm.blockFromReceiver,
+				});
+			});
+			dmList.sort((a, b) => {
+				return a.did - b.did;
+			});
+			dmList.forEach((dm: chatType.dmDto) => {
+				// 1. add message to correct tempDmRoomList
+			});
+
+			setDmHistoryList({ ...tempDmHistroyList });
+			setRoomList((prevRoomList) => ({ ...prevRoomList, ...tempDmRoomList }));
+			setUserList((prevUserList) => ({ ...tempDmHistroyList, ...prevUserList }));
 		});
 		socket.socket.on("block-list", (resBlockList: chatType.userSimpleDto) => {
 			setBlockList({ ...resBlockList });
@@ -542,6 +587,7 @@ export default function ChatPage() {
 			<button onClick={showMyinfo}> show /user/me</button>
 			<button onClick={getRoomList}> roomList</button>
 			<button onClick={getUserList}> userList</button>
+			<button onClick={getDMList}> dmHistoryList</button>
 			<button onClick={getFollowingList}> FollowList</button>
 			<button onClick={showServerUser}> show server user</button>
 			<button onClick={showServerRoom}> show server room</button>

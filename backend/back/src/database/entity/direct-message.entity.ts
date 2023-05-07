@@ -3,7 +3,7 @@ import { User } from "./user.entity";
 
 @Entity()
 export class DirectMessage extends BaseEntity {
-    @PrimaryGeneratedColumn()
+    @PrimaryGeneratedColumn({})
     did: number;
 
     @Column()
@@ -26,13 +26,13 @@ export class DirectMessage extends BaseEntity {
         name: 'sender',
         referencedColumnName: 'uid',
     })
-    sender: User;
+    sender: User | null;
 
     @ManyToOne(() => User, (user) => user.uid)
     @JoinColumn({
         name: 'receiver',
         referencedColumnName: 'uid',
     })
-    receiver: User;
+    receiver: User | null;
 
 }

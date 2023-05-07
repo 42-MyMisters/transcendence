@@ -20,15 +20,8 @@ export default function ChatUserList() {
 
   const DM = (targetId: number) => {
     if (roomList[targetId] === undefined) {
-      console.log('init');
-      // init logic
-      // create room in roomList, and opposite user's roomList
-      socket.emitDmRoomCreate({ roomList }, targetId);
-      // bring dm histroy from server
-      // setFocusRoom(targetId);
+      socket.emitDmRoomCreate(targetId);
     } else {
-      console.log('show');
-      // show logic
       setFocusRoom(targetId);
     }
   };
@@ -52,22 +45,6 @@ export default function ChatUserList() {
           ))
         }
         {
-          Object.entries(dmHistoryList).map((key) => (
-            followingList[Number(key[0])] !== undefined
-              ? ''
-              : <UserObj
-                key={Number(key[0])}
-                uid={Number(key[0])}
-                nickName={userList[Number(key[0])]?.userDisplayName}
-                profileImage={userList[Number(key[0])]?.userProfileUrl}
-                status={userList[Number(key[0])]?.userStatus}
-                chat={'normal'}
-                power="member"
-                callBack={DM}
-              />
-          ))
-        }
-        {
           Object.entries(userList).map((key) => (
             userList[Number(key[0])].userStatus === 'offline'
               ? ''
@@ -83,6 +60,22 @@ export default function ChatUserList() {
                   callBack={DM}
                 />
                 : ''
+          ))
+        }
+        {
+          Object.entries(dmHistoryList).map((key) => (
+            followingList[Number(key[0])] !== undefined
+              ? ''
+              : <UserObj
+                key={Number(key[0])}
+                uid={Number(key[0])}
+                nickName={userList[Number(key[0])]?.userDisplayName}
+                profileImage={userList[Number(key[0])]?.userProfileUrl}
+                status={userList[Number(key[0])]?.userStatus}
+                chat={'normal'}
+                power="member"
+                callBack={DM}
+              />
           ))
         }
       </div>

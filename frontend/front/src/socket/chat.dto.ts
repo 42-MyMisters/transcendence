@@ -2,11 +2,21 @@ type userStatus = 'online' | 'offline' | 'inGame';
 type userRoomStatus = 'normal' | 'mute';
 type userRoomPower = 'owner' | 'admin' | 'member';
 
+type dmDto = {
+	did: number,
+	senderId: number,
+	receiverId: number,
+	message: string | null,
+	blockFromReceiver: boolean,
+	time?: string,
+};
+
 type userDto = {
 	[key: number]: {
 		userDisplayName: string;
 		userProfileUrl: string;
 		userStatus: 'online' | 'offline' | 'inGame';
+		dmStatus?: 'unread' | 'read';
 	}
 }
 type userSimpleDto = {
@@ -47,10 +57,4 @@ type roomListDto = {
 	}
 }
 
-type dmListDto = {
-	[key: number]: {
-		messageList: roomMessageDto[];
-	}
-}
-
-export type { userDto, userSimpleDto, roomDetailDto, roomMessageDto, roomListDto, userInRoomListDto, userStatus, userRoomStatus, userRoomPower, dmListDto };
+export type { userDto, userSimpleDto, roomDetailDto, roomMessageDto, roomListDto, userInRoomListDto, userStatus, userRoomStatus, userRoomPower, dmDto };

@@ -166,6 +166,11 @@ export class DatabaseService {
         return await this.directMessageRepository.find({ where: { senderId } });
     }
 
+    async findDMByUserIdReceive(receiverId: number): Promise<DirectMessage[] | null> {
+        return await this.directMessageRepository.find({ where: { receiverId } });
+    }
+
+
     async saveDM(dm: DirectMessage) {
         return await this.directMessageRepository.save(dm);
     }

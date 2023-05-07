@@ -98,10 +98,7 @@ export function emitRoomJoin(
 	});
 }
 
-export function emitRoomInvite(
-	roomId: number,
-	targetName: string) {
-
+export function emitRoomInvite(roomId: number, targetName: string) {
 	socket.emit("room-invite", { roomId, targetName }, ({
 		status,
 		payload }: {
@@ -201,15 +198,7 @@ export function emitRoomInAction(
 	});
 }
 
-export function emitMessage(
-	{
-		roomList,
-	}: {
-		roomList: chatType.roomListDto,
-	},
-	roomId: number,
-	message: string,
-) {
+export function emitMessage({ roomList, }: { roomList: chatType.roomListDto, }, roomId: number, message: string,) {
 	if (roomList[roomId]?.detail?.myRoomStatus === 'mute') {
 		alert('You are muted for 10 sec in this room');
 		return;
@@ -316,13 +305,7 @@ export function emitBlockUser({
 }
 
 
-export function emitDmRoomCreate({
-	roomList
-}: {
-	roomList: chatType.roomListDto,
-},
-	targetId: number,
-) {
+export function emitDmRoomCreate(targetId: number,) {
 	socket.emit("dm-room-create", {
 		targetId,
 	}, ({
@@ -336,4 +319,21 @@ export function emitDmRoomCreate({
 			console.log(`dm room create to ${targetId} is failed`);
 		}
 	});
+}
+
+export function emitDM(targetId: number, message: string) {
+	socket.emit("message-dm", {
+		targetId,
+		message
+	}, ({
+		status,
+	}: {
+		status: 'ok' | 'ko',
+	}) => {
+		if (status === 'ok') {
+			console.log(`dm to ${targetId} is sended: ${message}`);
+		} else {
+			console.log(`dm to ${targetId} is failed: ${message}`);
+		}
+	})
 }

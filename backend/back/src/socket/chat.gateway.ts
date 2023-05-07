@@ -193,7 +193,6 @@ export class EventsGateway
 				this.logger.verbose(`${userList[socket.data.user.uid].userDisplayName} is now online`);
 				await this.handleBlockList(socket);
 				await this.handleFollowList(socket);
-				await this.handleDmList(socket);
 				this.handleRoomList(socket);
 				this.handleUserList(socket);
 
@@ -203,6 +202,8 @@ export class EventsGateway
 					userProfileUrl: socket.data.user.profileUrl,
 					userStatus: 'online',
 				});
+
+				await this.handleDmList(socket);
 			} else {
 				this.logger.warn(`user not found.`);
 				throw new UnauthorizedException("User not found.");
@@ -690,8 +691,49 @@ export class EventsGateway
 
 	}
 
+	@SubscribeMessage("message-dm")
+	async MessageDM(
+		@ConnectedSocket() socket: Socket,
+		@MessageBody() {
+			targetId,
+			message,
+		}: {
+			targetId: number,
+			message: string,
+		}) {
+		try {
+			const newDM = new DirectMessage();
+			newDM.senderId = socket.data.user.uid;
+			newDM.receiverId = targetId;
+			newDM.message = message;
+			newDM.sender = await this.userService.getUserByUid(socket.data.user.uid);
+			newDM.receiver = await this.userService.getUserByUid(targetId);
+			const hasBlock = await this.databaseService.findBlockByUid(targetId, socket.data.user.uid);
+			if (hasBlock !== null) {
+				newDM.blockFromReceiver = true;
+			}
+			await this.databaseService.saveDM(newDM);
+			this.nsp.to(socket.id).emit('message', {
+				roomId: targetId,
+				from: socket.data.user.uid,
+				message,
+			});
+			if (userList[targetId]?.socket !== undefined) {
+				this.nsp.to(userList[targetId]?.socket?.id!).emit('message', {
+					roomId: socket.data.user.uid,
+					from: socket.data.user.uid,
+					message,
+				});
+			}
+			return { status: 'ok' };
+		} catch (error) {
+			this.logger.error(error);
+		}
+		return { status: 'ko' };
+	}
+
 	@SubscribeMessage("dm-room-create")
-	async DmRoomCreate(
+	async DMRoomCreate(
 		@ConnectedSocket() socket: Socket,
 		@MessageBody() {
 			targetId,
@@ -850,14 +892,43 @@ export class EventsGateway
 		this.logger.debug(`handleDmList - ${socket.data.user.uid} `);
 
 		try {
-			const dmList = await this.databaseService.findDMByUserId(socket.data.user.uid);
-			console.log(dmList);
+			// const tempDmList: Record<number, ClientUserDto> = {};
+			// const tempDmRoomList: Record<number, ClientRoomListDto> = {};
+			// type dmDTO = {
+			// 	id: number,
+			// 	senderId: number,
+			// 	receiverId: number,
+			// 	message: string | null,
+			// 	blockFromReceiver: boolean,
+			// };
+			const dmListFromMe = await this.databaseService.findDMByUserId(socket.data.user.uid);
+			const dmListToMe = await this.databaseService.findDMByUserIdReceive(socket.data.user.uid);
+			// const dmList: dmDTO[] = [];
+			// dmListFromMe?.forEach((dm) => {
+			// 	dmList.push({
+			// 		id: dm.did,
+			// 		senderId: dm.senderId,
+			// 		receiverId: dm.receiverId,
+			// 		message: dm.message,
+			// 		blockFromReceiver: dm.blockFromReceiver,
+			// 	});
+			// });
+			// dmListToMe?.forEach((dm) => {
+			// 	dmList.push({
+			// 		id: dm.did,
+			// 		senderId: dm.senderId,
+			// 		receiverId: dm.receiverId,
+			// 		message: dm.message,
+			// 		blockFromReceiver: dm.blockFromReceiver,
+			// 	});
+			// });
+			// const sortDmList = dmList.sort((a, b) => {
+			// 	return a.id - b.id;
+			// });
+			// console.log(sortDmList);
+			this.nsp.to(socket.id).emit("dm-list", dmListFromMe, dmListToMe);
 		} catch (error) {
 			this.logger.error(`handleDmList - ${error} `);
 		}
-		const tempDmList: Record<number, ClientUserDto> = {
-
-		};
-		this.nsp.to(socket.id).emit("dm-list", tempDmList);
 	}
 }
