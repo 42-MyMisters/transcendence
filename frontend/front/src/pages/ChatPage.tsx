@@ -92,6 +92,13 @@ export default function ChatPage() {
 		console.log(`socket state: ${socketState}`);
 	};
 
+	const quitRoomRelativeModal = () => {
+		setUserInfoModal(false);
+		setInviteModal(false);
+		// setRoomModal(false);
+		// setPwInputModal(false);
+	}
+
 	async function getMyinfoHandler() {
 		const getMeResponse = await GetMyInfo(setUserInfo);
 		if (getMeResponse == 401) {
@@ -379,9 +386,8 @@ export default function ChatPage() {
 						setRoomList({ ...roomList, ...newRoomList });
 						if (focusRoom === roomId) {
 							setFocusRoom(-1);
+							quitRoomRelativeModal();
 						}
-						setInviteModal(false);
-						setUserInfoModal(false);
 					} else {
 						const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
 						delete newUserList[targetId];
