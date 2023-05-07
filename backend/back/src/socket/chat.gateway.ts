@@ -743,6 +743,9 @@ export class EventsGateway
 		try {
 			const myDmList = await this.databaseService.findDMSenderAndReceiver(socket.data.user.uid, targetId);
 			const targetDmlist = await this.databaseService.findDMSenderAndReceiver(targetId, socket.data.user.uid);
+			console.log(myDmList);
+			console.log(`---------------------------------------\n`);
+			console.log(targetDmlist);
 			const dmUserList: Record<number, RoomMember> = {};
 			dmUserList[socket.data.user.uid] = {
 				userRoomStatus: 'normal',
@@ -892,6 +895,8 @@ export class EventsGateway
 		this.logger.debug(`handleDmList - ${socket.data.user.uid} `);
 
 		try {
+			// const myDmList = await this.databaseService.findDMSenderAndReceiver(socket.data.user.uid, targetId);
+			// const targetDmlist = await this.databaseService.findDMSenderAndReceiver(targetId, socket.data.user.uid);
 			const dmListFromMe = await this.databaseService.findDMByUserId(socket.data.user.uid);
 			const dmListToMe = await this.databaseService.findDMByUserIdReceive(socket.data.user.uid);
 			this.nsp.to(socket.id).emit("dm-list", dmListFromMe, dmListToMe);
