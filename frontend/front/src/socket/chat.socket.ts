@@ -92,16 +92,22 @@ export function emitRoomJoin(
 	});
 }
 
-export function emitRoomInvite({
-	roomList,
-}: {
-	roomList: chatType.roomListDto
-},
+export function emitRoomInvite(
 	roomId: number,
 	targetName: string) {
-	if (roomList[roomId].roomType === 'dm') {
-		alert('dm room cannot invite');
-	}
+
+	socket.emit("room-invite", { roomId, targetName }, ({
+		status,
+		payload }: {
+			status: 'ok' | 'ko';
+			payload?: string
+		}) => {
+		if (status === 'ok') {
+			console.log(`callback: room-invite success`);
+		} else {
+			alert(`room-invite fail: ${payload}`)
+		}
+	})
 }
 
 export function emitRoomLeave(

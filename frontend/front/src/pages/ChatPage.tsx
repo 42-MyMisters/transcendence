@@ -292,18 +292,20 @@ export default function ChatPage() {
 			roomType,
 			userList = {},
 			myPower,
-			status
+			status,
+			method = ''
 		}: {
 			roomId: number,
 			roomName: string,
-			roomType: 'open' | 'protected' | 'private',
+			roomType: 'open' | 'protected' | 'private' | 'dm',
 			userList: chatType.userInRoomListDto,
-			myPower: 'owner' | 'admin' | 'member',
-			status: 'ok' | 'ko'
+			myPower: chatType.userRoomPower,
+			status: 'ok' | 'ko',
+			method?: 'invite' | ''
 		}) => {
 			switch (status) {
 				case 'ok': {
-					console.log(`join [${roomName}] room`);
+					console.log(`join [${roomName}]room`);
 					const newRoomList: chatType.roomListDto = {};
 					newRoomList[roomId] = {
 						roomName,
@@ -316,14 +318,16 @@ export default function ChatPage() {
 							myRoomPower: myPower
 						}
 					};
-					console.log(`room-join new: ${JSON.stringify(newRoomList)}`);
+					console.log(`room - join new: ${JSON.stringify(newRoomList)}`);
 					setRoomList({ ...roomList, ...newRoomList });
-					setFocusRoom(roomId);
+					if (method !== 'invite') {
+						setFocusRoom(roomId);
+					}
 					break;
 				}
 				case 'ko': {
 					if (roomList[roomId].isJoined === false) {
-						alert(`fail to join [${roomName}] room`);
+						alert(`fail to join[${roomName}]room`);
 					}
 					break;
 				}
@@ -438,7 +442,7 @@ export default function ChatPage() {
 					userProfileUrl,
 					userStatus,
 				};
-				console.log(`user-upadate: user ${userId} is ${userStatus}`);
+				console.log(`user - upadate: user ${userId} is ${userStatus}`);
 				setUserList({ ...userList, ...newUser });
 			}
 		});

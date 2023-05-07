@@ -18,7 +18,7 @@ import { UserService } from "src/user/user.service";
 import * as bcrypt from 'bcrypt';
 
 
-type roomType = 'open' | 'protected' | 'private';
+type roomType = 'open' | 'protected' | 'private' | 'dm';
 type userStatus = 'online' | 'offline' | 'inGame';
 type userRoomStatus = 'normal' | 'mute';
 type userRoomPower = 'owner' | 'admin' | 'member';
@@ -454,6 +454,64 @@ export class EventsGateway
 		}
 	}
 
+	@SubscribeMessage("room-invite")
+	async RoomInvite(
+		@ConnectedSocket() socket: Socket,
+		@MessageBody() {
+			roomId,
+			targetName,
+		}: {
+			roomId: number;
+			targetName: string;
+		}) {
+		if (roomList[roomId].roomType === 'dm') {
+			return ({ status: 'ko', payload: '\ndm room cannot invite' });
+		} else if (roomList[roomId] === undefined) {
+			return ({ status: 'ko', payload: `\nroom not found in server` });
+		}
+
+		try {
+			const targetUser: User | null = await this.userService.getUserByNickname(targetName);
+			if (targetUser === null) {
+				return ({ status: 'ko', payload: `\n ${targetName}\nuser not found` });
+			} else {
+				if (roomList[roomId].roomMembers[targetUser.uid] !== undefined) {
+					return ({ status: 'ko', payload: `\n ${targetName}\nalready in this room` });
+				} else {
+					console.log(targetUser);
+					const newMember: RoomMember = {
+						userRoomStatus: 'normal',
+						userRoomPower: 'member',
+					}
+					roomList[roomId].roomMembers[targetUser.uid] = newMember;
+					const targetSocket: Socket | undefined = userList[targetUser.uid].socket;
+					targetSocket?.join(roomId.toString());
+					targetSocket?.data.roomList.push(roomId);
+					if (targetSocket?.id !== undefined) {
+						this.nsp.to(targetSocket?.id).emit("room-join", {
+							roomId,
+							roomName: roomList[roomId].roomName,
+							roomType: roomList[roomId].roomType,
+							userList: roomList[roomId].roomMembers,
+							myPower: 'member',
+							status: 'ok',
+							method: 'invite',
+						});
+					}
+					this.nsp.to(roomId.toString()).emit('room-in-action', {
+						roomId,
+						action: 'newMember',
+						targetId: targetUser.uid,
+					});
+					return ({ status: 'ok' });
+				}
+			}
+		}
+		catch (e) {
+			return ({ status: 'ko', payload: `\n ${targetName}\nuser not found\n${e}` });
+		}
+	}
+
 	@SubscribeMessage("user-block")
 	async UserBlock(
 		@ConnectedSocket() socket: Socket,
@@ -465,27 +523,20 @@ export class EventsGateway
 			doOrUndo: boolean
 		}) {
 		const targetUser: User | null = await this.userService.getUserByUid(targetId);
-		console.log(`targetUser: ${JSON.stringify(targetUser)}`);
 		if (targetUser === null) {
 			return ({ status: 'ko', payload: 'user not found' });
 		}
-
-		if (doOrUndo) {
-			try {
+		try {
+			if (doOrUndo) {
 				await this.userService.block(socket.data.user, targetUser);
 				return ({ status: 'on' });
-			} catch (e) {
-				console.log(e);
-				return ({ status: 'ko', payload: `\n${e}` });
-			}
-		} else {
-			try {
+			} else {
 				await this.userService.unblock(socket.data.user, targetUser);
 				return ({ status: 'off' });
-			} catch (e) {
-				console.log(e);
-				return ({ status: 'ko', payload: `\n${e}` });
 			}
+		} catch (e) {
+			console.log(e);
+			return ({ status: 'ko', payload: `\n${e} ` });
 		}
 	}
 
@@ -582,7 +633,7 @@ export class EventsGateway
 					}
 					case 'ban': {
 						if (roomList[roomId].bannedUsers.includes(targetId) === false) {
-							this.logger.debug(`${socket.data.user.nickname} ban ${userList[targetId].userDisplayName} from ${roomList[roomId].roomName}`);
+							this.logger.debug(`${socket.data.user.nickname} ban ${userList[targetId].userDisplayName} from ${roomList[roomId].roomName} `);
 							roomList[roomId].bannedUsers.push(targetId);
 							setTimeout(() => {
 								roomList[roomId].bannedUsers = roomList[roomId].bannedUsers.filter((userId) => userId !== targetId);
@@ -622,11 +673,11 @@ export class EventsGateway
 	handleServerRoomList(@ConnectedSocket() socket: Socket) {
 		this.logger.verbose("server-room-list");
 		Object.entries(roomList).forEach(([roomId, roomInfo]) => {
-			console.log(`\n${roomInfo.roomName} :${roomId}:  ${roomInfo.roomType} ${roomInfo.roomPass}`);
-			console.log(`\towner: ${userList[roomInfo.roomOwner].userDisplayName}:${roomInfo.roomOwner}`);
-			console.log(`\tadmins: ${roomInfo.roomAdmins.map((adminId) => userList[adminId].userDisplayName).join(', ')}`);
+			console.log(`\n${roomInfo.roomName} :${roomId}:  ${roomInfo.roomType} ${roomInfo.roomPass} `);
+			console.log(`\towner: ${userList[roomInfo.roomOwner].userDisplayName}:${roomInfo.roomOwner} `);
+			console.log(`\tadmins: ${roomInfo.roomAdmins.map((adminId) => userList[adminId].userDisplayName).join(', ')} `);
 			Object.entries(roomInfo.roomMembers).forEach(([uid, memberInfo]) => {
-				console.log(`\t${userList[uid].userDisplayName}:${uid}: \t\t${memberInfo.userRoomStatus} ${memberInfo.userRoomPower}`);
+				console.log(`\t${userList[uid].userDisplayName}:${uid}: \t\t${memberInfo.userRoomStatus} ${memberInfo.userRoomPower} `);
 			});
 		});
 	}
@@ -635,12 +686,12 @@ export class EventsGateway
 	handleServerUserList(@ConnectedSocket() socket: Socket) {
 		this.logger.verbose("server-user-list");
 		Object.entries(userList).forEach(([uid, userInfo]) => {
-			console.log(`\n${userInfo.userDisplayName}:${uid}: ${userInfo.status}`);
+			console.log(`\n${userInfo.userDisplayName}:${uid}: ${userInfo.status} `);
 		});
 	}
 
 	handleRoomList(socket: Socket) {
-		this.logger.debug(`handleRoomList ${socket.data.user.uid}`);
+		this.logger.debug(`handleRoomList ${socket.data.user.uid} `);
 		const tempRoomList: Record<number, ClientRoomListDto> = {};
 
 		for (const [roomId, roomInfo] of Object.entries(roomList)) {
@@ -669,7 +720,7 @@ export class EventsGateway
 	}
 
 	handleUserList(socket: Socket) {
-		this.logger.debug(`handleUserList ${socket.data.user.uid}`);
+		this.logger.debug(`handleUserList ${socket.data.user.uid} `);
 		const tempUserList: Record<number, ClientUserDto> = {};
 
 		try {
@@ -689,13 +740,13 @@ export class EventsGateway
 				}
 			}
 		} catch (error) {
-			this.logger.error(`catch-error: handleUserList - ${error}:`, error);
+			this.logger.error(`catch-error: handleUserList - ${error}: `, error);
 		}
 		this.nsp.to(socket.id).emit("user-list", tempUserList);
 	}
 
 	async handleBlockList(socket: Socket) {
-		this.logger.debug(`handleBlockList - ${socket.data.user.uid}`);
+		this.logger.debug(`handleBlockList - ${socket.data.user.uid} `);
 		const blockList = await this.userService.findAllBlock(socket.data.user);
 
 		const tempUser: Record<number, boolean> = {};
@@ -704,13 +755,13 @@ export class EventsGateway
 				tempUser[blockId.targetToBlockId] = true;
 			})
 		} catch (e) {
-			this.logger.error(`handleBlockList - ${e}`);
+			this.logger.error(`handleBlockList - ${e} `);
 		}
 		this.nsp.to(socket.id).emit("block-list", tempUser);
 	}
 
 	async handleFollowList(socket: Socket) {
-		this.logger.debug(`handleFollowList - ${socket.data.user.uid}`);
+		this.logger.debug(`handleFollowList - ${socket.data.user.uid} `);
 		const userFollow = await this.userService.getFollowingUserInfo(socket.data.user.uid);
 
 		const tempFollowList: Record<number, ClientUserDto> = {};
@@ -723,13 +774,13 @@ export class EventsGateway
 				};
 			});
 		} catch (e) {
-			this.logger.error(`handleFollowList - ${e}`);
+			this.logger.error(`handleFollowList - ${e} `);
 		}
 		this.nsp.to(socket.id).emit("follow-list", tempFollowList);
 	}
 
 	async handleDmList(socket: Socket) {
-		this.logger.debug(`handleDmList - ${socket.data.user.uid}`);
+		this.logger.debug(`handleDmList - ${socket.data.user.uid} `);
 
 		const tempDmList: Record<number, ClientUserDto> = {
 
