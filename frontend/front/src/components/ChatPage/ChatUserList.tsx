@@ -4,6 +4,7 @@ import UserObj from "../objects/UserObj";
 import { useAtom } from "jotai";
 import * as chatAtom from '../atom/ChatAtom';
 import { UserAtom } from "../atom/UserAtom";
+import * as socket from "../../socket/chat.socket";
 
 // 채팅페이지 왼쪽 아래 total User list
 export default function ChatUserList() {
@@ -23,6 +24,7 @@ export default function ChatUserList() {
       console.log('init');
       // init logic
       // create room in roomList, and opposite user's roomList
+      socket.emitDmRoomCreate({ roomList }, targetId);
       // bring dm histroy from server
       // setFocusRoom(targetId);
     } else {

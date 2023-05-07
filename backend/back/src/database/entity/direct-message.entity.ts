@@ -12,11 +12,14 @@ export class DirectMessage extends BaseEntity {
     @Column()
     recieverId: number;
 
-    @Column({nullable: true, type: 'varchar'})
+    @Column({ nullable: true, type: 'varchar' })
     message: string | null;
 
     @CreateDateColumn()
-	time: Date;
+    time: Date;
+
+    @Column({ default: false })
+    blockFromReciever: boolean;
 
     @ManyToOne(() => User, (user) => user.uid)
     @JoinColumn({
@@ -31,5 +34,5 @@ export class DirectMessage extends BaseEntity {
         referencedColumnName: 'uid',
     })
     reciever: User;
-    
+
 }

@@ -314,3 +314,21 @@ export function emitBlockUser({
 		}
 	});
 }
+
+
+export function emitDmRoomCreate({
+	roomList
+}: {
+	roomList: chatType.roomListDto,
+},
+	targetId: number,
+) {
+	socket.emit("dm-room-create", {
+		targetId,
+	}, (
+		status: 'ok' | 'ko',
+	) => {
+
+
+	});
+}

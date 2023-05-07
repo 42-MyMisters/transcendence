@@ -655,7 +655,9 @@ export class EventsGateway
 							this.logger.debug(`${socket.data.user.nickname} ban ${userList[targetId].userDisplayName} from ${roomList[roomId].roomName} `);
 							roomList[roomId].bannedUsers.push(targetId);
 							setTimeout(() => {
-								roomList[roomId].bannedUsers = roomList[roomId].bannedUsers.filter((userId) => userId !== targetId);
+								if (roomList[roomId] !== undefined) {
+									roomList[roomId].bannedUsers = roomList[roomId].bannedUsers.filter((userId) => userId !== targetId);
+								}
 							}, 60000);
 						}
 					}
