@@ -54,6 +54,8 @@ export default function ChatPage() {
 
 	const [gameInviteModal, setGameInviteModal] = useAtom(gameInviteModalAtom);
 
+	const [initDmQueue, setInitDmQueue] = useAtom(chatAtom.initDmQueueAtom);
+
 	const getRoomList = () => {
 		console.log("\n\ngetRoomList");
 		Object.entries(roomList).forEach(([key, value]) => {
@@ -216,6 +218,50 @@ export default function ChatPage() {
 		};
 	}, []);
 
+	function isInUserList(targetId: number) {
+		if (userList[targetId] === undefined) {
+			if (initDmQueue.includes(targetId) === false) {
+				initDmQueue.push(targetId);
+				setInitDmQueue(initDmQueue);
+			}
+		} else if (dmHistoryList[targetId] === undefined) {
+			const newDmHistoryList: chatType.userDto = {};
+			newDmHistoryList[targetId] = userList[targetId];
+			setDmHistoryList((prevDmHistoryList) => ({ ...prevDmHistoryList, ...newDmHistoryList }));
+		}
+	}
+
+
+	function alsoCreateRoom() {
+		initDmQueue.forEach((targetId) => {
+			if (roomList[targetId] === undefined) {
+				const newDmRoom: chatType.roomListDto = {};
+				const dmRoomUserList: chatType.userInRoomListDto = {};
+				dmRoomUserList[targetId] = {
+					userRoomPower: 'member',
+					userRoomStatus: 'normal',
+				}
+				dmRoomUserList[userInfo.uid] = {
+					userRoomPower: 'member',
+					userRoomStatus: 'normal',
+				}
+				newDmRoom[targetId] = {
+					roomName: 'DM',
+					roomType: 'dm',
+					isJoined: true,
+					detail: {
+						userList: { ...dmRoomUserList },
+						messageList: [],
+						myRoomStatus: 'normal',
+						myRoomPower: 'member'
+					}
+				};
+				setRoomList((prevRoomList) => ({ ...prevRoomList, ...newDmRoom }));
+			}
+		});
+
+	};
+
 	useEffect(() => {
 		socket.socket.on("room-list", (resRoomList: chatType.roomListDto) => {
 			setRoomList((prevRoomList) => ({ ...prevRoomList, ...resRoomList }));
@@ -232,12 +278,7 @@ export default function ChatPage() {
 		socket.socket.on("dm-list", (dmListFromMe, dmListToMe) => {
 			const dmList: chatType.dmDto[] = [];
 			const tempDmHistroyList: chatType.userDto = {};
-			// TODO:
-			// user add to temp list
-			// 1. if in userList, copy
-			// 2. if not in userList, api request -> add
 			const tempDmRoomList: chatType.roomListDto = {};
-			// create DM room for using user.id
 			dmListFromMe.forEach((dm: chatType.dmDto) => {
 				dmList.push({
 					did: dm.did,
@@ -246,6 +287,7 @@ export default function ChatPage() {
 					message: dm.message,
 					blockFromReceiver: dm.blockFromReceiver,
 				});
+				isInUserList(dm.receiverId);
 			});
 			dmListToMe.forEach((dm: chatType.dmDto) => {
 				dmList.push({
@@ -255,7 +297,33 @@ export default function ChatPage() {
 					message: dm.message,
 					blockFromReceiver: dm.blockFromReceiver,
 				});
+				isInUserList(dm.senderId);
 			});
+			initDmQueue.forEach((targetId) => {
+				if (userList[targetId] === undefined) {
+					console.log(`userList[targetId] === undefined`);
+					// const newDmUser: chatType.userDto = {};
+					// newDmUser[targetId] = {
+					// 	userDisplayName,
+					// 	userProfileUrl,
+					// 	userStatus,
+					// }
+					// console.log(`if userDisplayName: ${userDisplayName}`);
+					// setDmHistoryList((prevDmHistoryList) => ({ ...prevDmHistoryList, ...newDmUser }));
+					// setUserList((prevUserList) => ({ ...newDmUser, ...prevUserList }));
+				} else {
+					console.log(`else in userList: ${userList[targetId].userDisplayName}`);
+					// const newDmHistoryList: chatType.userDto = {};
+					// newDmHistoryList[targetId] = {
+					// 	userDisplayName: userList[targetId].userDisplayName,
+					// 	userProfileUrl: userList[targetId].userProfileUrl,
+					// 	userStatus: userList[targetId].userStatus,
+					// };
+					// console.log(`else userDisplayName: ${newDmHistoryList[targetId].userDisplayName}`);
+					// setDmHistoryList((prevDmHistoryList) => ({ ...newDmHistoryList, ...prevDmHistoryList, }));
+				}
+			});
+			alsoCreateRoom();
 			dmList.sort((a, b) => {
 				return a.did - b.did;
 			});
@@ -508,16 +576,14 @@ export default function ChatPage() {
 			userProfileUrl: string;
 			userStatus: 'online' | 'offline' | 'inGame';
 		}) => {
-			if (isFirstLogin === false) {
-				const newUser: chatType.userDto = {};
-				newUser[userId] = {
-					userDisplayName,
-					userProfileUrl,
-					userStatus,
-				};
-				console.log(`user - upadate: user ${userId} is ${userStatus}`);
-				setUserList({ ...userList, ...newUser });
-			}
+			const newUser: chatType.userDto = {};
+			newUser[userId] = {
+				userDisplayName,
+				userProfileUrl,
+				userStatus,
+			};
+			console.log(`user - upadate: user ${userId} is ${userStatus}`);
+			setUserList({ ...userList, ...newUser });
 		});
 		return () => {
 			socket.socket.off("user-update");

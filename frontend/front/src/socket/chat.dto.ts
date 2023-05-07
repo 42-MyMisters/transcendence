@@ -15,7 +15,8 @@ type userDto = {
 	[key: number]: {
 		userDisplayName: string;
 		userProfileUrl: string;
-		userStatus: 'online' | 'offline' | 'inGame';
+		// userStatus: 'online' | 'offline' | 'inGame';
+		userStatus: userStatus;
 		dmStatus?: 'unread' | 'read';
 	}
 }

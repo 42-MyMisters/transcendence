@@ -77,7 +77,7 @@ export default function UserObj({
               : followingList[uid] !== undefined
                 ? <div className="UserNickName" style={{ color: `${defaultColor}` }}>{nickName}</div>
                 : dmHistoryList[uid] !== undefined
-                  ? <div className="UserNickName" style={{ color: "#077" }}>{nickName}</div>
+                  ? <div className="UserNickName" style={{ color: "#a60" }}>{nickName}</div>
                   : <div className="UserNickName" style={{ color: "#333" }}>{nickName}</div>
             : <div className="UserNickName" style={{ color: "#a55" }}>{nickName}</div>
           : chat === 'normal'

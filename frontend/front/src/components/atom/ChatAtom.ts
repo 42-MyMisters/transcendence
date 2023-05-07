@@ -9,6 +9,8 @@ export const dmHistoryListAtom = atom<DTO.userDto>({});
 export const followingListAtom = atom<DTO.userDto>({});
 export const blockListAtom = atom<DTO.userSimpleDto>({});
 
+export const initDmQueueAtom = atom<number[]>([]);
+
 export const hasLoginAtom = atom<boolean>(false);
 export const isFirstLoginAtom = atom<boolean>(true);
 export const focusRoomAtom = atom<number>(-1);
