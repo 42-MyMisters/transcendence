@@ -380,6 +380,8 @@ export default function ChatPage() {
 						if (focusRoom === roomId) {
 							setFocusRoom(-1);
 						}
+						setInviteModal(false);
+						setUserInfoModal(false);
 					} else {
 						const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
 						delete newUserList[targetId];

@@ -45,49 +45,59 @@ export default function UserInfoModal() {
     }
   };
 
+  const checkExist = (uid: number) => {
+    if (roomList[focusRoom].detail?.userList[uid] === undefined) {
+      setUserInfoModal(false);
+    }
+  }
+
+  const infoModalOff = () => {
+    setUserInfoModal(false);
+  }
+
   PressKey(["Escape"], () => {
     setUserInfoModal(false);
   });
 
   const Follow = () => {
     followHandler();
-    setUserInfoModal(false);
+    infoModalOff();
   };
 
   const Invite = () => {
     alert("invite");
-    setUserInfoModal(false);
+    infoModalOff();
   }
 
   const Ignore = () => {
     const doOrUndo: boolean = blockList[userInfo.uid] === undefined ? true : false;
     socket.emitBlockUser({ blockList, setBlockList }, userInfo.uid, doOrUndo);
-    setUserInfoModal(false);
+    infoModalOff();
   };
 
   const Profile = () => {
     alert("profile");
-    setUserInfoModal(false);
+    infoModalOff();
   };
 
   const Kick = () => {
     socket.emitRoomInAction({ roomList, setRoomList }, focusRoom, "kick", userInfo.uid)
-    setUserInfoModal(false);
+    infoModalOff();
   };
 
   const Ban = () => {
     socket.emitRoomInAction({ roomList, setRoomList }, focusRoom, "ban", userInfo.uid)
-    setUserInfoModal(false);
+    infoModalOff();
   };
 
   const Mute = () => {
     socket.emitRoomInAction({ roomList, setRoomList }, focusRoom, "mute", userInfo.uid)
-    setUserInfoModal(false);
+    infoModalOff();
   };
 
   const Admin = () => {
     socket.emitRoomInAction({ roomList, setRoomList }, focusRoom, "admin", userInfo.uid)
-    setUserInfoModal(false);
+    infoModalOff();
   };
 
 

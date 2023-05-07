@@ -577,6 +577,11 @@ export class EventsGateway
 			targetId: number
 		}
 	) {
+		if (roomList[roomId] === undefined) {
+			return { status: 'ko', payload: '\n방에 참여하세요\n 선택된 방이 없습니다.' };
+		} else if (roomList[roomId].roomMembers[targetId] === undefined) {
+			return { status: 'ko', payload: '\n해당 유저가 존재하지 않습니다.' };
+		}
 		switch (roomList[roomId].roomMembers[socket.data.user.uid].userRoomPower) {
 			case 'owner': {
 				if (action === 'admin') {
