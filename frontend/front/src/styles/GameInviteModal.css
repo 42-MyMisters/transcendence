@@ -15,7 +15,7 @@
   top: 440px;
 
   width: 460px;
-  height: 280px;
+  height: 220px;
 
   z-index: 999;
   background: #959595;
@@ -30,8 +30,9 @@
   height: 100px;
 
   font-weight: 400;
-  font-size: 50px;
+  font-size: 30px;
   line-height: 50px;
+  white-space: pre;
 
   text-align: center;
 }

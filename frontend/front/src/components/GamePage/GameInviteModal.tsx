@@ -7,7 +7,7 @@ export default function GameInviteModal({
   AcceptBtn,
 }: {
   from: string;
-  AcceptBtn: () => {};
+  AcceptBtn: () => void;
 }) {
   const [, setGameInviteModal] = useAtom(gameInviteModalAtom);
 
