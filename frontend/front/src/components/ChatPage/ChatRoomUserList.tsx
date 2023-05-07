@@ -43,7 +43,11 @@ export default function ChatRoomUserList() {
     <div className="ChatRoomUserListBG">
       <div className="ChatRoomNameTxt">
         {
-          focusRoom === -1 ? 'My Room' : roomList[focusRoom]?.roomName
+          focusRoom === -1
+            ? 'My Room'
+            : roomList[focusRoom].roomType === 'private'
+              ? 'Private Room ' + roomList[focusRoom]?.roomName
+              : roomList[focusRoom]?.roomName
         }
       </div>
       {
