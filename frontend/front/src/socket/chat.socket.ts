@@ -134,13 +134,19 @@ export function emitRoomLeave(
 	}) => {
 		if (status === 'leave') {
 			console.log(`callback: room leaved: ${roomList[roomId].roomName}`);
-			const newRoomList: chatType.roomListDto = {};
-			newRoomList[roomId] = {
-				roomName: roomList[roomId].roomName,
-				roomType: roomList[roomId].roomType,
-				isJoined: false,
+			if (roomList[roomId].roomType === 'private') {
+				const newRoomList: chatType.roomListDto = { ...roomList };
+				delete newRoomList[roomId];
+				setRoomList({ ...newRoomList });
+			} else {
+				const newRoomList: chatType.roomListDto = {};
+				newRoomList[roomId] = {
+					roomName: roomList[roomId].roomName,
+					roomType: roomList[roomId].roomType,
+					isJoined: false,
+				}
+				setRoomList({ ...roomList, ...newRoomList });
 			}
-			setRoomList({ ...roomList, ...newRoomList });
 			if (focusRoom === roomId) {
 				setFocusRoom(-1);
 			}

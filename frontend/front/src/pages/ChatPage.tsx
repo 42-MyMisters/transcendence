@@ -348,7 +348,7 @@ export default function ChatPage() {
 			action: 'ban' | 'kick' | 'mute' | 'admin' | 'normal' | 'owner' | 'leave' | 'newMember';
 			targetId: number
 		}) => {
-			if (roomList[roomId].isJoined === false) {
+			if (roomList[roomId]?.isJoined !== true) {
 				return;
 			}
 			switch (action) {
