@@ -5,7 +5,7 @@ import React, { KeyboardEvent, useEffect } from "react";
 import { useAtom } from "jotai";
 
 import { Game } from "./Pong";
-import { GameCoordinateAtom, GameCoordinate, GameCanvas } from "../atom/GameAtom";
+import { GameCoordinateAtom, GameCoordinate, GameCanvas, lastUpdate } from "../atom/GameAtom";
 import { PressKey } from "../../event/pressKey";
 
 import * as game from "../../socket/game.socket";
@@ -13,32 +13,71 @@ import * as game from "../../socket/game.socket";
 import { useState, useRef } from "react";
 import { time } from "console";
 import { socket } from "../../socket/chat.socket";
+import { ball, HEIGHT, me, opponent, paddle, WIDTH } from "./GameInfo";
+
+export const enum Direction {
+  NONE = 0, // => hmm...
+  UP = 1,
+  DOWN = 2,
+  LEFT = 3,
+  RIGHT = 4
+}
+
+export const enum Hit {
+  PADDLE = 1,
+  WALL = 0,
+}
+
+export interface paddleInfo {
+  paddle1YUp: boolean,
+  paddle1YDown: boolean,
+  paddle2YUp: boolean,
+  paddle2YDown: boolean,
+}
+
+export interface scoreInfo {
+  p1Score: number,
+  p2Score: number,
+}
 
 export default function PingPong() {
   let ping: number;
-  const [coordinate, setCoordinate] = useAtom(GameCoordinateAtom);
+  // const [coords, setCoord] = useAtom(GameCoordinateAtom);
   const [upArrow, setUpArrow] = useState(false);
   const [downArrow, setDownArrow] = useState(false);
   // const [canvas, setCanvas] = useAtom(GameCanvas);
   const canvas = useRef<HTMLCanvasElement>(null);
-
+  
+  let coords = {
+    paddle1Y: 225,
+    ballX: 1150 / 2,
+    ballY: 300,
+    paddle2Y: 225,
+    ballSpeedX: 0,
+    ballSpeedY: 0,
+    paddleSpeed: 0.6,
+    paddle1YUp: false,
+    paddle1YDown: false,
+    paddle2YUp: false,
+    paddle2YDown: false,
+  };
+  let lastUpdateTime = Date.now();
   // PressKey(["ArrowUp"], () => {
-  //   let tmp = coordinate;
+  //   let tmp = coords;
   //   tmp.leftY -= 10;
-  //   setCoordinate(tmp);
-  //   Game(coordinate, canvas, setCanvas});
+  //   setCoord(tmp);
+  //   Game(coords, canvas, setCanvas});
   // });
 
   // PressKey(["ArrowDown"], () => {
-  //   let tmp = coordinate;
+  //   let tmp = coords;
   //   tmp.leftY += 10;
-  //   setCoordinate(tmp);
-  //   Game(coordinate, canvas, setCanvas});
+  //   setCoord(tmp);
+  //   Game(coords, canvas, setCanvas});
   // });
 
   let pingInterval: NodeJS.Timer;
   let pingTime: number;
-  let lastCoordTime: number;
 
   game.gameSocket.on("connect", () => {
     if (game.gameSocket.connected) {
@@ -88,26 +127,168 @@ export default function PingPong() {
     ({ uid_left, p1, uid_right }: { uid_left: string; p1: number; uid_right: string }) => {}
   );
 
-  const intersectionSize: number = 5;
+  useEffect(() => {
+    const handler = (started: boolean) => {
+      lastUpdateTime = Date.now();
+      console.log("update start");
+      update(coords, canvas);
+    };
+    game.gameSocket.on("start", handler);
+    return () => {
+      game.gameSocket.off("start", handler);
+    };
+  }, []);
+        
+  useEffect(() => {
+    const handler = (gameCoord: GameCoordinate) => {
+      lastUpdateTime = Date.now();
+      coords = gameCoord;
+      Game(coords, canvas);
+    };
+    game.gameSocket.on("graphic", handler);
+    return () => {
+      socket.off("graphic", handler);
+    }
+  }, []);
+  
+  useEffect(() => {
+    const handler = (paddleInfo: paddleInfo) => {
+      coords.paddle1YUp = paddleInfo.paddle1YUp;
+      coords.paddle1YDown = paddleInfo.paddle1YDown;
+      coords.paddle2YUp = paddleInfo.paddle2YUp;
+      coords.paddle2YDown = paddleInfo.paddle2YDown;
+      // lastUpdateTime = Date.now();
+      Game(coords, canvas);
+    };
+    game.gameSocket.on("paddleInfo", handler);
+    return () => {
+      socket.off("paddleInfo", handler);
+    }
+  }, []);
 
   useEffect(() => {
-    game.gameSocket.on(
-      "graphic",
-      (gameCoord: GameCoordinate) => {
-        let temp = gameCoord;
-        setCoordinate(temp);
-      })
-      // return () => {
-      //   game.gameSocket.off("graphic");
-      // };
-    }, []);
+    const handler = (scoreInfo: scoreInfo) => {
+      me.score = scoreInfo.p1Score;
+      opponent.score = scoreInfo.p2Score;
+      Game(coords, canvas);
+    };
+    game.gameSocket.on("scoreInfo", handler);
+    return () => {
+      socket.off("scoreInfo", handler);
+    }
+  }, []);
+  
 
+  function update(coord:GameCoordinate, canvas:React.RefObject<HTMLCanvasElement>) {
+    const curTime = Date.now();
+    const dt = curTime - lastUpdateTime;
 
+    paddleUpdate(coord.paddle1YUp, coord.paddle1YDown,coord.paddle2YUp, coord.paddle2YDown, dt);
+    coord.ballX += coord.ballSpeedX * dt;
+    coord.ballY += coord.ballSpeedY * dt;
+    const isHitY = collisionCheckY();
+    const isHitX = collisionCheckX();
+    if (isHitY) {
+      if (coord.ballY < ball.radius) {
+        coord.ballY = 2 * ball.radius - coord.ballY;
+        coord.ballSpeedY = -coord.ballSpeedY;
+      } else {
+        coord.ballY = 2 * (HEIGHT - ball.radius) - coord.ballY;
+        coord.ballSpeedY = -coord.ballSpeedY;
+      }
+    }
+    if (isHitX == Direction.LEFT) {
+      if (collisionCheckP1Paddle() === Hit.PADDLE) {
+        coord.ballX = 2 * (ball.radius + paddle.width) - coord.ballX;
+        coord.ballSpeedX = -coord.ballSpeedX;
+      } else {
+        // need to freeze for 3 sec
+      }
+    } else if (isHitX === Direction.RIGHT) {
+      if (collisionCheckP2Paddle() === Hit.PADDLE) {
+        coord.ballX = 2 * (WIDTH - ball.radius - paddle.width) - coord.ballX;
+        coord.ballSpeedX = -coord.ballSpeedX;
+      } else {
+        // need to freeze for 3 sec
+      }
+    }
+    lastUpdateTime = curTime;
+    // console.log(`update coord: ${JSON.stringify(coord)}`);
+    Game(coord, canvas);
+    requestAnimationFrame(() => update(coords, canvas));
+  }
+  
+  function paddleUpdate(p1Up: boolean, p1Down: boolean, p2Up: boolean, p2Down: boolean, dt: number) {
+    if (p1Up) {
+      if (coords.paddle1Y > 0){
+        coords.paddle1Y -= coords.paddleSpeed * dt;
+      }
+      if (coords.paddle1Y < 0) {
+        coords.paddle1Y = 0;
+      }
+    }
+    if (p1Down) {
+      if (coords.paddle1Y < HEIGHT - paddle.height){
+        coords.paddle1Y += coords.paddleSpeed * dt;
+      }
+      if (coords.paddle1Y > HEIGHT - paddle.height) {
+        coords.paddle1Y = HEIGHT - paddle.height;
+      }
+    }
+    if (p2Up) {
+      if (coords.paddle2Y > 0) {
+        coords.paddle2Y -= coords.paddleSpeed * dt;
+      }
+      if (coords.paddle2Y < 0) {
+        coords.paddle2Y = 0;
+      }
+    }
+    if (p2Down) {
+      if (coords.paddle2Y < HEIGHT - paddle.height){
+        coords.paddle2Y += coords.paddleSpeed * dt;
+      }
+      if (coords.paddle2Y > HEIGHT - paddle.height) {
+        coords.paddle2Y = HEIGHT - paddle.height;
+      }
+    }
+  }
 
-  requestAnimationFrame(() => Game(coordinate, canvas));
+  function collisionCheckX() {
+    if (coords.ballX <= ball.radius + paddle.width) {
+      return Direction.LEFT;
+    } else if (coords.ballX >= WIDTH - ball.radius - paddle.width) {
+      return Direction.RIGHT;
+    }
+    return Direction.NONE;
+  }
+
+  function collisionCheckY() {
+    if (coords.ballY >= HEIGHT - ball.radius) {
+      return Direction.DOWN;
+    } else if (coords.ballY <= ball.radius) {
+      return Direction.UP;
+    }
+    return Direction.NONE;
+  }
+
+  function collisionCheckP1Paddle() {
+    if (coords.ballY >= coords.paddle1Y && coords.ballY <= coords.paddle1Y + paddle.height) {
+      return Hit.PADDLE;
+    }
+    return Hit.WALL;
+  }
+
+  function collisionCheckP2Paddle() {
+    if (coords.ballY >= coords.paddle2Y && coords.ballY <= coords.paddle2Y + paddle.height) {
+      return Hit.PADDLE;
+    }
+    return Hit.WALL;
+  }
 
   useEffect(() => {
-    Game(coordinate, canvas);
+    // first draw
+    Game(coords, canvas);
+    // setInterval(() => update(), 10); 
   }, []);
 
   // document.addEventListener('keydown', onKeyDown);

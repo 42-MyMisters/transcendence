@@ -36,3 +36,8 @@ export const ball = {
   radius: 15,
   color: "WHITE",
 };
+
+export const paddle = {
+  width: 30,
+  height: 150,
+}

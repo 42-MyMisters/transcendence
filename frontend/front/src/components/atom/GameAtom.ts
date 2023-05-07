@@ -4,6 +4,8 @@ import { atom, createStore } from "jotai";
 
 export const isQueueAtom = atom<boolean>(false);
 
+export let lastUpdate = atom<number>(Date.now());
+
 export interface GameCoordinate {
   paddle1Y: number;
   ballX: number;
@@ -11,6 +13,13 @@ export interface GameCoordinate {
   paddle2Y: number;
   ballSpeedX: number;
   ballSpeedY: number;
+  paddleSpeed: number;
+  paddle1YUp: boolean;
+  paddle1YDown: boolean;
+  paddle2YUp: boolean;
+  paddle2YDown: boolean;
+  p1Score?: number;
+  p2Score?: number;
 }
 
 export const GameCoordinateAtom = atom<GameCoordinate>({
@@ -20,6 +29,11 @@ export const GameCoordinateAtom = atom<GameCoordinate>({
   paddle2Y: 225,
   ballSpeedX: 0,
   ballSpeedY: 0,
+  paddleSpeed: 0.6,
+  paddle1YUp: false,
+  paddle1YDown: false,
+  paddle2YUp: false,
+  paddle2YDown: false,
 });
 
 export const GameCanvas = atom<HTMLCanvasElement | null>(null);

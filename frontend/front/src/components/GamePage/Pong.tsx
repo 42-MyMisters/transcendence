@@ -55,12 +55,9 @@ function drawNet(context: CanvasRenderingContext2D) {
 }
 
 export function Game(gameInfo: GameCoordinate, canvas: React.RefObject<HTMLCanvasElement>) {
-  // const canvas = document.getElementById("pong") as HTMLCanvasElement;
-  // if (canvas == null) {
   const canv = canvas.current;
-  // }
   const context = canv?.getContext("2d");
-
+  // console.log(`gameInfo: ${JSON.stringify(gameInfo)}`);
   if (context) {
     context.clearRect(0, 0, 1150, 600);
     drawRect(0, 0, 1150, 600, "black", context);
