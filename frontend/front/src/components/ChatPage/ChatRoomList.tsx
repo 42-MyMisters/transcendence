@@ -40,7 +40,7 @@ export default function ChatRoomList() {
                 roomId={Number(key[0])}
                 roomName={roomList[Number(key[0])]?.roomName}
                 type={roomList[Number(key[0])]?.roomType}
-                isJoin={roomList[Number(key[0])]?.isJoined || false}
+                isJoin={roomList[Number(key[0])]?.isJoined}
                 callBack={roomClickHandler}
               />
               : ''
@@ -54,7 +54,7 @@ export default function ChatRoomList() {
                 roomId={Number(key[0])}
                 roomName={roomList[Number(key[0])]?.roomName}
                 type={roomList[Number(key[0])]?.roomType}
-                isJoin={roomList[Number(key[0])]?.isJoined || false}
+                isJoin={roomList[Number(key[0])]?.isJoined}
                 callBack={roomClickHandler}
               />
               : ''
