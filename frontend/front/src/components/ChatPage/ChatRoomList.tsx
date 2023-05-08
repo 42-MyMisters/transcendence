@@ -14,6 +14,7 @@ export default function ChatRoomList() {
   const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
   const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
   const [, setClickRoom] = useAtom(chatAtom.clickRoomAtom);
+  const [, setRoomSetting] = useAtom(chatAtom.roomSettingAtom);
 
   const roomClickHandler = (roomId: number) => {
 
@@ -27,10 +28,15 @@ export default function ChatRoomList() {
     }
   };
 
+  const roomPlusBtnHandler = () => {
+    setRoomSetting(false);
+    setRoomModal(true)
+  };
+
   return (
     <div className="ChatListBG ChatRoomList">
       <div className="ChatListTxt">Chatting List</div>
-      <div className="ChatRoomListPlusBtn" onClick={() => setRoomModal(true)} />
+      <div className="ChatRoomListPlusBtn" onClick={roomPlusBtnHandler} />
       <div className="ChatRooms">
         {
           Object.entries(roomList).map((key) => (

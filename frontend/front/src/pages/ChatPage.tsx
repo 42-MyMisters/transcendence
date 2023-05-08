@@ -365,7 +365,7 @@ export default function ChatPage() {
 					newRoomList[roomId] = {
 						roomName,
 						roomType,
-						isJoined: roomList[roomId].isJoined || false,
+						isJoined: roomList[roomId]?.isJoined,
 						detail: roomList[roomId].detail || {} as chatType.roomDetailDto,
 					};
 					setRoomList({ ...roomList, ...newRoomList });
@@ -380,12 +380,11 @@ export default function ChatPage() {
 
 	useEffect(() => {
 		socket.socket.on("room-clear", () => {
-			const newRoomList: chatType.roomListDto = {};
-			setRoomList({ ...newRoomList });
+			quitRoomRelativeModal();
+			setRoomList({});
 			setFocusRoom(-1);
 		});
 		socket.socket.on("user-clear", () => {
-			console.log(`\nuser-clear: ${JSON.stringify(userList)}`)
 			setUserList({});
 		});
 		return () => {

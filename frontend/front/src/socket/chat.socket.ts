@@ -23,18 +23,12 @@ export function emitRoomCreate(
 	roomName: string,
 	roomCheck: boolean = false,
 	roomPass: string = '',
-	dm: boolean = false,
 ) {
-	let roomType = 'open'
-	if (dm) {
-		roomType = 'dm';
-	} else {
-		roomType = roomCheck
-			? 'private'
-			: roomPass
-				? 'protected'
-				: 'open';
-	}
+	const roomType = roomCheck
+		? 'private'
+		: roomPass
+			? 'protected'
+			: 'open';
 	socket.emit("room-create", {
 		roomName,
 		roomType,
@@ -54,6 +48,50 @@ export function emitRoomCreate(
 			case 'ko': {
 				console.log("room-create fail");
 				alert(`${roomName} room-create fail ${payload}`);
+				break;
+			}
+		};
+	});
+}
+
+export function emitRoomEdit(
+	roomId: number,
+	roomName: string = '',
+	roomCheck: boolean = false,
+	roomPass: string = '',
+	roomCurrentType: 'open' | 'private' | 'protected' | 'dm',
+) {
+	if (roomCurrentType === 'dm') {
+		alert(`dm room can't be edited`);
+		return;
+	}
+	const roomType = roomCheck
+		? 'private'
+		: roomCurrentType === 'protected'
+			? 'protected'
+			: roomPass !== ''
+				? 'protected'
+				: 'open'
+	socket.emit("room-edit", {
+		roomId,
+		roomName,
+		roomType,
+		roomPass,
+	}, ({
+		status,
+		payload,
+	}: {
+		status: 'ok' | 'ko',
+		payload?: string,
+	}) => {
+		switch (status) {
+			case 'ok': {
+				console.log("room-edit success");
+				break;
+			}
+			case 'ko': {
+				console.log("room-edit fail");
+				alert(`${roomName} room-edit fail ${payload}`);
 				break;
 			}
 		};

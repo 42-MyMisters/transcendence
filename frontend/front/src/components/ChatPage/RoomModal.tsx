@@ -9,25 +9,42 @@ import * as chatAtom from '../atom/ChatAtom';
 import * as socket from "../../socket/chat.socket";
 import { keyboardKey } from '@testing-library/user-event';
 
+import type * as chatType from '../../socket/chat.dto';
 export default function RoomModal() {
   const [, setRoomModal] = useAtom(roomModalAtom);
   const [roomName, setRoomName] = useState("");
   const [roomPass, setRoomPass] = useState("");
   const [roomCheck, setRoomCheck] = useState(false);
   const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
-  const [, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
+  const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
+  const [roomSetting, setRoomSetting] = useAtom(chatAtom.roomSettingAtom);
+  const [roomSettingIsPrivate, setRoomSettingIsPrivate] = useAtom(chatAtom.roomSettingIsPrivateAtom);
+  const [roomSettingCurrentRoomName, setRoomSettingCurrentRoomName] = useAtom(chatAtom.roomSettingCurrentRoomNameAtom);
 
-  PressKey(["Escape"], () => { setRoomModal(false); });
+  PressKey(["Escape"], () => {
+    setRoomModal(false);
+  });
 
   const acceptHandler = () => {
-    const trimRoomName = roomName.trim();
-    if (trimRoomName.length < 1) {
-      alert('방 이름을 입력해주세요.');
+    if (roomSetting) {
+      const trimRoomName = roomSettingCurrentRoomName.trim();
+      if (trimRoomName.length < 1) {
+        alert('방 이름을 입력해주세요.');
+      } else {
+        socket.emitRoomEdit(focusRoom, roomSettingCurrentRoomName, roomSettingIsPrivate, roomPass, roomList[focusRoom].roomType);
+        setRoomModal(false);
+      }
     } else {
-      socket.emitRoomCreate(roomName, roomCheck, roomPass);
-      setRoomModal(false);
+      const trimRoomName = roomName.trim();
+      if (trimRoomName.length < 1) {
+        alert('방 이름을 입력해주세요.');
+      } else {
+        socket.emitRoomCreate(roomName, roomCheck, roomPass);
+        setRoomModal(false);
+      }
     }
     setRoomName("");
+    setRoomPass("");
   };
 
 
@@ -42,12 +59,20 @@ export default function RoomModal() {
       <div className="RoomModalBG"></div>
       <div className="RoomModal">
         <div className="PrivacyChecker">
-          <input type="checkbox" id="PrivacyCheckbox" name="Privacy" value="false" onChange={(e) => setRoomCheck(e.target.checked)} checked={roomCheck} ></input>
+          {
+            !roomSetting
+              ? < input type="checkbox" id="PrivacyCheckbox" name="Privacy" value="false" onChange={(e) => setRoomCheck(e.target.checked)} checked={roomCheck} ></input>
+              : < input type="checkbox" id="PrivacyCheckbox" name="Privacy" value="false" onChange={(e) => setRoomSettingIsPrivate(e.target.checked)} checked={roomSettingIsPrivate} ></input>
+          }
           <label htmlFor="PrivacyCheckbox">Private</label>
         </div>
         <div className="RoomNameForm">
           <label htmlFor="RoomName">RoomName</label>
-          <input id="RoomName" maxLength={12} minLength={1} type="text" placeholder="방 이름을 입력하세요." onChange={(e) => setRoomName(e.target.value)} onKeyDown={(e) => handleEnterEvent(e)}></input>
+          {
+            !roomSetting
+              ? <input id="RoomName" maxLength={12} minLength={1} type="text" placeholder="방 이름을 입력하세요." onChange={(e) => setRoomName(e.target.value)} onKeyDown={(e) => handleEnterEvent(e)}></input>
+              : <input id="RoomName" maxLength={12} minLength={1} type="text" placeholder="방 이름을 입력하세요." value={roomSettingCurrentRoomName} onChange={(e) => setRoomSettingCurrentRoomName(e.target.value)} onKeyDown={(e) => handleEnterEvent(e)}></input>
+          }
         </div>
         <div className="PasswordFrom">
           <label htmlFor="Password">Password</label>
