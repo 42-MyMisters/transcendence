@@ -14,7 +14,9 @@ export default function UserObj({
   chat,
   power,
   callBack,
-  defaultColor = '#3b3'
+  defaultColor = '#3b3',
+  dm,
+  focusList,
 }: {
   uid: number;
   nickName: string;
@@ -24,6 +26,8 @@ export default function UserObj({
   power: 'owner' | 'admin' | 'member';
   callBack: (uid: number) => void;
   defaultColor?: string;
+  dm?: boolean;
+  focusList?: "userList" | "roomUserList" | "followingList"
 }) {
   const [userInfo, setUserInfo] = useAtom(UserInfoModalInfo);
   const [userDefaultInfo, setUserDefaultInfo] = useAtom(UserAtom);
@@ -59,27 +63,49 @@ export default function UserObj({
           height: "50px",
         }}
       />
-      <div
-        className="UserStatus"
-        style={
-          status === "online"
-            ? { backgroundColor: "#74B667" }
-            : status === "inGame"
-              ? { backgroundColor: "#54B7BB" }
-              : { backgroundColor: "#CA6A71" }
-        }
-      />
+      {
+        status === ''
+          ? ''
+          : <div
+            className="UserStatus"
+            style={
+              status === "online"
+                ? { backgroundColor: "#74B667" }
+                : status === "inGame"
+                  ? { backgroundColor: "#54B7BB" }
+                  : status === 'offline'
+                    ? { backgroundColor: "#CA6A71" }
+                    : { backgroundColor: "#d9d9d9" }
+            }
+          />
+      }
       {
         uid !== userDefaultInfo.uid
-          ? chat === 'normal'
-            ? blockList[uid] !== undefined
-              ? <div className="UserNickName" style={{ color: "#aaa" }}>{nickName}</div>
-              : followingList[uid] !== undefined
-                ? <div className="UserNickName" style={{ color: `${defaultColor}` }}>{nickName}</div>
-                : dmHistoryList[uid] !== undefined
-                  ? <div className="UserNickName" style={{ color: "#077" }}>{nickName}</div>
+          ? focusList !== 'userList'
+            ? chat === 'normal'
+              ? blockList[uid] !== undefined
+                ? <div className="UserNickName" style={{ color: "#aaa" }}>{nickName}</div>
+                : followingList[uid] !== undefined
+                  ? <div className="UserNickName" style={{ color: `${defaultColor}` }}>{nickName}</div>
                   : <div className="UserNickName" style={{ color: "#333" }}>{nickName}</div>
-            : <div className="UserNickName" style={{ color: "#a55" }}>{nickName}</div>
+              : <div className="UserNickName" style={{ color: "#a55" }}>{nickName}</div>
+            : blockList[uid] !== undefined
+              ? <div className="UserNickName" style={{ color: "#aaa" }}>{nickName}</div>
+              : dm === true
+                ? <div className="UserNickName" style={{ color: "#73f" }}>{nickName}</div>
+                : followingList[uid] !== undefined
+                  ? <div className="UserNickName" style={{ color: `${defaultColor}` }}>{nickName}</div>
+                  : <div className="UserNickName" style={{ color: "#333" }}>{nickName}</div>
+
+          // ? chat === 'normal'
+          //     ? blockList[uid] !== undefined
+          //       ? <div className="UserNickName" style={{ color: "#aaa" }}>{nickName}</div>
+          //       : followingList[uid] !== undefined
+          //         ? <div className="UserNickName" style={{ color: `${defaultColor}` }}>{nickName}</div>
+          //         // : dmHistoryList[uid] !== undefined
+          //         //   ? <div className="UserNickName" style={{ color: "#a60" }}>{nickName}</div>
+          //         : <div className="UserNickName" style={{ color: "#333" }}>{nickName}</div>
+          //     : <div className="UserNickName" style={{ color: "#a55" }}>{nickName}</div>
           : chat === 'normal'
             ? <div className="UserNickName" style={{ color: "#0af" }}>{nickName}</div>
             : <div className="UserNickName" style={{ color: "#f00" }}>{nickName}</div>

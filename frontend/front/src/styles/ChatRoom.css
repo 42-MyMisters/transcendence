@@ -52,3 +52,13 @@
 
   background: url("../assets/lock.png");
 }
+
+.ChatRoomTypePrivate {
+  position: absolute;
+  right: 0px;
+
+  width: 50px;
+  height: 50px;
+
+  background: url("../assets/private.png");
+}

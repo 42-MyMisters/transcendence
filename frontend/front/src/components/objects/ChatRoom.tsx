@@ -19,7 +19,11 @@ export default function ChatRoom({
 
   return (
     <div className="ChatRoomObj" >
-      <div className="ChatRoomIcon" />
+      {
+        roomId === -42
+          ? ''
+          : <div className="ChatRoomIcon" />
+      }
       {
         isJoin
           ? focusRoom === roomId
@@ -27,7 +31,13 @@ export default function ChatRoom({
             : <div className="ChatRoomJoin" onClick={() => { callBack(roomId) }}>{roomName}</div>
           : <div className="ChatRoomName" onClick={() => { callBack(roomId) }}>{roomName}</div>
       }
-      {type === "protected" ? <div className="ChatRoomType" /> : null}
+      {
+        type === "protected"
+          ? <div className="ChatRoomType" />
+          : type === 'private'
+            ? <div className="ChatRoomTypePrivate" />
+            : null
+      }
     </div>
   );
 }

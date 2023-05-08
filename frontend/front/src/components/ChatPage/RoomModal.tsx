@@ -20,9 +20,14 @@ export default function RoomModal() {
   PressKey(["Escape"], () => { setRoomModal(false); });
 
   const acceptHandler = () => {
-    // socket.emitRoomCreate({ roomList, setRoomList, setFocusRoom }, roomName, roomCheck, roomPass);
-    socket.emitRoomCreate(roomName, roomCheck, roomPass);
-    setRoomModal(false);
+    const trimRoomName = roomName.trim();
+    if (trimRoomName.length < 1) {
+      alert('방 이름을 입력해주세요.');
+    } else {
+      socket.emitRoomCreate(roomName, roomCheck, roomPass);
+      setRoomModal(false);
+    }
+    setRoomName("");
   };
 
 

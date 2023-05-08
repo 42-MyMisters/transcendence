@@ -26,7 +26,8 @@ export default function GameInviteModal({
           onClick={() => {
             DeclineBtn();
             setGameInviteModal(false);
-          }}
+          }
+          }
         >
           Decline
         </button>
