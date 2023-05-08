@@ -1,22 +1,18 @@
-import React, { useState, useEffect } from "react";
-import Navigator from "../components/Navigator";
+import { useEffect, useState } from "react";
+import BackGround from "../components/BackGround";
 import "../components/GamePage/PingPong";
 import PingPong from "../components/GamePage/PingPong";
-import Waiting from "../components/GamePage/Waiting";
-import BackGround from "../components/BackGround";
 import TopBar from "../components/TopBar";
 
 import { useAtom } from "jotai";
 import { isQueueAtom } from "../components/atom/GameAtom";
 
-import { PressKey } from "../event/pressKey";
+import { GameCoordinateAtom } from "../components/atom/GameAtom";
 import * as game from "../socket/game.socket";
-import { GameCoordinateAtom, GameCoordinate } from "../components/atom/GameAtom";
 
-import { Game } from "../components/GamePage/Pong";
+import { gameResultModalAtom } from "../components/atom/ModalAtom";
 import GameResultModal from "../components/GamePage/GameResultModal";
 import LadderBoard from "../components/GamePage/LadderBoard";
-import { gameResultModalAtom } from "../components/atom/ModalAtom";
 
 export default function GamePage() {
   const [showComponent, setShowComponent] = useState(true);
