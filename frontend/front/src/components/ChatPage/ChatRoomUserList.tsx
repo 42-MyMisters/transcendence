@@ -11,6 +11,7 @@ import UserObj from "../objects/UserObj";
 import * as chatAtom from '../atom/ChatAtom';
 import { UserAtom } from "../atom/UserAtom";
 import * as socket from "../../socket/chat.socket";
+import { roomModalAtom } from "../../components/atom/ModalAtom";
 
 export default function ChatRoomUserList() {
   const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);
@@ -20,6 +21,10 @@ export default function ChatRoomUserList() {
   const [userList,] = useAtom(chatAtom.userListAtom);
   const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
   const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
+  const [, setRoomSetting] = useAtom(chatAtom.roomSettingAtom);
+  const [, setRoomModal] = useAtom(roomModalAtom);
+  const [, setRoomSettingIsPrivate] = useAtom(chatAtom.roomSettingIsPrivateAtom);
+  const [, setRoomSettingCurrentRoomName] = useAtom(chatAtom.roomSettingCurrentRoomNameAtom);
 
   const onClickInfo = useCallback(() => {
     const handleSetRoomModal = () => {
@@ -39,6 +44,17 @@ export default function ChatRoomUserList() {
     socket.emitRoomLeave({ roomList, setRoomList, focusRoom, setFocusRoom }, focusRoom);
   };
 
+  const onClickSetting = () => {
+    if (roomList[focusRoom].roomType === 'private') {
+      setRoomSettingIsPrivate(true);
+    } else {
+      setRoomSettingIsPrivate(false);
+    }
+    setRoomSettingCurrentRoomName(roomList[focusRoom].roomName);
+    setRoomSetting(true);
+    setRoomModal(true);
+  };
+
   return (
     <div className="ChatRoomUserListBG">
       <div className="ChatRoomNameTxt">
@@ -54,7 +70,7 @@ export default function ChatRoomUserList() {
         focusRoom === -1
           ? '' :
           roomList[focusRoom]?.detail?.myRoomPower !== 'owner'
-            ? '' : <div className="ChatRoomSettingBtn" />
+            ? '' : <div className="ChatRoomSettingBtn" onClick={onClickSetting} />
       }
       {
         focusRoom === -1
