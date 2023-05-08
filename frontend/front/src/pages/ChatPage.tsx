@@ -6,13 +6,20 @@ import ChatArea from "../components/ChatPage/ChatArea";
 import ChatRoomUserList from "../components/ChatPage/ChatRoomUserList";
 
 import { useAtom } from "jotai";
-import { userInfoModalAtom, passwordInputModalAtom, roomModalAtom, inviteModalAtom } from "../components/atom/ModalAtom";
+import {
+	userInfoModalAtom,
+	passwordInputModalAtom,
+	roomModalAtom,
+	inviteModalAtom,
+	gameInviteModalAtom,
+} from "../components/atom/ModalAtom";
 
 import UserInfoModal from "../components/ChatPage/UserInfoModal";
 import RoomModal from "../components/ChatPage/RoomModal";
 import RoomInviteModal from "../components/ChatPage/RoomInviteModal";
 import PasswordModal from "../components/ChatPage/PasswordModal";
 
+import { refreshTokenAtom } from "../components/atom/LoginAtom";
 import { UserAtom } from "../components/atom/UserAtom";
 import type * as userType from "../components/atom/UserAtom";
 import { useEffect, useState } from "react";
@@ -20,7 +27,9 @@ import { useEffect, useState } from "react";
 import * as socket from "../socket/chat.socket";
 import * as chatAtom from "../components/atom/ChatAtom";
 import type * as chatType from "../socket/chat.dto";
-import { GetMyInfo } from '../event/api.request';
+import { GetMyInfo, RefreshToken, LogOut } from "../event/api.request";
+import { useNavigate } from "react-router-dom";
+import GameInviteModal from "../components/GamePage/GameInviteModal";
 
 export default function ChatPage() {
 	const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
@@ -30,21 +39,26 @@ export default function ChatPage() {
 
 	const [userInfo, setUserInfo] = useAtom(UserAtom);
 	const [isFirstLogin, setIsFirstLogin] = useAtom(chatAtom.isFirstLoginAtom);
+	const [hasLogin, setHasLogin] = useAtom(chatAtom.hasLoginAtom);
 
 	const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
 	const [userList, setUserList] = useAtom(chatAtom.userListAtom);
-	const [userBlockList, setUserBlockList] = useAtom(chatAtom.userBlockListAtom);
 	const [dmHistoryList, setDmHistoryList] = useAtom(chatAtom.dmHistoryListAtom);
 	const [followingList, setFollowingList] = useAtom(chatAtom.followingListAtom);
+	const [blockList, setBlockList] = useAtom(chatAtom.blockListAtom);
 	const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
 	const [socketState, setSocketState] = useAtom(chatAtom.socketStateAtom);
 
+	const navigate = useNavigate();
+	const [, setRefreshToken] = useAtom(refreshTokenAtom);
+
+	const [gameInviteModal, setGameInviteModal] = useAtom(gameInviteModalAtom);
 
 	const getRoomList = () => {
 		console.log("\n\ngetRoomList");
 		Object.entries(roomList).forEach(([key, value]) => {
 			if (value.detail !== undefined) {
-				console.log(`[ ${value.roomName} : ${key}] - ${value.roomType}`);
+				console.log(`\n[ ${value.roomName} : ${key}] - ${value.roomType}`);
 				Object.entries(value.detail).forEach(([key, value]) => {
 					if (key === "userList") {
 						Object.entries(value).forEach(([key, value]) => {
@@ -57,58 +71,87 @@ export default function ChatPage() {
 			} else {
 				console.log(`[ ${value.roomName} ] \nvalue: ${JSON.stringify(value)}`);
 			}
-		})
+		});
 	};
+
 	const getUserList = () => {
 		console.log("\n\ngetUserList");
 		Object.entries(userList).forEach(([key, value]) => {
 			console.log(`[ ${value.userDisplayName} ]\nkey: ${key}, value: ${JSON.stringify(value)}`);
-		})
+		});
 	};
+
 	const getFollowingList = () => {
-		console.log(`getFollowingList ${JSON.stringify(followingList)}}`);
+		console.log(`\n\ngetFollowingList`);
+		Object.entries(followingList).forEach(([key, value]) => {
+			console.log(`[ ${value.userDisplayName} ]\nkey: ${key}, value: ${JSON.stringify(value)}`);
+		});
 	};
+
 	const showSocketState = () => {
 		console.log(`socket state: ${socketState}`);
 	};
-	const emitTester = () => {
-		socket.emitTest("hello")
+
+
+	const getBlockList = () => {
+		console.log(`\n\ngetBlockList`);
+		Object.entries(blockList).forEach(([key, value]) => {
+			console.log(`[ ${userList[Number(key)].userDisplayName} ]\nkey: ${key}, value: ${JSON.stringify(value)}`);
+		});
+
 	};
-	const getMyinfo = () => {
-		GetMyInfo({ setUserInfo });
-	}
+
 	const showMyinfo = () => {
 		console.log(`showMyinfo ${JSON.stringify(userInfo)}}`);
-	}
+	};
+
 	const showServerUser = () => {
-		console.log('\nshow server user list');
-		socket.socket.emit('server-user-list');
-	}
+		console.log("\nshow server user list");
+		socket.socket.emit("server-user-list");
+	};
+
 	const showServerRoom = () => {
-		console.log('\nshow server room list');
-		socket.socket.emit('server-room-list');
+		console.log("\nshow server room list");
+		socket.socket.emit("server-room-list");
+	};
+
+	const logOutHandler = () => {
+		LogOut(setRefreshToken, navigate, "/");
+		setHasLogin(false);
+		setIsFirstLogin(true);
+	};
+
+	const quitRoomRelativeModal = () => {
+		setUserInfoModal(false);
+		setInviteModal(false);
+		// setRoomModal(false);
+		// setPwInputModal(false);
 	}
+
+	async function getMyinfoHandler() {
+		const getMeResponse = await GetMyInfo(setUserInfo);
+		if (getMeResponse == 401) {
+			const refreshResponse = await RefreshToken();
+			if (refreshResponse !== 201) {
+				logOutHandler();
+			} else {
+				const getMeResponse = await GetMyInfo(setUserInfo);
+				if (getMeResponse == 401) {
+					logOutHandler();
+				}
+			}
+		}
+	}
+
 
 	useEffect(() => {
 		socket.socket.onAny((eventName, ...args) => {
 			console.log("incoming ", eventName, args);
 		});
-		return () => {
-			socket.socket.offAny();
-		}
-	}, []);
-
-	useEffect(() => {
 		// catch all outgoing events
 		socket.socket.onAnyOutgoing((eventName, ...args) => {
 			console.log("outgoing ", eventName, args);
 		});
-		return () => {
-			socket.socket.offAnyOutgoing();
-		}
-	}, []);
-
-	useEffect(() => {
 		socket.socket.on("connect", () => {
 			if (socket.socket.connected) {
 				//This attribute describes whether the socket is currently connected to the server.
@@ -121,9 +164,6 @@ export default function ChatPage() {
 			}
 			setSocketState(true);
 		});
-	}, []);
-
-	useEffect(() => {
 		//https://socket.io/docs/v4/client-socket-instance/#disconnect
 		socket.socket.on("disconnect", (reason) => {
 			/**
@@ -134,15 +174,14 @@ export default function ChatPage() {
 				// the disconnection was initiated by the server, you need to reconnect manually
 				console.log('socket disconnected by server');
 				alert(`multiple login detected!`);
-				// localStorage.removeItem('refreshToken');
+				LogOut(setRefreshToken, navigate, "/");
+				setHasLogin(false);
+				setIsFirstLogin(true);
 			}
 			// else the socket will automatically try to reconnect
 			console.log("socket disconnected");
 			setSocketState(false);
 		});
-	}, []);
-
-	useEffect(() => {
 		// the connection is denied by the server in a middleware function
 		socket.socket.on("connect_error", (err) => {
 			if (err.message === "unauthorized") {
@@ -150,30 +189,75 @@ export default function ChatPage() {
 			}
 			console.log(err.message); // prints the message associated with the error
 		});
+		return () => {
+			socket.socket.off("connect");
+			socket.socket.off("disconnect");
+			socket.socket.off("connect_error");
+			socket.socket.offAny();
+			socket.socket.offAnyOutgoing();
+		}
 	}, []);
 
 	useEffect(() => {
-		socket.socket.on("room-list-notify", ({
+		socket.socket.on("logout", () => {
+			LogOut(setRefreshToken, navigate, "/");
+			setHasLogin(false);
+			setIsFirstLogin(true);
+		});
+		return () => {
+			socket.socket.off("logout");
+		};
+	}, []);
+
+	useEffect(() => {
+		socket.socket.on("room-list", (resRoomList: chatType.roomListDto) => {
+			setRoomList((prevRoomList) => ({ ...prevRoomList, ...resRoomList }));
+		});
+		socket.socket.on("follow-list", (resFollowingList: chatType.userDto) => {
+			setFollowingList({ ...resFollowingList });
+			setUserList((prevUserList) => ({ ...resFollowingList, ...prevUserList }));
+		});
+		socket.socket.on("dm-list", (resDmList: chatType.userDto) => {
+			setDmHistoryList({ ...resDmList });
+			setUserList((prevUserList) => ({ ...resDmList, ...prevUserList }));
+		});
+		socket.socket.on("block-list", (resBlockList: chatType.userSimpleDto) => {
+			setBlockList({ ...resBlockList });
+		});
+		socket.socket.on("user-list", (resUserList: chatType.userDto) => {
+			setUserList((prevUserList) => ({ ...prevUserList, ...resUserList }))
+		});
+		return () => {
+			socket.socket.off("room-list");
+			socket.socket.off("follow-list");
+			socket.socket.off("dm-list");
+			socket.socket.off("block-list");
+			socket.socket.off("user-list");
+		}
+	}, [userList, roomList, followingList, dmHistoryList, blockList]);
+
+	useEffect(() => {
+		socket.socket.on("room-list-update", ({
 			action,
 			roomId,
 			roomName,
 			roomType,
 		}: {
-			action: 'add' | 'delete' | 'edit';
+			action: 'new' | 'delete' | 'edit';
 			roomId: number;
 			roomName: string;
 			roomType: 'open' | 'protected' | 'private';
 		}) => {
 			switch (action) {
-				case 'add': {
+				case 'new': {
 					const newRoomList: chatType.roomListDto = {};
 					newRoomList[roomId] = {
 						roomName,
 						roomType,
 						isJoined: false,
 					};
-					console.log(`room-list-notify new: ${JSON.stringify(newRoomList)}`);
-					console.log(`room-list-notify origin: ${JSON.stringify(roomList)}`);
+					console.log(`room-list-update new: ${JSON.stringify(newRoomList)}`);
+					console.log(`room-list-update origin: ${JSON.stringify(roomList)}`);
 					setRoomList({ ...roomList, ...newRoomList });
 					break;
 				}
@@ -200,32 +284,25 @@ export default function ChatPage() {
 			}
 		});
 		return () => {
-			socket.socket.off("room-list-notify");
+			socket.socket.off("room-list-update");
 		};
 	}, [roomList, focusRoom]);
 
 	useEffect(() => {
 		socket.socket.on("room-clear", () => {
-			const cleanRoomList: chatType.roomListDto = {};
-			setRoomList({ ...cleanRoomList });
+			const newRoomList: chatType.roomListDto = {};
+			setRoomList({ ...newRoomList });
 			setFocusRoom(-1);
-			socket.emitRoomList({ setRoomList });
 		});
-		return () => {
-			socket.socket.off("room-clear");
-		};
-	}, []);
-
-	useEffect(() => {
 		socket.socket.on("user-clear", () => {
-			const cleanUserList: chatType.userDto = {};
-			setUserList({ ...cleanUserList });
-			socket.emitUserList({ userList, setUserList });
+			console.log(`\nuser-clear: ${JSON.stringify(userList)}`)
+			setUserList({});
 		});
 		return () => {
 			socket.socket.off("room-clear");
+			socket.socket.off("user-clear");
 		};
-	}, []);
+	}, [roomList, userList, setRoomList, setUserList]);
 
 	useEffect(() => {
 		socket.socket.on("room-join", ({
@@ -234,18 +311,20 @@ export default function ChatPage() {
 			roomType,
 			userList = {},
 			myPower,
-			status
+			status,
+			method = ''
 		}: {
 			roomId: number,
 			roomName: string,
-			roomType: 'open' | 'protected' | 'private',
+			roomType: 'open' | 'protected' | 'private' | 'dm',
 			userList: chatType.userInRoomListDto,
-			myPower: 'owner' | 'admin' | 'member',
-			status: 'ok' | 'ko'
+			myPower: chatType.userRoomPower,
+			status: 'ok' | 'ko',
+			method?: 'invite' | ''
 		}) => {
 			switch (status) {
 				case 'ok': {
-					console.log(`join [${roomName}] room`);
+					console.log(`join [${roomName}]room`);
 					const newRoomList: chatType.roomListDto = {};
 					newRoomList[roomId] = {
 						roomName,
@@ -258,15 +337,16 @@ export default function ChatPage() {
 							myRoomPower: myPower
 						}
 					};
-					console.log(`room-join new: ${JSON.stringify(newRoomList)}`);
+					console.log(`room - join new: ${JSON.stringify(newRoomList)}`);
 					setRoomList({ ...roomList, ...newRoomList });
-					setFocusRoom(roomId);
-					// socket.emitMessage({ roomList }, roomId, "joins this room"); //XXX: this will cause a bug
+					if (method !== 'invite') {
+						setFocusRoom(roomId);
+					}
 					break;
 				}
 				case 'ko': {
 					if (roomList[roomId].isJoined === false) {
-						alert(`fail to join [${roomName}] room`);
+						alert(`fail to join[${roomName}]room`);
 					}
 					break;
 				}
@@ -276,6 +356,7 @@ export default function ChatPage() {
 			socket.socket.off("room-join");
 		};
 	}, [roomList]);
+
 
 	useEffect(() => {
 		socket.socket.on("room-in-action", ({
@@ -287,7 +368,7 @@ export default function ChatPage() {
 			action: 'ban' | 'kick' | 'mute' | 'admin' | 'normal' | 'owner' | 'leave' | 'newMember';
 			targetId: number
 		}) => {
-			if (roomList[roomId].isJoined === false) {
+			if (roomList[roomId]?.isJoined !== true) {
 				return;
 			}
 			switch (action) {
@@ -308,7 +389,25 @@ export default function ChatPage() {
 				case 'ban':
 				case 'leave':
 				case 'kick': {
-					if (targetId !== userInfo.uid) {
+					if (targetId === userInfo.uid) {
+						if (roomList[roomId].roomType === 'private') {
+							const newRoomList: chatType.roomListDto = { ...roomList };
+							delete newRoomList[roomId];
+							setRoomList({ ...newRoomList });
+						} else {
+							const newRoomList: chatType.roomListDto = {};
+							newRoomList[roomId] = {
+								roomName: roomList[roomId].roomName,
+								roomType: roomList[roomId].roomType,
+								isJoined: false,
+							}
+							setRoomList({ ...roomList, ...newRoomList });
+						}
+						if (focusRoom === roomId) {
+							setFocusRoom(-1);
+							quitRoomRelativeModal();
+						}
+					} else {
 						const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
 						delete newUserList[targetId];
 						socket.setNewDetailToNewRoom({ roomList, setRoomList, roomId, newUserList });
@@ -318,6 +417,9 @@ export default function ChatPage() {
 				case 'mute':
 				case 'normal': {
 					if (targetId === userInfo.uid) {
+						if (action === 'mute' && roomList[roomId].detail?.myRoomStatus === 'mute') {
+							return;
+						}
 						const newUserList: chatType.userInRoomListDto = roomList[roomId].detail?.userList!;
 						newUserList[targetId] = { ...newUserList[targetId], userRoomStatus: action };
 						socket.setNewDetailToNewRoom({ roomList, setRoomList, roomId, newUserList }, action);
@@ -346,7 +448,7 @@ export default function ChatPage() {
 		return () => {
 			socket.socket.off("room-in-action");
 		}
-	}, [roomList, userInfo]);
+	}, [roomList, userInfo, focusRoom]);
 
 	useEffect(() => {
 		socket.socket.on("user-update", ({
@@ -360,25 +462,21 @@ export default function ChatPage() {
 			userProfileUrl: string;
 			userStatus: 'online' | 'offline' | 'inGame';
 		}) => {
-			const newUser: chatType.userDto = {};
-			newUser[userId] = {
-				userDisplayName,
-				userProfileUrl,
-				userStatus,
-			};
-			console.log(`user-upadate: user ${userId} is ${userStatus}`);
-			// if (userStatus === 'offline' && followingList[userId] === undefined) {
-			// 	const deleteUser: chatType.userDto = { ...userList };
-			// 	delete deleteUser[userId];
-			// 	setUserList({ ...deleteUser });
-			// } else {
-			setUserList({ ...userList, ...newUser });
-			// }
+			if (isFirstLogin === false) {
+				const newUser: chatType.userDto = {};
+				newUser[userId] = {
+					userDisplayName,
+					userProfileUrl,
+					userStatus,
+				};
+				console.log(`user - upadate: user ${userId} is ${userStatus}`);
+				setUserList({ ...userList, ...newUser });
+			}
 		});
 		return () => {
 			socket.socket.off("user-update");
 		}
-	}, [userList, userInfo]);
+	}, [userList, isFirstLogin]);
 
 	useEffect(() => {
 		socket.socket.on("message", ({
@@ -390,7 +488,7 @@ export default function ChatPage() {
 			from: number,
 			message: string
 		}) => {
-			const block = userBlockList[from] ? true : false;
+			const block = blockList[from] ? true : false;
 			switch (block) {
 				case true: {
 					console.log(`message from ${from} is blocked`);
@@ -422,42 +520,51 @@ export default function ChatPage() {
 		return () => {
 			socket.socket.off("message");
 		};
-	}, [roomList, userBlockList, userList, userInfo]);
+	}, [roomList, blockList, userList, userInfo]);
 
-	if (isFirstLogin) {
-		console.log('set init data');
-		GetMyInfo({ setUserInfo });
-		socket.emitUserBlockList({ userBlockList, setUserBlockList });
-		socket.emitFollowingList({ userList, setUserList, followingList, setFollowingList });
-		socket.emitDmHistoryList({ userList, setUserList, dmHistoryList, setDmHistoryList });
-		socket.emitUserList({ userList, setUserList });
-		socket.emitRoomList({ setRoomList });
-		if (userInfo.uid === 1) {
-			GetMyInfo({ setUserInfo });
+	async function firstLogin() {
+		if (isFirstLogin) {
+			console.log("set init data");
+			await getMyinfoHandler();
 		}
 		setIsFirstLogin(false);
 	}
 
+	if (isFirstLogin) {
+		firstLogin();
+	}
+
+
 	return (
 		<BackGround>
-			<button onClick={getMyinfo}> /user/me</button>
+			<button onClick={getMyinfoHandler}> /user/me</button>
 			<button onClick={showMyinfo}> show /user/me</button>
 			<button onClick={getRoomList}> roomList</button>
 			<button onClick={getUserList}> userList</button>
 			<button onClick={getFollowingList}> FollowList</button>
-			<button onClick={emitTester}> emitTest</button>
 			<button onClick={showServerUser}> show server user</button>
 			<button onClick={showServerRoom}> show server room</button>
 			<button onClick={showSocketState}> socket state</button>
+			<button onClick={showSocketState}> socket state</button>
+			<button onClick={() => setGameInviteModal(true)}> gameinvite</button>
 			<TopBar />
 			{userInfoModal ? <UserInfoModal /> : null}
 			{roomModal ? <RoomModal /> : null}
 			{inviteModal ? <RoomInviteModal /> : null}
 			{pwInputModal ? <PasswordModal /> : null}
+			{gameInviteModal ? (
+				<GameInviteModal
+					from="yuhwang"
+					AcceptBtn={() => {
+						setGameInviteModal(false);
+					}}
+					DeclineBtn={() => { }}
+				/>
+			) : null}
 			<ChatRoomList />
 			<ChatUserList />
 			<ChatArea />
 			<ChatRoomUserList />
-		</BackGround >
+		</BackGround>
 	);
 }

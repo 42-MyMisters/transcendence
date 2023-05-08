@@ -19,27 +19,6 @@ export const socket = io(`${URL}${NameSpace}`, {
 	// path: "/socket.io",
 });
 
-export function emitRoomList(
-	{
-		setRoomList
-	}: {
-		setRoomList: React.Dispatch<React.SetStateAction<chatType.roomListDto>>,
-	}
-) {
-	socket.emit("room-list", ({
-		roomList
-	}: {
-		roomList: chatType.roomListDto;
-	}) => {
-		if (roomList !== undefined && roomList !== null) {
-			Object.entries(roomList).forEach(([key, value]) => {
-				value.isJoined = value.isJoined ?? false;
-			});
-			setRoomList({ ...roomList });
-		}
-	});
-}
-
 export function emitRoomCreate(
 	roomName: string,
 	roomCheck: boolean = false,
@@ -56,8 +35,10 @@ export function emitRoomCreate(
 		roomPass,
 	}, ({
 		status,
+		payload,
 	}: {
 		status: 'ok' | 'ko',
+		payload?: string,
 	}) => {
 		switch (status) {
 			case 'ok': {
@@ -66,7 +47,7 @@ export function emitRoomCreate(
 			}
 			case 'ko': {
 				console.log("room-create fail");
-				alert(`${roomName} room-create fail`);
+				alert(`${roomName} room-create fail ${payload}`);
 				break;
 			}
 		};
@@ -111,6 +92,24 @@ export function emitRoomJoin(
 	});
 }
 
+export function emitRoomInvite(
+	roomId: number,
+	targetName: string) {
+
+	socket.emit("room-invite", { roomId, targetName }, ({
+		status,
+		payload }: {
+			status: 'ok' | 'ko';
+			payload?: string
+		}) => {
+		if (status === 'ok') {
+			console.log(`callback: room-invite success`);
+		} else {
+			alert(`room-invite fail: ${payload}`)
+		}
+	})
+}
+
 export function emitRoomLeave(
 	{
 		roomList,
@@ -131,23 +130,30 @@ export function emitRoomLeave(
 	}, ({
 		status,
 	}: {
-		status: 'ok' | 'ko',
+		status: 'leave' | 'delete',
 	}) => {
-		if (status === 'ok') {
+		if (status === 'leave') {
 			console.log(`callback: room leaved: ${roomList[roomId].roomName}`);
-			const newRoomList: chatType.roomListDto = {};
-			newRoomList[roomId] = {
-				roomName: roomList[roomId].roomName,
-				roomType: roomList[roomId].roomType,
-				isJoined: false,
-				// detail: {} as chatType.roomDetailDto,
+			if (roomList[roomId].roomType === 'private') {
+				const newRoomList: chatType.roomListDto = { ...roomList };
+				delete newRoomList[roomId];
+				setRoomList({ ...newRoomList });
+			} else {
+				const newRoomList: chatType.roomListDto = {};
+				newRoomList[roomId] = {
+					roomName: roomList[roomId].roomName,
+					roomType: roomList[roomId].roomType,
+					isJoined: false,
+				}
+				setRoomList({ ...roomList, ...newRoomList });
 			}
-			setRoomList({ ...roomList, ...newRoomList });
 			if (focusRoom === roomId) {
 				setFocusRoom(-1);
 			}
+		} else if (status === 'delete') {
+			console.log(`callback: room delete: ${roomList[roomId].roomName}`);
 		} else {
-			console.log(`callback: room leave failed: ${roomList[roomId].roomName}`);
+			console.log('callback: room leave failed');
 		}
 	});
 }
@@ -189,235 +195,6 @@ export function emitRoomInAction(
 	});
 }
 
-export function emitRoomPasswordEdit(
-	{
-		roomList,
-		setRoomList,
-	}: {
-		roomList: chatType.roomListDto,
-		setRoomList: React.Dispatch<React.SetStateAction<chatType.roomListDto>>,
-	},
-	roomId: number,
-	password: string
-) {
-	socket.emit("room-password-edit", {
-		roomId,
-		password,
-	}, ({
-		status,
-		payload,
-	}: {
-		status: 'ok' | 'ko',
-		payload?: string,
-	}) => {
-		switch (status) {
-			case 'ok': {
-				console.log(`room password edit - OK`);
-				break;
-			}
-			case 'ko': {
-				console.log(`room password edit - KO`);
-				alert(`Room Password Edit is faild: ${payload}`);
-				break;
-			}
-		}
-	});
-}
-
-export function emitUserBlock(
-	{
-		userBlockList,
-		setUserBlockList,
-	}: {
-		userBlockList: chatType.userSimpleDto,
-		setUserBlockList: React.Dispatch<React.SetStateAction<chatType.userSimpleDto>>,
-	},
-	targetId: number,
-) {
-	socket.emit("user-block", {
-		targetId
-	}, ({
-		status,
-		payload
-	}: {
-		status: 'on' | 'off' | 'ko',
-		payload?: string,
-	}) => {
-		switch (status) {
-			case 'on': {
-				const newBlockUser: chatType.userSimpleDto = {};
-				newBlockUser[targetId] = {
-					blocked: true
-				}
-				setUserBlockList({ ...userBlockList, ...newBlockUser });
-				break;
-			}
-			case 'off': {
-				const newBlockList: chatType.userSimpleDto = { ...userBlockList };
-				delete newBlockList[targetId];
-				setUserBlockList({ ...newBlockList });
-				break;
-			}
-			case 'ko': {
-				console.log(`user - block failed: ${payload} `);
-				alert(`block failed: ${payload}`);
-				break;
-			}
-		}
-	});
-}
-
-export function emitUserInvite(
-	{
-		userList,
-	}: {
-		userList: chatType.userDto,
-	},
-	targetId: number,
-	roomId: number,
-) {
-	socket.emit("user-invite", {
-		targetId,
-		roomId
-	}, ({
-		status,
-		payload,
-	}: {
-		status: 'ok' | 'ko',
-		payload?: string,
-	}) => {
-		switch (status) {
-			case 'ok': {
-				break;
-			}
-			case 'ko': {
-				console.log(`user - invite ${userList[targetId].userDisplayName} failed: ${payload} `);
-				alert(`invite failed: ${payload}`);
-				break;
-			}
-		}
-	});
-}
-export function emitTest(
-	message: string,
-) {
-	console.log(`emit test: ${message}`);
-	socket.emit("test", {
-		message
-	}, ({
-		fromServer
-	}: {
-		fromServer: string
-	}) => {
-		alert(`fromServer: ${fromServer}`);
-	});
-	return undefined
-}
-export function emitUserList(
-	{
-		userList,
-		setUserList,
-	}: {
-		userList: chatType.userDto,
-		setUserList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
-	},
-) {
-	socket.emit("user-list", {
-	}, ({
-		userListFromServer,
-	}: {
-		userListFromServer: chatType.userDto,
-	}) => {
-		setUserList({ ...userList, ...userListFromServer })
-	});
-}
-
-export function emitUserBlockList(
-	{
-		userBlockList,
-		setUserBlockList
-	}: {
-		userBlockList: chatType.userSimpleDto,
-		setUserBlockList: React.Dispatch<React.SetStateAction<chatType.userSimpleDto>>,
-	},
-) {
-	socket.emit("user-block-list", {
-	}, ({
-		userList,
-	}: {
-		userList: chatType.userSimpleDto,
-	}) => {
-		setUserBlockList({ ...userList });
-	});
-}
-
-export function emitDmHistoryList(
-	{
-		userList,
-		setUserList,
-		dmHistoryList,
-		setDmHistoryList
-	}: {
-		userList: chatType.userDto,
-		setUserList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
-		dmHistoryList: chatType.userDto,
-		setDmHistoryList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
-	},
-) {
-	socket.emit("dm-history-list", {
-	}, ({
-		userList,
-	}: {
-		userList: chatType.userDto,
-	}) => {
-		setDmHistoryList({ ...userList });
-	});
-}
-
-export function emitFollowingList(
-	{
-		userList,
-		setUserList,
-		followingList,
-		setFollowingList
-	}: {
-		userList: chatType.userDto,
-		setUserList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
-		followingList: chatType.userDto,
-		setFollowingList: React.Dispatch<React.SetStateAction<chatType.userDto>>,
-	}) {
-	fetch('http://localhost:4000/user/following', {
-		credentials: "include",
-		method: "GET",
-	})
-		.then((response) => response.json())
-		.then((response) => {
-			console.log(response);
-			let tempFollowingList: chatType.userDto = {};
-			response.map((
-				user: {
-					uid: number,
-					nickname: string,
-					profileUrl: string,
-				}) => {
-				if (followingList[user.uid] === undefined) {
-					tempFollowingList[user.uid] = {
-						userDisplayName: user.nickname,
-						userProfileUrl: user.profileUrl,
-						userStatus: 'offline'
-					}
-					setFollowingList({ ...followingList, ...tempFollowingList });
-				}
-				setUserList({ ...followingList, ...userList })
-				return undefined
-			});
-		})
-		.catch((error) => {
-			// TODO: refersh token and retry
-		});
-	return undefined
-}
-
 export function emitMessage(
 	{
 		roomList,
@@ -427,6 +204,10 @@ export function emitMessage(
 	roomId: number,
 	message: string,
 ) {
+	if (roomList[roomId]?.detail?.myRoomStatus === 'mute') {
+		alert('You are muted for 10 sec in this room');
+		return;
+	}
 	socket.emit("message", {
 		roomId,
 		message
@@ -471,11 +252,59 @@ export function setNewDetailToNewRoom({
 		detail: {
 			userList: { ...newUserList },
 			messageList: roomList[roomId].detail?.messageList || [],
-			myRoomStatus: status || roomList[roomId].detail?.myRoomStatus || 'normal',
-			myRoomPower: power || roomList[roomId].detail?.myRoomPower || 'member'
+			myRoomStatus: status || roomList[roomId].detail?.myRoomStatus! || 'normal',
+			myRoomPower: power || roomList[roomId].detail?.myRoomPower! || 'member'
 		}
 	};
-	console.log(`newRoomList: ${JSON.stringify(newRoomList)}`);
-	console.log(`\n newUser list: ${JSON.stringify(newUserList)}`);
 	setRoomList({ ...roomList, ...newRoomList });
+}
+
+
+export function emitBlockUser({
+	blockList,
+	setBlockList,
+}: {
+	blockList: chatType.userSimpleDto,
+	setBlockList: React.Dispatch<React.SetStateAction<chatType.userSimpleDto>>,
+},
+	targetId: number,
+	doOrUndo: boolean,
+) {
+	if (doOrUndo) {
+		console.log(`block user: ${targetId}`);
+	} else {
+		console.log(`unblock user: ${targetId}`);
+	}
+	socket.emit("user-block", {
+		targetId,
+		doOrUndo
+	}, ({
+		status,
+		payload
+	}: {
+		status: 'on' | 'off' | 'ko',
+		payload?: string,
+	}) => {
+		switch (status) {
+			case 'on': {
+				const newBlockUser: chatType.userSimpleDto = {};
+				newBlockUser[targetId] = {
+					blocked: true
+				}
+				setBlockList({ ...blockList, ...newBlockUser });
+				break;
+			}
+			case 'off': {
+				const newBlockList: chatType.userSimpleDto = { ...blockList };
+				delete newBlockList[targetId];
+				setBlockList({ ...newBlockList });
+				break;
+			}
+			case 'ko': {
+				console.log(`user - block failed: ${payload} `);
+				alert(`block failed: ${payload}`);
+				break;
+			}
+		}
+	});
 }

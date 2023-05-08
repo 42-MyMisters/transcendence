@@ -21,8 +21,10 @@ export default function ProfileFriend() {
                   nickName={key.nickname}
                   profileImage={key.profileUrl}
                   status={key.status}
-                  power="profile"
+                  chat={'normal'}
+                  power="member"
                   callBack={() => { }}
+                  defaultColor={"#111"}
                 />
               );
             })

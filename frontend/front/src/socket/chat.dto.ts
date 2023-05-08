@@ -1,5 +1,5 @@
 type userStatus = 'online' | 'offline' | 'inGame';
-type userRoomStatus = 'normal' | 'mute' | 'ban' | 'kick';
+type userRoomStatus = 'normal' | 'mute';
 type userRoomPower = 'owner' | 'admin' | 'member';
 
 type userDto = {
@@ -26,7 +26,7 @@ type roomMessageDto = {
 
 type userInRoomListDto = {
 	[key: number]: {
-		userRoomStatus: 'normal' | 'mute' | 'ban' | 'kick';
+		userRoomStatus: 'normal' | 'mute';
 		userRoomPower: 'owner' | 'admin' | 'member';
 	}
 }
@@ -34,15 +34,15 @@ type userInRoomListDto = {
 type roomDetailDto = {
 	userList: userInRoomListDto,
 	messageList: roomMessageDto[],
-	myRoomStatus: 'normal' | 'mute' | 'ban' | 'kick',
+	myRoomStatus: 'normal' | 'mute';
 	myRoomPower: 'owner' | 'admin' | 'member';
 }
 
 type roomListDto = {
 	[key: number]: {
 		roomName: string
-		roomType: 'open' | 'protected' | 'private';
-		isJoined?: boolean;
+		roomType: 'open' | 'protected' | 'private' | 'dm';
+		isJoined: boolean;
 		detail?: roomDetailDto;
 	}
 }

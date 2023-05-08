@@ -1,6 +1,8 @@
 import { useAtom } from "jotai";
-import { inviteModalAtom } from "../../components/atom/ModalAtom";
-import { userInfoModalAtom } from "../../components/atom/ModalAtom";
+import {
+  userInfoModalAtom,
+  inviteModalAtom
+} from "../../components/atom/ModalAtom";
 import { useCallback } from "react";
 
 import "../../styles/ChatRoomUserList.css";
@@ -58,7 +60,9 @@ export default function ChatRoomUserList() {
       {
         focusRoom === -1
           ? ''
-          : <div className="ChatRoomExitBtn" onClick={onClickLeave} />
+          : roomList[focusRoom]?.detail?.myRoomStatus === 'mute'
+            ? ''
+            : <div className="ChatRoomExitBtn" onClick={onClickLeave} />
       }
       <div className="ChatRoomUsers">
         {
@@ -69,6 +73,7 @@ export default function ChatRoomUserList() {
               nickName={userInfo.nickname}
               profileImage={userInfo.profileUrl}
               status={userList[Number(userInfo.uid)]?.userStatus}
+              chat={roomList[focusRoom]?.detail?.userList[userInfo.uid]?.userRoomStatus ?? 'normal'}
               power="member"
               callBack={onClickInfo}
             />
@@ -79,19 +84,12 @@ export default function ChatRoomUserList() {
                 nickName={userList[Number(key[0])]?.userDisplayName}
                 profileImage={userList[Number(key[0])]?.userProfileUrl}
                 status={userList[Number(key[0])]?.userStatus}
+                chat={roomList[focusRoom]?.detail?.userList[Number(key[0])]?.userRoomStatus ?? 'normal'}
                 power={key[1]?.userRoomPower}
                 callBack={onClickInfo}
               />
             ))
         }
-        {/* <UserObj
-          key="-2"
-          nickName="User2"
-          profileImage="/smile.png"
-          status="ingame"
-          power="Manager"
-          callBack={onClickInfo}
-        /> */}
       </div>
     </div>
   );

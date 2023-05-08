@@ -88,7 +88,7 @@ export default function PingPong() {
 
   game.gameSocket.on(
     "join-game",
-    ({ uid_left, p1, uid_right }: { uid_left: string; p1: number; uid_right: string }) => {}
+    ({ uid_left, p1, uid_right }: { uid_left: string; p1: number; uid_right: string }) => { }
   );
 
   useEffect(() => {
