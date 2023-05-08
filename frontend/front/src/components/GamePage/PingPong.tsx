@@ -29,14 +29,14 @@ export default function PingPong() {
     paddle1YDown: false,
     paddle2YUp: false,
     paddle2YDown: false,
-  };
+  }
 
   let lastUpdateTime = Date.now();
 
   let pingInterval: NodeJS.Timer;
   let pingTime: number;
-
-  game.gameSocket.on("connect", () => {
+  
+  const connectionEventHandler = () => {
     if (game.gameSocket.connected) {
       //This attribute describes whether the socket is currently connected to the server.
       if (game.gameSocket.recovered) {
@@ -53,17 +53,17 @@ export default function PingPong() {
             }
           }
           game.gameSocket.emit('ping', pingEventHandler);
-          return () => {
-            game.gameSocket.off('ping', pingEventHandler);
-          }
+          // return () => {
+          //   game.gameSocket.off('ping', pingEventHandler);
+          // }
         }
         pingInterval = setInterval(pingEvent, 1000);
       }
     }
-  });
+  }
 
   //https://socket.io/docs/v4/client-socket-instance/#disconnect
-  game.gameSocket.on("disconnect", (reason) => {
+  const disconnectEventHandler = (reason: string) => {
     /**
      *  BAD, will throw an error
      *  gameSocket.emit("disconnect");
@@ -74,53 +74,75 @@ export default function PingPong() {
     clearInterval(pingInterval);
     // else the socket will automatically try to reconnect
     console.log("gameSocket disconnected");
-  });
+  }
 
-  // the connection is denied by the server in a middleware function
-  game.gameSocket.on("connect_error", (err) => {
-    if (err.message === "unauthorized") {
-      // handle each case
-    }
-    console.log(err.message); // prints the message associated with the error
-  });
+  const startEventHandler = (started: boolean) => {
+    lastUpdateTime = Date.now();
+    console.log("game start");
+    update(coords, canvas);
+  }
 
-  game.gameSocket.on(
-    "join-game",
-    ({ uid_left, p1, uid_right }: { uid_left: string; p1: number; uid_right: string }) => { }
-  );
+  const drawEventHandler = (gameCoord: GameCoordinate) => {
+    lastUpdateTime = Date.now();
+    coords = gameCoord;
+    Game(coords, canvas);
+  }
+
+  const paddleEventHandler = (paddleInfo: paddleInfo) => {
+    coords.paddle1YUp = paddleInfo.paddle1YUp;
+    coords.paddle1YDown = paddleInfo.paddle1YDown;
+    coords.paddle2YUp = paddleInfo.paddle2YUp;
+    coords.paddle2YDown = paddleInfo.paddle2YDown;
+    Game(coords, canvas);
+  }
+
+  const scoreEventhandler = (scoreInfo: scoreInfo) => {
+    p1.score = scoreInfo.p1Score;
+    p2.score = scoreInfo.p2Score;
+    coords.ballSpeedX = 0;
+    coords.ballSpeedY = 0;
+    coords.paddleSpeed = 0;
+    Game(coords, canvas);
+  }
+
+  const finishEventHandler = (scoreInfo: scoreInfo) => {
+    p1.score = scoreInfo.p1Score;
+    p2.score = scoreInfo.p2Score;
+    coords.ballSpeedX = 0;
+    coords.ballSpeedY = 0;
+    coords.paddleSpeed = 0;
+    Game(coords, canvas);
+  }
 
   useEffect(() => {
-    const startEventHandler = (started: boolean) => {
-      lastUpdateTime = Date.now();
-      console.log("game start");
-      update(coords, canvas);
-    };
+    game.gameSocket.on("connect", connectionEventHandler);
+    return () => {
+      game.gameSocket.off("connect", connectionEventHandler);
+    }
+  }, []);
+
+  useEffect(() => {
+    game.gameSocket.on("disconnect", disconnectEventHandler);
+    return () => {
+      game.gameSocket.off("disconnect", disconnectEventHandler);
+    }
+  }, []);
+
+  useEffect(() => {
     game.gameSocket.on("start", startEventHandler);
     return () => {
       game.gameSocket.off("start", startEventHandler);
-    };
+    }
   }, []);
-        
+
   useEffect(() => {
-    const drawEventHandler = (gameCoord: GameCoordinate) => {
-      lastUpdateTime = Date.now();
-      coords = gameCoord;
-      Game(coords, canvas);
-    };
     game.gameSocket.on("graphic", drawEventHandler);
     return () => {
       socket.off("graphic", drawEventHandler);
     }
   }, []);
-  
+
   useEffect(() => {
-    const paddleEventHandler = (paddleInfo: paddleInfo) => {
-      coords.paddle1YUp = paddleInfo.paddle1YUp;
-      coords.paddle1YDown = paddleInfo.paddle1YDown;
-      coords.paddle2YUp = paddleInfo.paddle2YUp;
-      coords.paddle2YDown = paddleInfo.paddle2YDown;
-      Game(coords, canvas);
-    };
     game.gameSocket.on("paddleInfo", paddleEventHandler);
     return () => {
       socket.off("paddleInfo", paddleEventHandler);
@@ -128,14 +150,6 @@ export default function PingPong() {
   }, []);
 
   useEffect(() => {
-    const scoreEventhandler = (scoreInfo: scoreInfo) => {
-      p1.score = scoreInfo.p1Score;
-      p2.score = scoreInfo.p2Score;
-      coords.ballSpeedX = 0;
-      coords.ballSpeedY = 0;
-      coords.paddleSpeed = 0;
-      Game(coords, canvas);
-    };
     game.gameSocket.on("scoreInfo", scoreEventhandler);
     return () => {
       socket.off("scoreInfo", scoreEventhandler);
@@ -143,20 +157,26 @@ export default function PingPong() {
   }, []);
 
   useEffect(() => {
-    const finishEventHandler = (scoreInfo: scoreInfo) => {
-      p1.score = scoreInfo.p1Score;
-      p2.score = scoreInfo.p2Score;
-      coords.ballSpeedX = 0;
-      coords.ballSpeedY = 0;
-      coords.paddleSpeed = 0;
-      Game(coords, canvas);
-    };
     game.gameSocket.on("finished", finishEventHandler);
     return () => {
       socket.off("finished", finishEventHandler);
     }
   }, []);
-  
+
+  // // the connection is denied by the server in a middleware function
+  // game.gameSocket.on("connect_error", (err) => {
+  //   if (err.message === "unauthorized") {
+  //     // handle each case
+  //   }
+  //   console.log(err.message); // prints the message associated with the error
+  // });
+
+  // game.gameSocket.on(
+  //   "join-game",
+  //   ({ uid_left, p1, uid_right }: { uid_left: string; p1: number; uid_right: string }) => { }
+  // );
+
+  // paddle update first, and then ball position update.
   function update(coord:GameCoordinate, canvas:React.RefObject<HTMLCanvasElement>) {
     const curTime = Date.now();
     const dt = curTime - lastUpdateTime;
