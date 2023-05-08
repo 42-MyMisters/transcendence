@@ -210,7 +210,8 @@ export class EventsGateway
 				throw new UnauthorizedException("User not found.");
 			}
 		} catch (e) {
-			this.logger.log(`${JSON.stringify(e)} ${socket.id} invalid connection. disconnect socket.`);
+			this.logger.error(e);
+			this.logger.log(`${JSON.stringify(e)}: ${e} : ${socket.id} invalid connection. disconnect socket.`);
 			socket.disconnect();
 		}
 	}

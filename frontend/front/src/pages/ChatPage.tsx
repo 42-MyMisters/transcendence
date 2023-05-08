@@ -218,7 +218,6 @@ export default function ChatPage() {
 
 	useEffect(() => {
 		socket.socket.on("dm-list", (resDmUserList, mergeDmList) => {
-			console.log("dm-list", resDmUserList, mergeDmList);
 			const tempDmRoomList: chatType.roomListDto = {};
 
 			setDmHistoryList({ ...resDmUserList });
@@ -247,7 +246,6 @@ export default function ChatPage() {
 			});
 
 			Object.entries(mergeDmList).forEach((atom: any[]) => {
-				// console.log("atom", atom);
 				if (Number(atom[1].senderId!) === userInfo.uid) { // from me
 					const tempMessageList: chatType.roomMessageDto[] = tempDmRoomList[Number(atom[1]?.receiverId!)].detail?.messageList!;
 					tempMessageList.unshift({
@@ -557,7 +555,6 @@ export default function ChatPage() {
 				userProfileUrl,
 				userStatus,
 			};
-			console.log(`user - upadate: user ${userId} is ${userStatus}`);
 			setUserList({ ...userList, ...newUser });
 		});
 		return () => {
@@ -599,6 +596,16 @@ export default function ChatPage() {
 						isJoined: roomList[roomId].isJoined,
 						detail: newDetail as chatType.roomDetailDto
 					};
+					if (roomList[roomId].roomType === 'dm' && focusRoom !== roomId) {
+						const newDmUser: chatType.userDto = {};
+						newDmUser[roomId] = {
+							userDisplayName: userList[roomId].userDisplayName,
+							userProfileUrl: userList[roomId].userProfileUrl,
+							userStatus: userList[roomId].userStatus,
+							dmStatus: 'unread',
+						};
+						setUserList({ ...userList, ...newDmUser });
+					}
 					setRoomList({ ...roomList, ...newRoomList });
 					break;
 				}
@@ -607,7 +614,7 @@ export default function ChatPage() {
 		return () => {
 			socket.socket.off("message");
 		};
-	}, [roomList, blockList, userList, userInfo]);
+	}, [roomList, blockList, userList, userInfo, focusRoom]);
 
 	async function firstLogin() {
 		if (isFirstLogin) {
@@ -633,7 +640,6 @@ export default function ChatPage() {
 			<button onClick={getFollowingList}> FollowList</button>
 			<button onClick={showServerUser}> show server user</button>
 			<button onClick={showServerRoom}> show server room</button>
-			<button onClick={showSocketState}> socket state</button>
 			<button onClick={showSocketState}> socket state</button>
 			<button onClick={() => setGameInviteModal(true)}> gameinvite</button>
 			<TopBar />
