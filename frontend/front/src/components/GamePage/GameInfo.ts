@@ -4,7 +4,7 @@ export const HEIGHT = 600;
 export const START_X = 100;
 export const START_Y = 225;
 
-export const me = {
+export const p1 = {
   x: 10,
   y: START_Y,
   width: 20,
@@ -13,7 +13,7 @@ export const me = {
   score: 0,
 };
 
-export const opponent = {
+export const p2 = {
   x: WIDTH - 30,
   y: START_Y,
   width: 20,
@@ -40,4 +40,29 @@ export const ball = {
 export const paddle = {
   width: 30,
   height: 150,
+}
+
+export const enum Direction {
+  NONE = 0,
+  UP = 1,
+  DOWN = 2,
+  LEFT = 3,
+  RIGHT = 4
+}
+
+export const enum Hit {
+  PADDLE = 1,
+  WALL = 0,
+}
+
+export interface paddleInfo {
+  paddle1YUp: boolean,
+  paddle1YDown: boolean,
+  paddle2YUp: boolean,
+  paddle2YDown: boolean,
+}
+
+export interface scoreInfo {
+  p1Score: number,
+  p2Score: number,
 }

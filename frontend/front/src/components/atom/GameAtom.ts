@@ -1,5 +1,4 @@
-import { time } from "console";
-import { atom, createStore } from "jotai";
+import { atom } from "jotai";
 // import type * as DTO from '../../socket/game.dto';
 
 export const isQueueAtom = atom<boolean>(false);

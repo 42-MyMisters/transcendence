@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from "@nestjs/common";
+import { Injectable, InternalServerErrorException, Logger } from "@nestjs/common";
 import { Namespace } from "socket.io";
 import { DatabaseService } from "src/database/database.service";
 import { Direction, GameMode, GameStatus, Hit } from "./game.enum";
@@ -54,6 +54,7 @@ class Game {
   private paddle2Y: number;
   private gameStatus: GameStatus;
   private round: number;
+  
   private gameMode: GameMode;
   private gameModeTmp: GameMode;
 
@@ -65,6 +66,9 @@ class Game {
 
   // keyPress -> key pressed time list [p1up, p1down, p2up, p2down]
   private keyPress: number[] = [0, 0, 0, 0];
+
+  private ballSpeedMultiplier: number = 1.5;
+  private ballSpeedMax:number;
   
   constructor(
     private readonly id: string,
@@ -73,7 +77,6 @@ class Game {
     private readonly p2: number,
     private readonly databaseService: DatabaseService,
     // Fixed param set
-    private readonly fps = 1000 / 100,
     private readonly canvasWidth = 1150,
     private readonly canvasHeight = 600,
     private readonly ballRadius = 15,
@@ -81,31 +84,29 @@ class Game {
     private readonly paddleWidth = 30,
     private readonly paddleSpeed = 0.6,
     private readonly maxScore = 5,
-  ) {
+    ) {
+    this.ballSpeedMax = canvasWidth / 2000 * this.ballSpeedMultiplier,
     this.p1Score = this.p2Score = 0;
     this.round = 0;
-  }
-
-  gameState() {
-    return this.gameStatus;
   }
 
   init() {
     this.ballX = this.canvasWidth / 2;
     this.ballY = this.canvasHeight / 2;
-    // pixel per ms
-    this.ballSpeedX = this.canvasWidth / 2000;
+    this.ballSpeedX = this.ballSpeedMax;
     if (Math.random() >= 0.5) {
       this.ballSpeedX = -this.ballSpeedX;
     }
-    // this.ballSpeedY = 0.00001;
-    this.ballSpeedY = 0;
-    // this.ballSpeedY = this.ballSpeedX * (Math.random() * 2 - 1);
+    this.ballSpeedY = this.ballSpeedX * (Math.random() * 2 - 1);
     for (let i = 0; i < 4; i++) {
       this.keyPress[i] = 0;
     }
     this.paddle1Y = this.paddle2Y = (this.canvasHeight - this.paddleHeight) / 2;
     this.roundStartTime = Date.now();
+    const objectInfo = {...this.getState()};
+    objectInfo.ballSpeedX = 0;
+    objectInfo.ballSpeedY = 0;
+    this.nsp.to(this.id).emit('graphic', objectInfo);
   }
 
   gameStart() {
@@ -118,7 +119,6 @@ class Game {
 
   gameLoop() {
     if (this.gameStatus != GameStatus.FINISHED) {
-      console.log(this.id);
       const timeout = this.update();
       setTimeout(this.gameLoop.bind(this), timeout);
     }
@@ -138,7 +138,7 @@ class Game {
       this.nsp.to(this.id).emit('countdown', true);
       return 100;
     }
-    return 3000;
+    return 2000;
   }
 
   running(curTime: number): number {
@@ -163,6 +163,17 @@ class Game {
       }
       if (isHitX == Direction.LEFT) {
         if (this.collisionCheckP1Paddle() === Hit.PADDLE) {
+          if (this.keyPress[0] !== 0 && this.keyPress[1] === 0) {
+            this.ballSpeedY -= this.paddleSpeed / 5;
+            if (this.ballSpeedY < -this.ballSpeedMax) {
+              this.ballSpeedY = -this.ballSpeedMax;
+            }
+          } else if (this.keyPress[0] === 0 && this.keyPress[1] !== 0) {
+            this.ballSpeedY += this.paddleSpeed / 5;
+            if (this.ballSpeedY > this.ballSpeedMax) {
+              this.ballSpeedY = this.ballSpeedMax;
+            }
+          }
           this.ballX = 2 * (this.ballRadius + this.paddleWidth) - this.ballX;
           this.ballSpeedX = -this.ballSpeedX;
         } else {
@@ -176,9 +187,18 @@ class Game {
         }
       } else if (isHitX === Direction.RIGHT) {
         if (this.collisionCheckP2Paddle() === Hit.PADDLE) {
-          this.ballX =
-          2 * (this.canvasWidth - this.ballRadius - this.paddleWidth) -
-          this.ballX;
+          if (this.keyPress[2] !== 0 && this.keyPress[3] === 0) {
+            this.ballSpeedY -= this.paddleSpeed / 5;
+            if (this.ballSpeedY < -this.ballSpeedMax) {
+              this.ballSpeedY = -this.ballSpeedMax;
+            }
+          } else if (this.keyPress[2] === 0 && this.keyPress[3] !== 0) {
+            this.ballSpeedY += this.paddleSpeed / 5;
+            if (this.ballSpeedY > this.ballSpeedMax) {
+              this.ballSpeedY = this.ballSpeedMax;
+            }
+          }
+          this.ballX = 2 * (this.canvasWidth - this.ballRadius - this.paddleWidth) - this.ballX;
           this.ballSpeedX = -this.ballSpeedX;
         } else {
           console.log("p1 scored");
@@ -205,6 +225,7 @@ class Game {
         hitPredictTimeY = Infinity;
       }
       this.nsp.to(this.id).emit("graphic", this.getState());
+      Logger.log(`coords: ${this.getState()}`);
       if (hitPredictTimeX < hitPredictTimeY) {
         return hitPredictTimeX + 10;
       } else {
@@ -224,16 +245,9 @@ class Game {
       }
       case GameStatus.RUNNING: {
         timeout = this.running(curTime);
-        console.log(`running timeout: ${timeout}`);
         break;
-        // console.log(`update: id: ${this.id}, ingame time: ${this.roundTime}, time from start: ${Date.now() - this.now}, data: ${JSON.stringify(this.getState())}`);
       }
       case GameStatus.FINISHED: {
-        if (this.p1Score > this.p2Score) {
-          console.log("p1 win");
-        } else {
-          console.log("p2 win");
-        }
         this.nsp.to(this.id).emit("finished", { p1: this.p1Score, p2: this.p2Score });
         timeout = 0;
         break;
@@ -257,7 +271,8 @@ class Game {
   }
 
   paddleUpdate(keyPressDt: number[]) {
-    console.log(`keyPressDt: ${keyPressDt}`);
+    // console.log(`keyPressDt: ${keyPressDt}`);
+
     if (keyPressDt[0] !== 0) {
       if (this.paddle1Y > 0){
         this.paddle1Y -= this.paddleSpeed * keyPressDt[0];
@@ -351,57 +366,60 @@ class Game {
     return this.p1 === uid || this.p2 === uid;
   }
 
+  emitPaddleInfo() {
+    this.nsp.to(this.id).emit("paddleInfo", {
+      paddle1YUp: this.isKeyPressed(this.keyPress[0]),
+      paddle1YDown: this.isKeyPressed(this.keyPress[1]),
+      paddle2YUp: this.isKeyPressed(this.keyPress[2]),
+      paddle2YDown: this.isKeyPressed(this.keyPress[3]),
+    });
+  }
+  
   upPress(uid: number) {
-    if (this.p1 === uid) {
-      this.keyPress[0] = Date.now();
-    } else {
-      this.keyPress[2] = Date.now();
+    if (this.gameStatus === GameStatus.RUNNING) {
+      this.update();
+      if (this.p1 === uid) {
+        this.keyPress[0] = Date.now();
+      } else {
+        this.keyPress[2] = Date.now();
+      }
+      this.emitPaddleInfo();
     }
-    this.update();
-    // console.log("up pressed");
   }
   
   upRelease(uid: number) {
-    this.update();
-    if (this.p1 === uid) {
-      this.keyPress[0] = 0;
-    } else {
-      this.keyPress[2] = 0;
+    if (this.gameStatus === GameStatus.RUNNING) {
+      this.update();
+      if (this.p1 === uid) {
+        this.keyPress[0] = 0;
+      } else {
+        this.keyPress[2] = 0;
+      }
+      this.emitPaddleInfo();
     }
-    this.nsp.to(this.id).emit("paddleInfo", {
-      paddle1YUp: this.isKeyPressed(this.keyPress[0]),
-      paddle1YDown: this.isKeyPressed(this.keyPress[1]),
-      paddle2YUp: this.isKeyPressed(this.keyPress[2]),
-      paddle2YDown: this.isKeyPressed(this.keyPress[3]),
-    });
-    // console.log("up released");
   }
   downPress(uid: number) {
-    // this.update();
-    if (this.p1 === uid) {
-      this.keyPress[1] = Date.now();
-    } else {
-      this.keyPress[3] = Date.now();
+    if (this.gameStatus === GameStatus.RUNNING) {
+      this.update();
+      if (this.p1 === uid) {
+        this.keyPress[1] = Date.now();
+      } else {
+        this.keyPress[3] = Date.now();
+      }
+      this.emitPaddleInfo();
     }
-    this.update();
-    // console.log("down press");
   }
   
   downRelease(uid: number) {
-    this.update();
-    if (this.p1 === uid) {
-      this.keyPress[1] = 0;
-    } else {
-      this.keyPress[3] = 0;
+    if (this.gameStatus === GameStatus.RUNNING) {
+      this.update();
+      if (this.p1 === uid) {
+        this.keyPress[1] = 0;
+      } else {
+        this.keyPress[3] = 0;
+      }
+      this.emitPaddleInfo();
     }
-    this.nsp.to(this.id).emit("paddleInfo", {
-      paddle1YUp: this.isKeyPressed(this.keyPress[0]),
-      paddle1YDown: this.isKeyPressed(this.keyPress[1]),
-      paddle2YUp: this.isKeyPressed(this.keyPress[2]),
-      paddle2YDown: this.isKeyPressed(this.keyPress[3]),
-    });
-    // this.update();
-    // console.log("down released");
   }
   
   playerLeft(uid: number) {

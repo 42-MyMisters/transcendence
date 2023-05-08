@@ -1,51 +1,20 @@
 import "../../styles/BackGround.css";
 import "../../styles/PingPong.css";
 
-import React, { KeyboardEvent, useEffect } from "react";
-import { useAtom } from "jotai";
+import React, { useEffect } from "react";
 
+import { GameCoordinate } from "../atom/GameAtom";
 import { Game } from "./Pong";
-import { GameCoordinateAtom, GameCoordinate, GameCanvas, lastUpdate } from "../atom/GameAtom";
-import { PressKey } from "../../event/pressKey";
 
 import * as game from "../../socket/game.socket";
 
-import { useState, useRef } from "react";
-import { time } from "console";
+import { useRef, useState } from "react";
 import { socket } from "../../socket/chat.socket";
-import { ball, HEIGHT, me, opponent, paddle, WIDTH } from "./GameInfo";
-
-export const enum Direction {
-  NONE = 0, // => hmm...
-  UP = 1,
-  DOWN = 2,
-  LEFT = 3,
-  RIGHT = 4
-}
-
-export const enum Hit {
-  PADDLE = 1,
-  WALL = 0,
-}
-
-export interface paddleInfo {
-  paddle1YUp: boolean,
-  paddle1YDown: boolean,
-  paddle2YUp: boolean,
-  paddle2YDown: boolean,
-}
-
-export interface scoreInfo {
-  p1Score: number,
-  p2Score: number,
-}
+import { ball, Direction, HEIGHT, Hit, p1, p2, paddle, paddleInfo, scoreInfo, WIDTH } from "./GameInfo";
 
 export default function PingPong() {
-  let ping: number;
-  // const [coords, setCoord] = useAtom(GameCoordinateAtom);
   const [upArrow, setUpArrow] = useState(false);
   const [downArrow, setDownArrow] = useState(false);
-  // const [canvas, setCanvas] = useAtom(GameCanvas);
   const canvas = useRef<HTMLCanvasElement>(null);
   
   let coords = {
@@ -61,20 +30,8 @@ export default function PingPong() {
     paddle2YUp: false,
     paddle2YDown: false,
   };
-  let lastUpdateTime = Date.now();
-  // PressKey(["ArrowUp"], () => {
-  //   let tmp = coords;
-  //   tmp.leftY -= 10;
-  //   setCoord(tmp);
-  //   Game(coords, canvas, setCanvas});
-  // });
 
-  // PressKey(["ArrowDown"], () => {
-  //   let tmp = coords;
-  //   tmp.leftY += 10;
-  //   setCoord(tmp);
-  //   Game(coords, canvas, setCanvas});
-  // });
+  let lastUpdateTime = Date.now();
 
   let pingInterval: NodeJS.Timer;
   let pingTime: number;
@@ -86,17 +43,24 @@ export default function PingPong() {
         // any missed packets will be received
       } else {
         // new or unrecoverable session
-        console.log("gameSocket connected : " + game.gameSocket.id);
+        console.log("gameSocket connected");
         pingInterval = setInterval(() => {
           const curTime = Date.now();
-          game.gameSocket.emit('ping', (pong:boolean) => {
+          const handler = (pong: boolean) => {
             if (pong) {
               pingTime = Date.now() - curTime;
-              // console.log(`ping: ${Date.now() - curTime}`);
+              console.log(`ping: ${pingTime}ms`);
             }
-          });
+          }
+          game.gameSocket.emit('ping', handler);
+          return () => {
+            game.gameSocket.off('ping', handler);
+          }
         }, 1000);
       }
+    }
+    return () => {
+      game.gameSocket.off("connect");
     }
   });
 
@@ -146,6 +110,7 @@ export default function PingPong() {
       Game(coords, canvas);
     };
     game.gameSocket.on("graphic", handler);
+    console.log(`coords: ${JSON.stringify(coords)}`)
     return () => {
       socket.off("graphic", handler);
     }
@@ -157,7 +122,6 @@ export default function PingPong() {
       coords.paddle1YDown = paddleInfo.paddle1YDown;
       coords.paddle2YUp = paddleInfo.paddle2YUp;
       coords.paddle2YDown = paddleInfo.paddle2YDown;
-      // lastUpdateTime = Date.now();
       Game(coords, canvas);
     };
     game.gameSocket.on("paddleInfo", handler);
@@ -168,8 +132,11 @@ export default function PingPong() {
 
   useEffect(() => {
     const handler = (scoreInfo: scoreInfo) => {
-      me.score = scoreInfo.p1Score;
-      opponent.score = scoreInfo.p2Score;
+      p1.score = scoreInfo.p1Score;
+      p2.score = scoreInfo.p2Score;
+      coords.ballSpeedX = 0;
+      coords.ballSpeedY = 0;
+      coords.paddleSpeed = 0;
       Game(coords, canvas);
     };
     game.gameSocket.on("scoreInfo", handler);
@@ -177,8 +144,22 @@ export default function PingPong() {
       socket.off("scoreInfo", handler);
     }
   }, []);
-  
 
+  useEffect(() => {
+    const handler = (scoreInfo: scoreInfo) => {
+      p1.score = scoreInfo.p1Score;
+      p2.score = scoreInfo.p2Score;
+      coords.ballSpeedX = 0;
+      coords.ballSpeedY = 0;
+      coords.paddleSpeed = 0;
+      Game(coords, canvas);
+    };
+    game.gameSocket.on("finished", handler);
+    return () => {
+      socket.off("finished", handler);
+    }
+  }, []);
+  
   function update(coord:GameCoordinate, canvas:React.RefObject<HTMLCanvasElement>) {
     const curTime = Date.now();
     const dt = curTime - lastUpdateTime;
@@ -201,19 +182,14 @@ export default function PingPong() {
       if (collisionCheckP1Paddle() === Hit.PADDLE) {
         coord.ballX = 2 * (ball.radius + paddle.width) - coord.ballX;
         coord.ballSpeedX = -coord.ballSpeedX;
-      } else {
-        // need to freeze for 3 sec
       }
     } else if (isHitX === Direction.RIGHT) {
       if (collisionCheckP2Paddle() === Hit.PADDLE) {
         coord.ballX = 2 * (WIDTH - ball.radius - paddle.width) - coord.ballX;
         coord.ballSpeedX = -coord.ballSpeedX;
-      } else {
-        // need to freeze for 3 sec
       }
     }
     lastUpdateTime = curTime;
-    // console.log(`update coord: ${JSON.stringify(coord)}`);
     Game(coord, canvas);
     requestAnimationFrame(() => update(coords, canvas));
   }
@@ -288,55 +264,10 @@ export default function PingPong() {
   useEffect(() => {
     // first draw
     Game(coords, canvas);
-    // setInterval(() => update(), 10); 
   }, []);
-
-  // document.addEventListener('keydown', onKeyDown);
-  // useEffect(() => {
-  //   const handleKeyPress = (e: globalThis.KeyboardEvent) => {
-  //     e.preventDefault();
-  //     onKeyPress(e.key);
-  //     removeEventListener('keydown', handleKeyPress);
-  //     addEventListener('keyup', handleKeyUp);
-  //   }
-
-  //   const handleKeyUp = (e: globalThis.KeyboardEvent) => {
-  //     e.preventDefault();
-  //     onKeyRelease(e.key);
-  //     removeEventListener('keyup', handleKeyUp);
-  //     addEventListener('keydown', handleKeyPress);
-  //   }
-
-  //   const onKeyRelease = (key: string) => {
-  //     if (key === 'ArrowUp') {
-  //       game.emitUpRelease();
-  //       console.log("up release");
-  //     } else if (key === 'ArrowDown') {
-  //       game.emitDownRelease();
-  //       console.log("down release");
-  //     }
-  //   };
-  //   const onKeyPress = (key: string) => {
-  //     if (key === 'ArrowUp') {
-  //       game.emitUpPress();
-  //       console.log("up press");
-  //     } else if (key === 'ArrowDown') {
-  //       game.emitDownPress();
-  //       console.log("down press");
-  //     }
-  //   };
-
-  //   window.addEventListener('keydown', handleKeyPress);
-
-  //   return () => {
-  //     window.removeEventListener('keydown', handleKeyPress);
-  //     window.removeEventListener('keyup', handleKeyUp);
-  //   }
-  // }, []);
 
   useEffect(() => {
     function handleKeyPress(event: globalThis.KeyboardEvent) {
-      // event.preventDefault();
       if (event.code === "ArrowUp") {
         if (!upArrow) {
           setUpArrow(true);
@@ -353,7 +284,6 @@ export default function PingPong() {
     }
 
     function handleKeyRelease(event: globalThis.KeyboardEvent) {
-      // event.preventDefault();
       if (event.code === "ArrowUp") {
         if (upArrow) {
           setUpArrow(false);

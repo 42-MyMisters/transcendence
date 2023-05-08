@@ -97,7 +97,9 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   async upPress(socket: Socket, payload: any) {
     if (socket.data.room) {
       const curGame = this.gameService.getGame(socket.data.room);
-      curGame?.upPress(socket.data.uid);
+      if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
+        curGame.upPress(socket.data.uid);
+      }
       console.log(`up button pressed.`);
     }
   }
@@ -106,16 +108,20 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   async downPress(socket: Socket, payload: any) {
     if (socket.data.room) {
       const curGame = this.gameService.getGame(socket.data.room);
-      curGame?.downPress(socket.data.uid);
+      if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
+        curGame.downPress(socket.data.uid);
+      }
       console.log(`down button pressed.`);
     }
   }
-
+  
   @SubscribeMessage('upRelease')
   async upRelease(socket: Socket, payload: any) {
     if (socket.data.room) {
       const curGame = this.gameService.getGame(socket.data.room);
-      curGame?.upRelease(socket.data.uid);
+      if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
+        curGame.upRelease(socket.data.uid);
+      }
       console.log(`up button released.`);
     }
   }
@@ -124,14 +130,16 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   async downRelease(socket: Socket, payload: any) {
     if (socket.data.room) {
       const curGame = this.gameService.getGame(socket.data.room);
-      curGame?.downRelease(socket.data.uid);
+      if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
+        curGame.downRelease(socket.data.uid);
+      }
       console.log(`down button released.`);
     }
   }
   // @SubscribeMessage('startGame')
   // async startGame(client: any, payload: any) {
-  //   this.gameService.createGame(payload.id);
-  // }
+    //   this.gameService.createGame(payload.id);
+    // }
 
   @SubscribeMessage('inviteGame')
   async inviteGame(socket: Socket, payload: any) {

@@ -1,8 +1,6 @@
 import React from "react";
-import { PressKey } from "../../event/pressKey";
-import { GameCoordinateAtom, GameCoordinate, GameCanvas } from "../atom/GameAtom";
-import { me, opponent, net, ball, HEIGHT, WIDTH } from "./GameInfo";
-import { useAtom } from "jotai";
+import { GameCoordinate } from "../atom/GameAtom";
+import { ball, HEIGHT, net, p1, p2, WIDTH } from "./GameInfo";
 
 function drawRect(
   x: number,
@@ -57,19 +55,18 @@ function drawNet(context: CanvasRenderingContext2D) {
 export function Game(gameInfo: GameCoordinate, canvas: React.RefObject<HTMLCanvasElement>) {
   const canv = canvas.current;
   const context = canv?.getContext("2d");
-  // console.log(`gameInfo: ${JSON.stringify(gameInfo)}`);
   if (context) {
     context.clearRect(0, 0, 1150, 600);
     drawRect(0, 0, 1150, 600, "black", context);
     //net
     drawNet(context);
     //bar
-    drawRect(me.x, gameInfo.paddle1Y, me.width, me.height, me.color, context);
-    drawRect(opponent.x, gameInfo.paddle2Y, opponent.width, opponent.height, opponent.color, context);
+    drawRect(p1.x, gameInfo.paddle1Y, p1.width, p1.height, p1.color, context);
+    drawRect(p2.x, gameInfo.paddle2Y, p2.width, p2.height, p2.color, context);
     //ball
     drawCircle(gameInfo.ballX, gameInfo.ballY, ball.radius, ball.color, context);
     //score
-    drawText(me.score, WIDTH / 4, 50, "WHITE", context);
-    drawText(opponent.score, 3 * (WIDTH / 4), 50, "WHITE", context);
+    drawText(p1.score, WIDTH / 4, 50, "WHITE", context);
+    drawText(p2.score, 3 * (WIDTH / 4), 50, "WHITE", context);
   }
 }
