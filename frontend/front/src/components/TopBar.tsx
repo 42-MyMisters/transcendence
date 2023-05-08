@@ -76,6 +76,16 @@ function LogoutBtn() {
   const navigate = useNavigate();
 
   const handleLogOut = () => {
+    fetch("http://localhost:4000/login/signout", {
+      credentials: "include",
+      method: "POST",
+    }).then((res) => {
+      if (res.status !== 201) {
+        throw new Error("Logout Error");
+      }
+    }).catch((err) => {
+      console.log(err);
+    });
     LogOut(setRefreshToken, navigate, "/");
     setHasLogin(false);
     setIsFirstLogin(true);

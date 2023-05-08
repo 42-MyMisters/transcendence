@@ -45,6 +45,8 @@ export default function UserInfoModal() {
     }
   };
 
+  const isDefaultUser = userInfo.uid < 3 ? true : false;
+
   const infoModalOff = () => {
     setUserInfoModal(false);
   }
@@ -54,42 +56,50 @@ export default function UserInfoModal() {
   });
 
   const Follow = () => {
+    if (isDefaultUser) return;
     followHandler();
     infoModalOff();
   };
 
   const Invite = () => {
+    if (isDefaultUser) return;
     alert("invite");
     infoModalOff();
   }
 
   const Ignore = () => {
+    if (isDefaultUser) return;
     const doOrUndo: boolean = blockList[userInfo.uid] === undefined ? true : false;
     socket.emitBlockUser({ blockList, setBlockList }, userInfo.uid, doOrUndo);
     infoModalOff();
   };
 
   const Profile = () => {
+    if (isDefaultUser) return;
     alert("profile");
     infoModalOff();
   };
 
   const Kick = () => {
+    if (isDefaultUser) return;
     socket.emitRoomInAction({ roomList, setRoomList }, focusRoom, "kick", userInfo.uid)
     infoModalOff();
   };
 
   const Ban = () => {
+    if (isDefaultUser) return;
     socket.emitRoomInAction({ roomList, setRoomList }, focusRoom, "ban", userInfo.uid)
     infoModalOff();
   };
 
   const Mute = () => {
+    if (isDefaultUser) return;
     socket.emitRoomInAction({ roomList, setRoomList }, focusRoom, "mute", userInfo.uid)
     infoModalOff();
   };
 
   const Admin = () => {
+    if (isDefaultUser) return;
     socket.emitRoomInAction({ roomList, setRoomList }, focusRoom, "admin", userInfo.uid)
     infoModalOff();
   };

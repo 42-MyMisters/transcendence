@@ -16,9 +16,14 @@ export default function RoomInviteModal() {
   PressKey(["Escape"], () => { setInviteModal(false); });
 
   const handleInvite = () => {
-    socket.emitRoomInvite(focusRoom, nickName);
+    const trimNickname = nickName.trim();
+    if (trimNickname.length < 1) {
+      alert("닉네임을 입력해주세요.");
+    } else {
+      socket.emitRoomInvite(focusRoom, nickName);
+      setInviteModal(false);
+    }
     setNickName("");
-    setInviteModal(false);
   };
 
   const handleEnterEvent = (e: keyboardKey) => {
@@ -34,7 +39,7 @@ export default function RoomInviteModal() {
       <div className="RoomInviteModal">
         <div className="InviteForm">
           <label htmlFor="Invite">NickName</label>
-          <input id="Invite" type="text" value={nickName} onChange={(e) => setNickName(e.target.value)} onKeyDown={(e) => handleEnterEvent(e)}></input>
+          <input id="Invite" minLength={1} type="text" value={nickName} onChange={(e) => setNickName(e.target.value)} onKeyDown={(e) => handleEnterEvent(e)}></input>
         </div>
         <button className="Invite" onClick={handleInvite}>Invite</button>
         <button className="InviteCancel" onClick={() => setInviteModal(false)}>

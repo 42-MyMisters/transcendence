@@ -43,7 +43,11 @@ export default function ChatRoomUserList() {
     <div className="ChatRoomUserListBG">
       <div className="ChatRoomNameTxt">
         {
-          focusRoom === -1 ? 'My Room' : roomList[focusRoom]?.roomName
+          focusRoom === -1
+            ? 'My Room'
+            : roomList[focusRoom].roomType === 'private'
+              ? 'Private Room ' + roomList[focusRoom]?.roomName
+              : roomList[focusRoom]?.roomName
         }
       </div>
       {
@@ -55,14 +59,18 @@ export default function ChatRoomUserList() {
       {
         focusRoom === -1
           ? ''
-          : <div className="ChatRoomInviteBtn" onClick={onClickInvite} />
+          : roomList[focusRoom]?.roomType === 'dm'
+            ? ''
+            : <div className="ChatRoomInviteBtn" onClick={onClickInvite} />
       }
       {
         focusRoom === -1
           ? ''
-          : roomList[focusRoom]?.detail?.myRoomStatus === 'mute'
+          : roomList[focusRoom]?.roomType === 'dm'
             ? ''
-            : <div className="ChatRoomExitBtn" onClick={onClickLeave} />
+            : roomList[focusRoom]?.detail?.myRoomStatus === 'mute'
+              ? ''
+              : <div className="ChatRoomExitBtn" onClick={onClickLeave} />
       }
       <div className="ChatRoomUsers">
         {
@@ -77,7 +85,7 @@ export default function ChatRoomUserList() {
               power="member"
               callBack={onClickInfo}
             />
-            : Object.entries(roomList[focusRoom]?.detail?.userList!).map((key) => (
+            : Object?.entries(roomList[focusRoom]?.detail?.userList!)?.map((key) => (
               <UserObj
                 key={Number(key[0])}
                 uid={Number(key[0])}

@@ -19,7 +19,11 @@ export default function ChatArea() {
   const handleSendMessage = () => {
     const tempMessage = message.trim();
     if (tempMessage !== '') {
-      socket.emitMessage({ roomList }, focusRoom, tempMessage);
+      if (roomList[focusRoom]?.roomType === 'dm') {
+        socket.emitDM(focusRoom, tempMessage);
+      } else {
+        socket.emitMessage({ roomList }, focusRoom, tempMessage);
+      }
     }
     setMessage('');
   }
@@ -44,7 +48,7 @@ export default function ChatArea() {
               <SpeechBubble
                 key={key.number}
                 // nickName={userList[key.userId]?.userDisplayName}
-                nickName={key.userName}
+                nickName={userList[key.userId].userDisplayName || key.userName}
                 text={key.message}
                 isMe={key.isMe}
               />
