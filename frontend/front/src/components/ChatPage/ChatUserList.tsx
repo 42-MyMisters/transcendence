@@ -129,7 +129,7 @@ export default function ChatUserList() {
         />
         {
           Object.entries(dmHistoryList).map((key) => (
-            followingList[Number(key[0])] !== undefined || userList[Number(key[0])].userStatus !== 'offline'
+            followingList[Number(key[0])] !== undefined || userList[Number(key[0])]?.userStatus !== 'offline'
               ? ''
               : <UserObj
                 key={Number(key[0])}

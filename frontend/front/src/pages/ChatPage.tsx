@@ -173,6 +173,7 @@ export default function ChatPage() {
 		});
 		//https://socket.io/docs/v4/client-socket-instance/#disconnect
 		socket.socket.on("disconnect", (reason) => {
+			console.log("socket disconnected reason: " + reason);
 			/**
 			 *  BAD, will throw an error
 			 *  socket.emit("disconnect");
@@ -180,10 +181,6 @@ export default function ChatPage() {
 			if (reason === "io server disconnect") {
 				// the disconnection was initiated by the server, you need to reconnect manually
 				console.log('socket disconnected by server');
-				alert(`multiple login detected!`);
-				LogOut(setRefreshToken, navigate, "/");
-				setHasLogin(false);
-				setIsFirstLogin(true);
 			}
 			// else the socket will automatically try to reconnect
 			console.log("socket disconnected");
@@ -196,12 +193,19 @@ export default function ChatPage() {
 			}
 			console.log(err.message); // prints the message associated with the error
 		});
+		socket.socket.on("multiple-login", () => {
+			alert(`multiple login detected!`);
+			LogOut(setRefreshToken, navigate, "/");
+			setHasLogin(false);
+			setIsFirstLogin(true);
+		});
 		return () => {
 			socket.socket.off("connect");
 			socket.socket.off("disconnect");
 			socket.socket.off("connect_error");
 			socket.socket.offAny();
 			socket.socket.offAnyOutgoing();
+			socket.socket.off("multiple-login");
 		}
 	}, []);
 
@@ -248,7 +252,7 @@ export default function ChatPage() {
 			Object.entries(mergeDmList).forEach((atom: any[]) => {
 				if (Number(atom[1].senderId!) === userInfo.uid) { // from me
 					const tempMessageList: chatType.roomMessageDto[] = tempDmRoomList[Number(atom[1]?.receiverId!)].detail?.messageList!;
-					tempMessageList.unshift({
+					tempMessageList?.unshift({
 						userId: userInfo.uid,
 						userName: userInfo.nickname,
 						message: atom[1]?.message!,
@@ -270,8 +274,8 @@ export default function ChatPage() {
 					if (atom[1].blockFromReceiver) {
 						return;
 					}
-					const tempMessageList: chatType.roomMessageDto[] = tempDmRoomList[Number(atom[1]?.senderId!)].detail?.messageList!;
-					tempMessageList.unshift({
+					const tempMessageList: chatType.roomMessageDto[] = tempDmRoomList[Number(atom[1]?.senderId!)]?.detail?.messageList!;
+					tempMessageList?.unshift({
 						userId: Number(atom[1]?.senderId!),
 						userName: resDmUserList[Number(atom[1]?.senderId!)]?.userDisplayName,
 						message: atom[1]?.message!,
@@ -618,7 +622,6 @@ export default function ChatPage() {
 
 	async function firstLogin() {
 		if (isFirstLogin) {
-			console.log("set init data");
 			await getMyinfoHandler();
 			socket.socket.connect();
 		}

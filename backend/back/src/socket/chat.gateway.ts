@@ -172,7 +172,7 @@ export class EventsGateway
 				socket.data.user = user;
 				socket.data.roomList = [];
 				if (userList[uid] === undefined) {
-					this.logger.debug(`${socket.data.user.nickname} first connected.`);
+					this.logger.debug(`${user.nickname} first connected.`);
 					userList[uid] = {
 						socket: socket,
 						status: 'online',
@@ -184,26 +184,36 @@ export class EventsGateway
 						isRefresh: false,
 					};
 				} else {
-					this.logger.debug(`${socket.data.user.nickname} refreshed.`);
-					userList[socket.data.user.uid].status = 'online';
-					userList[socket.data.user.uid].isRefresh = true;
-					userList[socket.data.user.uid].socket?.disconnect();
-					userList[socket.data.user.uid].socket = socket;
+					this.logger.debug(`${user.nickname} refreshed. - ${socket.id}`);
+					userList[uid].status = 'online';
+					userList[uid].isRefresh = true;
+					if (userList[uid].socket !== undefined) {
+						this.nsp.to(userList[uid]?.socket?.id!).emit("multiple-login");
+						userList[uid].socket?.disconnect();
+					}
+					userList[uid].socket = socket;
 				}
-				this.logger.verbose(`${userList[socket.data.user.uid].userDisplayName} is now online`);
+				this.logger.verbose(`${userList[uid].userDisplayName} is now online`);
+				console.log(`init time 1`);
 				await this.handleBlockList(socket);
-				await this.handleFollowList(socket);
-				this.handleRoomList(socket);
+				console.log(`init time 2`);
+				await this.handleFollowList(socket, uid);
+				console.log(`init time 3`);
+				this.handleRoomList(socket)
+				console.log(`init time 4`);
 				this.handleUserList(socket);
+				console.log(`init time 5`);
 
-				socket.broadcast.emit("user-update", {
-					userId: socket.data.user.uid,
-					userDisplayName: socket.data.user.nickname.split('#', 2)[0],
-					userProfileUrl: socket.data.user.profileUrl,
+				this.nsp.emit("user-update", {
+					userId: uid,
+					userDisplayName: user.nickname.split('#', 2)[0],
+					userProfileUrl: user.profileUrl,
 					userStatus: 'online',
 				});
+				console.log(`init time 6`);
 				// setTimeout(async () => {
-				await this.handleDmList(socket);
+				await this.handleDmList(socket, uid);
+				console.log(`init time 7`);
 				// }, 1000);
 			} else {
 				this.logger.warn(`user not found.`);
@@ -268,13 +278,6 @@ export class EventsGateway
 			}
 			socket.leave(roomId.toString());
 			delete socket.data.roomList[roomId];
-			// setTimeout(() => {
-			// 	socket.to(roomId.toString()).emit('message', {
-			// 		roomId,
-			// 		from: socket.data.user.uid,
-			// 		message: `${userList[socket.data.user.uid].userDisplayName} left this room`,
-			// 	});
-			// }, 100);
 			return action;
 		}
 	}
@@ -284,8 +287,8 @@ export class EventsGateway
 		socket.data.roomList?.forEach((roomId: number) => {
 			socket.leave(roomId.toString());
 		});
-		if (socket.data?.user?.uid !== undefined && userList[socket.data.user.uid]?.socket?.id! === socket.id &&
-			userList[socket.data.user.uid]?.isRefresh === false) {
+		if (socket.data?.user?.uid !== undefined
+			&& userList[socket.data.user.uid]?.socket?.id! === socket.id) {
 			this.logger.verbose(`${userList[socket.data.user.uid].userDisplayName} is now offline`);
 			userList[socket.data.user.uid].status = 'offline';
 			userList[socket.data.user.uid].socket = undefined;
@@ -295,6 +298,9 @@ export class EventsGateway
 				userProfileUrl: socket.data.user.profileUrl,
 				userStatus: userList[socket.data.user.uid].status,
 			});
+		}
+		if (userList[socket?.data?.user?.uid] !== undefined) {
+			userList[socket.data.user.uid].isRefresh = false;
 		}
 		socket.data.user = undefined;
 		socket.data.roomList = undefined;
@@ -804,7 +810,6 @@ export class EventsGateway
 	}
 
 	handleRoomList(socket: Socket) {
-		this.logger.debug(`handleRoomList ${socket.data.user.uid} `);
 		const tempRoomList: Record<number, ClientRoomListDto> = {};
 
 		for (const [roomId, roomInfo] of Object.entries(roomList)) {
@@ -833,7 +838,6 @@ export class EventsGateway
 	}
 
 	handleUserList(socket: Socket) {
-		this.logger.debug(`handleUserList ${socket.data.user.uid} `);
 		const tempUserList: Record<number, ClientUserDto> = {};
 
 		try {
@@ -859,7 +863,6 @@ export class EventsGateway
 	}
 
 	async handleBlockList(socket: Socket) {
-		this.logger.debug(`handleBlockList - ${socket.data.user.uid} `);
 		const blockList = await this.userService.findAllBlock(socket.data.user);
 
 		const tempUser: Record<number, boolean> = {};
@@ -873,12 +876,11 @@ export class EventsGateway
 		this.nsp.to(socket.id).emit("block-list", tempUser);
 	}
 
-	async handleFollowList(socket: Socket) {
-		this.logger.debug(`handleFollowList - ${socket.data.user.uid} `);
-		const userFollow = await this.userService.getFollowingUserInfo(socket.data.user.uid);
-
-		const tempFollowList: Record<number, ClientUserDto> = {};
+	async handleFollowList(socket: Socket, uid: number) {
 		try {
+			const userFollow = await this.userService.getFollowingUserInfo(uid);
+
+			const tempFollowList: Record<number, ClientUserDto> = {};
 			userFollow?.map((targetId) => {
 				tempFollowList[targetId.uid] = {
 					userDisplayName: targetId.nickname,
@@ -886,18 +888,17 @@ export class EventsGateway
 					userStatus: userList[targetId.uid]?.status || 'offline',
 				};
 			});
+			this.nsp.to(socket.id).emit("follow-list", tempFollowList);
 		} catch (e) {
 			this.logger.error(`handleFollowList - ${e} `);
 		}
-		this.nsp.to(socket.id).emit("follow-list", tempFollowList);
 	}
 
-	async handleDmList(socket: Socket) {
-		this.logger.debug(`handleDmList - ${socket.data.user.uid} `);
+	async handleDmList(socket: Socket, uid: number) {
 
 		try {
-			const dmListFromMe = await this.databaseService.findDMByUserId(socket.data.user.uid);
-			const dmListToMe = await this.databaseService.findDMByUserIdReceive(socket.data.user.uid);
+			const dmListFromMe = await this.databaseService.findDMByUserId(uid);
+			const dmListToMe = await this.databaseService.findDMByUserIdReceive(uid);
 			const dmListQueue = new Set<number>();
 			const mergeDmList = dmListFromMe?.concat(dmListToMe!);
 
