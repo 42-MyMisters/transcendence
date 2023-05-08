@@ -17,7 +17,7 @@ export class UserProfileDto {
 		userProfileDto.uid = user.uid;
 		userProfileDto.nickname = user.nickname;
         userProfileDto.profileUrl = user.profileUrl;
-		userProfileDto.ELO = 0;
+		userProfileDto.ELO = user.elo;
 		const followingUserDtos = await Promise.all(userFollowList.map(async (userFollow) => {
 			return await FollowingUserDto.mapUserFollowToFollowingUserDto(userFollow);
 		  }));		  
