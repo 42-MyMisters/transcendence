@@ -194,7 +194,7 @@ export default function ChatPage() {
 			console.log(err.message); // prints the message associated with the error
 		});
 		socket.socket.on("multiple-login", () => {
-			alert(`multiple login detected!`);
+			// 	alert(`multiple login detected!`);
 			LogOut(setRefreshToken, navigate, "/");
 			setHasLogin(false);
 			setIsFirstLogin(true);
@@ -287,7 +287,7 @@ export default function ChatPage() {
 						roomType: 'dm',
 						isJoined: true,
 						detail: {
-							userList: { ...tempDmRoomList[Number(atom[1]?.senderId!)].detail?.userList },
+							userList: { ...tempDmRoomList[Number(atom[1]?.senderId!)]?.detail?.userList },
 							myRoomPower: 'member',
 							myRoomStatus: 'normal',
 							messageList: tempMessageList
@@ -558,6 +558,7 @@ export default function ChatPage() {
 				userProfileUrl,
 				userStatus,
 			};
+			console.log(`user-update: ${userDisplayName}: ${userStatus}`);
 			setUserList((prevUserList) => ({ ...prevUserList, ...newUser }));
 		});
 		return () => {

@@ -76,7 +76,7 @@ const userList: Record<number, UserInfo> = {
 		isRefresh: false,
 	},
 	1: {
-		status: 'offline',
+		status: 'inGame',
 		blockList: [],
 		followList: [],
 		userId: 1,
@@ -107,10 +107,14 @@ const roomList: Record<number, RoomInfo> = {
 			1: {
 				userRoomStatus: 'mute',
 				userRoomPower: 'admin',
+			},
+			2: {
+				userRoomStatus: 'normal',
+				userRoomPower: 'admin',
 			}
 		},
 		roomOwner: 0,
-		roomAdmins: [1],
+		roomAdmins: [85340],
 		bannedUsers: [],
 	},
 	1: {
@@ -128,18 +132,28 @@ const roomList: Record<number, RoomInfo> = {
 			},
 			2: {
 				userRoomStatus: 'normal',
-				userRoomPower: 'member',
+				userRoomPower: 'admin',
 			}
 		},
 		roomOwner: 0,
-		roomAdmins: [1],
+		roomAdmins: [],
+		bannedUsers: [],
+		roomPass: '42',
+	},
+	2: {
+		roomNumber: 2,
+		roomName: 'Private Lobby',
+		roomType: 'private',
+		roomMembers: {},
+		roomOwner: 0,
+		roomAdmins: [],
 		bannedUsers: [],
 		roomPass: '42',
 	},
 };
 
-let ROOM_NUMBER = 2;
-let ROOM_COUNT = 2;
+let ROOM_NUMBER = 3;
+let ROOM_COUNT = 3;
 const MAX_ROOM_COUNT = 200;
 
 @WebSocketGateway({ namespace: "sock", cors: { origin: "*" } })
@@ -151,7 +165,7 @@ export class EventsGateway
 		private databaseService: DatabaseService,
 	) { }
 
-	private logger = new Logger("Gateway");
+	private logger = new Logger("Chatting - Gateway");
 
 	@WebSocketServer()
 	nsp: Namespace;
@@ -188,17 +202,19 @@ export class EventsGateway
 					userList[uid].status = 'online';
 					userList[uid].isRefresh = true;
 					if (userList[uid].socket !== undefined) {
+						this.logger.warn(`${user.nickname} is already connected. - ${userList[uid]?.socket?.id!} <> ${socket.id}`)
 						this.nsp.to(userList[uid]?.socket?.id!).emit("multiple-login");
-						userList[uid].socket?.disconnect();
+						const tempSocket: Socket = userList[uid].socket!;
+						tempSocket?.disconnect();
 					}
 					userList[uid].socket = socket;
 				}
-				this.logger.verbose(`${userList[uid].userDisplayName} is now online`);
 				await this.handleBlockList(socket);
 				await this.handleFollowList(socket, uid);
 				this.handleRoomList(socket)
 				this.handleUserList(socket);
 
+				this.logger.verbose(`${userList[uid].userDisplayName} is now online : ${socket.id}`);
 				this.nsp.emit("user-update", {
 					userId: uid,
 					userDisplayName: user.nickname.split('#', 2)[0],
@@ -212,7 +228,7 @@ export class EventsGateway
 			}
 		} catch (e) {
 			this.logger.error(e);
-			this.logger.log(`${JSON.stringify(e)}: ${e} : ${socket.id} invalid connection. disconnect socket.`);
+			this.logger.log(`${JSON.stringify(e)}: ${e} : ${socket.id} invalid connection.disconnect socket.`);
 			socket.disconnect();
 		}
 	}
@@ -274,13 +290,13 @@ export class EventsGateway
 	}
 
 	handleDisconnect(@ConnectedSocket() socket: Socket) {
-		this.logger.log(`${userList[socket?.data?.user?.uid]?.userDisplayName} : ${socket.id} socket disconnected`);
+		this.logger.warn(`${userList[socket?.data?.user?.uid]?.userDisplayName} : ${socket.id} socket disconnected`);
 		socket.data.roomList?.forEach((roomId: number) => {
 			socket.leave(roomId.toString());
 		});
 		if (socket.data?.user?.uid !== undefined
 			&& userList[socket.data.user.uid]?.socket?.id! === socket.id) {
-			this.logger.verbose(`${userList[socket.data.user.uid].userDisplayName} is now offline`);
+			this.logger.verbose(`${userList[socket.data.user.uid].userDisplayName} is now offline: ${socket.id}`);
 			userList[socket.data.user.uid].status = 'offline';
 			delete userList[socket.data.user.uid].socket;
 			userList[socket.data.user.uid].socket = undefined;
@@ -429,7 +445,7 @@ export class EventsGateway
 					// 	socket.to(roomId.toString()).emit('message', {
 					// 		roomId,
 					// 		from: socket.data.user.uid,
-					// 		message: `${userList[socket.data.user.uid].userDisplayName} join this room`,
+					// 		message: `${ userList[socket.data.user.uid].userDisplayName } join this room`,
 					// 	});
 					// }, 100);
 					return ({ status: 'ok' });
@@ -773,7 +789,7 @@ export class EventsGateway
 			}
 			return { status: 'ok' };
 		} catch (e) {
-			this.logger.error(`dm-room-create ${e}`);
+			this.logger.error(`dm - room - create ${e}`);
 		}
 		return { status: 'ko' };
 	}
@@ -782,11 +798,11 @@ export class EventsGateway
 	handleServerRoomList(@ConnectedSocket() socket: Socket) {
 		this.logger.verbose("server-room-list");
 		Object.entries(roomList).forEach(([roomId, roomInfo]) => {
-			console.log(`\n${roomInfo.roomName} :${roomId}:  ${roomInfo.roomType} ${roomInfo.roomPass} `);
-			console.log(`\towner: ${userList[roomInfo.roomOwner].userDisplayName}:${roomInfo.roomOwner} `);
+			console.log(`\n${roomInfo.roomName} : ${roomId}: ${roomInfo.roomType} ${roomInfo.roomPass} `);
+			console.log(`\towner: ${userList[roomInfo.roomOwner].userDisplayName}: ${roomInfo.roomOwner} `);
 			console.log(`\tadmins: ${roomInfo.roomAdmins.map((adminId) => userList[adminId].userDisplayName).join(', ')} `);
 			Object.entries(roomInfo.roomMembers).forEach(([uid, memberInfo]) => {
-				console.log(`\t${userList[uid].userDisplayName}:${uid}: \t\t${memberInfo.userRoomStatus} ${memberInfo.userRoomPower} `);
+				console.log(`\t${userList[uid].userDisplayName}: ${uid}: \t\t${memberInfo.userRoomStatus} ${memberInfo.userRoomPower} `);
 			});
 		});
 	}
@@ -795,7 +811,7 @@ export class EventsGateway
 	handleServerUserList(@ConnectedSocket() socket: Socket) {
 		this.logger.verbose("server-user-list");
 		Object.entries(userList).forEach(([uid, userInfo]) => {
-			console.log(`\n${userInfo.userDisplayName}:${uid}: ${userInfo.status} `);
+			console.log(`\n${userInfo.userDisplayName}: ${uid}: ${userInfo.status} `);
 		});
 	}
 

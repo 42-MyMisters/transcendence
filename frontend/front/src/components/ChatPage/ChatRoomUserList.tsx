@@ -85,7 +85,7 @@ export default function ChatRoomUserList() {
               power="member"
               callBack={onClickInfo}
             />
-            : Object.entries(roomList[focusRoom]?.detail?.userList!).map((key) => (
+            : Object?.entries(roomList[focusRoom]?.detail?.userList!)?.map((key) => (
               <UserObj
                 key={Number(key[0])}
                 uid={Number(key[0])}

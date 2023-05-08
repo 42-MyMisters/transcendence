@@ -18,6 +18,7 @@ export default function ChatUserList() {
   const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
 
   const DM = (targetId: number) => {
+    if (targetId < 3) return;
     if (roomList[targetId] === undefined) {
       socket.emitDmRoomCreate(targetId);
     } else {
