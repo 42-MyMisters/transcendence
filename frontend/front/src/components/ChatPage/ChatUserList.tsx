@@ -45,7 +45,7 @@ export default function ChatUserList() {
           key={-42}
           uid={-42}
           nickName={'Follwing List'}
-          profileImage={''}
+          profileImage={'https://static.thenounproject.com/png/5303769-200.png'}
           status={''}
           chat={'normal'}
           power="member"
@@ -81,7 +81,7 @@ export default function ChatUserList() {
           key={-41}
           uid={-41}
           nickName={'Online List'}
-          profileImage={''}
+          profileImage={'https://static.thenounproject.com/png/3720098-200.png'}
           status={''}
           chat={'normal'}
           power="member"
@@ -121,7 +121,7 @@ export default function ChatUserList() {
           key={-40}
           uid={-40}
           nickName={'DM List'}
-          profileImage={''}
+          profileImage={'https://static.thenounproject.com/png/4922698-200.png'}
           status={''}
           chat={'normal'}
           power="member"

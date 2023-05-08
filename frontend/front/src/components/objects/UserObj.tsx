@@ -63,18 +63,22 @@ export default function UserObj({
           height: "50px",
         }}
       />
-      <div
-        className="UserStatus"
-        style={
-          status === "online"
-            ? { backgroundColor: "#74B667" }
-            : status === "inGame"
-              ? { backgroundColor: "#54B7BB" }
-              : status === 'offline'
-                ? { backgroundColor: "#CA6A71" }
-                : { backgroundColor: "#d9d9d9" }
-        }
-      />
+      {
+        status === ''
+          ? ''
+          : <div
+            className="UserStatus"
+            style={
+              status === "online"
+                ? { backgroundColor: "#74B667" }
+                : status === "inGame"
+                  ? { backgroundColor: "#54B7BB" }
+                  : status === 'offline'
+                    ? { backgroundColor: "#CA6A71" }
+                    : { backgroundColor: "#d9d9d9" }
+            }
+          />
+      }
       {
         uid !== userDefaultInfo.uid
           ? focusList !== 'userList'
