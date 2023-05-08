@@ -48,7 +48,7 @@ export default function ChatUserList() {
           Object.entries(userList).map((key) => (
             userList[Number(key[0])].userStatus === 'offline'
               ? ''
-              : followingList[Number(key[0])] === undefined && dmHistoryList[Number(key[0])] === undefined
+              : followingList[Number(key[0])] === undefined
                 ? <UserObj
                   key={Number(key[0])}
                   uid={Number(key[0])}
@@ -64,7 +64,7 @@ export default function ChatUserList() {
         }
         {
           Object.entries(dmHistoryList).map((key) => (
-            followingList[Number(key[0])] !== undefined
+            followingList[Number(key[0])] !== undefined && userList[Number(key[0])] !== undefined
               ? ''
               : <UserObj
                 key={Number(key[0])}

@@ -897,7 +897,45 @@ export class EventsGateway
 		try {
 			const dmListFromMe = await this.databaseService.findDMByUserId(socket.data.user.uid);
 			const dmListToMe = await this.databaseService.findDMByUserIdReceive(socket.data.user.uid);
-			this.nsp.to(socket.id).emit("dm-list", dmListFromMe, dmListToMe);
+			const dmListQueue = new Set<number>();
+			const mergeDmList = dmListFromMe?.concat(dmListToMe!);
+
+			dmListFromMe?.forEach((dm) => {
+				if (dmListQueue.has(dm.receiverId) === false) {
+					dmListQueue.add(dm.receiverId);
+				}
+			});
+
+			dmListToMe?.forEach((dm) => {
+				if (dmListQueue.has(dm.senderId) === false) {
+					dmListQueue.add(dm.senderId);
+				}
+			});
+
+			mergeDmList?.sort((a, b) => {
+				return a.did - b.did;
+			});
+
+			const resDmUserList: Record<number, ClientUserDto> = {};
+
+			for (const uid of dmListQueue!) {
+				if (userList[uid] === undefined) {
+					const targetUser = await this.userService.getUserByUid(uid);
+					if (targetUser === undefined) return;
+					resDmUserList[uid] = {
+						userDisplayName: targetUser?.nickname!,
+						userProfileUrl: targetUser?.profileUrl!,
+						userStatus: 'offline'
+					};
+				} else {
+					resDmUserList[uid] = {
+						userDisplayName: userList[uid].userDisplayName!,
+						userProfileUrl: userList[uid].userUrl!,
+						userStatus: userList[uid].status || 'offline'
+					};
+				}
+			};
+			this.nsp.to(socket.id).emit("dm-list", resDmUserList, mergeDmList);
 		} catch (error) {
 			this.logger.error(`handleDmList - ${error} `);
 		}

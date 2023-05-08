@@ -218,19 +218,6 @@ export default function ChatPage() {
 		};
 	}, []);
 
-	function isInUserList(targetId: number) {
-		if (userList[targetId] === undefined) {
-			if (initDmQueue.includes(targetId) === false) {
-				initDmQueue.push(targetId);
-				setInitDmQueue(initDmQueue);
-			}
-		} else if (dmHistoryList[targetId] === undefined) {
-			const newDmHistoryList: chatType.userDto = {};
-			newDmHistoryList[targetId] = userList[targetId];
-			setDmHistoryList((prevDmHistoryList) => ({ ...prevDmHistoryList, ...newDmHistoryList }));
-		}
-	}
-
 
 	function alsoCreateRoom() {
 		initDmQueue.forEach((targetId) => {
@@ -275,65 +262,12 @@ export default function ChatPage() {
 		// 	setRoomList((prevRoomList) => ({ ...prevRoomList, ...resRoomList }));
 		// 	setUserList((prevUserList) => ({ ...resDmList, ...prevUserList }));
 		// });
-		socket.socket.on("dm-list", (dmListFromMe, dmListToMe) => {
-			const dmList: chatType.dmDto[] = [];
-			const tempDmHistroyList: chatType.userDto = {};
-			const tempDmRoomList: chatType.roomListDto = {};
-			dmListFromMe.forEach((dm: chatType.dmDto) => {
-				dmList.push({
-					did: dm.did,
-					senderId: dm.senderId,
-					receiverId: dm.receiverId,
-					message: dm.message,
-					blockFromReceiver: dm.blockFromReceiver,
-				});
-				isInUserList(dm.receiverId);
-			});
-			dmListToMe.forEach((dm: chatType.dmDto) => {
-				dmList.push({
-					did: dm.did,
-					senderId: dm.senderId,
-					receiverId: dm.receiverId,
-					message: dm.message,
-					blockFromReceiver: dm.blockFromReceiver,
-				});
-				isInUserList(dm.senderId);
-			});
-			initDmQueue.forEach((targetId) => {
-				if (userList[targetId] === undefined) {
-					console.log(`userList[targetId] === undefined`);
-					// const newDmUser: chatType.userDto = {};
-					// newDmUser[targetId] = {
-					// 	userDisplayName,
-					// 	userProfileUrl,
-					// 	userStatus,
-					// }
-					// console.log(`if userDisplayName: ${userDisplayName}`);
-					// setDmHistoryList((prevDmHistoryList) => ({ ...prevDmHistoryList, ...newDmUser }));
-					// setUserList((prevUserList) => ({ ...newDmUser, ...prevUserList }));
-				} else {
-					console.log(`else in userList: ${userList[targetId].userDisplayName}`);
-					// const newDmHistoryList: chatType.userDto = {};
-					// newDmHistoryList[targetId] = {
-					// 	userDisplayName: userList[targetId].userDisplayName,
-					// 	userProfileUrl: userList[targetId].userProfileUrl,
-					// 	userStatus: userList[targetId].userStatus,
-					// };
-					// console.log(`else userDisplayName: ${newDmHistoryList[targetId].userDisplayName}`);
-					// setDmHistoryList((prevDmHistoryList) => ({ ...newDmHistoryList, ...prevDmHistoryList, }));
-				}
-			});
-			alsoCreateRoom();
-			dmList.sort((a, b) => {
-				return a.did - b.did;
-			});
-			dmList.forEach((dm: chatType.dmDto) => {
-				// 1. add message to correct tempDmRoomList
-			});
+		socket.socket.on("dm-list", (resDmUserList, mergeDmList) => {
+			console.log("dm-list", resDmUserList, mergeDmList);
 
-			setDmHistoryList({ ...tempDmHistroyList });
-			setRoomList((prevRoomList) => ({ ...prevRoomList, ...tempDmRoomList }));
-			setUserList((prevUserList) => ({ ...tempDmHistroyList, ...prevUserList }));
+			// setDmHistoryList({ ...tempDmHistroyList });
+			// setRoomList((prevRoomList) => ({ ...prevRoomList, ...tempDmRoomList }));
+			// setUserList((prevUserList) => ({ ...tempDmHistroyList, ...prevUserList }));
 		});
 		socket.socket.on("block-list", (resBlockList: chatType.userSimpleDto) => {
 			setBlockList({ ...resBlockList });
