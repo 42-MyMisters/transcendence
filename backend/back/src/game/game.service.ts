@@ -36,13 +36,6 @@ export class GameService {
     }
   }
 
-  // gameLoop(game: Game) {
-  //   console.log(`timeout!!!`);
-  //   const timeout = game.update();
-  //   console.log(`timeout: ${timeout}`);
-  //   setTimeout(this.gameLoop, timeout);
-  // }
-
 }
 
 class Game {
@@ -98,6 +91,7 @@ class Game {
       this.ballSpeedX = -this.ballSpeedX;
     }
     this.ballSpeedY = this.ballSpeedX * (Math.random() * 2 - 1);
+    this.ballSpeedY = 0;
     for (let i = 0; i < 4; i++) {
       this.keyPress[i] = 0;
     }
@@ -118,7 +112,7 @@ class Game {
   }
 
   gameLoop() {
-    if (this.gameStatus != GameStatus.FINISHED) {
+    if (this.gameStatus !== GameStatus.FINISHED) {
       const timeout = this.update();
       setTimeout(this.gameLoop.bind(this), timeout);
     }
@@ -132,7 +126,7 @@ class Game {
     if (this.isFinished() === true) {
       this.gameStatus = GameStatus.FINISHED;
       return 100;
-    } else if (curTime - this.roundStartTime >= 3000) {
+    } else if (curTime - this.roundStartTime >= 2000) {
       this.gameStatus = GameStatus.RUNNING;
       this.init();
       this.nsp.to(this.id).emit('countdown', true);
@@ -155,11 +149,10 @@ class Game {
       if (isHitY) {
         if (this.ballY < this.ballRadius) {
           this.ballY = 2 * this.ballRadius - this.ballY;
-          this.ballSpeedY = -this.ballSpeedY;
         } else {
           this.ballY = 2 * (this.canvasHeight - this.ballRadius) - this.ballY;
-          this.ballSpeedY = -this.ballSpeedY;
         }
+        this.ballSpeedY = -this.ballSpeedY;
       }
       if (isHitX == Direction.LEFT) {
         if (this.collisionCheckP1Paddle() === Hit.PADDLE) {
@@ -225,11 +218,11 @@ class Game {
         hitPredictTimeY = Infinity;
       }
       this.nsp.to(this.id).emit("graphic", this.getState());
-      Logger.log(`coords: ${this.getState()}`);
+      // Logger.log(`coords: ${this.getState()}`);
       if (hitPredictTimeX < hitPredictTimeY) {
-        return hitPredictTimeX + 10;
+        return hitPredictTimeX + 1;
       } else {
-        return hitPredictTimeY + 10;
+        return hitPredictTimeY + 1;
       }
     }
     return 10;
@@ -249,11 +242,21 @@ class Game {
       }
       case GameStatus.FINISHED: {
         this.nsp.to(this.id).emit("finished", { p1: this.p1Score, p2: this.p2Score });
-        timeout = 0;
+        this.gameStatus = GameStatus.DISCONNECT;
+        timeout = 1000;
+        break;
+      }
+      case GameStatus.DISCONNECT: {
+        // save the game result.
+        // this.databaseService.
+        // this.nsp.to(this.id).emit("")
+        this.nsp.removeAllListeners()
+        timeout = 1000;
         break;
       }
     }
     this.lastUpdate = curTime;
+    console.log(`[${Date.now()}] backend game login update`);
     return timeout;
   }
   
