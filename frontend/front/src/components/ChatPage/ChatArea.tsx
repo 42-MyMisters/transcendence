@@ -48,7 +48,7 @@ export default function ChatArea() {
               <SpeechBubble
                 key={key.number}
                 // nickName={userList[key.userId]?.userDisplayName}
-                nickName={key.userName}
+                nickName={userList[key.userId].userDisplayName || key.userName}
                 text={key.message}
                 isMe={key.isMe}
               />

@@ -202,8 +202,9 @@ export class EventsGateway
 					userProfileUrl: socket.data.user.profileUrl,
 					userStatus: 'online',
 				});
-
+				// setTimeout(async () => {
 				await this.handleDmList(socket);
+				// }, 1000);
 			} else {
 				this.logger.warn(`user not found.`);
 				throw new UnauthorizedException("User not found.");
@@ -479,9 +480,7 @@ export class EventsGateway
 			roomId: number;
 			targetName: string;
 		}) {
-		if (roomList[roomId].roomType === 'dm') {
-			return ({ status: 'ko', payload: '\ndm room cannot invite' });
-		} else if (roomList[roomId] === undefined) {
+		if (roomList[roomId] === undefined) {
 			return ({ status: 'ko', payload: `\nroom not found in server` });
 		}
 
@@ -597,6 +596,7 @@ export class EventsGateway
 		} else if (roomList[roomId].roomMembers[targetId] === undefined) {
 			return { status: 'ko', payload: '\n해당 유저가 존재하지 않습니다.' };
 		}
+
 		switch (roomList[roomId].roomMembers[socket.data.user.uid].userRoomPower) {
 			case 'owner': {
 				if (action === 'admin') {

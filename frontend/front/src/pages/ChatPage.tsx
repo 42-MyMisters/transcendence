@@ -54,8 +54,6 @@ export default function ChatPage() {
 
 	const [gameInviteModal, setGameInviteModal] = useAtom(gameInviteModalAtom);
 
-	const [initDmQueue, setInitDmQueue] = useAtom(chatAtom.initDmQueueAtom);
-
 	const getRoomList = () => {
 		console.log("\n\ngetRoomList");
 		Object.entries(roomList).forEach(([key, value]) => {
@@ -218,57 +216,14 @@ export default function ChatPage() {
 		};
 	}, []);
 
-
-	function alsoCreateRoom() {
-		initDmQueue.forEach((targetId) => {
-			if (roomList[targetId] === undefined) {
-				const newDmRoom: chatType.roomListDto = {};
-				const dmRoomUserList: chatType.userInRoomListDto = {};
-				dmRoomUserList[targetId] = {
-					userRoomPower: 'member',
-					userRoomStatus: 'normal',
-				}
-				dmRoomUserList[userInfo.uid] = {
-					userRoomPower: 'member',
-					userRoomStatus: 'normal',
-				}
-				newDmRoom[targetId] = {
-					roomName: 'DM',
-					roomType: 'dm',
-					isJoined: true,
-					detail: {
-						userList: { ...dmRoomUserList },
-						messageList: [],
-						myRoomStatus: 'normal',
-						myRoomPower: 'member'
-					}
-				};
-				setRoomList((prevRoomList) => ({ ...prevRoomList, ...newDmRoom }));
-			}
-		});
-
-	};
-
 	useEffect(() => {
-		socket.socket.on("room-list", (resRoomList: chatType.roomListDto) => {
-			setRoomList((prevRoomList) => ({ ...prevRoomList, ...resRoomList }));
-		});
-		socket.socket.on("follow-list", (resFollowingList: chatType.userDto) => {
-			setFollowingList({ ...resFollowingList });
-			setUserList((prevUserList) => ({ ...resFollowingList, ...prevUserList }));
-		});
-		// socket.socket.on("dm-list", (resDmList: chatType.userDto, resRoomList: chatType.roomListDto) => {
-		// 	setDmHistoryList({ ...resDmList });
-		// 	setRoomList((prevRoomList) => ({ ...prevRoomList, ...resRoomList }));
-		// 	setUserList((prevUserList) => ({ ...resDmList, ...prevUserList }));
-		// });
 		socket.socket.on("dm-list", (resDmUserList, mergeDmList) => {
 			console.log("dm-list", resDmUserList, mergeDmList);
 			const tempDmRoomList: chatType.roomListDto = {};
 
 			setDmHistoryList({ ...resDmUserList });
-			setUserList((prevUserList) => ({ ...resDmUserList, ...prevUserList }));
-			Object.entries(resDmUserList).forEach(([dmUser, dmUserInfo]) => {
+			setUserList((prevUserList) => ({ ...prevUserList, ...resDmUserList }));
+			Object.entries(resDmUserList).forEach(([dmUser]) => {
 				tempDmRoomList[Number(dmUser)] = {
 					roomName: 'DM',
 					roomType: 'dm',
@@ -290,13 +245,70 @@ export default function ChatPage() {
 					}
 				};
 			});
-			Object.entries(mergeDmList).forEach((dmAtom) => {
-				console.log("dmAtom", dmAtom);
-				// if (dmInfo.senderId === userInfo.uid) {
-				// } else if (dmInfo.receiverId === userInfo.uid) {
-				// }
+
+			Object.entries(mergeDmList).forEach((atom: any[]) => {
+				// console.log("atom", atom);
+				if (Number(atom[1].senderId!) === userInfo.uid) { // from me
+					const tempMessageList: chatType.roomMessageDto[] = tempDmRoomList[Number(atom[1]?.receiverId!)].detail?.messageList!;
+					tempMessageList.unshift({
+						userId: userInfo.uid,
+						userName: userInfo.nickname,
+						message: atom[1]?.message!,
+						isMe: true,
+						number: tempMessageList.length
+					});
+					tempDmRoomList[Number(atom[1]?.receiverId!)] = {
+						roomName: 'DM',
+						roomType: 'dm',
+						isJoined: true,
+						detail: {
+							userList: { ...tempDmRoomList[Number(atom[1]?.receiverId!)].detail?.userList },
+							myRoomPower: 'member',
+							myRoomStatus: 'normal',
+							messageList: tempMessageList
+						}
+					}
+				} else { // to me
+					if (atom[1].blockFromReceiver) {
+						return;
+					}
+					const tempMessageList: chatType.roomMessageDto[] = tempDmRoomList[Number(atom[1]?.senderId!)].detail?.messageList!;
+					tempMessageList.unshift({
+						userId: Number(atom[1]?.senderId!),
+						userName: resDmUserList[Number(atom[1]?.senderId!)]?.userDisplayName,
+						message: atom[1]?.message!,
+						isMe: false,
+						number: tempMessageList.length
+					});
+					tempDmRoomList[Number(atom[1]?.senderId!)] = {
+						roomName: 'DM',
+						roomType: 'dm',
+						isJoined: true,
+						detail: {
+							userList: { ...tempDmRoomList[Number(atom[1]?.senderId!)].detail?.userList },
+							myRoomPower: 'member',
+							myRoomStatus: 'normal',
+							messageList: tempMessageList
+						}
+					}
+				}
 			});
 			setRoomList((prevRoomList) => ({ ...prevRoomList, ...tempDmRoomList }));
+
+		});
+		return () => {
+			socket.socket.off("dm-list");
+		};
+	}, [userInfo, roomList, dmHistoryList, userList]);
+
+
+	useEffect(() => {
+		socket.socket.on("room-list", (resRoomList: chatType.roomListDto) => {
+			setRoomList((prevRoomList) => ({ ...prevRoomList, ...resRoomList }));
+		});
+		socket.socket.on("follow-list", (resFollowingList: chatType.userDto) => {
+			setFollowingList({ ...resFollowingList });
+			setUserList((prevUserList) => ({ ...resFollowingList, ...prevUserList }));
 		});
 		socket.socket.on("block-list", (resBlockList: chatType.userSimpleDto) => {
 			setBlockList({ ...resBlockList });
@@ -311,7 +323,7 @@ export default function ChatPage() {
 			socket.socket.off("block-list");
 			socket.socket.off("user-list");
 		}
-	}, [userList, roomList, followingList, dmHistoryList, blockList]);
+	}, [userList, roomList, followingList, blockList]);
 
 	useEffect(() => {
 		socket.socket.on("room-list-update", ({
@@ -601,6 +613,7 @@ export default function ChatPage() {
 		if (isFirstLogin) {
 			console.log("set init data");
 			await getMyinfoHandler();
+			socket.socket.connect();
 		}
 		setIsFirstLogin(false);
 	}
