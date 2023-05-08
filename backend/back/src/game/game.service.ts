@@ -1,7 +1,8 @@
 import { Injectable, InternalServerErrorException, Logger } from "@nestjs/common";
 import { Namespace } from "socket.io";
 import { DatabaseService } from "src/database/database.service";
-import { Direction, GameMode, GameStatus, Hit } from "./game.enum";
+import { Direction, GameMode, GameStatus, GameType, Hit } from "./game.enum";
+import { Game as GameEntity } from "../database/entity/game.entity";
 
 @Injectable()
 export class GameService {
@@ -235,6 +236,7 @@ class Game {
     return 10;
   }
 
+
   update(): number {
     const curTime = Date.now();
     let timeout:number
@@ -250,6 +252,24 @@ class Game {
       case GameStatus.FINISHED: {
         this.nsp.to(this.id).emit("finished", { p1: this.p1Score, p2: this.p2Score });
         timeout = 0;
+        /* 
+        const result = new GameEntity();
+        // TODO : 이부분 함수로 빼도 될것 같은데, await async 걸어야 하나 잘 모르겠어서 일단 길게 짰습니다?
+        if (this.p1Score < this.p2Score){
+          result.winnerId = this.p2;
+          result.loserId = this.p1;
+          result.winnerScore = this.p2Score;
+          result.loserScore = this.p1Score;
+        } else {
+          result.winnerId = this.p1;
+          result.loserId = this.p2;
+          result.winnerScore = this.p1Score;
+          result.loserScore = this.p2Score;
+        }
+
+        result.gameType = GameType.PUBLIC;
+        this.databaseService.saveGame(result);
+        */
         break;
       }
     }
