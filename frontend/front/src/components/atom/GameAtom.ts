@@ -1,20 +1,38 @@
-import { atom, createStore } from "jotai";
+import { atom } from "jotai";
 // import type * as DTO from '../../socket/game.dto';
 
 export const isQueueAtom = atom<boolean>(false);
 
+export let lastUpdate = atom<number>(Date.now());
+
 export interface GameCoordinate {
-  leftY: number;
+  paddle1Y: number;
   ballX: number;
   ballY: number;
-  rightY: number;
+  paddle2Y: number;
+  ballSpeedX: number;
+  ballSpeedY: number;
+  paddleSpeed: number;
+  paddle1YUp: boolean;
+  paddle1YDown: boolean;
+  paddle2YUp: boolean;
+  paddle2YDown: boolean;
+  p1Score?: number;
+  p2Score?: number;
 }
 
 export const GameCoordinateAtom = atom<GameCoordinate>({
-  leftY: 225,
-  ballX: 500,
+  paddle1Y: 225,
+  ballX: 1150 / 2,
   ballY: 300,
-  rightY: 225,
+  paddle2Y: 225,
+  ballSpeedX: 0,
+  ballSpeedY: 0,
+  paddleSpeed: 0.6,
+  paddle1YUp: false,
+  paddle1YDown: false,
+  paddle2YUp: false,
+  paddle2YDown: false,
 });
 
 export const GameCanvas = atom<HTMLCanvasElement | null>(null);

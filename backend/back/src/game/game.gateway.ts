@@ -10,16 +10,13 @@ import { GameService } from './game.service';
 export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   // private userSocket: Map<number, Socket>
   private gameQueue: Socket[];
-  private tmp: number;
   private gameId: number;
-  
   constructor(
     private userService: UserService,
 		private authService: AuthService,
     private gameService: GameService,
 	) {
     this.gameQueue = [];
-    this.tmp = 0;
     this.gameId = 0;
     // Queue loop
     setInterval(() => {
@@ -33,11 +30,12 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
           p2.join(gameId);
           p1.data.room = gameId;
           p2.data.room = gameId;
-          this.server.to(gameId).emit('join-game', {p1: p1.data.user.uid, p2: p2.data.user.uid});
+          this.server.to(gameId).emit('join-game', {p1: p1.data.uid, p2: p2.data.uid});
           console.log(`${p1.id}: joined ${gameId}, rooms: ${[...p1.rooms]}`);
           console.log(`${p2.id}: joined ${gameId}, rooms: ${[...p2.rooms]}`);
-          this.gameService.createGame(gameId, this.server, p1.id, p2.id);
+          this.gameService.createGame(gameId, this.server, p1.data.uid, p2.data.uid);
           this.gameService.getGame(gameId)?.gameStart();
+          // this.gameService.gameStart(gameId);
         }
       }
       this.logger.log('game queue loop');
@@ -55,17 +53,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   async handleConnection(@ConnectedSocket() socket: Socket) {
     try {
-      this.logger.log(`${socket.id} socket connected.`);
-      socket.data.uid = this.tmp;
-      this.tmp++;
-      const uid = await this.authService.jwtVerify(socket.handshake.auth.token)
-      const user = await this.userService.getUserByUid(uid);
-      if (this.userService.isUserExist(user)) {
-        socket.data.user = user;
-      } else {
-        // TODO: throw check.
-        throw new UnauthorizedException("User not found.");
-      }
+      socket.data.uid = await this.authService.jwtVerify(socket.handshake.auth.token);
+      // socket.data.elo = await this.userService.getUserByUid(socket.data.uid);
       if (socket.handshake.auth.data === undefined) {
         this.gameQueue.push(socket);
       } else {
@@ -78,7 +67,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         }
       }
     } catch(e) {
-      this.logger.log(`${socket.id} invalid connection. disconnect socket.`);
+      this.logger.log(`${socket.data.uid} invalid connection. disconnect socket.`);
       socket.disconnect();
     }
   }
@@ -87,15 +76,15 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     if (socket.data.room !== undefined) {
       const cur_game = this.gameService.getGame(socket.data.room);
       if (cur_game === undefined) {
-        this.logger.log(`${socket.id} invalid socket connection disconnected.`);
-      } else if (cur_game.isPlayer(socket.id)) {
-        cur_game.playerLeft(socket.id);
-        this.logger.log(`${socket.id} player left.`);
+        this.logger.log(`${socket.data.uid} invalid socket connection disconnected.`);
+      } else if (cur_game.isPlayer(socket.data.uid)) {
+        cur_game.playerLeft(socket.data.uid);
+        this.logger.log(`${socket.data.uid} player left.`);
       } else {
-        this.logger.log(`${socket.id} observer left.`);
+        this.logger.log(`${socket.data.uid} observer left.`);
       }
     }
-    this.logger.log(`${socket.id} join game failed.`);
+    this.logger.log(`${socket.data.uid} join game failed.`);
   }
 
   @SubscribeMessage('status')
@@ -108,7 +97,9 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   async upPress(socket: Socket, payload: any) {
     if (socket.data.room) {
       const curGame = this.gameService.getGame(socket.data.room);
-      curGame?.upPress(socket.id);
+      if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
+        curGame.upPress(socket.data.uid);
+      }
       console.log(`up button pressed.`);
     }
   }
@@ -117,16 +108,20 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   async downPress(socket: Socket, payload: any) {
     if (socket.data.room) {
       const curGame = this.gameService.getGame(socket.data.room);
-      curGame?.downPress(socket.id);
+      if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
+        curGame.downPress(socket.data.uid);
+      }
       console.log(`down button pressed.`);
     }
   }
-
+  
   @SubscribeMessage('upRelease')
   async upRelease(socket: Socket, payload: any) {
     if (socket.data.room) {
       const curGame = this.gameService.getGame(socket.data.room);
-      curGame?.upRelease(socket.id);
+      if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
+        curGame.upRelease(socket.data.uid);
+      }
       console.log(`up button released.`);
     }
   }
@@ -135,18 +130,26 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   async downRelease(socket: Socket, payload: any) {
     if (socket.data.room) {
       const curGame = this.gameService.getGame(socket.data.room);
-      curGame?.downRelease(socket.id);
+      if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
+        curGame.downRelease(socket.data.uid);
+      }
       console.log(`down button released.`);
     }
   }
   // @SubscribeMessage('startGame')
   // async startGame(client: any, payload: any) {
-  //   this.gameService.createGame(payload.id);
-  // }
+    //   this.gameService.createGame(payload.id);
+    // }
 
-  // @SubscribeMessage('joinGame')
-  // async joinGame(client: any, payload: any) {
-  //   this.gameService.getGame(payload.id);
+  @SubscribeMessage('inviteGame')
+  async inviteGame(socket: Socket, payload: any) {
+    this.gameService.getGame(payload.id);
+  }
 
-  // }
+  @SubscribeMessage('ping')
+  async pong(socket: Socket, payload: any) {
+    return true;
+  }
+
+
 }

@@ -1,23 +1,40 @@
 import "../../styles/BackGround.css";
 import "../../styles/PingPong.css";
 
-import React, { KeyboardEvent, useEffect } from "react";
-import { useAtom } from "jotai";
+import React, { useEffect } from "react";
 
+import { GameCoordinate } from "../atom/GameAtom";
 import { Game } from "./Pong";
-import { GameCoordinateAtom, GameCoordinate, GameCanvas } from "../atom/GameAtom";
-import { PressKey } from "../../event/pressKey";
 
 import * as game from "../../socket/game.socket";
 
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
+import { socket } from "../../socket/chat.socket";
+import { ball, Direction, HEIGHT, Hit, p1, p2, paddle, paddleInfo, scoreInfo, WIDTH } from "./GameInfo";
 
 export default function PingPong() {
-  const [coordinate, setCoordinate] = useAtom(GameCoordinateAtom);
   const [upArrow, setUpArrow] = useState(false);
   const [downArrow, setDownArrow] = useState(false);
-  // const [canvas, setCanvas] = useAtom(GameCanvas);
   const canvas = useRef<HTMLCanvasElement>(null);
+  
+  let coords = {
+    paddle1Y: 225,
+    ballX: 1150 / 2,
+    ballY: 300,
+    paddle2Y: 225,
+    ballSpeedX: 0,
+    ballSpeedY: 0,
+    paddleSpeed: 0.6,
+    paddle1YUp: false,
+    paddle1YDown: false,
+    paddle2YUp: false,
+    paddle2YDown: false,
+  };
+
+  let lastUpdateTime = Date.now();
+
+  let pingInterval: NodeJS.Timer;
+  let pingTime: number;
 
   game.gameSocket.on("connect", () => {
     if (game.gameSocket.connected) {
@@ -26,8 +43,24 @@ export default function PingPong() {
         // any missed packets will be received
       } else {
         // new or unrecoverable session
-        console.log("gameSocket connected : " + game.gameSocket.id);
+        console.log("gameSocket connected");
+        pingInterval = setInterval(() => {
+          const curTime = Date.now();
+          const handler = (pong: boolean) => {
+            if (pong) {
+              pingTime = Date.now() - curTime;
+              console.log(`ping: ${pingTime}ms`);
+            }
+          }
+          game.gameSocket.emit('ping', handler);
+          return () => {
+            game.gameSocket.off('ping', handler);
+          }
+        }, 1000);
       }
+    }
+    return () => {
+      game.gameSocket.off("connect");
     }
   });
 
@@ -40,6 +73,7 @@ export default function PingPong() {
     if (reason === "io server disconnect") {
       // the disconnection was initiated by the server, you need to reconnect manually
     }
+    clearInterval(pingInterval);
     // else the socket will automatically try to reconnect
     console.log("gameSocket disconnected");
   });
@@ -57,96 +91,183 @@ export default function PingPong() {
     ({ uid_left, p1, uid_right }: { uid_left: string; p1: number; uid_right: string }) => { }
   );
 
-  const intersectionSize: number = 5;
-
   useEffect(() => {
-    game.gameSocket.on(
-      "graphic",
-      ({ p1, ball_x, ball_y, p2 }: { p1: number; ball_x: number; ball_y: number; p2: number }) => {
-        let temp = {
-          leftY: p1 - 75,
-          ballX: ball_x,
-          ballY: ball_y,
-          rightY: p2 - 75,
-        };
-        // drawIntersection(temp);
-        // const leftGap = (coordinate.leftY - temp.leftY) / intersectionSize;
-        // const rightGap = (coordinate.rightY - temp.rightY) / intersectionSize;
-        // const ballGapX = (coordinate.ballX - temp.ballX) / intersectionSize;
-        // const ballGapY = (coordinate.ballY - temp.ballY) / intersectionSize;
-        // let tempCoordinate: GameCoordinate = {
-        //   ...coordinate
-        // }
-        // for (let i = 0; i < intersectionSize; i++) {
-        //   tempCoordinate.leftY += leftGap;
-        //   tempCoordinate.rightY += rightGap;
-        //   tempCoordinate.ballX += ballGapX;
-        //   tempCoordinate.ballY += ballGapY;
-        //   Game(tempCoordinate);
-        // }
-
-        // setCoordinate(temp);
-        Game(temp, canvas);
-      }
-    );
+    const handler = (started: boolean) => {
+      lastUpdateTime = Date.now();
+      console.log("update start");
+      update(coords, canvas);
+    };
+    game.gameSocket.on("start", handler);
     return () => {
-      game.gameSocket.off("graphic");
+      game.gameSocket.off("start", handler);
     };
   }, []);
-
+        
   useEffect(() => {
-    Game({leftY: 225,
-      ballX: 1150 / 2,
-      ballY: 300,
-      rightY: 225,}, canvas);
+    const handler = (gameCoord: GameCoordinate) => {
+      lastUpdateTime = Date.now();
+      coords = gameCoord;
+      Game(coords, canvas);
+    };
+    game.gameSocket.on("graphic", handler);
+    console.log(`coords: ${JSON.stringify(coords)}`)
+    return () => {
+      socket.off("graphic", handler);
+    }
+  }, []);
+  
+  useEffect(() => {
+    const handler = (paddleInfo: paddleInfo) => {
+      coords.paddle1YUp = paddleInfo.paddle1YUp;
+      coords.paddle1YDown = paddleInfo.paddle1YDown;
+      coords.paddle2YUp = paddleInfo.paddle2YUp;
+      coords.paddle2YDown = paddleInfo.paddle2YDown;
+      Game(coords, canvas);
+    };
+    game.gameSocket.on("paddleInfo", handler);
+    return () => {
+      socket.off("paddleInfo", handler);
+    }
   }, []);
 
-  // document.addEventListener('keydown', onKeyDown);
-  // useEffect(() => {
-  //   const handleKeyPress = (e: globalThis.KeyboardEvent) => {
-  //     e.preventDefault();
-  //     onKeyPress(e.key);
-  //     removeEventListener('keydown', handleKeyPress);
-  //     addEventListener('keyup', handleKeyUp);
-  //   }
+  useEffect(() => {
+    const handler = (scoreInfo: scoreInfo) => {
+      p1.score = scoreInfo.p1Score;
+      p2.score = scoreInfo.p2Score;
+      coords.ballSpeedX = 0;
+      coords.ballSpeedY = 0;
+      coords.paddleSpeed = 0;
+      Game(coords, canvas);
+    };
+    game.gameSocket.on("scoreInfo", handler);
+    return () => {
+      socket.off("scoreInfo", handler);
+    }
+  }, []);
 
-  //   const handleKeyUp = (e: globalThis.KeyboardEvent) => {
-  //     e.preventDefault();
-  //     onKeyRelease(e.key);
-  //     removeEventListener('keyup', handleKeyUp);
-  //     addEventListener('keydown', handleKeyPress);
-  //   }
+  useEffect(() => {
+    const handler = (scoreInfo: scoreInfo) => {
+      p1.score = scoreInfo.p1Score;
+      p2.score = scoreInfo.p2Score;
+      coords.ballSpeedX = 0;
+      coords.ballSpeedY = 0;
+      coords.paddleSpeed = 0;
+      Game(coords, canvas);
+    };
+    game.gameSocket.on("finished", handler);
+    return () => {
+      socket.off("finished", handler);
+    }
+  }, []);
+  
+  function update(coord:GameCoordinate, canvas:React.RefObject<HTMLCanvasElement>) {
+    const curTime = Date.now();
+    const dt = curTime - lastUpdateTime;
 
-  //   const onKeyRelease = (key: string) => {
-  //     if (key === 'ArrowUp') {
-  //       game.emitUpRelease();
-  //       console.log("up release");
-  //     } else if (key === 'ArrowDown') {
-  //       game.emitDownRelease();
-  //       console.log("down release");
-  //     }
-  //   };
-  //   const onKeyPress = (key: string) => {
-  //     if (key === 'ArrowUp') {
-  //       game.emitUpPress();
-  //       console.log("up press");
-  //     } else if (key === 'ArrowDown') {
-  //       game.emitDownPress();
-  //       console.log("down press");
-  //     }
-  //   };
+    paddleUpdate(coord.paddle1YUp, coord.paddle1YDown,coord.paddle2YUp, coord.paddle2YDown, dt);
+    coord.ballX += coord.ballSpeedX * dt;
+    coord.ballY += coord.ballSpeedY * dt;
+    const isHitY = collisionCheckY();
+    const isHitX = collisionCheckX();
+    if (isHitY) {
+      if (coord.ballY < ball.radius) {
+        coord.ballY = 2 * ball.radius - coord.ballY;
+        coord.ballSpeedY = -coord.ballSpeedY;
+      } else {
+        coord.ballY = 2 * (HEIGHT - ball.radius) - coord.ballY;
+        coord.ballSpeedY = -coord.ballSpeedY;
+      }
+    }
+    if (isHitX == Direction.LEFT) {
+      if (collisionCheckP1Paddle() === Hit.PADDLE) {
+        coord.ballX = 2 * (ball.radius + paddle.width) - coord.ballX;
+        coord.ballSpeedX = -coord.ballSpeedX;
+      }
+    } else if (isHitX === Direction.RIGHT) {
+      if (collisionCheckP2Paddle() === Hit.PADDLE) {
+        coord.ballX = 2 * (WIDTH - ball.radius - paddle.width) - coord.ballX;
+        coord.ballSpeedX = -coord.ballSpeedX;
+      }
+    }
+    lastUpdateTime = curTime;
+    Game(coord, canvas);
+    requestAnimationFrame(() => update(coords, canvas));
+  }
+  
+  function paddleUpdate(p1Up: boolean, p1Down: boolean, p2Up: boolean, p2Down: boolean, dt: number) {
+    if (p1Up) {
+      if (coords.paddle1Y > 0){
+        coords.paddle1Y -= coords.paddleSpeed * dt;
+      }
+      if (coords.paddle1Y < 0) {
+        coords.paddle1Y = 0;
+      }
+    }
+    if (p1Down) {
+      if (coords.paddle1Y < HEIGHT - paddle.height){
+        coords.paddle1Y += coords.paddleSpeed * dt;
+      }
+      if (coords.paddle1Y > HEIGHT - paddle.height) {
+        coords.paddle1Y = HEIGHT - paddle.height;
+      }
+    }
+    if (p2Up) {
+      if (coords.paddle2Y > 0) {
+        coords.paddle2Y -= coords.paddleSpeed * dt;
+      }
+      if (coords.paddle2Y < 0) {
+        coords.paddle2Y = 0;
+      }
+    }
+    if (p2Down) {
+      if (coords.paddle2Y < HEIGHT - paddle.height){
+        coords.paddle2Y += coords.paddleSpeed * dt;
+      }
+      if (coords.paddle2Y > HEIGHT - paddle.height) {
+        coords.paddle2Y = HEIGHT - paddle.height;
+      }
+    }
+  }
 
-  //   window.addEventListener('keydown', handleKeyPress);
+  function collisionCheckX() {
+    if (coords.ballX <= ball.radius + paddle.width) {
+      return Direction.LEFT;
+    } else if (coords.ballX >= WIDTH - ball.radius - paddle.width) {
+      return Direction.RIGHT;
+    }
+    return Direction.NONE;
+  }
 
-  //   return () => {
-  //     window.removeEventListener('keydown', handleKeyPress);
-  //     window.removeEventListener('keyup', handleKeyUp);
-  //   }
-  // }, []);
+  function collisionCheckY() {
+    if (coords.ballY >= HEIGHT - ball.radius) {
+      return Direction.DOWN;
+    } else if (coords.ballY <= ball.radius) {
+      return Direction.UP;
+    }
+    return Direction.NONE;
+  }
+
+  function collisionCheckP1Paddle() {
+    if (coords.ballY >= coords.paddle1Y && coords.ballY <= coords.paddle1Y + paddle.height) {
+      return Hit.PADDLE;
+    }
+    return Hit.WALL;
+  }
+
+  function collisionCheckP2Paddle() {
+    if (coords.ballY >= coords.paddle2Y && coords.ballY <= coords.paddle2Y + paddle.height) {
+      return Hit.PADDLE;
+    }
+    return Hit.WALL;
+  }
+
+  useEffect(() => {
+    // first draw
+    Game(coords, canvas);
+  }, []);
 
   useEffect(() => {
     function handleKeyPress(event: globalThis.KeyboardEvent) {
-      // event.preventDefault();
       if (event.code === "ArrowUp") {
         if (!upArrow) {
           setUpArrow(true);
@@ -163,7 +284,6 @@ export default function PingPong() {
     }
 
     function handleKeyRelease(event: globalThis.KeyboardEvent) {
-      // event.preventDefault();
       if (event.code === "ArrowUp") {
         if (upArrow) {
           setUpArrow(false);
