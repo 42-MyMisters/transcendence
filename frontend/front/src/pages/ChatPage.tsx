@@ -632,7 +632,7 @@ export default function ChatPage() {
 
 	return (
 		<BackGround>
-			<button onClick={getMyinfoHandler}> /user/me</button>
+			{/* <button onClick={getMyinfoHandler}> /user/me</button>
 			<button onClick={showMyinfo}> show /user/me</button>
 			<button onClick={getRoomList}> roomList</button>
 			<button onClick={getUserList}> userList</button>
@@ -640,7 +640,7 @@ export default function ChatPage() {
 			<button onClick={getFollowingList}> FollowList</button>
 			<button onClick={showServerUser}> show server user</button>
 			<button onClick={showServerRoom}> show server room</button>
-			<button onClick={showSocketState}> socket state</button>
+			<button onClick={showSocketState}> socket state</button> */}
 			<button onClick={() => setGameInviteModal(true)}> gameinvite</button>
 			<TopBar />
 			{userInfoModal ? <UserInfoModal /> : null}
