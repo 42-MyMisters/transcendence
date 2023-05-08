@@ -194,15 +194,10 @@ export class EventsGateway
 					userList[uid].socket = socket;
 				}
 				this.logger.verbose(`${userList[uid].userDisplayName} is now online`);
-				console.log(`init time 1`);
 				await this.handleBlockList(socket);
-				console.log(`init time 2`);
 				await this.handleFollowList(socket, uid);
-				console.log(`init time 3`);
 				this.handleRoomList(socket)
-				console.log(`init time 4`);
 				this.handleUserList(socket);
-				console.log(`init time 5`);
 
 				this.nsp.emit("user-update", {
 					userId: uid,
@@ -210,11 +205,7 @@ export class EventsGateway
 					userProfileUrl: user.profileUrl,
 					userStatus: 'online',
 				});
-				console.log(`init time 6`);
-				// setTimeout(async () => {
 				await this.handleDmList(socket, uid);
-				console.log(`init time 7`);
-				// }, 1000);
 			} else {
 				this.logger.warn(`user not found.`);
 				throw new UnauthorizedException("User not found.");
@@ -291,6 +282,7 @@ export class EventsGateway
 			&& userList[socket.data.user.uid]?.socket?.id! === socket.id) {
 			this.logger.verbose(`${userList[socket.data.user.uid].userDisplayName} is now offline`);
 			userList[socket.data.user.uid].status = 'offline';
+			delete userList[socket.data.user.uid].socket;
 			userList[socket.data.user.uid].socket = undefined;
 			socket.broadcast.emit("user-update", {
 				userId: socket.data.user.uid,
@@ -368,14 +360,12 @@ export class EventsGateway
 			}
 			socket.data.roomList.push(tempRoomNumber);
 			socket.join(tempRoomNumber.toString());
-			if (roomType !== 'private') {
-				this.nsp.emit("room-list-update", {
-					action: 'new',
-					roomId: tempRoomNumber,
-					roomName: trimmedRoomName,
-					roomType
-				});
-			}
+			this.nsp.emit("room-list-update", {
+				action: 'new',
+				roomId: tempRoomNumber,
+				roomName: trimmedRoomName,
+				roomType
+			});
 			this.logger.debug(`room ${trimmedRoomName} created by ${userList[socket.data.user.uid].userDisplayName}`);
 			this.nsp.to(socket.id).emit("room-join", {
 				roomId: tempRoomNumber,
@@ -445,15 +435,15 @@ export class EventsGateway
 					return ({ status: 'ok' });
 				}
 				case 'private': {
-					return ({ status: 'ko', payload: 'only can join with invite' });
+					return ({ status: 'ko', payload: '\nonly can join with invite' });
 				}
 				default: {
-					return ({ status: 'ko', payload: 'room type error' });
+					return ({ status: 'ko', payload: '\nroom type error' });
 				}
 			}
 		} else {
 			this.nsp.to(socket.id).emit("logout");
-			return ({ status: 'ko', payload: 'room not found' });
+			return ({ status: 'ko', payload: '\nroom not found' });
 		}
 	}
 
@@ -826,7 +816,8 @@ export class EventsGateway
 						myRoomPower: roomInfo.roomMembers[socket.data.user.uid].userRoomPower,
 					}
 				};
-			} else if (roomInfo.roomType !== 'private') {
+				// } else if (roomInfo.roomType === 'private') {
+			} else {
 				tempRoomList[roomId] = {
 					roomName: roomInfo.roomName,
 					roomType: roomInfo.roomType,

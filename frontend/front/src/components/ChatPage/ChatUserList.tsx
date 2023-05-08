@@ -16,8 +16,6 @@ export default function ChatUserList() {
   const [followingList] = useAtom(chatAtom.followingListAtom);
   const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
   const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
-  // const [dmList, setDmList] = useAtom(chatAtom.dmListAtom);
-  // const [focusDm, setFocusDm] = useAtom(chatAtom.focusDmAtom);
 
   const DM = (targetId: number) => {
     if (roomList[targetId] === undefined) {

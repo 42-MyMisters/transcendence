@@ -16,6 +16,7 @@ export default function ChatRoomList() {
   const [, setClickRoom] = useAtom(chatAtom.clickRoomAtom);
 
   const roomClickHandler = (roomId: number) => {
+
     if (roomList[roomId].isJoined) {
       setFocusRoom(roomId);
     } else if (roomList[roomId].roomType === "protected") {
@@ -31,18 +32,34 @@ export default function ChatRoomList() {
       <div className="ChatListTxt">Chatting List</div>
       <div className="ChatRoomListPlusBtn" onClick={() => setRoomModal(true)} />
       <div className="ChatRooms">
-        {Object.entries(roomList).map((key) => (
-          roomList[Number(key[0])].roomType === "dm"
-            ? ""
-            : <ChatRoom
-              key={key[0]}
-              roomId={Number(key[0])}
-              roomName={roomList[Number(key[0])]?.roomName}
-              type={roomList[Number(key[0])]?.roomType}
-              isJoin={roomList[Number(key[0])]?.isJoined || false}
-              callBack={roomClickHandler}
-            />
-        ))}
+        {
+          Object.entries(roomList).map((key) => (
+            roomList[Number(key[0])].roomType !== "dm" && roomList[Number(key[0])].isJoined === true
+              ? <ChatRoom
+                key={key[0]}
+                roomId={Number(key[0])}
+                roomName={roomList[Number(key[0])]?.roomName}
+                type={roomList[Number(key[0])]?.roomType}
+                isJoin={roomList[Number(key[0])]?.isJoined || false}
+                callBack={roomClickHandler}
+              />
+              : ''
+          ))
+        }
+        {
+          Object.entries(roomList).map((key) => (
+            roomList[Number(key[0])].roomType !== "dm" && roomList[Number(key[0])].isJoined === false
+              ? <ChatRoom
+                key={key[0]}
+                roomId={Number(key[0])}
+                roomName={roomList[Number(key[0])]?.roomName}
+                type={roomList[Number(key[0])]?.roomType}
+                isJoin={roomList[Number(key[0])]?.isJoined || false}
+                callBack={roomClickHandler}
+              />
+              : ''
+          ))
+        }
       </div>
     </div>
   );
