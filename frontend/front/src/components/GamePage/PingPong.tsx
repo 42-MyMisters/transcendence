@@ -44,23 +44,21 @@ export default function PingPong() {
       } else {
         // new or unrecoverable session
         console.log("gameSocket connected");
-        pingInterval = setInterval(() => {
+        const pingEvent = () => {
           const curTime = Date.now();
-          const handler = (pong: boolean) => {
+          const pingEventHandler = (pong: boolean) => {
             if (pong) {
               pingTime = Date.now() - curTime;
               console.log(`ping: ${pingTime}ms`);
             }
           }
-          game.gameSocket.emit('ping', handler);
+          game.gameSocket.emit('ping', pingEventHandler);
           return () => {
-            game.gameSocket.off('ping', handler);
+            game.gameSocket.off('ping', pingEventHandler);
           }
-        }, 1000);
+        }
+        pingInterval = setInterval(pingEvent, 1000);
       }
-    }
-    return () => {
-      game.gameSocket.off("connect");
     }
   });
 
@@ -92,46 +90,45 @@ export default function PingPong() {
   );
 
   useEffect(() => {
-    const handler = (started: boolean) => {
+    const startEventHandler = (started: boolean) => {
       lastUpdateTime = Date.now();
-      console.log("update start");
+      console.log("game start");
       update(coords, canvas);
     };
-    game.gameSocket.on("start", handler);
+    game.gameSocket.on("start", startEventHandler);
     return () => {
-      game.gameSocket.off("start", handler);
+      game.gameSocket.off("start", startEventHandler);
     };
   }, []);
         
   useEffect(() => {
-    const handler = (gameCoord: GameCoordinate) => {
+    const drawEventHandler = (gameCoord: GameCoordinate) => {
       lastUpdateTime = Date.now();
       coords = gameCoord;
       Game(coords, canvas);
     };
-    game.gameSocket.on("graphic", handler);
-    console.log(`coords: ${JSON.stringify(coords)}`)
+    game.gameSocket.on("graphic", drawEventHandler);
     return () => {
-      socket.off("graphic", handler);
+      socket.off("graphic", drawEventHandler);
     }
   }, []);
   
   useEffect(() => {
-    const handler = (paddleInfo: paddleInfo) => {
+    const paddleEventHandler = (paddleInfo: paddleInfo) => {
       coords.paddle1YUp = paddleInfo.paddle1YUp;
       coords.paddle1YDown = paddleInfo.paddle1YDown;
       coords.paddle2YUp = paddleInfo.paddle2YUp;
       coords.paddle2YDown = paddleInfo.paddle2YDown;
       Game(coords, canvas);
     };
-    game.gameSocket.on("paddleInfo", handler);
+    game.gameSocket.on("paddleInfo", paddleEventHandler);
     return () => {
-      socket.off("paddleInfo", handler);
+      socket.off("paddleInfo", paddleEventHandler);
     }
   }, []);
 
   useEffect(() => {
-    const handler = (scoreInfo: scoreInfo) => {
+    const scoreEventhandler = (scoreInfo: scoreInfo) => {
       p1.score = scoreInfo.p1Score;
       p2.score = scoreInfo.p2Score;
       coords.ballSpeedX = 0;
@@ -139,14 +136,14 @@ export default function PingPong() {
       coords.paddleSpeed = 0;
       Game(coords, canvas);
     };
-    game.gameSocket.on("scoreInfo", handler);
+    game.gameSocket.on("scoreInfo", scoreEventhandler);
     return () => {
-      socket.off("scoreInfo", handler);
+      socket.off("scoreInfo", scoreEventhandler);
     }
   }, []);
 
   useEffect(() => {
-    const handler = (scoreInfo: scoreInfo) => {
+    const finishEventHandler = (scoreInfo: scoreInfo) => {
       p1.score = scoreInfo.p1Score;
       p2.score = scoreInfo.p2Score;
       coords.ballSpeedX = 0;
@@ -154,9 +151,9 @@ export default function PingPong() {
       coords.paddleSpeed = 0;
       Game(coords, canvas);
     };
-    game.gameSocket.on("finished", handler);
+    game.gameSocket.on("finished", finishEventHandler);
     return () => {
-      socket.off("finished", handler);
+      socket.off("finished", finishEventHandler);
     }
   }, []);
   

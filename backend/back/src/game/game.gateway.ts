@@ -100,7 +100,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
         curGame.upPress(socket.data.uid);
       }
-      console.log(`up button pressed.`);
     }
   }
   
@@ -111,7 +110,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
         curGame.downPress(socket.data.uid);
       }
-      console.log(`down button pressed.`);
     }
   }
   
@@ -122,7 +120,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
         curGame.upRelease(socket.data.uid);
       }
-      console.log(`up button released.`);
     }
   }
   
@@ -133,13 +130,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
         curGame.downRelease(socket.data.uid);
       }
-      console.log(`down button released.`);
     }
   }
-  // @SubscribeMessage('startGame')
-  // async startGame(client: any, payload: any) {
-    //   this.gameService.createGame(payload.id);
-    // }
 
   @SubscribeMessage('inviteGame')
   async inviteGame(socket: Socket, payload: any) {
