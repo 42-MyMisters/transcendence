@@ -243,6 +243,12 @@ export class UserController {
 	async getUserFollowing(@Req() request): Promise<FollowingUserDto[] | null>{
 		return await this.userService.getFollowingUserInfo(request.user.uid);
 	}
+
+	@Get('/game/:uid')
+	@UseGuards(Jwt2faAuthGuard)
+	async findGameStatus(@Req() request, @Param('uid')uid: number){
+		return await this.userService.getUserGameStatusById(request.user.uid);
+	}
 	
 	// @Get('/get-profile/:filename')
 	// getProfilePicture_debug(@Res() res: Response, @Param('filename') filename) {
@@ -276,5 +282,6 @@ export class UserController {
 	async unfollowGET(@Req() request, @Param('uid')uid: number) {
 		await this.unfollow(request,uid);
 	}
-	}
+
+}
 	
