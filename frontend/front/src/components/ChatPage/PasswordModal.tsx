@@ -1,6 +1,6 @@
 import { useAtom } from "jotai";
 import { passwordInputModalAtom } from "../../components/atom/ModalAtom";
-import { PressKey } from "../../event/pressKey";
+import { PressKey } from "../../event/event.util";
 import { keyboardKey } from '@testing-library/user-event';
 import { useState } from 'react';
 
@@ -15,6 +15,7 @@ export default function PasswordModal() {
   const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
   const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
   const [clickRoom,] = useAtom(chatAtom.clickRoomAtom);
+  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
 
   PressKey(["Escape"], () => {
     setPwInputModal(false);
@@ -23,7 +24,7 @@ export default function PasswordModal() {
 
   const handleJoinRoom = () => {
     setPwInputModal(false);
-    socket.emitRoomJoin({ roomList, setRoomList, focusRoom, setFocusRoom }, clickRoom, password);
+    socket.emitRoomJoin({ adminConsole, roomList, setRoomList, focusRoom, setFocusRoom }, clickRoom, password);
     setPassword('');
   }
 

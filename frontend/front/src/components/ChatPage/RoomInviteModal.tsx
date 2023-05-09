@@ -1,6 +1,6 @@
 import { useAtom } from "jotai";
 import { inviteModalAtom } from "../../components/atom/ModalAtom";
-import { PressKey } from "../../event/pressKey";
+import { PressKey } from "../../event/event.util";
 import { useState } from 'react';
 import { keyboardKey } from '@testing-library/user-event';
 import "../../styles/RoomInviteModal.css";
@@ -12,6 +12,7 @@ export default function RoomInviteModal() {
   const [nickName, setNickName] = useState("");
   const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
   const [focusRoom,] = useAtom(chatAtom.focusRoomAtom);
+  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
 
   PressKey(["Escape"], () => { setInviteModal(false); });
 
@@ -20,7 +21,7 @@ export default function RoomInviteModal() {
     if (trimNickname.length < 1) {
       alert("닉네임을 입력해주세요.");
     } else {
-      socket.emitRoomInvite(focusRoom, nickName);
+      socket.emitRoomInvite(adminConsole, focusRoom, nickName);
       setInviteModal(false);
     }
     setNickName("");

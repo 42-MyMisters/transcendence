@@ -22,12 +22,12 @@ export const gameSocket = io(`${URL}${GameNameSpace}`, {
 
 //   // catch all incoming events
 //   gameSocket.onAny((eventName, ...args) => {
-//     console.log("incoming ", eventName, args);
+//     AdminLogPrinter(adminConsole, "incoming ", eventName, args);
 //   });
 
 //   // catch all outgoing events
 //   gameSocket.prependAny((eventName, ...args) => {
-//     console.log("outgoing ", eventName, args);
+//     AdminLogPrinter(adminConsole, "outgoing ", eventName, args);
 //   });
 
 //   gameSocket.on("connect", () => {
@@ -37,7 +37,7 @@ export const gameSocket = io(`${URL}${GameNameSpace}`, {
 //         // any missed packets will be received
 //       } else {
 //         // new or unrecoverable session
-//         console.log("gameSocket connected : " + gameSocket.id);
+//         AdminLogPrinter(adminConsole, "gameSocket connected : " + gameSocket.id);
 //       }
 //     }
 //   });
@@ -52,7 +52,7 @@ export const gameSocket = io(`${URL}${GameNameSpace}`, {
 //       // the disconnection was initiated by the server, you need to reconnect manually
 //     }
 //     // else the socket will automatically try to reconnect
-//     console.log("gameSocket disconnected");
+//     AdminLogPrinter(adminConsole, "gameSocket disconnected");
 //   });
 
 //   // the connection is denied by the server in a middleware function
@@ -60,7 +60,7 @@ export const gameSocket = io(`${URL}${GameNameSpace}`, {
 //     if (err.message === "unauthorized") {
 //       // handle each case
 //     }
-//     console.log(err.message); // prints the message associated with the error
+//     AdminLogPrinter(adminConsole, err.message); // prints the message associated with the error
 //   });
 
 // gameSocket.on('join-game', ({

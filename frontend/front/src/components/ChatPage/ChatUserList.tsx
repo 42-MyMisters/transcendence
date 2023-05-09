@@ -16,11 +16,12 @@ export default function ChatUserList() {
   const [followingList] = useAtom(chatAtom.followingListAtom);
   const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
   const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
+  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
 
   const DM = (targetId: number) => {
     if (targetId < 3) return;
     if (roomList[targetId] === undefined) {
-      socket.emitDmRoomCreate(targetId);
+      socket.emitDmRoomCreate(adminConsole, targetId);
     } else {
       setFocusRoom(targetId);
       if (userList[targetId]?.dmStatus === 'unread') {

@@ -15,7 +15,7 @@ import GameResultModal from "../components/GamePage/GameResultModal";
 import LadderBoard from "../components/GamePage/LadderBoard";
 import * as chatAtom from "../components/atom/ChatAtom";
 
-import { PressKey } from "../event/pressKey";
+import { PressKey, AdminLogPrinter } from "../event/event.util";
 
 export default function GamePage() {
   const [showComponent, setShowComponent] = useState(true);
@@ -32,7 +32,7 @@ export default function GamePage() {
   });
 
   if (isQueue === false) {
-    console.log("gameSocket connect");
+    AdminLogPrinter(adminConsole, "gameSocket connect");
     game.gameSocket.connect();
     setIsQueue(true);
   }

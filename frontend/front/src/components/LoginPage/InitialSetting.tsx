@@ -2,9 +2,13 @@ import "../../styles/LoginModals.css";
 
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { AdminLogPrinter } from "../../event/event.util";
+import * as chatAtom from "../../components/atom/ChatAtom";
+import { useAtom } from "jotai";
 
 export default function InitialSettingModal() {
   const [profileImage, setProfileImage] = useState("/smile.png");
+  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
   const profileRef = useRef<HTMLInputElement>(null);
 
   const saveImageFile = () => {
@@ -27,7 +31,7 @@ export default function InitialSettingModal() {
     const formData = new FormData();
     if (profileRef.current?.files?.[0]) {
       formData.append("profileImage", profileRef.current?.files?.[0]!);
-      console.log(profileRef.current?.files?.[0]!.name);
+      AdminLogPrinter(adminConsole, profileRef.current?.files?.[0]!.name);
     }
 
     const nickNameFormat = JSON.stringify({ nickname: newName });
@@ -60,7 +64,7 @@ export default function InitialSettingModal() {
     } catch (error) {
       alert(error);
     }
-    console.log(newName);
+    AdminLogPrinter(adminConsole, newName);
     navigate("/chat");
   };
 
@@ -75,7 +79,7 @@ export default function InitialSettingModal() {
           height: "200px",
         }}
       />
-      <div className="ChangeProfileImageBtn" onClick={() => {}}>
+      <div className="ChangeProfileImageBtn" onClick={() => { }}>
         <label htmlFor="ChangeImage" />
         <input
           id="ChangeImage"
