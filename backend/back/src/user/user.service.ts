@@ -219,8 +219,11 @@ export class UserService {
 			throw new NotFoundException(`${uid} user not found`);
 		const findFollwing = await this.getUserFollowing(uid);
 		const userDto = await UserProfileDto.fromUserEntity(findUser, findFollwing);
+
+		const gameStatus = await this.databaseService.findAllGameByUserid(uid);
+		userDto.winGames = gameStatus.winGames;
+		userDto.loseGames = gameStatus.loseGames;
+
 		return userDto;
 	}
-	
-	//GAME 조회
 }

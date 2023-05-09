@@ -276,5 +276,5 @@ export class UserController {
 	async unfollowGET(@Req() request, @Param('uid')uid: number) {
 		await this.unfollow(request,uid);
 	}
-	}
+}
 	
