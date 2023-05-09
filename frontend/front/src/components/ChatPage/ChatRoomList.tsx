@@ -15,6 +15,7 @@ export default function ChatRoomList() {
   const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
   const [, setClickRoom] = useAtom(chatAtom.clickRoomAtom);
   const [, setRoomSetting] = useAtom(chatAtom.roomSettingAtom);
+  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
 
   const roomClickHandler = (roomId: number) => {
 
@@ -24,7 +25,7 @@ export default function ChatRoomList() {
       setClickRoom(roomId);
       setPasswordModal(true);
     } else {
-      socket.emitRoomJoin({ roomList, setRoomList, focusRoom, setFocusRoom }, roomId)
+      socket.emitRoomJoin({ adminConsole, roomList, setRoomList, focusRoom, setFocusRoom }, roomId)
     }
   };
 

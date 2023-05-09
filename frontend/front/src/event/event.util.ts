@@ -17,3 +17,8 @@ export const PressKey = (keys: string[], callback: () => void) => {
 	}, []);
 };
 
+export function AdminLogPrinter(adminConsole: boolean, ...args: any[]) {
+	if (adminConsole) {
+		console.log(...args);
+	}
+};

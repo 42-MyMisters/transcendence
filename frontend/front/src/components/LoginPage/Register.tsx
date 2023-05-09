@@ -2,6 +2,9 @@ import React, { useEffect } from "react";
 import { useState } from "react";
 import { MdAddPhotoAlternate } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
+import { AdminLogPrinter } from "../../event/event.util";
+import * as chatAtom from "../../components/atom/ChatAtom";
+import { useAtom } from "jotai";
 
 import "../../styles/LoginModal.css";
 
@@ -53,6 +56,8 @@ function RegisterImg() {
 }
 
 function RegisterNickName() {
+  const [adminConsole,] = useAtom(chatAtom.adminConsoleAtom);
+
   const nickNameInputStyle = {
     fontSize: 50,
     width: 532,
@@ -78,7 +83,7 @@ function RegisterNickName() {
   };
   const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    console.log(username);
+    AdminLogPrinter(adminConsole, username);
   };
   return (
     <form style={{ marginTop: "5%" }} onSubmit={onSubmit}>

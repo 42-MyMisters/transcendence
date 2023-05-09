@@ -4,6 +4,8 @@ import * as chatAtom from '../components/atom/ChatAtom';
 import * as userAtom from '../components/atom/UserAtom';
 import type * as chatType from './chat.dto';
 
+import { AdminLogPrinter } from '../event/event.util';
+
 const URL = "http://localhost:4000";
 const NameSpace = "/sock";
 
@@ -20,6 +22,7 @@ export const socket = io(`${URL}${NameSpace}`, {
 });
 
 export function emitRoomCreate(
+	adminConsole: boolean,
 	roomName: string,
 	roomCheck: boolean = false,
 	roomPass: string = '',
@@ -42,11 +45,11 @@ export function emitRoomCreate(
 	}) => {
 		switch (status) {
 			case 'ok': {
-				console.log("room-create success");
+				AdminLogPrinter(adminConsole, "room-create success");
 				break;
 			}
 			case 'ko': {
-				console.log("room-create fail");
+				AdminLogPrinter(adminConsole, "room-create fail");
 				alert(`${roomName} room-create fail ${payload}`);
 				break;
 			}
@@ -55,6 +58,7 @@ export function emitRoomCreate(
 }
 
 export function emitRoomEdit(
+	adminConsole: boolean,
 	roomId: number,
 	roomName: string = '',
 	roomCheck: boolean = false,
@@ -86,11 +90,11 @@ export function emitRoomEdit(
 	}) => {
 		switch (status) {
 			case 'ok': {
-				console.log("room-edit success");
+				AdminLogPrinter(adminConsole, "room-edit success");
 				break;
 			}
 			case 'ko': {
-				console.log("room-edit fail");
+				AdminLogPrinter(adminConsole, "room-edit fail");
 				alert(`${roomName} room-edit fail ${payload}`);
 				break;
 			}
@@ -100,11 +104,13 @@ export function emitRoomEdit(
 
 export function emitRoomJoin(
 	{
+		adminConsole,
 		roomList,
 		setRoomList,
 		focusRoom,
 		setFocusRoom
 	}: {
+		adminConsole: boolean,
 		roomList: chatType.roomListDto,
 		setRoomList: React.Dispatch<React.SetStateAction<chatType.roomListDto>>,
 		focusRoom: number,
@@ -125,7 +131,7 @@ export function emitRoomJoin(
 	}) => {
 		switch (status) {
 			case 'ok': {
-				console.log(`${roomList[roomId].roomName} room-join success`);
+				AdminLogPrinter(adminConsole, `${roomList[roomId].roomName} room-join success`);
 				break;
 			}
 			case 'ko': {
@@ -136,7 +142,7 @@ export function emitRoomJoin(
 	});
 }
 
-export function emitRoomInvite(roomId: number, targetName: string) {
+export function emitRoomInvite(adminConsole: boolean, roomId: number, targetName: string) {
 	socket.emit("room-invite", { roomId, targetName }, ({
 		status,
 		payload }: {
@@ -144,7 +150,7 @@ export function emitRoomInvite(roomId: number, targetName: string) {
 			payload?: string
 		}) => {
 		if (status === 'ok') {
-			console.log(`callback: room-invite success`);
+			AdminLogPrinter(adminConsole, `callback: room-invite success`);
 		} else {
 			alert(`room-invite fail: ${payload}`)
 		}
@@ -153,11 +159,13 @@ export function emitRoomInvite(roomId: number, targetName: string) {
 
 export function emitRoomLeave(
 	{
+		adminConsole,
 		roomList,
 		setRoomList,
 		focusRoom,
 		setFocusRoom
 	}: {
+		adminConsole: boolean
 		roomList: chatType.roomListDto,
 		setRoomList: React.Dispatch<React.SetStateAction<chatType.roomListDto>>,
 		focusRoom: number,
@@ -174,7 +182,7 @@ export function emitRoomLeave(
 		status: 'leave' | 'delete',
 	}) => {
 		if (status === 'leave') {
-			console.log(`callback: room leaved: ${roomList[roomId].roomName}`);
+			AdminLogPrinter(adminConsole, `callback: room leaved: ${roomList[roomId].roomName}`);
 			if (roomList[roomId].roomType === 'private') {
 				const newRoomList: chatType.roomListDto = { ...roomList };
 				delete newRoomList[roomId];
@@ -192,18 +200,20 @@ export function emitRoomLeave(
 				setFocusRoom(-1);
 			}
 		} else if (status === 'delete') {
-			console.log(`callback: room delete: ${roomList[roomId].roomName}`);
+			AdminLogPrinter(adminConsole, `callback: room delete: ${roomList[roomId].roomName}`);
 		} else {
-			console.log('callback: room leave failed');
+			AdminLogPrinter(adminConsole, 'callback: room leave failed');
 		}
 	});
 }
 
 export function emitRoomInAction(
 	{
+		adminConsole,
 		roomList,
 		setRoomList,
 	}: {
+		adminConsole: boolean,
 		roomList: chatType.roomListDto,
 		setRoomList: React.Dispatch<React.SetStateAction<chatType.roomListDto>>,
 	},
@@ -224,11 +234,11 @@ export function emitRoomInAction(
 	}) => {
 		switch (status) {
 			case 'ok': {
-				console.log(`room - inaction in ${roomId} to ${targetId} with ${action} OK`);
+				AdminLogPrinter(adminConsole, `room - inaction in ${roomId} to ${targetId} with ${action} OK`);
 				break;
 			}
 			case 'ko': {
-				console.log(`room - inaction in ${roomId} to ${targetId} with ${action} failed: ${payload} `);
+				AdminLogPrinter(adminConsole, `room - inaction in ${roomId} to ${targetId} with ${action} failed: ${payload} `);
 				alert(`Room in Action [${action}] is faild: ${payload}`);
 				break;
 			}
@@ -236,7 +246,7 @@ export function emitRoomInAction(
 	});
 }
 
-export function emitMessage({ roomList, }: { roomList: chatType.roomListDto, }, roomId: number, message: string,) {
+export function emitMessage({ adminConsole, roomList }: { adminConsole: boolean, roomList: chatType.roomListDto, }, roomId: number, message: string,) {
 	if (roomList[roomId]?.detail?.myRoomStatus === 'mute') {
 		alert('You are muted for 10 sec in this room');
 		return;
@@ -253,11 +263,11 @@ export function emitMessage({ roomList, }: { roomList: chatType.roomListDto, }, 
 	}) => {
 		switch (status) {
 			case 'ok': {
-				console.log(`message to ${roomList[roomId].roomName} is sended: ${message} `);
+				AdminLogPrinter(adminConsole, `message to ${roomList[roomId].roomName} is sended: ${message} `);
 				break;
 			}
 			case 'ko': {
-				console.log(`message to ${roomId} is failed: \n\n${payload} `);
+				AdminLogPrinter(adminConsole, `message to ${roomId} is failed: \n\n${payload} `);
 				alert(`message failed: ${payload}`);
 				break;
 			}
@@ -294,9 +304,11 @@ export function setNewDetailToNewRoom({
 
 
 export function emitBlockUser({
+	adminConsole,
 	blockList,
 	setBlockList,
 }: {
+	adminConsole: boolean,
 	blockList: chatType.userSimpleDto,
 	setBlockList: React.Dispatch<React.SetStateAction<chatType.userSimpleDto>>,
 },
@@ -304,9 +316,9 @@ export function emitBlockUser({
 	doOrUndo: boolean,
 ) {
 	if (doOrUndo) {
-		console.log(`block user: ${targetId}`);
+		AdminLogPrinter(adminConsole, `block user: ${targetId}`);
 	} else {
-		console.log(`unblock user: ${targetId}`);
+		AdminLogPrinter(adminConsole, `unblock user: ${targetId}`);
 	}
 	socket.emit("user-block", {
 		targetId,
@@ -334,7 +346,7 @@ export function emitBlockUser({
 				break;
 			}
 			case 'ko': {
-				console.log(`user - block failed: ${payload} `);
+				AdminLogPrinter(adminConsole, `user - block failed: ${payload} `);
 				alert(`block failed: ${payload}`);
 				break;
 			}
@@ -343,7 +355,7 @@ export function emitBlockUser({
 }
 
 
-export function emitDmRoomCreate(targetId: number,) {
+export function emitDmRoomCreate(adminConsole: boolean, targetId: number,) {
 	socket.emit("dm-room-create", {
 		targetId,
 	}, ({
@@ -352,14 +364,14 @@ export function emitDmRoomCreate(targetId: number,) {
 		status: 'ok' | 'ko',
 	}) => {
 		if (status === 'ok') {
-			console.log(`dm room create to ${targetId} is sended`);
+			AdminLogPrinter(adminConsole, `dm room create to ${targetId} is sended`);
 		} else {
-			console.log(`dm room create to ${targetId} is failed`);
+			AdminLogPrinter(adminConsole, `dm room create to ${targetId} is failed`);
 		}
 	});
 }
 
-export function emitDM(targetId: number, message: string) {
+export function emitDM(adminConsole: boolean, targetId: number, message: string) {
 	socket.emit("message-dm", {
 		targetId,
 		message
@@ -369,9 +381,9 @@ export function emitDM(targetId: number, message: string) {
 		status: 'ok' | 'ko',
 	}) => {
 		if (status === 'ok') {
-			console.log(`dm to ${targetId} is sended: ${message}`);
+			AdminLogPrinter(adminConsole, `dm to ${targetId} is sended: ${message}`);
 		} else {
-			console.log(`dm to ${targetId} is failed: ${message}`);
+			AdminLogPrinter(adminConsole, `dm to ${targetId} is failed: ${message}`);
 		}
 	})
 }

@@ -1,6 +1,6 @@
 import { useAtom } from "jotai";
 import { roomModalAtom } from "../atom/ModalAtom";
-import { PressKey } from "../../event/pressKey";
+import { PressKey } from "../../event/event.util";
 
 import "../../styles/RoomModal.css";
 
@@ -20,6 +20,7 @@ export default function RoomModal() {
   const [roomSetting, setRoomSetting] = useAtom(chatAtom.roomSettingAtom);
   const [roomSettingIsPrivate, setRoomSettingIsPrivate] = useAtom(chatAtom.roomSettingIsPrivateAtom);
   const [roomSettingCurrentRoomName, setRoomSettingCurrentRoomName] = useAtom(chatAtom.roomSettingCurrentRoomNameAtom);
+  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
 
   PressKey(["Escape"], () => {
     setRoomModal(false);
@@ -31,7 +32,7 @@ export default function RoomModal() {
       if (trimRoomName.length < 1) {
         alert('방 이름을 입력해주세요.');
       } else {
-        socket.emitRoomEdit(focusRoom, roomSettingCurrentRoomName, roomSettingIsPrivate, roomPass, roomList[focusRoom].roomType);
+        socket.emitRoomEdit(adminConsole, focusRoom, roomSettingCurrentRoomName, roomSettingIsPrivate, roomPass, roomList[focusRoom].roomType);
         setRoomModal(false);
       }
     } else {
@@ -39,7 +40,7 @@ export default function RoomModal() {
       if (trimRoomName.length < 1) {
         alert('방 이름을 입력해주세요.');
       } else {
-        socket.emitRoomCreate(roomName, roomCheck, roomPass);
+        socket.emitRoomCreate(adminConsole, roomName, roomCheck, roomPass);
         setRoomModal(false);
       }
     }

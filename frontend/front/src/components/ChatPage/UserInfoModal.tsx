@@ -1,6 +1,6 @@
 import { useAtom } from "jotai";
 import { userInfoModalAtom } from "../../components/atom/ModalAtom";
-import { PressKey } from "../../event/pressKey";
+import { PressKey } from "../../event/event.util";
 import * as api from '../../event/api.request';
 
 import { IoCloseOutline } from "react-icons/io5";
@@ -23,6 +23,7 @@ export default function UserInfoModal() {
 
   const navigate = useNavigate();
   const [, setRefreshToken] = useAtom(refreshTokenAtom);
+  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
 
   const logOutHandler = () => {
     api.LogOut(setRefreshToken, navigate, '/');
@@ -70,7 +71,7 @@ export default function UserInfoModal() {
   const Ignore = () => {
     if (isDefaultUser) return;
     const doOrUndo: boolean = blockList[userInfo.uid] === undefined ? true : false;
-    socket.emitBlockUser({ blockList, setBlockList }, userInfo.uid, doOrUndo);
+    socket.emitBlockUser({ adminConsole, blockList, setBlockList }, userInfo.uid, doOrUndo);
     infoModalOff();
   };
 
@@ -82,25 +83,25 @@ export default function UserInfoModal() {
 
   const Kick = () => {
     if (isDefaultUser) return;
-    socket.emitRoomInAction({ roomList, setRoomList }, focusRoom, "kick", userInfo.uid)
+    socket.emitRoomInAction({ adminConsole, roomList, setRoomList }, focusRoom, "kick", userInfo.uid)
     infoModalOff();
   };
 
   const Ban = () => {
     if (isDefaultUser) return;
-    socket.emitRoomInAction({ roomList, setRoomList }, focusRoom, "ban", userInfo.uid)
+    socket.emitRoomInAction({ adminConsole, roomList, setRoomList }, focusRoom, "ban", userInfo.uid)
     infoModalOff();
   };
 
   const Mute = () => {
     if (isDefaultUser) return;
-    socket.emitRoomInAction({ roomList, setRoomList }, focusRoom, "mute", userInfo.uid)
+    socket.emitRoomInAction({ adminConsole, roomList, setRoomList }, focusRoom, "mute", userInfo.uid)
     infoModalOff();
   };
 
   const Admin = () => {
     if (isDefaultUser) return;
-    socket.emitRoomInAction({ roomList, setRoomList }, focusRoom, "admin", userInfo.uid)
+    socket.emitRoomInAction({ adminConsole, roomList, setRoomList }, focusRoom, "admin", userInfo.uid)
     infoModalOff();
   };
 
