@@ -102,18 +102,43 @@ export default function ChatRoomUserList() {
               power="member"
               callBack={onClickInfo}
             />
-            : Object?.entries(roomList[focusRoom]?.detail?.userList!)?.map((key) => (
-              <UserObj
-                key={Number(key[0])}
-                uid={Number(key[0])}
-                nickName={userList[Number(key[0])]?.userDisplayName}
-                profileImage={userList[Number(key[0])]?.userProfileUrl}
-                status={userList[Number(key[0])]?.userStatus}
-                chat={roomList[focusRoom]?.detail?.userList[Number(key[0])]?.userRoomStatus ?? 'normal'}
-                power={key[1]?.userRoomPower}
-                callBack={onClickInfo}
-              />
+            : ''
+        }
+        {
+          focusRoom !== -1
+            ? Object?.entries(roomList[focusRoom]?.detail?.userList!)?.map((key) => (
+              userList[Number(key[0])]?.userStatus !== 'offline'
+                ? < UserObj
+                  key={Number(key[0])}
+                  uid={Number(key[0])}
+                  nickName={userList[Number(key[0])]?.userDisplayName}
+                  profileImage={userList[Number(key[0])]?.userProfileUrl}
+                  status={userList[Number(key[0])]?.userStatus}
+                  chat={roomList[focusRoom]?.detail?.userList[Number(key[0])]?.userRoomStatus ?? 'normal'}
+                  power={key[1]?.userRoomPower}
+                  callBack={onClickInfo}
+                />
+                : ''
             ))
+            : ''
+        }
+        {
+          focusRoom !== -1
+            ? Object?.entries(roomList[focusRoom]?.detail?.userList!)?.map((key) => (
+              userList[Number(key[0])]?.userStatus === 'offline'
+                ? < UserObj
+                  key={Number(key[0])}
+                  uid={Number(key[0])}
+                  nickName={userList[Number(key[0])]?.userDisplayName}
+                  profileImage={userList[Number(key[0])]?.userProfileUrl}
+                  status={userList[Number(key[0])]?.userStatus}
+                  chat={roomList[focusRoom]?.detail?.userList[Number(key[0])]?.userRoomStatus ?? 'normal'}
+                  power={key[1]?.userRoomPower}
+                  callBack={onClickInfo}
+                />
+                : ''
+            ))
+            : ''
         }
       </div>
     </div>

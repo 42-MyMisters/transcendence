@@ -405,7 +405,7 @@ export default function ChatPage() {
 			roomId,
 			roomName,
 			roomType,
-			userList = {},
+			roomUserList = {},
 			myPower,
 			status,
 			method = ''
@@ -413,7 +413,7 @@ export default function ChatPage() {
 			roomId: number,
 			roomName: string,
 			roomType: 'open' | 'protected' | 'private' | 'dm',
-			userList: chatType.userInRoomListDto,
+			roomUserList: chatType.userInRoomListDto,
 			myPower: chatType.userRoomPower,
 			status: 'ok' | 'ko',
 			method?: 'invite' | ''
@@ -427,7 +427,7 @@ export default function ChatPage() {
 						roomType,
 						isJoined: true,
 						detail: {
-							userList: { ...userList },
+							userList: { ...roomUserList },
 							messageList: [],
 							myRoomStatus: 'normal',
 							myRoomPower: myPower
@@ -437,6 +437,17 @@ export default function ChatPage() {
 					setRoomList({ ...roomList, ...newRoomList });
 					if (method !== 'invite') {
 						setFocusRoom(roomId);
+					}
+					if (roomType === 'dm') {
+						const newDmUser: chatType.userDto = {};
+						newDmUser[roomId] = {
+							userDisplayName: userList[roomId].userDisplayName,
+							userProfileUrl: userList[roomId].userProfileUrl,
+							userStatus: userList[roomId].userStatus,
+							dmStatus: 'unread',
+						};
+						setDmHistoryList((prevDmHistoryList) => ({ ...prevDmHistoryList, ...newDmUser }));
+						setUserList((prevUserList) => ({ ...prevUserList, ...newDmUser }));
 					}
 					break;
 				}
@@ -451,7 +462,7 @@ export default function ChatPage() {
 		return () => {
 			socket.socket.off("room-join");
 		};
-	}, [roomList]);
+	}, [roomList, userList, dmHistoryList]);
 
 
 	useEffect(() => {
