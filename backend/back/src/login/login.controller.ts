@@ -10,7 +10,7 @@ import {
   Req,
   Res,
   UnauthorizedException,
-  UseGuards,
+  UseGuards
 } from "@nestjs/common";
 import * as swagger from "@nestjs/swagger";
 import config from "config";
@@ -22,7 +22,7 @@ import { JwtAuthGuard } from "src/auth/jwt/jwt-auth.guard";
 import { LocalAuthGuard } from "src/auth/local/local-auth.guard";
 import {
   callFunctionDescriptionOfRefreshRoute,
-  ResponseErrorDto,
+  ResponseErrorDto
 } from "src/swagger/response.util";
 import { UserService } from "src/user/user.service";
 
@@ -125,14 +125,15 @@ export class LoginController {
   })
   @Post("/signout")
   @UseGuards(Jwt2faAuthGuard)
-  async logout(@Req() request) {
-    const options = {
+  async logout(@Req() request, @Res() response: Response) {
+    response.cookie("accessToken", "", {
       httpOnly: true,
       sameSite: "strict",
-      // secure: true // only https option
-    };
-    request.cookie("access_token", "", { ...options, expires: new Date(0) });
-    return await this.userService.logout(request.user);
+      // secure: true //only https option
+      expires: new Date(0)
+    });
+    await this.userService.logout(request.user);
+    response.send();
   }
 
   @swagger.ApiBearerAuth("refreshToken")
@@ -254,7 +255,8 @@ export class LoginController {
   // For Test
   @Get("/logout")
   @UseGuards(Jwt2faAuthGuard)
-  async red(@Req() request) {
-    await this.logout(request);
+  async red(@Req() request, @Res() response: Response) {
+    await this.logout(request,response);
+    response.send();
   }
 }
