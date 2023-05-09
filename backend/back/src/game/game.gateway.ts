@@ -56,7 +56,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   async handleConnection(@ConnectedSocket() socket: Socket) {
     try {
       socket.data.uid = await this.authService.jwtVerify(socket.handshake.auth.token);
-      // socket.data.elo = await this.userService.getUserByUid(socket.data.uid);
+      const user = await this.userService.getUserByUid(socket.data.uid);
+      socket.data.elo = user!.elo;
       if (socket.handshake.auth.data === undefined) {
         if (socket.handshake.auth.type === GameType.PRIVATE) {
           socket.emit("isLoading", true);
