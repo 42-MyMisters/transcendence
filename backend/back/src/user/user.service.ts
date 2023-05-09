@@ -226,4 +226,8 @@ export class UserService {
 
 		return userDto;
 	}
+
+	async getUserGameStatusById(uid: number) {
+		return await this.databaseService.findAllGameByUserid(uid);
+	}
 }
