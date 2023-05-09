@@ -9,7 +9,9 @@ export class UserProfileDto {
     profileUrl: string;
     ELO: number;
     followings: FollowingUserDto[];
-    games: Game;
+	games: Game;
+	winGames: Game[];
+	loseGames: Game[];
 
 	
     static async fromUserEntity(user: User, userFollowList: UserFollow[]): Promise<UserProfileDto> {
@@ -22,7 +24,6 @@ export class UserProfileDto {
 			return await FollowingUserDto.mapUserFollowToFollowingUserDto(userFollow);
 		  }));		  
 		userProfileDto.followings = followingUserDtos;
-		// game 
 		return userProfileDto;
 	}
 }

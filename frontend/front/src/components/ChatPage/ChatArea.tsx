@@ -13,6 +13,7 @@ export default function ChatArea() {
   const [userList,] = useAtom(chatAtom.userListAtom);
   const [message, setMessage] = useState('');
   const [userInfo,] = useAtom(UserAtom);
+  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
 
   const defaultText: string = "채팅방을 선택해주세요. 방을 만들거나, 참여하면 채팅을 할 수 있습니다.";
 
@@ -20,9 +21,9 @@ export default function ChatArea() {
     const tempMessage = message.trim();
     if (tempMessage !== '') {
       if (roomList[focusRoom]?.roomType === 'dm') {
-        socket.emitDM(focusRoom, tempMessage);
+        socket.emitDM(adminConsole, focusRoom, tempMessage);
       } else {
-        socket.emitMessage({ roomList }, focusRoom, tempMessage);
+        socket.emitMessage({ adminConsole, roomList }, focusRoom, tempMessage);
       }
     }
     setMessage('');
@@ -55,7 +56,7 @@ export default function ChatArea() {
             ))
         }
       </div>
-      <input type="text" className="ChatAreaInput" maxLength={256} value={message} onChange={(e) => setMessage(e.target.value)} onKeyDown={(e) => handleEnterEvent(e)}></input>
+      <input type="text" className="ChatAreaInput" maxLength={256} value={message} onChange={(e) => setMessage(e.target.value)} onKeyPress={(e) => handleEnterEvent(e)}></input>
       <div className="ChatDMImg" onClick={handleSendMessage} />
     </div>
   );

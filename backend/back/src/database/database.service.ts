@@ -188,9 +188,12 @@ export class DatabaseService {
         return await this.gameRepository.save(gameResult);
     }
 
-
-
     //GAME
-
-
+    async findAllGameByUserid(uid: number){
+        const winGames  = await this.gameRepository.createQueryBuilder('gm')
+        .where('gm.winnerId = :uid', {uid}).getRawMany();
+        const loseGames = await this.gameRepository.createQueryBuilder('gm')
+        .where('gm.loserId = :uid', {uid}).getRawMany();
+        return {winGames, loseGames};
+    }
 }

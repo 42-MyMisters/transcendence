@@ -3,6 +3,7 @@ import "../../styles/PingPong.css";
 
 import React, { useEffect } from "react";
 
+import * as chatAtom from "../atom/ChatAtom";
 import { GameCoordinate, isQueueAtom } from "../atom/GameAtom";
 import { Game } from "./Pong";
 
@@ -13,9 +14,12 @@ import { useRef, useState } from "react";
 import { gameResultModalAtom, isLoadingAtom } from "../atom/ModalAtom";
 import { ball, Direction, HEIGHT, Hit, p1, p2, paddle, paddleInfo, scoreInfo, WIDTH } from "./GameInfo";
 
+import { AdminLogPrinter } from "../../event/event.util";
+
 export default function PingPong() {
   const [upArrow, setUpArrow] = useState(false);
   const [downArrow, setDownArrow] = useState(false);
+  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
   const canvas = useRef<HTMLCanvasElement>(null);
   
   const [isLoading, setIsLoading] = useAtom(isLoadingAtom);
@@ -54,7 +58,7 @@ export default function PingPong() {
           const pingEventHandler = (pong: boolean) => {
             if (pong) {
               pingTime = Date.now() - curTime;
-              console.log(`ping: ${pingTime}ms`);
+              AdminLogPrinter(adminConsole, `ping: ${pingTime}ms`);
             }
           }
           game.gameSocket.emit('ping', pingEventHandler);
@@ -74,12 +78,12 @@ export default function PingPong() {
     clearInterval(pingInterval);
     setIsQueue(false);
     setIsLoading(false);
-    console.log("gameSocket disconnected");
+    AdminLogPrinter(adminConsole, "gameSocket disconnected");
   }
 
   const startEventHandler = (started: boolean) => {
     lastUpdateTime = Date.now();
-    console.log("game start");
+    AdminLogPrinter(adminConsole, "game start");
     update(coords, canvas);
   }
 
@@ -164,7 +168,7 @@ export default function PingPong() {
     const curTime = Date.now();
     const dt = curTime - lastUpdateTime;
 
-    paddleUpdate(coord.paddle1YUp, coord.paddle1YDown,coord.paddle2YUp, coord.paddle2YDown, dt);
+    paddleUpdate(coord.paddle1YUp, coord.paddle1YDown, coord.paddle2YUp, coord.paddle2YDown, dt);
     coord.ballX += coord.ballSpeedX * dt;
     coord.ballY += coord.ballSpeedY * dt;
     const isHitY = collisionCheckY();
@@ -193,10 +197,10 @@ export default function PingPong() {
     Game(coord, canvas);
     requestAnimationFrame(() => update(coords, canvas));
   }
-  
+
   function paddleUpdate(p1Up: boolean, p1Down: boolean, p2Up: boolean, p2Down: boolean, dt: number) {
     if (p1Up) {
-      if (coords.paddle1Y > 0){
+      if (coords.paddle1Y > 0) {
         coords.paddle1Y -= coords.paddleSpeed * dt;
       }
       if (coords.paddle1Y < 0) {
@@ -204,7 +208,7 @@ export default function PingPong() {
       }
     }
     if (p1Down) {
-      if (coords.paddle1Y < HEIGHT - paddle.height){
+      if (coords.paddle1Y < HEIGHT - paddle.height) {
         coords.paddle1Y += coords.paddleSpeed * dt;
       }
       if (coords.paddle1Y > HEIGHT - paddle.height) {
@@ -220,7 +224,7 @@ export default function PingPong() {
       }
     }
     if (p2Down) {
-      if (coords.paddle2Y < HEIGHT - paddle.height){
+      if (coords.paddle2Y < HEIGHT - paddle.height) {
         coords.paddle2Y += coords.paddleSpeed * dt;
       }
       if (coords.paddle2Y > HEIGHT - paddle.height) {
@@ -272,13 +276,13 @@ export default function PingPong() {
         if (!upArrow) {
           setUpArrow(true);
           game.emitUpPress();
-          console.log("up press");
+          AdminLogPrinter(adminConsole, "up press");
         }
       } else if (event.code === "ArrowDown") {
         if (!downArrow) {
           setDownArrow(true);
           game.emitDownPress();
-          console.log("down press");
+          AdminLogPrinter(adminConsole, "down press");
         }
       }
     }
@@ -288,13 +292,13 @@ export default function PingPong() {
         if (upArrow) {
           setUpArrow(false);
           game.emitUpRelease();
-          console.log("up release");
+          AdminLogPrinter(adminConsole, "up release");
         }
       } else if (event.code === "ArrowDown") {
         if (downArrow) {
           setDownArrow(false);
           game.emitDownRelease();
-          console.log("down release");
+          AdminLogPrinter(adminConsole, "down release");
         }
       }
     }
