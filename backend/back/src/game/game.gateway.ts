@@ -33,7 +33,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
           this.server.to(gameId).emit('join-game', {p1: p1.data.uid, p2: p2.data.uid});
           console.log(`${p1.id}: joined ${gameId}, rooms: ${[...p1.rooms]}`);
           console.log(`${p2.id}: joined ${gameId}, rooms: ${[...p2.rooms]}`);
-          this.gameService.createGame(gameId, this.server, p1.data.uid, p2.data.uid);
+          this.gameService.publicGame(gameId, this.server, p1.data.uid, p2.data.uid);
           this.gameService.getGame(gameId)?.gameStart();
           // this.gameService.gameStart(gameId);
         }

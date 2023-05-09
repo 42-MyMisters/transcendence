@@ -15,4 +15,6 @@ export const focusRoomAtom = atom<number>(-1);
 export const clickRoomAtom = atom<number>(-1);
 export const socketStateAtom = atom<boolean>(false);
 
-
+export const roomSettingAtom = atom<boolean>(false);
+export const roomSettingIsPrivateAtom = atom<boolean>(false);
+export const roomSettingCurrentRoomNameAtom = atom<string>('');

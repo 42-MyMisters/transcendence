@@ -1,24 +1,39 @@
+import { IsNumber } from "class-validator";
+import { GameType } from "src/game/game.enum";
+import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "./user.entity";
-import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
+
 
 @Entity()
 export class Game extends BaseEntity {
 	@PrimaryGeneratedColumn()
+	@IsNumber()
 	gid: number;
+
+	@Column()
+	winnerId: number;
+	
+	@Column()
+	loserId: number;
+
+	@Column()
+	winnerScore: number;
+	
+	@Column()
+	loserScore: number;
+
+	@Column({
+		type: 'enum',
+		enum: GameType,
+	  })
+	gameType: GameType;
+	
+	@CreateDateColumn()
+	createdAt: Date;
 	
 	@ManyToOne(type => User, winner => winner.wonGames, { eager: true })
 	winner: User;
 	
 	@ManyToOne(type => User, loser => loser.lostGames, { eager: true })
 	loser: User;
-	
-	@Column()
-	winnerScore: number;
-	
-	@Column()
-	loserScore: number;
-	
-	@CreateDateColumn()
-	createdAt: Date;
-
 }

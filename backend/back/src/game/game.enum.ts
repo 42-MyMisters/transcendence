@@ -21,3 +21,8 @@ export const enum GameStatus {
 export const enum GameMode {
   DEFAULT = 0,
 }
+
+export enum GameType {
+  PUBLIC = 0,
+  PRIVATE = 1
+}

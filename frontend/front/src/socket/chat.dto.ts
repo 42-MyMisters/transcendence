@@ -15,7 +15,6 @@ type userDto = {
 	[key: number]: {
 		userDisplayName: string;
 		userProfileUrl: string;
-		// userStatus: 'online' | 'offline' | 'inGame';
 		userStatus: userStatus;
 		dmStatus?: 'unread' | 'read';
 	}
@@ -38,7 +37,7 @@ type roomMessageDto = {
 type userInRoomListDto = {
 	[key: number]: {
 		userRoomStatus: 'normal' | 'mute';
-		userRoomPower: 'owner' | 'admin' | 'member';
+		userRoomPower: userRoomPower
 	}
 }
 
@@ -46,7 +45,7 @@ type roomDetailDto = {
 	userList: userInRoomListDto,
 	messageList: roomMessageDto[],
 	myRoomStatus: 'normal' | 'mute';
-	myRoomPower: 'owner' | 'admin' | 'member';
+	myRoomPower: userRoomPower
 }
 
 type roomListDto = {

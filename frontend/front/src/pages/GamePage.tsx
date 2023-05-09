@@ -10,13 +10,13 @@ import { isQueueAtom } from "../components/atom/GameAtom";
 import { GameCoordinateAtom } from "../components/atom/GameAtom";
 import * as game from "../socket/game.socket";
 
-import { gameResultModalAtom } from "../components/atom/ModalAtom";
+import { gameResultModalAtom, isLoadingAtom } from "../components/atom/ModalAtom";
 import GameResultModal from "../components/GamePage/GameResultModal";
 import LadderBoard from "../components/GamePage/LadderBoard";
 
 export default function GamePage() {
   const [showComponent, setShowComponent] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useAtom(isLoadingAtom);
   const [gameResultModal, setGameResultModal] = useAtom(gameResultModalAtom);
 
   const [isQueue, setIsQueue] = useAtom(isQueueAtom);

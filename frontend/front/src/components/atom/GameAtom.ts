@@ -3,8 +3,6 @@ import { atom } from "jotai";
 
 export const isQueueAtom = atom<boolean>(false);
 
-export let lastUpdate = atom<number>(Date.now());
-
 export interface GameCoordinate {
   paddle1Y: number;
   ballX: number;

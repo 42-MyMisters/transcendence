@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException, UsePipes } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserFollow } from "src/database/entity/user-follow.entity";
 import { User } from "src/database/entity/user.entity";
@@ -183,9 +183,14 @@ export class DatabaseService {
             .getRawMany();
     }
 
+    //player 1 uid, player 2 uid, score 1, score 2, gametype 
+    async saveGame(gameResult : Game){
+        return await this.gameRepository.save(gameResult);
+    }
 
 
 
     //GAME
+
 
 }

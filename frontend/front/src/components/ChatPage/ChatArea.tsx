@@ -14,7 +14,7 @@ export default function ChatArea() {
   const [message, setMessage] = useState('');
   const [userInfo,] = useAtom(UserAtom);
 
-  const defaultText: string = "채팅방을 선택해주세요.ㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ방을 만들거나,    참여하면 채팅을 할 수 있습니다.";
+  const defaultText: string = "채팅방을 선택해주세요. 방을 만들거나, 참여하면 채팅을 할 수 있습니다.";
 
   const handleSendMessage = () => {
     const tempMessage = message.trim();

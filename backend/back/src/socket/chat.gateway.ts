@@ -94,6 +94,7 @@ const userList: Record<number, UserInfo> = {
 		isRefresh: false,
 	},
 };
+
 const roomList: Record<number, RoomInfo> = {
 	0: {
 		roomNumber: 0,
@@ -219,7 +220,7 @@ export class EventsGateway
 					userId: uid,
 					userDisplayName: user.nickname.split('#', 2)[0],
 					userProfileUrl: user.profileUrl,
-					userStatus: 'online',
+					userStatus: userList[uid].status,
 				});
 				await this.handleDmList(socket, uid);
 			} else {
@@ -362,8 +363,10 @@ export class EventsGateway
 				userRoomStatus: 'normal',
 				userRoomPower: 'owner',
 			};
-			const saltRound = 10;
-			const cryptedPassword = await bcrypt.hash(roomPass, saltRound)
+			let tempRoomPass = '';
+			if (roomPass !== '') {
+				tempRoomPass = await bcrypt.hash(roomPass, 10)
+			}
 			roomList[tempRoomNumber] = {
 				roomNumber: tempRoomNumber,
 				roomName: trimmedRoomName,
@@ -372,7 +375,7 @@ export class EventsGateway
 				roomOwner: socket.data.user.uid,
 				roomAdmins: [],
 				bannedUsers: [],
-				roomPass: cryptedPassword ?? ''
+				roomPass: tempRoomPass
 			}
 			socket.data.roomList.push(tempRoomNumber);
 			socket.join(tempRoomNumber.toString());
@@ -397,6 +400,59 @@ export class EventsGateway
 		}
 		return { status: 'ok' };
 	}
+
+	@SubscribeMessage("room-edit")
+	async RoomEdit(
+		@ConnectedSocket() socket: Socket,
+		@MessageBody()
+		{
+			roomId,
+			roomName,
+			roomType,
+			roomPass,
+		}: {
+			roomId: number;
+			roomName: string;
+			roomType: roomType;
+			roomPass?: string;
+		}) {
+		if (roomList[roomId] === undefined) {
+			console.log(roomList[roomId]);
+			return { status: 'ko', payload: '\nroom not exists' };
+		} else if (roomList[roomId].roomOwner !== socket.data.user.uid) {
+			return { status: 'ko', payload: '\nonly owner can edit room' };
+		}
+
+		const trimmedRoomName = roomName.trim();
+		if (trimmedRoomName == roomList[roomId].roomName
+			&& roomType == roomList[roomId].roomType
+			&& ((roomList[roomId].roomPass !== ''
+				&& (await bcrypt.compare(roomPass, roomList[roomId].roomPass) === true
+					|| roomPass === ''))
+				|| (roomList[roomId].roomPass === ''
+					&& roomPass === ''))) {
+			return { status: 'ko', payload: '\nnothing changed' };
+		}
+		let tempRoomPass = roomList[roomId].roomPass;
+		if (roomPass !== '') {
+			tempRoomPass = await bcrypt.hash(roomPass, 10)
+		}
+		let tempRoomName = roomList[roomId].roomName;
+		if (trimmedRoomName !== '') {
+			tempRoomName = trimmedRoomName;
+		}
+		roomList[roomId].roomName = tempRoomName;
+		roomList[roomId].roomType = roomType;
+		roomList[roomId].roomPass = tempRoomPass;
+		this.nsp.emit("room-list-update", {
+			action: 'edit',
+			roomId: roomId,
+			roomName: tempRoomName,
+			roomType: roomType
+		});
+		return { status: 'ok' };
+	}
+
 
 	@SubscribeMessage("room-join")
 	async RoomJoin(
@@ -441,13 +497,6 @@ export class EventsGateway
 						action: 'newMember',
 						targetId: socket.data.user.uid,
 					});
-					// setTimeout(() => {
-					// 	socket.to(roomId.toString()).emit('message', {
-					// 		roomId,
-					// 		from: socket.data.user.uid,
-					// 		message: `${ userList[socket.data.user.uid].userDisplayName } join this room`,
-					// 	});
-					// }, 100);
 					return ({ status: 'ok' });
 				}
 				case 'private': {

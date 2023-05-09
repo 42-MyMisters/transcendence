@@ -3,7 +3,7 @@ import "../../styles/PingPong.css";
 
 import React, { useEffect } from "react";
 
-import { GameCoordinate } from "../atom/GameAtom";
+import { GameCoordinate, isQueueAtom } from "../atom/GameAtom";
 import { Game } from "./Pong";
 
 import * as game from "../../socket/game.socket";
@@ -11,12 +11,18 @@ import * as game from "../../socket/game.socket";
 import { useRef, useState } from "react";
 import { socket } from "../../socket/chat.socket";
 import { ball, Direction, HEIGHT, Hit, p1, p2, paddle, paddleInfo, scoreInfo, WIDTH } from "./GameInfo";
+import { gameResultModalAtom, isLoadingAtom } from "../atom/ModalAtom";
+import { useAtom } from "jotai";
 
 export default function PingPong() {
   const [upArrow, setUpArrow] = useState(false);
   const [downArrow, setDownArrow] = useState(false);
   const canvas = useRef<HTMLCanvasElement>(null);
   
+  const [isLoading, setIsLoading] = useAtom(isLoadingAtom);
+  const [isQueue, setIsQueue] = useAtom(isQueueAtom);
+  const [gameResultModal, setGameResultModal] = useAtom(gameResultModalAtom);
+
   let coords = {
     paddle1Y: 225,
     ballX: 1150 / 2,
@@ -116,52 +122,52 @@ export default function PingPong() {
 
   useEffect(() => {
     game.gameSocket.on("connect", connectionEventHandler);
-    return () => {
-      game.gameSocket.off("connect", connectionEventHandler);
-    }
-  }, []);
-
-  useEffect(() => {
     game.gameSocket.on("disconnect", disconnectEventHandler);
-    return () => {
-      game.gameSocket.off("disconnect", disconnectEventHandler);
-    }
-  }, []);
-
-  useEffect(() => {
     game.gameSocket.on("start", startEventHandler);
-    return () => {
-      game.gameSocket.off("start", startEventHandler);
-    }
-  }, []);
-
-  useEffect(() => {
+    game.gameSocket.on("scoreInfo", scoreEventhandler);
+    game.gameSocket.on("finished", finishEventHandler);
+    game.gameSocket.on("paddleInfo", paddleEventHandler);
     game.gameSocket.on("graphic", drawEventHandler);
     return () => {
-      socket.off("graphic", drawEventHandler);
+      game.gameSocket.off("connect", connectionEventHandler);
+      game.gameSocket.off("disconnect", disconnectEventHandler);
+      game.gameSocket.off("start", startEventHandler);
+      game.gameSocket.off("graphic", drawEventHandler);
+      game.gameSocket.off("paddleInfo", paddleEventHandler);
+      game.gameSocket.off("scoreInfo", scoreEventhandler);
+      game.gameSocket.off("finished", finishEventHandler);
     }
   }, []);
 
-  useEffect(() => {
-    game.gameSocket.on("paddleInfo", paddleEventHandler);
-    return () => {
-      socket.off("paddleInfo", paddleEventHandler);
-    }
-  }, []);
+  // useEffect(() => {
+  //   return () => {
+  //   }
+  // }, []);
 
-  useEffect(() => {
-    game.gameSocket.on("scoreInfo", scoreEventhandler);
-    return () => {
-      socket.off("scoreInfo", scoreEventhandler);
-    }
-  }, []);
+  // useEffect(() => {
+  //   return () => {
+  //   }
+  // }, []);
 
-  useEffect(() => {
-    game.gameSocket.on("finished", finishEventHandler);
-    return () => {
-      socket.off("finished", finishEventHandler);
-    }
-  }, []);
+  // useEffect(() => {
+  //   return () => {
+  //   }
+  // }, []);
+
+  // useEffect(() => {
+  //   return () => {
+  //   }
+  // }, []);
+
+  // useEffect(() => {
+  //   return () => {
+  //   }
+  // }, []);
+
+  // useEffect(() => {
+  //   return () => {
+  //   }
+  // }, []);
 
   // // the connection is denied by the server in a middleware function
   // game.gameSocket.on("connect_error", (err) => {

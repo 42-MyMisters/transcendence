@@ -1,7 +1,8 @@
 import { Injectable, InternalServerErrorException, Logger } from "@nestjs/common";
 import { Namespace } from "socket.io";
 import { DatabaseService } from "src/database/database.service";
-import { Direction, GameMode, GameStatus, Hit } from "./game.enum";
+import { Direction, GameMode, GameStatus, GameType, Hit } from "./game.enum";
+import { Game as GameEntity } from "../database/entity/game.entity";
 
 @Injectable()
 export class GameService {
@@ -9,13 +10,18 @@ export class GameService {
   constructor(private readonly databaseService: DatabaseService) {
     this.games = new Map<string, Game>();
   }
+  
+  publicGame(gameId: string, nsp: Namespace, p1Id: number, p2Id: number) {
+    this.createGame(gameId, nsp, p1Id, p2Id, GameType.PUBLIC);
+  }
+  
+  privateGame(gameId: string, nsp: Namespace, p1Id: number, p2Id: number) {
+    this.createGame(gameId, nsp, p1Id, p2Id, GameType.PRIVATE);
+  }
 
-  createGame(gameId: string, nsp: Namespace, p1Id: number, p2Id: number) {
+  createGame(gameId: string, nsp: Namespace, p1Id: number, p2Id: number, gameType: GameType) {
     try {
-      this.games.set(
-        gameId,
-        new Game(gameId, nsp, p1Id, p2Id, this.databaseService),
-      );
+      this.games.set(gameId, new Game(gameId, nsp, p1Id, p2Id, gameType, this.databaseService));
     } catch (e) {
       throw new InternalServerErrorException("Fail to create game.");
     }
@@ -68,6 +74,7 @@ class Game {
     private readonly nsp: Namespace,
     private readonly p1: number,
     private readonly p2: number,
+    private readonly gameType: GameType,
     private readonly databaseService: DatabaseService,
     // Fixed param set
     private readonly canvasWidth = 1150,
@@ -228,6 +235,24 @@ class Game {
     return 10;
   }
 
+  disconnect(): number {
+    const result = new GameEntity();
+    if (this.p1Score < this.p2Score){
+      result.winnerId = this.p2;
+      result.loserId = this.p1;
+      result.winnerScore = this.p2Score;
+      result.loserScore = this.p1Score;
+    } else {
+      result.winnerId = this.p1;
+      result.loserId = this.p2;
+      result.winnerScore = this.p1Score;
+      result.loserScore = this.p2Score;
+    }
+    result.gameType = GameType.PUBLIC;
+    this.databaseService.saveGame(result);
+    return 10;
+  }
+
   update(): number {
     const curTime = Date.now();
     let timeout:number
@@ -247,11 +272,7 @@ class Game {
         break;
       }
       case GameStatus.DISCONNECT: {
-        // save the game result.
-        // this.databaseService.
-        // this.nsp.to(this.id).emit("")
-        this.nsp.removeAllListeners()
-        timeout = 1000;
+        timeout = this.disconnect();
         break;
       }
     }

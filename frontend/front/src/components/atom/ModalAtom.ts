@@ -14,4 +14,6 @@ export const changeImageModalAtom = atom(false);
 
 export const gameResultModalAtom = atom(false);
 
+export const isLoadingAtom = atom(false);
+
 export const gameInviteModalAtom = atom(false);
