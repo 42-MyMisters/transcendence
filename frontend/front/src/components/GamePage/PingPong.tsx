@@ -52,7 +52,7 @@ export default function PingPong() {
         // any missed packets will be received
       } else {
         // new or unrecoverable session
-        console.log("gameSocket connected");
+        AdminLogPrinter(adminConsole, "gameSocket connected");
         const pingEvent = () => {
           const curTime = Date.now();
           const pingEventHandler = (pong: boolean) => {
