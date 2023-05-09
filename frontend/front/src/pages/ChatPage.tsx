@@ -54,9 +54,10 @@ export default function ChatPage() {
 	const [, setRefreshToken] = useAtom(refreshTokenAtom);
 
 	const [gameInviteModal, setGameInviteModal] = useAtom(gameInviteModalAtom);
+	const [adminConsole, setAdminConsole] = useAtom(chatAtom.adminConsoleAtom);
 
 	PressKey(["F4"], () => {
-		console.log("press F4");
+		setAdminConsole((prev) => !prev);
 	});
 
 	const getRoomList = () => {
@@ -639,16 +640,22 @@ export default function ChatPage() {
 
 	return (
 		<BackGround>
-			<button onClick={getMyinfoHandler}> /user/me</button>
-			<button onClick={showMyinfo}> show /user/me</button>
-			<button onClick={getRoomList}> roomList</button>
-			<button onClick={getUserList}> userList</button>
-			<button onClick={getDMList}> dmHistoryList</button>
-			<button onClick={getFollowingList}> FollowList</button>
-			<button onClick={showServerUser}> show server user</button>
-			<button onClick={showServerRoom}> show server room</button>
-			<button onClick={showSocketState}> socket state</button>
-			<button onClick={() => setGameInviteModal(true)}> gameinvite</button>
+			{
+				adminConsole === true
+					? <div>
+						<button onClick={getMyinfoHandler}> /user/me</button>
+						<button onClick={showMyinfo}> show /user/me</button>
+						<button onClick={getRoomList}> roomList</button>
+						<button onClick={getUserList}> userList</button>
+						<button onClick={getDMList}> dmHistoryList</button>
+						<button onClick={getFollowingList}> FollowList</button>
+						<button onClick={showServerUser}> show server user</button>
+						<button onClick={showServerRoom}> show server room</button>
+						<button onClick={showSocketState}> socket state</button>
+						<button onClick={() => setGameInviteModal(true)}> gameinvite</button>
+					</div>
+					: ''
+			}
 			<TopBar />
 			{userInfoModal ? <UserInfoModal /> : null}
 			{roomModal ? <RoomModal /> : null}
