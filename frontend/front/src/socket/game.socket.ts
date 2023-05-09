@@ -3,15 +3,15 @@ import { useAtom } from "jotai";
 // import * as chatAtom from '../components/atom/SocketAtom';
 // import type * as gameType from './game.dto';
 
-const URL = "http://localhost:4000";
-
+const URL = "https://localhost";
 const GameNameSpace = "/game";
+
 export const gameSocket = io(`${URL}${GameNameSpace}`, {
   auth: (cb) => {
     cb({ token: localStorage.getItem("refreshToken") });
   },
   autoConnect: false,
-  transports: ["websocket"],
+  transports: ["polling"],
   // reconnectionDelay: 1000, // defaults to 1000
   // reconnectionDelayMax: 10000, // defaults to 5000
   // withCredentials: true,

@@ -8,11 +8,10 @@ import { Game } from "./Pong";
 
 import * as game from "../../socket/game.socket";
 
-import { useRef, useState } from "react";
-import { socket } from "../../socket/chat.socket";
-import { ball, Direction, HEIGHT, Hit, p1, p2, paddle, paddleInfo, scoreInfo, WIDTH } from "./GameInfo";
-import { gameResultModalAtom, isLoadingAtom } from "../atom/ModalAtom";
 import { useAtom } from "jotai";
+import { useRef, useState } from "react";
+import { gameResultModalAtom, isLoadingAtom } from "../atom/ModalAtom";
+import { ball, Direction, HEIGHT, Hit, p1, p2, paddle, paddleInfo, scoreInfo, WIDTH } from "./GameInfo";
 
 export default function PingPong() {
   const [upArrow, setUpArrow] = useState(false);
@@ -70,15 +69,11 @@ export default function PingPong() {
 
   //https://socket.io/docs/v4/client-socket-instance/#disconnect
   const disconnectEventHandler = (reason: string) => {
-    /**
-     *  BAD, will throw an error
-     *  gameSocket.emit("disconnect");
-     */
     if (reason === "io server disconnect") {
-      // the disconnection was initiated by the server, you need to reconnect manually
     }
     clearInterval(pingInterval);
-    // else the socket will automatically try to reconnect
+    setIsQueue(false);
+    setIsLoading(false);
     console.log("gameSocket disconnected");
   }
 
@@ -120,8 +115,18 @@ export default function PingPong() {
     Game(coords, canvas);
   }
 
+  const queueEventHandler = (isQueue: boolean) => {
+    setIsQueue(isQueue);
+  }
+
+  const loadingEventHandler = (isLoading: boolean) => {
+    setIsLoading(isLoading);
+  }
+
   useEffect(() => {
     game.gameSocket.on("connect", connectionEventHandler);
+    game.gameSocket.on("isQueue", queueEventHandler);
+    game.gameSocket.on("isLoading", loadingEventHandler);
     game.gameSocket.on("disconnect", disconnectEventHandler);
     game.gameSocket.on("start", startEventHandler);
     game.gameSocket.on("scoreInfo", scoreEventhandler);
@@ -130,6 +135,8 @@ export default function PingPong() {
     game.gameSocket.on("graphic", drawEventHandler);
     return () => {
       game.gameSocket.off("connect", connectionEventHandler);
+      game.gameSocket.off("isQueue", queueEventHandler);
+      game.gameSocket.off("isLoading", loadingEventHandler);
       game.gameSocket.off("disconnect", disconnectEventHandler);
       game.gameSocket.off("start", startEventHandler);
       game.gameSocket.off("graphic", drawEventHandler);
@@ -138,36 +145,6 @@ export default function PingPong() {
       game.gameSocket.off("finished", finishEventHandler);
     }
   }, []);
-
-  // useEffect(() => {
-  //   return () => {
-  //   }
-  // }, []);
-
-  // useEffect(() => {
-  //   return () => {
-  //   }
-  // }, []);
-
-  // useEffect(() => {
-  //   return () => {
-  //   }
-  // }, []);
-
-  // useEffect(() => {
-  //   return () => {
-  //   }
-  // }, []);
-
-  // useEffect(() => {
-  //   return () => {
-  //   }
-  // }, []);
-
-  // useEffect(() => {
-  //   return () => {
-  //   }
-  // }, []);
 
   // // the connection is denied by the server in a middleware function
   // game.gameSocket.on("connect_error", (err) => {

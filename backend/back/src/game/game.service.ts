@@ -63,10 +63,12 @@ class Game {
   private p1Score: number;
   private p2Score: number;
 
+  private score: number[] = [0, 0];
+
   // keyPress -> key pressed time list [p1up, p1down, p2up, p2down]
   private keyPress: number[] = [0, 0, 0, 0];
 
-  private ballSpeedMultiplier: number = 1.5;
+  private ballSpeedMultiplier: number = 1.4;
   private ballSpeedMax:number;
   
   constructor(
@@ -86,18 +88,19 @@ class Game {
     private readonly maxScore = 5,
     ) {
     this.ballSpeedMax = canvasWidth / 2000 * this.ballSpeedMultiplier,
-    this.p1Score = this.p2Score = 0;
+    // this.score[0] = this.score[1] = 0;
     this.round = 0;
   }
 
-  init() {
+  private init() {
     this.ballX = this.canvasWidth / 2;
     this.ballY = this.canvasHeight / 2;
     this.ballSpeedX = this.ballSpeedMax;
     if (Math.random() >= 0.5) {
       this.ballSpeedX = -this.ballSpeedX;
     }
-    this.ballSpeedY = this.ballSpeedX * (Math.random() * 2 - 1);
+    // +-35 degree range.
+    this.ballSpeedY = this.ballSpeedX * 0.7 * (Math.random() * 2 - 1);
     this.ballSpeedY = 0;
     for (let i = 0; i < 4; i++) {
       this.keyPress[i] = 0;
@@ -118,18 +121,80 @@ class Game {
     this.nsp.to(this.id).emit('start', true);
   }
 
-  gameLoop() {
+  isPlayer(uid: number): boolean {
+    return this.p1 === uid || this.p2 === uid;
+  }
+  
+  playerLeft(uid: number) {
+    this.gameStatus = GameStatus.FINISHED;
+    if (this.p1 === uid) {
+      this.score[0] = -1;
+    } else {
+      this.score[1] = -1;
+    }
+  }
+  
+  upPress(uid: number) {
+    if (this.gameStatus === GameStatus.RUNNING) {
+      this.update();
+      if (this.p1 === uid) {
+        this.keyPress[0] = Date.now();
+      } else {
+        this.keyPress[2] = Date.now();
+      }
+      this.emitPaddleInfo();
+    }
+  }
+  
+  upRelease(uid: number) {
+    if (this.gameStatus === GameStatus.RUNNING) {
+      this.update();
+      if (this.p1 === uid) {
+        this.keyPress[0] = 0;
+      } else {
+        this.keyPress[2] = 0;
+      }
+      this.emitPaddleInfo();
+    }
+  }
+
+  downPress(uid: number) {
+    if (this.gameStatus === GameStatus.RUNNING) {
+      this.update();
+      if (this.p1 === uid) {
+        this.keyPress[1] = Date.now();
+      } else {
+        this.keyPress[3] = Date.now();
+      }
+      this.emitPaddleInfo();
+    }
+  }
+  
+  downRelease(uid: number) {
+    if (this.gameStatus === GameStatus.RUNNING) {
+      this.update();
+      if (this.p1 === uid) {
+        this.keyPress[1] = 0;
+      } else {
+        this.keyPress[3] = 0;
+      }
+      this.emitPaddleInfo();
+    }
+  }
+
+  // Event driven update
+  private gameLoop() {
     if (this.gameStatus !== GameStatus.FINISHED) {
       const timeout = this.update();
       setTimeout(this.gameLoop.bind(this), timeout);
     }
   }
 
-  isFinished(): boolean{
-    return this.p1Score >= this.maxScore || this.p2Score >= this.maxScore;
+  private isFinished(): boolean{
+    return this.score[0] >= this.maxScore || this.score[1] >= this.maxScore;
   }
 
-  countdown(curTime: number): number {
+  private countdown(curTime: number): number {
     if (this.isFinished() === true) {
       this.gameStatus = GameStatus.FINISHED;
       return 100;
@@ -142,12 +207,74 @@ class Game {
     return 2000;
   }
 
-  running(curTime: number): number {
+  private getHitTime(): number {
+    let hitPredictTimeX: number;
+    let hitPredictTimeY: number;
+
+    if (this.ballSpeedX > 0) {
+      hitPredictTimeX = (this.canvasWidth - this.ballRadius - this.paddleWidth - this.ballX) / this.ballSpeedX;
+    } else {
+      hitPredictTimeX = (this.ballX - this.ballRadius - this.paddleWidth) / -this.ballSpeedX;
+    }
+    if (this.ballSpeedY > 0) {
+      hitPredictTimeY = (this.canvasHeight - this.ballRadius - this.ballY) / this.ballSpeedY;
+    } else if (this.ballSpeedY < 0) {
+      hitPredictTimeY = (this.ballY - this.ballRadius) / -this.ballSpeedY;
+    } else {
+      hitPredictTimeY = Infinity;
+    }
+    if (hitPredictTimeX < hitPredictTimeY) {
+      return hitPredictTimeX + 1;
+    }
+    return hitPredictTimeY + 1;
+  }
+
+  private hitP1Paddle(): void {
+    if (this.keyPress[0] !== 0 && this.keyPress[1] === 0) {
+      this.ballSpeedY -= this.paddleSpeed / 5;
+      if (this.ballSpeedY < -this.ballSpeedMax) {
+        this.ballSpeedY = -this.ballSpeedMax;
+      }
+    } else if (this.keyPress[0] === 0 && this.keyPress[1] !== 0) {
+      this.ballSpeedY += this.paddleSpeed / 5;
+      if (this.ballSpeedY > this.ballSpeedMax) {
+        this.ballSpeedY = this.ballSpeedMax;
+      }
+    }
+    this.ballX = 2 * (this.ballRadius + this.paddleWidth) - this.ballX;
+    this.ballSpeedX = -this.ballSpeedX;
+  }
+
+  private hitP2Paddle() {
+    if (this.keyPress[2] !== 0 && this.keyPress[3] === 0) {
+      this.ballSpeedY -= this.paddleSpeed / 5;
+      if (this.ballSpeedY < -this.ballSpeedMax) {
+        this.ballSpeedY = -this.ballSpeedMax;
+      }
+    } else if (this.keyPress[2] === 0 && this.keyPress[3] !== 0) {
+      this.ballSpeedY += this.paddleSpeed / 5;
+      if (this.ballSpeedY > this.ballSpeedMax) {
+        this.ballSpeedY = this.ballSpeedMax;
+      }
+    }
+    this.ballX = 2 * (this.canvasWidth - this.ballRadius - this.paddleWidth) - this.ballX;
+    this.ballSpeedX = -this.ballSpeedX;
+  }
+
+  private updateScore(i: number): number {
+    this.gameStatus = GameStatus.COUNTDOWN;
+    this.score[i]++;
+    this.round++;
+    this.nsp.to(this.id).emit("graphic", this.getState());
+    this.nsp.to(this.id).emit("scoreInfo", {p1Score: this.score[0], p2Score: this.score[1]});
+    return 2000;
+  }
+
+  private running(curTime: number): number {
+    let timeout = 10;
     const dt = curTime - this.lastUpdate;
     if (dt > 0) {
-      // console.log(`curTime: ${curTime}, keyPress: ${this.keyPress}`);
       const keyPressTime = this.getKeyPressDt(curTime);
-      // console.log(`dt: ${dt}, keyPressTime: ${keyPressTime}`);
       this.paddleUpdate(keyPressTime);
       this.ballX += this.ballSpeedX * dt;
       this.ballY += this.ballSpeedY * dt;
@@ -163,97 +290,42 @@ class Game {
       }
       if (isHitX == Direction.LEFT) {
         if (this.collisionCheckP1Paddle() === Hit.PADDLE) {
-          if (this.keyPress[0] !== 0 && this.keyPress[1] === 0) {
-            this.ballSpeedY -= this.paddleSpeed / 5;
-            if (this.ballSpeedY < -this.ballSpeedMax) {
-              this.ballSpeedY = -this.ballSpeedMax;
-            }
-          } else if (this.keyPress[0] === 0 && this.keyPress[1] !== 0) {
-            this.ballSpeedY += this.paddleSpeed / 5;
-            if (this.ballSpeedY > this.ballSpeedMax) {
-              this.ballSpeedY = this.ballSpeedMax;
-            }
-          }
-          this.ballX = 2 * (this.ballRadius + this.paddleWidth) - this.ballX;
-          this.ballSpeedX = -this.ballSpeedX;
+          this.hitP1Paddle();
         } else {
-          console.log("p2 scored");
-          this.gameStatus = GameStatus.COUNTDOWN;
-          this.p2Score++;
-          this.round++;
-          this.nsp.to(this.id).emit("graphic", this.getState());
-          this.nsp.to(this.id).emit("scoreInfo", {p1Score: this.p1Score, p2Score: this.p2Score});
-          return 2000;
+          return this.updateScore(1);
         }
       } else if (isHitX === Direction.RIGHT) {
         if (this.collisionCheckP2Paddle() === Hit.PADDLE) {
-          if (this.keyPress[2] !== 0 && this.keyPress[3] === 0) {
-            this.ballSpeedY -= this.paddleSpeed / 5;
-            if (this.ballSpeedY < -this.ballSpeedMax) {
-              this.ballSpeedY = -this.ballSpeedMax;
-            }
-          } else if (this.keyPress[2] === 0 && this.keyPress[3] !== 0) {
-            this.ballSpeedY += this.paddleSpeed / 5;
-            if (this.ballSpeedY > this.ballSpeedMax) {
-              this.ballSpeedY = this.ballSpeedMax;
-            }
-          }
-          this.ballX = 2 * (this.canvasWidth - this.ballRadius - this.paddleWidth) - this.ballX;
-          this.ballSpeedX = -this.ballSpeedX;
+          this.hitP2Paddle();
         } else {
-          console.log("p1 scored");
-          this.gameStatus = GameStatus.COUNTDOWN;
-          this.p1Score++;
-          this.round++;
-          this.nsp.to(this.id).emit("graphic", this.getState());
-          this.nsp.to(this.id).emit("scoreInfo", {p1Score: this.p1Score, p2Score: this.p2Score});
-          return 2000;
+          return this.updateScore(0);
         }
       }
-      let hitPredictTimeX: number;
-      let hitPredictTimeY: number;
-      if (this.ballSpeedX > 0) {
-        hitPredictTimeX = (this.canvasWidth - this.ballRadius - this.paddleWidth - this.ballX) / this.ballSpeedX;
-      } else {
-        hitPredictTimeX = (this.ballX - this.ballRadius - this.paddleWidth) / -this.ballSpeedX;
-      }
-      if (this.ballSpeedY > 0) {
-        hitPredictTimeY = (this.canvasHeight - this.ballRadius - this.ballY) / this.ballSpeedY;
-      } else if (this.ballSpeedY < 0) {
-        hitPredictTimeY = (this.ballY - this.ballRadius) / -this.ballSpeedY;
-      } else {
-        hitPredictTimeY = Infinity;
-      }
       this.nsp.to(this.id).emit("graphic", this.getState());
-      // Logger.log(`coords: ${this.getState()}`);
-      if (hitPredictTimeX < hitPredictTimeY) {
-        return hitPredictTimeX + 1;
-      } else {
-        return hitPredictTimeY + 1;
-      }
+      timeout = this.getHitTime();
     }
-    return 10;
+    return timeout;
   }
 
-  disconnect(): number {
+  private disconnect(): number {
     const result = new GameEntity();
-    if (this.p1Score < this.p2Score){
+    if (this.score[0] < this.score[1]){
       result.winnerId = this.p2;
       result.loserId = this.p1;
-      result.winnerScore = this.p2Score;
-      result.loserScore = this.p1Score;
+      result.winnerScore = this.score[1];
+      result.loserScore = this.score[0];
     } else {
       result.winnerId = this.p1;
       result.loserId = this.p2;
-      result.winnerScore = this.p1Score;
-      result.loserScore = this.p2Score;
+      result.winnerScore = this.score[0];
+      result.loserScore = this.score[1];
     }
     result.gameType = GameType.PUBLIC;
     this.databaseService.saveGame(result);
     return 10;
   }
 
-  update(): number {
+  private update(): number {
     const curTime = Date.now();
     let timeout:number
     switch(this.gameStatus) {
@@ -266,7 +338,7 @@ class Game {
         break;
       }
       case GameStatus.FINISHED: {
-        this.nsp.to(this.id).emit("finished", { p1: this.p1Score, p2: this.p2Score });
+        this.nsp.to(this.id).emit("finished", { p1: this.score[0], p2: this.score[1] });
         this.gameStatus = GameStatus.DISCONNECT;
         timeout = 1000;
         break;
@@ -281,7 +353,7 @@ class Game {
     return timeout;
   }
   
-  getKeyPressDt(curTime: number): number[] {
+  private getKeyPressDt(curTime: number): number[] {
     const keyPressDt: number[] = [];
     for (let i = 0; i < 4; i++) {
       if (this.keyPress[i] && curTime > this.keyPress[i]) {
@@ -294,9 +366,7 @@ class Game {
     return keyPressDt;
   }
 
-  paddleUpdate(keyPressDt: number[]) {
-    // console.log(`keyPressDt: ${keyPressDt}`);
-
+  private paddleUpdate(keyPressDt: number[]) {
     if (keyPressDt[0] !== 0) {
       if (this.paddle1Y > 0){
         this.paddle1Y -= this.paddleSpeed * keyPressDt[0];
@@ -331,7 +401,7 @@ class Game {
     }
   }
 
-  collisionCheckX() {
+  private collisionCheckX() {
     if (this.ballX <= this.ballRadius + this.paddleWidth) {
       return Direction.LEFT;
     } else if (this.ballX >= this.canvasWidth - this.ballRadius - this.paddleWidth) {
@@ -340,7 +410,7 @@ class Game {
     return Direction.NONE;
   }
 
-  collisionCheckY() {
+  private collisionCheckY() {
     if (this.ballY >= this.canvasHeight - this.ballRadius) {
       return Direction.DOWN;
     } else if (this.ballY <= this.ballRadius) {
@@ -349,28 +419,28 @@ class Game {
     return Direction.NONE;
   }
 
-  collisionCheckP1Paddle() {
+  private collisionCheckP1Paddle() {
     if (this.ballY >= this.paddle1Y && this.ballY <= this.paddle1Y + this.paddleHeight) {
       return Hit.PADDLE;
     }
     return Hit.WALL;
   }
 
-  collisionCheckP2Paddle() {
+  private collisionCheckP2Paddle() {
     if (this.ballY >= this.paddle2Y && this.ballY <= this.paddle2Y + this.paddleHeight) {
       return Hit.PADDLE;
     }
     return Hit.WALL;
   }
 
-  isKeyPressed(pressTime: number): boolean {
+  private isKeyPressed(pressTime: number): boolean {
     if (pressTime != 0) {
       return true;
     }
     return false;
   }
 
-  getState() {
+  private getState() {
     return {
       paddle1Y: this.paddle1Y,
       ballX: this.ballX,
@@ -386,11 +456,7 @@ class Game {
     };
   }
 
-  isPlayer(uid: number): boolean {
-    return this.p1 === uid || this.p2 === uid;
-  }
-
-  emitPaddleInfo() {
+  private emitPaddleInfo() {
     this.nsp.to(this.id).emit("paddleInfo", {
       paddle1YUp: this.isKeyPressed(this.keyPress[0]),
       paddle1YDown: this.isKeyPressed(this.keyPress[1]),
@@ -398,62 +464,5 @@ class Game {
       paddle2YDown: this.isKeyPressed(this.keyPress[3]),
     });
   }
-  
-  upPress(uid: number) {
-    if (this.gameStatus === GameStatus.RUNNING) {
-      this.update();
-      if (this.p1 === uid) {
-        this.keyPress[0] = Date.now();
-      } else {
-        this.keyPress[2] = Date.now();
-      }
-      this.emitPaddleInfo();
-    }
-  }
-  
-  upRelease(uid: number) {
-    if (this.gameStatus === GameStatus.RUNNING) {
-      this.update();
-      if (this.p1 === uid) {
-        this.keyPress[0] = 0;
-      } else {
-        this.keyPress[2] = 0;
-      }
-      this.emitPaddleInfo();
-    }
-  }
-  downPress(uid: number) {
-    if (this.gameStatus === GameStatus.RUNNING) {
-      this.update();
-      if (this.p1 === uid) {
-        this.keyPress[1] = Date.now();
-      } else {
-        this.keyPress[3] = Date.now();
-      }
-      this.emitPaddleInfo();
-    }
-  }
-  
-  downRelease(uid: number) {
-    if (this.gameStatus === GameStatus.RUNNING) {
-      this.update();
-      if (this.p1 === uid) {
-        this.keyPress[1] = 0;
-      } else {
-        this.keyPress[3] = 0;
-      }
-      this.emitPaddleInfo();
-    }
-  }
-  
-  playerLeft(uid: number) {
-    this.gameStatus = GameStatus.FINISHED;
-    if (this.p1 === uid) {
-      this.p1Score = -1;
-    } else {
-      this.p2Score = -1;
-    }
-  }
-
 
 }

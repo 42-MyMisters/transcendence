@@ -3,6 +3,7 @@ import { ConnectedSocket, OnGatewayConnection, OnGatewayDisconnect, OnGatewayIni
 import { Namespace, Socket } from 'socket.io';
 import { AuthService } from 'src/auth/auth.service';
 import { UserService } from 'src/user/user.service';
+import { GameType } from './game.enum';
 import { GameService } from './game.service';
 
 
@@ -11,6 +12,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   // private userSocket: Map<number, Socket>
   private gameQueue: Socket[];
   private gameId: number;
+  private userInGame: Map<number, string>;
   constructor(
     private userService: UserService,
 		private authService: AuthService,
@@ -56,7 +58,13 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       socket.data.uid = await this.authService.jwtVerify(socket.handshake.auth.token);
       // socket.data.elo = await this.userService.getUserByUid(socket.data.uid);
       if (socket.handshake.auth.data === undefined) {
-        this.gameQueue.push(socket);
+        if (socket.handshake.auth.type === GameType.PRIVATE) {
+          socket.emit("isLoading", true);
+        } else {
+          this.gameQueue.push(socket);
+          socket.emit("isQueue", true);
+        }
+        // this.userInGame.add(socket.data.uid);
       } else {
         // for observer
         if (this.gameService.getGame(socket.handshake.auth.data) !== undefined) {
@@ -84,6 +92,9 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.logger.log(`${socket.data.uid} observer left.`);
       }
     }
+    // if (socket.data.uid) {
+    //   this.userInGame.delete(socket.data.uid);
+    // }
     this.logger.log(`${socket.data.uid} join game failed.`);
   }
 
