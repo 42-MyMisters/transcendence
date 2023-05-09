@@ -2,8 +2,9 @@ import "../../styles/BackGround.css";
 import "../../styles/PingPong.css";
 
 import React, { useEffect } from "react";
-
+import { useAtom } from "jotai";
 import { GameCoordinate } from "../atom/GameAtom";
+import * as chatAtom from "../atom/ChatAtom";
 import { Game } from "./Pong";
 
 import * as game from "../../socket/game.socket";
@@ -12,11 +13,14 @@ import { useRef, useState } from "react";
 import { socket } from "../../socket/chat.socket";
 import { ball, Direction, HEIGHT, Hit, p1, p2, paddle, paddleInfo, scoreInfo, WIDTH } from "./GameInfo";
 
+import { AdminLogPrinter } from "../../event/event.util";
+
 export default function PingPong() {
   const [upArrow, setUpArrow] = useState(false);
   const [downArrow, setDownArrow] = useState(false);
+  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
   const canvas = useRef<HTMLCanvasElement>(null);
-  
+
   let coords = {
     paddle1Y: 225,
     ballX: 1150 / 2,
@@ -43,13 +47,13 @@ export default function PingPong() {
         // any missed packets will be received
       } else {
         // new or unrecoverable session
-        console.log("gameSocket connected");
+        AdminLogPrinter(adminConsole, "gameSocket connected");
         pingInterval = setInterval(() => {
           const curTime = Date.now();
           const handler = (pong: boolean) => {
             if (pong) {
               pingTime = Date.now() - curTime;
-              console.log(`ping: ${pingTime}ms`);
+              AdminLogPrinter(adminConsole, `ping: ${pingTime}ms`);
             }
           }
           game.gameSocket.emit('ping', handler);
@@ -75,7 +79,7 @@ export default function PingPong() {
     }
     clearInterval(pingInterval);
     // else the socket will automatically try to reconnect
-    console.log("gameSocket disconnected");
+    AdminLogPrinter(adminConsole, "gameSocket disconnected");
   });
 
   // the connection is denied by the server in a middleware function
@@ -83,7 +87,7 @@ export default function PingPong() {
     if (err.message === "unauthorized") {
       // handle each case
     }
-    console.log(err.message); // prints the message associated with the error
+    AdminLogPrinter(adminConsole, err.message); // prints the message associated with the error
   });
 
   game.gameSocket.on(
@@ -94,7 +98,7 @@ export default function PingPong() {
   useEffect(() => {
     const handler = (started: boolean) => {
       lastUpdateTime = Date.now();
-      console.log("update start");
+      AdminLogPrinter(adminConsole, "update start");
       update(coords, canvas);
     };
     game.gameSocket.on("start", handler);
@@ -102,7 +106,7 @@ export default function PingPong() {
       game.gameSocket.off("start", handler);
     };
   }, []);
-        
+
   useEffect(() => {
     const handler = (gameCoord: GameCoordinate) => {
       lastUpdateTime = Date.now();
@@ -110,12 +114,12 @@ export default function PingPong() {
       Game(coords, canvas);
     };
     game.gameSocket.on("graphic", handler);
-    console.log(`coords: ${JSON.stringify(coords)}`)
+    AdminLogPrinter(adminConsole, `coords: ${JSON.stringify(coords)}`)
     return () => {
       socket.off("graphic", handler);
     }
   }, []);
-  
+
   useEffect(() => {
     const handler = (paddleInfo: paddleInfo) => {
       coords.paddle1YUp = paddleInfo.paddle1YUp;
@@ -159,12 +163,12 @@ export default function PingPong() {
       socket.off("finished", handler);
     }
   }, []);
-  
-  function update(coord:GameCoordinate, canvas:React.RefObject<HTMLCanvasElement>) {
+
+  function update(coord: GameCoordinate, canvas: React.RefObject<HTMLCanvasElement>) {
     const curTime = Date.now();
     const dt = curTime - lastUpdateTime;
 
-    paddleUpdate(coord.paddle1YUp, coord.paddle1YDown,coord.paddle2YUp, coord.paddle2YDown, dt);
+    paddleUpdate(coord.paddle1YUp, coord.paddle1YDown, coord.paddle2YUp, coord.paddle2YDown, dt);
     coord.ballX += coord.ballSpeedX * dt;
     coord.ballY += coord.ballSpeedY * dt;
     const isHitY = collisionCheckY();
@@ -193,10 +197,10 @@ export default function PingPong() {
     Game(coord, canvas);
     requestAnimationFrame(() => update(coords, canvas));
   }
-  
+
   function paddleUpdate(p1Up: boolean, p1Down: boolean, p2Up: boolean, p2Down: boolean, dt: number) {
     if (p1Up) {
-      if (coords.paddle1Y > 0){
+      if (coords.paddle1Y > 0) {
         coords.paddle1Y -= coords.paddleSpeed * dt;
       }
       if (coords.paddle1Y < 0) {
@@ -204,7 +208,7 @@ export default function PingPong() {
       }
     }
     if (p1Down) {
-      if (coords.paddle1Y < HEIGHT - paddle.height){
+      if (coords.paddle1Y < HEIGHT - paddle.height) {
         coords.paddle1Y += coords.paddleSpeed * dt;
       }
       if (coords.paddle1Y > HEIGHT - paddle.height) {
@@ -220,7 +224,7 @@ export default function PingPong() {
       }
     }
     if (p2Down) {
-      if (coords.paddle2Y < HEIGHT - paddle.height){
+      if (coords.paddle2Y < HEIGHT - paddle.height) {
         coords.paddle2Y += coords.paddleSpeed * dt;
       }
       if (coords.paddle2Y > HEIGHT - paddle.height) {
@@ -272,13 +276,13 @@ export default function PingPong() {
         if (!upArrow) {
           setUpArrow(true);
           game.emitUpPress();
-          console.log("up press");
+          AdminLogPrinter(adminConsole, "up press");
         }
       } else if (event.code === "ArrowDown") {
         if (!downArrow) {
           setDownArrow(true);
           game.emitDownPress();
-          console.log("down press");
+          AdminLogPrinter(adminConsole, "down press");
         }
       }
     }
@@ -288,13 +292,13 @@ export default function PingPong() {
         if (upArrow) {
           setUpArrow(false);
           game.emitUpRelease();
-          console.log("up release");
+          AdminLogPrinter(adminConsole, "up release");
         }
       } else if (event.code === "ArrowDown") {
         if (downArrow) {
           setDownArrow(false);
           game.emitDownRelease();
-          console.log("down release");
+          AdminLogPrinter(adminConsole, "down release");
         }
       }
     }

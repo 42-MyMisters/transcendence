@@ -7,6 +7,7 @@ import { refreshTokenAtom } from "./atom/LoginAtom";
 import { LogOut } from '../event/api.request';
 import * as socket from "../socket/chat.socket";
 import * as chatAtom from "../components/atom/ChatAtom";
+import { AdminLogPrinter } from "../event/event.util";
 
 export default function TopBar() {
   return (
@@ -72,6 +73,7 @@ function LogoutBtn() {
   const [, setRefreshToken] = useAtom(refreshTokenAtom);
   const [isFirstLogin, setIsFirstLogin] = useAtom(chatAtom.isFirstLoginAtom);
   const [hasLogin, setHasLogin] = useAtom(chatAtom.hasLoginAtom);
+  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
 
   const navigate = useNavigate();
 
@@ -84,7 +86,7 @@ function LogoutBtn() {
         throw new Error("Logout Error");
       }
     }).catch((err) => {
-      console.log(err);
+      AdminLogPrinter(adminConsole, err);
     });
     LogOut(setRefreshToken, navigate, "/");
     setHasLogin(false);

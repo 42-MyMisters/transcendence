@@ -16,8 +16,11 @@ import ChatPage from "./ChatPage";
 import { useNavigate } from "react-router-dom";
 
 import * as socket from "../socket/chat.socket";
+import * as chatAtom from "../components/atom/ChatAtom";
 import { hasLoginAtom } from "../components/atom/ChatAtom";
 import InitialSettingModal from "../components/LoginPage/InitialSetting";
+
+import { AdminLogPrinter } from "../event/event.util";
 
 export default function LoginPage() {
   /* localstorage에 없는데 cookie에 있으면 로그인이 된거다 */
@@ -26,6 +29,7 @@ export default function LoginPage() {
   const [cookie, setCookie] = useAtom(cookieAtom);
   const [TFAEnabled, setTFAEnabled] = useAtom(TFAEnabledAtom);
   const [hasLogin, setHasLogin] = useAtom(hasLoginAtom);
+  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
 
   const cookieIMade = "refreshToken";
   const [cookies, setCookies, removeCookie] = useCookies([cookieIMade]);
@@ -57,7 +61,7 @@ export default function LoginPage() {
           setHasLogin(true);
           navigate("/chat");
         } else {
-          console.log("already login -- ??");
+          AdminLogPrinter(adminConsole, "already login -- ??");
           navigate("/chat");
         }
       }

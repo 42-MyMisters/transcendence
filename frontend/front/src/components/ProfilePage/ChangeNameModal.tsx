@@ -4,13 +4,15 @@ import { UserAtom } from "../atom/UserAtom";
 
 import { useState } from "react";
 
-import { PressKey } from "../../event/pressKey";
+import { PressKey, AdminLogPrinter } from "../../event/event.util";
+import * as chatAtom from "../../components/atom/ChatAtom";
 import "../../styles/ProfileModal.css";
 
 export default function ChangeNameModal() {
   const [changeNameModal, setchangeNameModal] = useAtom(changeNameModalAtom);
   const [userInfo, setUserInfo] = useAtom(UserAtom);
   const [newName, setNewName] = useState("");
+  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
 
   PressKey(["Escape"], () => {
     setchangeNameModal(false);
@@ -22,7 +24,7 @@ export default function ChangeNameModal() {
       return;
     }
     const format = JSON.stringify({ nickname: newName });
-    console.log(format);
+    AdminLogPrinter(adminConsole, format);
     fetch("http://localhost:4000/user/nickname", {
       credentials: "include",
       method: "PATCH",
@@ -33,11 +35,11 @@ export default function ChangeNameModal() {
         let tmp = userInfo;
         tmp.nickname = newName;
         setUserInfo(tmp);
-        console.log(response);
+        AdminLogPrinter(adminConsole, response);
         setchangeNameModal(false);
       })
       .catch((error) => {
-        console.log(`error: ${error}`);
+        AdminLogPrinter(adminConsole, `error: ${error}`);
       });
   };
 

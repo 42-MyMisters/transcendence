@@ -31,6 +31,8 @@ import { GetMyInfo, RefreshToken, LogOut } from "../event/api.request";
 import { useNavigate } from "react-router-dom";
 import GameInviteModal from "../components/GamePage/GameInviteModal";
 
+import { PressKey, AdminLogPrinter } from "../event/event.util";
+
 export default function ChatPage() {
 	const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
 	const [roomModal, setRoomModal] = useAtom(roomModalAtom);
@@ -53,72 +55,77 @@ export default function ChatPage() {
 	const [, setRefreshToken] = useAtom(refreshTokenAtom);
 
 	const [gameInviteModal, setGameInviteModal] = useAtom(gameInviteModalAtom);
+	const [adminConsole, setAdminConsole] = useAtom(chatAtom.adminConsoleAtom);
+
+	PressKey(["F4"], () => {
+		setAdminConsole((prev) => !prev);
+	});
 
 	const getRoomList = () => {
-		console.log("\n\ngetRoomList");
+		AdminLogPrinter(adminConsole, "\n\ngetRoomList");
 		Object.entries(roomList).forEach(([key, value]) => {
 			if (value.detail !== undefined) {
-				console.log(`\n[ ${value.roomName} : ${key}] - ${value.roomType}`);
+				AdminLogPrinter(adminConsole, `\n[ ${value.roomName} : ${key}] - ${value.roomType}`);
 				Object.entries(value.detail).forEach(([key, value]) => {
 					if (key === "userList") {
 						Object.entries(value).forEach(([key, value]) => {
-							console.log(`uid: ${key}, value: ${JSON.stringify(value)}`);
+							AdminLogPrinter(adminConsole, `uid: ${key}, value: ${JSON.stringify(value)}`);
 						});
 					} else {
-						console.log(`key: ${key}, value: ${JSON.stringify(value)}`);
+						AdminLogPrinter(adminConsole, `key: ${key}, value: ${JSON.stringify(value)}`);
 					}
 				});
 			} else {
-				console.log(`[ ${value.roomName} ] \nvalue: ${JSON.stringify(value)}`);
+				AdminLogPrinter(adminConsole, `[ ${value.roomName} ] \nvalue: ${JSON.stringify(value)}`);
 			}
 		});
 	};
 
 	const getUserList = () => {
-		console.log("\n\ngetUserList");
+		AdminLogPrinter(adminConsole, "\n\ngetUserList");
 		Object.entries(userList).forEach(([key, value]) => {
-			console.log(`[ ${value.userDisplayName} ]\nkey: ${key}, value: ${JSON.stringify(value)}`);
+			AdminLogPrinter(adminConsole, `[ ${value.userDisplayName} ]\nkey: ${key}, value: ${JSON.stringify(value)}`);
 		});
 	};
 
 	const getDMList = () => {
-		console.log("\n\ngetDmHitoryList");
+		AdminLogPrinter(adminConsole, "\n\ngetDmHitoryList");
 		Object.entries(dmHistoryList).forEach(([key, value]) => {
-			console.log(`[ ${value.userDisplayName} ]\nkey: ${key}, value: ${JSON.stringify(value)}`);
+			AdminLogPrinter(adminConsole, `[ ${value.userDisplayName} ]\nkey: ${key}, value: ${JSON.stringify(value)}`);
 		});
 	};
 
 	const getFollowingList = () => {
-		console.log(`\n\ngetFollowingList`);
+		AdminLogPrinter(adminConsole, `\n\ngetFollowingList`);
 		Object.entries(followingList).forEach(([key, value]) => {
-			console.log(`[ ${value.userDisplayName} ]\nkey: ${key}, value: ${JSON.stringify(value)}`);
+			AdminLogPrinter(adminConsole, `[ ${value.userDisplayName} ]\nkey: ${key}, value: ${JSON.stringify(value)}`);
 		});
 	};
 
 	const showSocketState = () => {
-		console.log(`socket state: ${socketState}`);
+		AdminLogPrinter(adminConsole, `socket state: ${socketState}`);
 	};
 
 
 	const getBlockList = () => {
-		console.log(`\n\ngetBlockList`);
+		AdminLogPrinter(adminConsole, `\n\ngetBlockList`);
 		Object.entries(blockList).forEach(([key, value]) => {
-			console.log(`[ ${userList[Number(key)].userDisplayName} ]\nkey: ${key}, value: ${JSON.stringify(value)}`);
+			AdminLogPrinter(adminConsole, `[ ${userList[Number(key)].userDisplayName} ]\nkey: ${key}, value: ${JSON.stringify(value)}`);
 		});
 
 	};
 
 	const showMyinfo = () => {
-		console.log(`showMyinfo ${JSON.stringify(userInfo)}}`);
+		AdminLogPrinter(adminConsole, `showMyinfo ${JSON.stringify(userInfo)}}`);
 	};
 
 	const showServerUser = () => {
-		console.log("\nshow server user list");
+		AdminLogPrinter(adminConsole, "\nshow server user list");
 		socket.socket.emit("server-user-list");
 	};
 
 	const showServerRoom = () => {
-		console.log("\nshow server room list");
+		AdminLogPrinter(adminConsole, "\nshow server room list");
 		socket.socket.emit("server-room-list");
 	};
 
@@ -153,11 +160,11 @@ export default function ChatPage() {
 
 	useEffect(() => {
 		socket.socket.onAny((eventName, ...args) => {
-			console.log("incoming ", eventName, args);
+			AdminLogPrinter(adminConsole, "incoming ", eventName, args);
 		});
 		// catch all outgoing events
 		socket.socket.onAnyOutgoing((eventName, ...args) => {
-			console.log("outgoing ", eventName, args);
+			AdminLogPrinter(adminConsole, "outgoing ", eventName, args);
 		});
 		socket.socket.on("connect", () => {
 			if (socket.socket.connected) {
@@ -166,24 +173,24 @@ export default function ChatPage() {
 					// any missed packets will be received
 				} else {
 					// new or unrecoverable session
-					console.log("socket connected : " + socket.socket.id);
+					AdminLogPrinter(adminConsole, "socket connected : " + socket.socket.id);
 				}
 			}
 			setSocketState(true);
 		});
 		//https://socket.io/docs/v4/client-socket-instance/#disconnect
 		socket.socket.on("disconnect", (reason) => {
-			console.log("socket disconnected reason: " + reason);
+			AdminLogPrinter(adminConsole, "socket disconnected reason: " + reason);
 			/**
 			 *  BAD, will throw an error
 			 *  socket.emit("disconnect");
 			*/
 			if (reason === "io server disconnect") {
 				// the disconnection was initiated by the server, you need to reconnect manually
-				console.log('socket disconnected by server');
+				AdminLogPrinter(adminConsole, 'socket disconnected by server');
 			}
 			// else the socket will automatically try to reconnect
-			console.log("socket disconnected");
+			AdminLogPrinter(adminConsole, "socket disconnected");
 			setSocketState(false);
 		});
 		// the connection is denied by the server in a middleware function
@@ -191,7 +198,7 @@ export default function ChatPage() {
 			if (err.message === "unauthorized") {
 				// handle each case
 			}
-			console.log(err.message); // prints the message associated with the error
+			AdminLogPrinter(adminConsole, err.message); // prints the message associated with the error
 		});
 		socket.socket.on("multiple-login", () => {
 			// 	alert(`multiple login detected!`);
@@ -346,8 +353,8 @@ export default function ChatPage() {
 						roomType,
 						isJoined: false,
 					};
-					console.log(`room-list-update new: ${JSON.stringify(newRoomList)}`);
-					console.log(`room-list-update origin: ${JSON.stringify(roomList)}`);
+					AdminLogPrinter(adminConsole, `room-list-update new: ${JSON.stringify(newRoomList)}`);
+					AdminLogPrinter(adminConsole, `room-list-update origin: ${JSON.stringify(roomList)}`);
 					setRoomList({ ...roomList, ...newRoomList });
 					break;
 				}
@@ -413,7 +420,7 @@ export default function ChatPage() {
 		}) => {
 			switch (status) {
 				case 'ok': {
-					console.log(`join [${roomName}]room`);
+					AdminLogPrinter(adminConsole, `join [${roomName}]room`);
 					const newRoomList: chatType.roomListDto = {};
 					newRoomList[roomId] = {
 						roomName,
@@ -426,7 +433,7 @@ export default function ChatPage() {
 							myRoomPower: myPower
 						}
 					};
-					console.log(`room - join new: ${JSON.stringify(newRoomList)}`);
+					AdminLogPrinter(adminConsole, `room - join new: ${JSON.stringify(newRoomList)}`);
 					setRoomList({ ...roomList, ...newRoomList });
 					if (method !== 'invite') {
 						setFocusRoom(roomId);
@@ -557,7 +564,7 @@ export default function ChatPage() {
 				userProfileUrl,
 				userStatus,
 			};
-			console.log(`user-update: ${userDisplayName}: ${userStatus}`);
+			AdminLogPrinter(adminConsole, `user-update: ${userDisplayName}: ${userStatus}`);
 			setUserList((prevUserList) => ({ ...prevUserList, ...newUser }));
 		});
 		return () => {
@@ -578,11 +585,11 @@ export default function ChatPage() {
 			const block = blockList[from] ? true : false;
 			switch (block) {
 				case true: {
-					console.log(`message from ${from} is blocked`);
+					AdminLogPrinter(adminConsole, `message from ${from} is blocked`);
 					break;
 				}
 				case false: {
-					console.log(`message from ${from} is received: ${message}`);
+					AdminLogPrinter(adminConsole, `message from ${from} is received: ${message}`);
 					const newMessageList: chatType.roomMessageDto[] = roomList[roomId].detail?.messageList!;
 					newMessageList.unshift({
 						userId: from,
@@ -634,16 +641,22 @@ export default function ChatPage() {
 
 	return (
 		<BackGround>
-			<button onClick={getMyinfoHandler}> /user/me</button>
-			<button onClick={showMyinfo}> show /user/me</button>
-			<button onClick={getRoomList}> roomList</button>
-			<button onClick={getUserList}> userList</button>
-			<button onClick={getDMList}> dmHistoryList</button>
-			<button onClick={getFollowingList}> FollowList</button>
-			<button onClick={showServerUser}> show server user</button>
-			<button onClick={showServerRoom}> show server room</button>
-			<button onClick={showSocketState}> socket state</button>
-			<button onClick={() => setGameInviteModal(true)}> gameinvite</button>
+			{
+				adminConsole === true
+					? <div>
+						<button onClick={getMyinfoHandler}> /user/me</button>
+						<button onClick={showMyinfo}> show /user/me</button>
+						<button onClick={getRoomList}> roomList</button>
+						<button onClick={getUserList}> userList</button>
+						<button onClick={getDMList}> dmHistoryList</button>
+						<button onClick={getFollowingList}> FollowList</button>
+						<button onClick={showServerUser}> show server user</button>
+						<button onClick={showServerRoom}> show server room</button>
+						<button onClick={showSocketState}> socket state</button>
+						<button onClick={() => setGameInviteModal(true)}> gameinvite</button>
+					</div>
+					: ''
+			}
 			<TopBar />
 			{userInfoModal ? <UserInfoModal /> : null}
 			{roomModal ? <RoomModal /> : null}

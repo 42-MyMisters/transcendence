@@ -2,7 +2,8 @@ import { useAtom } from "jotai";
 import { UserAtom } from "../atom/UserAtom";
 import { useRef, useState } from "react";
 import { changeImageModalAtom } from "../../components/atom/ModalAtom";
-import { PressKey } from "../../event/pressKey";
+import { PressKey, AdminLogPrinter } from "../../event/event.util";
+import * as chatAtom from "../../components/atom/ChatAtom";
 
 import "../../styles/ChangeImageModal.css";
 
@@ -10,6 +11,7 @@ export default function ChangeImageModal() {
   const [changeImageModal, setchangeImageModal] = useAtom(changeImageModalAtom);
   const [userInfo, setUserInfo] = useAtom(UserAtom);
   const [newImage, setnewImage] = useState("");
+  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
   const profileRef = useRef<HTMLInputElement>(null);
 
   PressKey(["Escape"], () => {
@@ -20,14 +22,14 @@ export default function ChangeImageModal() {
     if (profileRef.current?.files?.[0]) {
       const newImg = URL.createObjectURL(profileRef.current?.files[0]);
       setnewImage(newImg);
-      console.log(`new Image: ${newImg}`);
+      AdminLogPrinter(adminConsole, `new Image: ${newImg}`);
     }
   };
 
   const setNewImage = async () => {
     const formData = new FormData();
     formData.append("profileImage", profileRef.current?.files?.[0]!);
-    console.log(profileRef.current?.files?.[0]!.name);
+    AdminLogPrinter(adminConsole, profileRef.current?.files?.[0]!.name);
 
     try {
       const response = await fetch(
@@ -43,7 +45,7 @@ export default function ChangeImageModal() {
         let tmp = userInfo;
         tmp.profileUrl = newImage;
         setUserInfo(tmp);
-        console.log(response);
+        AdminLogPrinter(adminConsole, response);
         setchangeImageModal(false);
       } else {
         alert("파일 업로드에 실패했습니다.");

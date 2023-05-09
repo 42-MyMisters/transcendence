@@ -25,6 +25,7 @@ export default function ChatRoomUserList() {
   const [, setRoomModal] = useAtom(roomModalAtom);
   const [, setRoomSettingIsPrivate] = useAtom(chatAtom.roomSettingIsPrivateAtom);
   const [, setRoomSettingCurrentRoomName] = useAtom(chatAtom.roomSettingCurrentRoomNameAtom);
+  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
 
   const onClickInfo = useCallback(() => {
     const handleSetRoomModal = () => {
@@ -41,7 +42,7 @@ export default function ChatRoomUserList() {
   }, []);
 
   const onClickLeave = () => {
-    socket.emitRoomLeave({ roomList, setRoomList, focusRoom, setFocusRoom }, focusRoom);
+    socket.emitRoomLeave({ adminConsole, roomList, setRoomList, focusRoom, setFocusRoom }, focusRoom);
   };
 
   const onClickSetting = () => {
