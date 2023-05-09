@@ -31,6 +31,7 @@ import { GetMyInfo, RefreshToken, LogOut } from "../event/api.request";
 import { useNavigate } from "react-router-dom";
 import GameInviteModal from "../components/GamePage/GameInviteModal";
 
+import { PressKey } from "../event/pressKey";
 export default function ChatPage() {
 	const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
 	const [roomModal, setRoomModal] = useAtom(roomModalAtom);
@@ -53,6 +54,10 @@ export default function ChatPage() {
 	const [, setRefreshToken] = useAtom(refreshTokenAtom);
 
 	const [gameInviteModal, setGameInviteModal] = useAtom(gameInviteModalAtom);
+
+	PressKey(["F4"], () => {
+		console.log("press F4");
+	});
 
 	const getRoomList = () => {
 		console.log("\n\ngetRoomList");

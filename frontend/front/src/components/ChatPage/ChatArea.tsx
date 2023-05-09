@@ -55,7 +55,7 @@ export default function ChatArea() {
             ))
         }
       </div>
-      <input type="text" className="ChatAreaInput" maxLength={256} value={message} onChange={(e) => setMessage(e.target.value)} onKeyDown={(e) => handleEnterEvent(e)}></input>
+      <input type="text" className="ChatAreaInput" maxLength={256} value={message} onChange={(e) => setMessage(e.target.value)} onKeyPress={(e) => handleEnterEvent(e)}></input>
       <div className="ChatDMImg" onClick={handleSendMessage} />
     </div>
   );
