@@ -53,6 +53,10 @@ export default function ChangeNameModal() {
       alert("변경할 닉네임은 2글자 이상, 12글자 이하여야 합니다.")
       setNewName("");
       return;
+    } else if (trimNewName === userInfo.nickname) {
+      alert("현재 닉네임과 동일합니다.")
+      setNewName("");
+      return;
     }
     const format = JSON.stringify({ nickname: newName });
     AdminLogPrinter(adminConsole, `changeNickName: ${format}`);
