@@ -56,7 +56,6 @@ export default function ChatPage() {
 
 	const [gameInviteModal, setGameInviteModal] = useAtom(gameInviteModalAtom);
 	const [adminConsole, setAdminConsole] = useAtom(chatAtom.adminConsoleAtom);
-	const [, setIsMyProfile] = useAtom(isMyProfileAtom);
 
 	PressKey(["F4"], () => {
 		setAdminConsole((prev) => !prev);
@@ -157,11 +156,6 @@ export default function ChatPage() {
 			}
 		}
 	}
-
-	useEffect(() => {
-		setIsMyProfile(true);
-	}, []);
-
 
 	useEffect(() => {
 		socket.socket.onAny((eventName, ...args) => {
