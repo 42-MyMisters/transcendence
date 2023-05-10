@@ -653,7 +653,7 @@ export default function ChatPage() {
 	return (
 		<BackGround>
 			{
-				adminConsole === true
+				adminConsole
 					? <div>
 						<button onClick={getMyinfoHandler}> /user/me</button>
 						<button onClick={showMyinfo}> show /user/me</button>
