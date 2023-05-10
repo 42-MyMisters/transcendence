@@ -28,6 +28,6 @@ export class TesterController {
 
   @Get("/elo")
   async eloCalc(){
-    this.testerService.eloLogic(0,0,)
+    // this.testerService.eloLogic(0,0,)
   }
 }
