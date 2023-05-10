@@ -10,6 +10,8 @@ import { useNavigate } from 'react-router-dom';
 import "../../styles/ProfilePage.css";
 import { useEffect } from 'react';
 import { refreshTokenAtom } from "../../components/atom/LoginAtom";
+import { AdminLogPrinter } from '../../event/event.util';
+
 export default function ProfileOptions() {
   const [changeNameModal, setchangeNameModal] = useAtom(changeNameModalAtom);
   const [changeImageModal, setChangeImageModal] = useAtom(changeImageModalAtom);
@@ -42,10 +44,10 @@ export default function ProfileOptions() {
   useEffect(() => {
     if (isTFAChanged) {
       if (tfa) {
-        console.log("2FA on");
+        AdminLogPrinter(adminConsole, "\n2FA on");
         handleFTARequest();
       } else {
-        console.log("2FA off");
+        AdminLogPrinter(adminConsole, "\n2FA off");
         handleFTARequest();
       }
       setIsTFAChanged(false);
