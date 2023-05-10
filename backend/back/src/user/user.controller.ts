@@ -215,6 +215,13 @@ export class UserController {
 		return await this.getUserProfie(reqeust);
 	}
 	
+	@Get('/profile/:uid')
+	@UseGuards(Jwt2faAuthGuard)
+	async findUserProfile(@Param('uid')uid: number){
+		return await this.userService.getUserProfile(uid);
+
+	}
+
 	
 	// for debug
 	@Get('/profile-img-change')
