@@ -67,7 +67,7 @@ export async function changeProfileImage(
         status = response.status;
         AdminLogPrinter(adminConsole, '\nchangeProfileImage: ', response);
         if (response.status === 201) {
-          socket.socket.emit('user-update-info', 'image');
+          socket.socket.emit('user-change-info', 'image');
           callback();
         } else {
           throw new Error(`${response.status}`);
@@ -100,7 +100,7 @@ export async function changeNickName(
       status = response.status;
       AdminLogPrinter(adminConsole, '\nchangeNickName:', response);
       if (response.status === 200) {
-        socket.socket.emit('user-update-info', 'name');
+        socket.socket.emit('user-change-info', 'name');
         callback();
       } else {
         throw new Error(`${response.status}`);
