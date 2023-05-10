@@ -8,6 +8,7 @@ import { LogOut } from "../event/api.request";
 import * as socket from "../socket/chat.socket";
 import * as chatAtom from "../components/atom/ChatAtom";
 import { AdminLogPrinter } from "../event/event.util";
+import { isMyProfileAtom } from "../components/atom/UserAtom";
 
 export default function TopBar() {
   return (
@@ -60,8 +61,14 @@ function QueueBtn() {
 }
 
 function ProfileBtn() {
+  const [, setIsMyProfile] = useAtom(isMyProfileAtom);
+
+  const profileHandler = () => {
+    setIsMyProfile(true);
+  };
+
   return (
-    <div className="TopBarBtn">
+    <div className="TopBarBtn" onClick={profileHandler} >
       <NavLink to="/profile" className="AStyle" style={getNavLinkStyle}>
         Profile
       </NavLink>
