@@ -18,25 +18,6 @@ export default function ProfileFriend() {
       <div className="ProfileFriendBG">
         <div className="ProfileFriendList">
           {
-            !isMyProfile
-              ? profile.followings.map((key) => {
-                return (
-                  <UserObj
-                    key={key.uid}
-                    uid={Number(key.uid)}
-                    nickName={key.nickname}
-                    profileImage={key.profileUrl}
-                    status={userList[Number(key.uid)].userStatus ?? 'offline'}
-                    chat={'normal'}
-                    power="member"
-                    callBack={() => { }}
-                    defaultColor={"#111"}
-                  />
-                );
-              })
-              : null
-          }
-          {
             isMyProfile
               ? Object.keys(followingList).map((key) => {
                 return (
@@ -53,7 +34,21 @@ export default function ProfileFriend() {
                   />
                 );
               })
-              : ''
+              : profile.followings.map((key) => {
+                return (
+                  <UserObj
+                    key={key.uid}
+                    uid={Number(key.uid)}
+                    nickName={key.nickname}
+                    profileImage={key.profileUrl}
+                    status={userList[Number(key.uid)].userStatus ?? 'offline'}
+                    chat={'normal'}
+                    power="member"
+                    callBack={() => { }}
+                    defaultColor={"#111"}
+                  />
+                );
+              })
           }
         </div>
       </div>
