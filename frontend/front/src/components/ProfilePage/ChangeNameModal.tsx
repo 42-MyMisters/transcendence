@@ -6,7 +6,10 @@ import { useState } from "react";
 
 import { PressKey, AdminLogPrinter } from "../../event/event.util";
 import * as chatAtom from "../../components/atom/ChatAtom";
+import { keyboardKey } from '@testing-library/user-event';
 import "../../styles/ProfileModal.css";
+
+import { useAutoFocus } from '../../event/event.util';
 
 export default function ChangeNameModal() {
   const [changeNameModal, setchangeNameModal] = useAtom(changeNameModalAtom);
@@ -14,12 +17,16 @@ export default function ChangeNameModal() {
   const [newName, setNewName] = useState("");
   const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
 
+  const nameInputRef = useAutoFocus();
+
   PressKey(["Escape"], () => {
     setchangeNameModal(false);
   });
 
+
   const handleChangeName = () => {
     if (newName.length < 2 || newName.trim().length < 2) {
+      alert("변경할 닉네임은 2글자 이상, 12글자 이하여야 합니다.")
       setNewName("");
       return;
     }
@@ -43,6 +50,12 @@ export default function ChangeNameModal() {
       });
   };
 
+  const handleEnterEvent = (e: keyboardKey) => {
+    if (e.key === 'Enter') {
+      handleChangeName();
+    }
+  }
+
   return (
     <>
       <div className="ChangeNameModalBG"></div>
@@ -52,14 +65,16 @@ export default function ChangeNameModal() {
           <input
             id="SaveName"
             type="text"
+            ref={nameInputRef}
             // pattern=".{1, 8}"
             // required
             // title="1 to 8 characters"
-            maxLength={8}
+            maxLength={12}
             value={newName}
             onChange={(e) => {
               setNewName(e.target.value);
             }}
+            onKeyPress={(e) => { handleEnterEvent(e) }}
           />
         </div>
         <button type="submit" className="SaveName" onClick={() => handleChangeName()}>

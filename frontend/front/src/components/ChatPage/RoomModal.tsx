@@ -8,6 +8,7 @@ import { useState } from 'react';
 import * as chatAtom from '../atom/ChatAtom';
 import * as socket from "../../socket/chat.socket";
 import { keyboardKey } from '@testing-library/user-event';
+import { useAutoFocus } from '../../event/event.util';
 
 import type * as chatType from '../../socket/chat.dto';
 export default function RoomModal() {
@@ -21,10 +22,12 @@ export default function RoomModal() {
   const [roomSettingIsPrivate, setRoomSettingIsPrivate] = useAtom(chatAtom.roomSettingIsPrivateAtom);
   const [roomSettingCurrentRoomName, setRoomSettingCurrentRoomName] = useAtom(chatAtom.roomSettingCurrentRoomNameAtom);
   const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
+  const roomInputRef = useAutoFocus();
 
   PressKey(["Escape"], () => {
     setRoomModal(false);
   });
+
 
   const acceptHandler = () => {
     if (roomSetting) {
@@ -71,8 +74,8 @@ export default function RoomModal() {
           <label htmlFor="RoomName">RoomName</label>
           {
             !roomSetting
-              ? <input id="RoomName" maxLength={12} minLength={1} type="text" placeholder="방 이름을 입력하세요." onChange={(e) => setRoomName(e.target.value)} onKeyDown={(e) => handleEnterEvent(e)}></input>
-              : <input id="RoomName" maxLength={12} minLength={1} type="text" placeholder="방 이름을 입력하세요." value={roomSettingCurrentRoomName} onChange={(e) => setRoomSettingCurrentRoomName(e.target.value)} onKeyDown={(e) => handleEnterEvent(e)}></input>
+              ? <input id="RoomName" ref={roomInputRef} maxLength={12} minLength={1} type="text" placeholder="방 이름을 입력하세요." onChange={(e) => setRoomName(e.target.value)} onKeyDown={(e) => handleEnterEvent(e)}></input>
+              : <input id="RoomName" ref={roomInputRef} maxLength={12} minLength={1} type="text" placeholder="방 이름을 입력하세요." value={roomSettingCurrentRoomName} onChange={(e) => setRoomSettingCurrentRoomName(e.target.value)} onKeyDown={(e) => handleEnterEvent(e)}></input>
           }
         </div>
         <div className="PasswordFrom">

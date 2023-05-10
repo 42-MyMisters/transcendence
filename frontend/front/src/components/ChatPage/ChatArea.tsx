@@ -4,7 +4,7 @@ import * as chatAtom from '../atom/ChatAtom';
 import { UserAtom } from "../atom/UserAtom";
 import { useAtom } from 'jotai';
 import { keyboardKey } from '@testing-library/user-event';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import * as socket from "../../socket/chat.socket";
 
 export default function ChatArea() {
@@ -14,8 +14,22 @@ export default function ChatArea() {
   const [message, setMessage] = useState('');
   const [userInfo,] = useAtom(UserAtom);
   const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
-
   const defaultText: string = "채팅방을 선택해주세요. 방을 만들거나, 참여하면 채팅을 할 수 있습니다.";
+
+  const useAutoFocus = () => {
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    }, [focusRoom]);
+
+    return inputRef;
+  };
+
+  const chatAreaRef = useAutoFocus();
+
 
   const handleSendMessage = () => {
     const tempMessage = message.trim();
@@ -56,7 +70,7 @@ export default function ChatArea() {
             ))
         }
       </div>
-      <input type="text" className="ChatAreaInput" maxLength={256} value={message} onChange={(e) => setMessage(e.target.value)} onKeyPress={(e) => handleEnterEvent(e)}></input>
+      <input type="text" ref={chatAreaRef} className="ChatAreaInput" maxLength={256} value={message} onChange={(e) => setMessage(e.target.value)} onKeyPress={(e) => handleEnterEvent(e)}></input>
       <div className="ChatDMImg" onClick={handleSendMessage} />
     </div>
   );
