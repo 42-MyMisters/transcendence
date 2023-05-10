@@ -443,7 +443,7 @@ export default function ChatPage() {
 							userDisplayName: userList[roomId].userDisplayName,
 							userProfileUrl: userList[roomId].userProfileUrl,
 							userStatus: userList[roomId].userStatus,
-							dmStatus: 'unread',
+							dmStatus: method === 'invite' ? 'unread' : 'read',
 						};
 						setDmHistoryList((prevDmHistoryList) => ({ ...prevDmHistoryList, ...newDmUser }));
 						setUserList((prevUserList) => ({ ...prevUserList, ...newDmUser }));
