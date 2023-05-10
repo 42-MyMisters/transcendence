@@ -4,7 +4,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 
 import { useAtom } from "jotai";
 import { refreshTokenAtom } from "./atom/LoginAtom";
-import { LogOut } from '../event/api.request';
+import { LogOut } from "../event/api.request";
 import * as socket from "../socket/chat.socket";
 import * as chatAtom from "../components/atom/ChatAtom";
 import { AdminLogPrinter } from "../event/event.util";
@@ -78,16 +78,18 @@ function LogoutBtn() {
   const navigate = useNavigate();
 
   const handleLogOut = () => {
-    fetch("http://localhost:4000/login/signout", {
+    fetch(`${process.env.REACT_APP_API_URL}/login/signout`, {
       credentials: "include",
       method: "POST",
-    }).then((res) => {
-      if (res.status !== 201) {
-        throw new Error("Logout Error");
-      }
-    }).catch((err) => {
-      AdminLogPrinter(adminConsole, err);
-    });
+    })
+      .then((res) => {
+        if (res.status !== 201) {
+          throw new Error("Logout Error");
+        }
+      })
+      .catch((err) => {
+        AdminLogPrinter(adminConsole, err);
+      });
     LogOut(setRefreshToken, navigate, "/");
     setHasLogin(false);
     setIsFirstLogin(true);

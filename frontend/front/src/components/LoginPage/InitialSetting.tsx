@@ -38,11 +38,14 @@ export default function InitialSettingModal() {
 
     try {
       if (profileRef.current?.files?.[0]) {
-        const profileChange = await fetch("http://localhost:4000/user/profile-img-change", {
-          credentials: "include",
-          method: "POST",
-          body: formData,
-        });
+        const profileChange = await fetch(
+          `${process.env.REACT_APP_API_URL}/user/profile-img-change`,
+          {
+            credentials: "include",
+            method: "POST",
+            body: formData,
+          }
+        );
 
         if (!profileChange.ok) {
           alert("파일 업로드에 실패했습니다.");
@@ -50,7 +53,7 @@ export default function InitialSettingModal() {
         }
       }
 
-      const nickNameChange = await fetch("http://localhost:4000/user/nickname", {
+      const nickNameChange = await fetch(`${process.env.REACT_APP_API_URL}/user/nickname`, {
         credentials: "include",
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -79,7 +82,7 @@ export default function InitialSettingModal() {
           height: "200px",
         }}
       />
-      <div className="ChangeProfileImageBtn" onClick={() => { }}>
+      <div className="ChangeProfileImageBtn" onClick={() => {}}>
         <label htmlFor="ChangeImage" />
         <input
           id="ChangeImage"

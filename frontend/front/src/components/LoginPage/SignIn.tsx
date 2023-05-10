@@ -4,7 +4,7 @@ import "../../styles/LoginModals.css";
 
 export default function SignInModal() {
   function handleLoginBtn() {
-    window.location.href = "http://localhost:4000/login/oauth";
+    window.location.href = `${process.env.REACT_APP_API_URL}/login/oauth`;
   }
 
   return (
