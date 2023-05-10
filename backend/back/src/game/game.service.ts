@@ -110,7 +110,7 @@ class Game {
     const objectInfo = {...this.getState()};
     objectInfo.ballSpeedX = 0;
     objectInfo.ballSpeedY = 0;
-    this.nsp.to(this.id).emit('graphic', objectInfo);
+    this.nsp.to(this.id).emit('syncData', objectInfo);
   }
 
   gameStart() {
@@ -265,7 +265,7 @@ class Game {
     this.gameStatus = GameStatus.COUNTDOWN;
     this.score[i]++;
     this.round++;
-    this.nsp.to(this.id).emit("graphic", this.getState());
+    this.nsp.to(this.id).emit("syncData", this.getState());
     this.nsp.to(this.id).emit("scoreInfo", {p1Score: this.score[0], p2Score: this.score[1]});
     return 2000;
   }
@@ -301,7 +301,7 @@ class Game {
           return this.updateScore(0);
         }
       }
-      this.nsp.to(this.id).emit("graphic", this.getState());
+      this.nsp.to(this.id).emit("syncData", this.getState());
       timeout = this.getHitTime();
     }
     return timeout;
@@ -453,6 +453,7 @@ class Game {
       paddle1YDown: this.isKeyPressed(this.keyPress[1]),
       paddle2YUp: this.isKeyPressed(this.keyPress[2]),
       paddle2YDown: this.isKeyPressed(this.keyPress[3]),
+      time: Date.now(),
     };
   }
 

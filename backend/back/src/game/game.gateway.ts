@@ -151,8 +151,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   @SubscribeMessage('ping')
-  async pong(socket: Socket, payload: any) {
-    return true;
+  async pong() {
+    return Date.now();
   }
 
 

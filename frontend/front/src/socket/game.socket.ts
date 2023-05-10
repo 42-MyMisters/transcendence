@@ -11,7 +11,9 @@ export const gameSocket = io(`${URL}${GameNameSpace}`, {
     cb({ token: localStorage.getItem("refreshToken") });
   },
   autoConnect: false,
-  transports: ["polling"],
+  transports: ["polling", "websocket"],
+  secure: true,
+  // upgrade: true,
   // reconnectionDelay: 1000, // defaults to 1000
   // reconnectionDelayMax: 10000, // defaults to 5000
   // withCredentials: true,

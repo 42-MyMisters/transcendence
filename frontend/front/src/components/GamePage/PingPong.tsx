@@ -38,12 +38,16 @@ export default function PingPong() {
     paddle1YDown: false,
     paddle2YUp: false,
     paddle2YDown: false,
+    time: Date.now(),
   }
-
-  let lastUpdateTime = Date.now();
+  let lastUpdateTime = coords.time;
 
   let pingInterval: NodeJS.Timer;
-  let pingTime: number;
+
+  // 1 sec delay for init value 
+  let pingRTTmin: number = 2000;
+  let serverClientTimeDiff: number;
+  let gameServerConnected: boolean = false;
   
   const connectionEventHandler = () => {
     if (game.gameSocket.connected) {
@@ -53,21 +57,28 @@ export default function PingPong() {
       } else {
         // new or unrecoverable session
         AdminLogPrinter(adminConsole, "gameSocket connected");
-        const pingEvent = () => {
-          const curTime = Date.now();
-          const pingEventHandler = (pong: boolean) => {
-            if (pong) {
-              pingTime = Date.now() - curTime;
-              AdminLogPrinter(adminConsole, `ping: ${pingTime}ms`);
-            }
-          }
-          game.gameSocket.emit('ping', pingEventHandler);
-          // return () => {
-          //   game.gameSocket.off('ping', pingEventHandler);
-          // }
-        }
         pingInterval = setInterval(pingEvent, 1000);
       }
+    }
+  }
+  
+  const pingEvent = () => {
+    const curTime = Date.now();
+    const pingEventHandler = (serverTime: number) => {
+      const now = Date.now();
+      const pingRTT = now - curTime;
+      AdminLogPrinter(adminConsole, `pingRTT: ${pingRTT}ms`);
+      if (pingRTTmin > pingRTT) {
+        pingRTTmin = pingRTT;
+        const adjServerTime = serverTime + pingRTTmin / 2;
+        serverClientTimeDiff = now - adjServerTime;
+      }
+      AdminLogPrinter(adminConsole, `pingRTTmin: ${pingRTTmin}ms`);
+      AdminLogPrinter(adminConsole, `serverClientTimeDiff: ${serverClientTimeDiff}ms`);
+    }
+    game.gameSocket.emit('ping', pingEventHandler);
+    return () => {
+      game.gameSocket.off('ping', pingEventHandler);
     }
   }
 
@@ -81,15 +92,16 @@ export default function PingPong() {
     AdminLogPrinter(adminConsole, "gameSocket disconnected");
   }
 
-  const startEventHandler = (started: boolean) => {
+  const startEventHandler = () => {
     lastUpdateTime = Date.now();
     AdminLogPrinter(adminConsole, "game start");
-    update(coords, canvas);
+    update(lastUpdateTime);
   }
 
-  const drawEventHandler = (gameCoord: GameCoordinate) => {
+  const syncDataHandler = (gameCoord: GameCoordinate) => {
     lastUpdateTime = Date.now();
     coords = gameCoord;
+    update(coords.time + serverClientTimeDiff);
     Game(coords, canvas);
   }
 
@@ -136,19 +148,21 @@ export default function PingPong() {
     game.gameSocket.on("scoreInfo", scoreEventhandler);
     game.gameSocket.on("finished", finishEventHandler);
     game.gameSocket.on("paddleInfo", paddleEventHandler);
-    game.gameSocket.on("graphic", drawEventHandler);
+    game.gameSocket.on("syncData", syncDataHandler);
     return () => {
       game.gameSocket.off("connect", connectionEventHandler);
       game.gameSocket.off("isQueue", queueEventHandler);
       game.gameSocket.off("isLoading", loadingEventHandler);
       game.gameSocket.off("disconnect", disconnectEventHandler);
       game.gameSocket.off("start", startEventHandler);
-      game.gameSocket.off("graphic", drawEventHandler);
+      game.gameSocket.off("syncData", syncDataHandler);
       game.gameSocket.off("paddleInfo", paddleEventHandler);
       game.gameSocket.off("scoreInfo", scoreEventhandler);
       game.gameSocket.off("finished", finishEventHandler);
     }
   }, []);
+
+
 
   // // the connection is denied by the server in a middleware function
   // game.gameSocket.on("connect_error", (err) => {
@@ -164,38 +178,37 @@ export default function PingPong() {
   // );
 
   // paddle update first, and then ball position update.
-  function update(coord:GameCoordinate, canvas:React.RefObject<HTMLCanvasElement>) {
-    const curTime = Date.now();
+  function update(curTime: number) {
     const dt = curTime - lastUpdateTime;
 
-    paddleUpdate(coord.paddle1YUp, coord.paddle1YDown, coord.paddle2YUp, coord.paddle2YDown, dt);
-    coord.ballX += coord.ballSpeedX * dt;
-    coord.ballY += coord.ballSpeedY * dt;
+    paddleUpdate(coords.paddle1YUp, coords.paddle1YDown, coords.paddle2YUp, coords.paddle2YDown, dt);
+    coords.ballX += coords.ballSpeedX * dt;
+    coords.ballY += coords.ballSpeedY * dt;
     const isHitY = collisionCheckY();
     const isHitX = collisionCheckX();
     if (isHitY) {
-      if (coord.ballY < ball.radius) {
-        coord.ballY = 2 * ball.radius - coord.ballY;
-        coord.ballSpeedY = -coord.ballSpeedY;
+      if (coords.ballY < ball.radius) {
+        coords.ballY = 2 * ball.radius - coords.ballY;
+        coords.ballSpeedY = -coords.ballSpeedY;
       } else {
-        coord.ballY = 2 * (HEIGHT - ball.radius) - coord.ballY;
-        coord.ballSpeedY = -coord.ballSpeedY;
+        coords.ballY = 2 * (HEIGHT - ball.radius) - coords.ballY;
+        coords.ballSpeedY = -coords.ballSpeedY;
       }
     }
     if (isHitX == Direction.LEFT) {
       if (collisionCheckP1Paddle() === Hit.PADDLE) {
-        coord.ballX = 2 * (ball.radius + paddle.width) - coord.ballX;
-        coord.ballSpeedX = -coord.ballSpeedX;
+        coords.ballX = 2 * (ball.radius + paddle.width) - coords.ballX;
+        coords.ballSpeedX = -coords.ballSpeedX;
       }
     } else if (isHitX === Direction.RIGHT) {
       if (collisionCheckP2Paddle() === Hit.PADDLE) {
-        coord.ballX = 2 * (WIDTH - ball.radius - paddle.width) - coord.ballX;
-        coord.ballSpeedX = -coord.ballSpeedX;
+        coords.ballX = 2 * (WIDTH - ball.radius - paddle.width) - coords.ballX;
+        coords.ballSpeedX = -coords.ballSpeedX;
       }
     }
     lastUpdateTime = curTime;
-    Game(coord, canvas);
-    requestAnimationFrame(() => update(coords, canvas));
+    Game(coords, canvas);
+    requestAnimationFrame(() => update(Date.now()));
   }
 
   function paddleUpdate(p1Up: boolean, p1Down: boolean, p2Up: boolean, p2Down: boolean, dt: number) {

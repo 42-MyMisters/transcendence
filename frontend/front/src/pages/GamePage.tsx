@@ -7,7 +7,6 @@ import TopBar from "../components/TopBar";
 import { useAtom } from "jotai";
 import { isQueueAtom } from "../components/atom/GameAtom";
 
-import { GameCoordinateAtom } from "../components/atom/GameAtom";
 import * as game from "../socket/game.socket";
 
 import { gameResultModalAtom, isLoadingAtom } from "../components/atom/ModalAtom";
@@ -24,7 +23,6 @@ export default function GamePage() {
 
   const [isQueue, setIsQueue] = useAtom(isQueueAtom);
 
-  const [coordinate, setCoordinate] = useAtom(GameCoordinateAtom);
   const [adminConsole, setAdminConsole] = useAtom(chatAtom.adminConsoleAtom);
 
   PressKey(["F4"], () => {
