@@ -3,6 +3,7 @@ import { changeNameModalAtom } from "../atom/ModalAtom";
 import { UserAtom } from "../atom/UserAtom";
 
 import { useState } from "react";
+import { useNavigate } from 'react-router-dom';
 
 import { PressKey, AdminLogPrinter } from "../../event/event.util";
 import * as chatAtom from "../../components/atom/ChatAtom";
@@ -10,12 +11,16 @@ import { keyboardKey } from '@testing-library/user-event';
 import "../../styles/ProfileModal.css";
 
 import { useAutoFocus } from '../../event/event.util';
+import * as api from '../../event/api.request';
+import { refreshTokenAtom } from "../../components/atom/LoginAtom";
 
 export default function ChangeNameModal() {
   const [changeNameModal, setchangeNameModal] = useAtom(changeNameModalAtom);
   const [userInfo, setUserInfo] = useAtom(UserAtom);
   const [newName, setNewName] = useState("");
   const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
+  const [, setRefreshToken] = useAtom(refreshTokenAtom);
+  const navigate = useNavigate();
 
   const nameInputRef = useAutoFocus();
 
@@ -23,31 +28,53 @@ export default function ChangeNameModal() {
     setchangeNameModal(false);
   });
 
+  const logOutHandler = () => {
+    api.LogOut(adminConsole, setRefreshToken, navigate, "/");
+  };
 
-  const handleChangeName = () => {
-    if (newName.length < 2 || newName.trim().length < 2) {
+  async function getMyinfoHandler() {
+    const getMeResponse = await api.GetMyInfo(adminConsole, setUserInfo);
+    if (getMeResponse == 401) {
+      const refreshResponse = await api.RefreshToken(adminConsole);
+      if (refreshResponse !== 201) {
+        logOutHandler();
+      } else {
+        const getMeResponse = await api.GetMyInfo(adminConsole, setUserInfo);
+        if (getMeResponse == 401) {
+          logOutHandler();
+        }
+      }
+    }
+  }
+
+  const handleChangeName = async () => {
+    const trimNewName = newName.trim();
+    if (trimNewName.length < 2 || trimNewName.length > 13) {
       alert("변경할 닉네임은 2글자 이상, 12글자 이하여야 합니다.")
       setNewName("");
       return;
     }
     const format = JSON.stringify({ nickname: newName });
-    AdminLogPrinter(adminConsole, format);
-    fetch(`${process.env.REACT_APP_API_URL}/user/nickname`, {
-      credentials: "include",
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: format,
-    })
-      .then((response) => {
-        let tmp = userInfo;
-        tmp.nickname = newName;
-        setUserInfo(tmp);
-        AdminLogPrinter(adminConsole, response);
-        setchangeNameModal(false);
-      })
-      .catch((error) => {
-        AdminLogPrinter(adminConsole, `error: ${error}`);
-      });
+    AdminLogPrinter(adminConsole, `changeNickName: ${format}`);
+
+    const changeNickNameRes = await api.changeNickName(adminConsole, format, getMyinfoHandler);
+    if (changeNickNameRes === 401) {
+      const refreshResponse = await api.RefreshToken(adminConsole);
+      if (refreshResponse !== 201) {
+        logOutHandler();
+      } else {
+        const getMeResponse = await api.changeNickName(adminConsole, format, getMyinfoHandler);
+        if (getMeResponse == 401) {
+          logOutHandler();
+        } else {
+          setchangeNameModal(false);
+          setNewName("");
+        }
+      }
+    } else {
+      setchangeNameModal(false);
+      setNewName("");
+    }
   };
 
   const handleEnterEvent = (e: keyboardKey) => {
@@ -78,7 +105,7 @@ export default function ChangeNameModal() {
           />
         </div>
         <button type="submit" className="SaveName" onClick={() => handleChangeName()}>
-          Save
+          Change
         </button>
         <button className="SaveNameCancel" onClick={() => setchangeNameModal(false)}>
           Cancel

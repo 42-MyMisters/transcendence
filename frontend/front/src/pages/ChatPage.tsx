@@ -110,7 +110,7 @@ export default function ChatPage() {
 	const getBlockList = () => {
 		AdminLogPrinter(adminConsole, `\n\ngetBlockList`);
 		Object.entries(blockList).forEach(([key, value]) => {
-			AdminLogPrinter(adminConsole, `[ ${userList[Number(key)].userDisplayName} ]\nkey: ${key}, value: ${JSON.stringify(value)}`);
+			AdminLogPrinter(adminConsole, `[ ${userList[Number(key)]?.userDisplayName} ]\nkey: ${key}, value: ${JSON.stringify(value)}`);
 		});
 
 	};
@@ -660,6 +660,7 @@ export default function ChatPage() {
 						<button onClick={getUserList}> userList</button>
 						<button onClick={getDMList}> dmHistoryList</button>
 						<button onClick={getFollowingList}> FollowList</button>
+						<button onClick={getBlockList}> BlockList</button>
 						<button onClick={showServerUser}> show server user</button>
 						<button onClick={showServerRoom}> show server room</button>
 						<button onClick={showSocketState}> socket state</button>
