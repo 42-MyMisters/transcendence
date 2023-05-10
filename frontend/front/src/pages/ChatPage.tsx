@@ -20,7 +20,7 @@ import RoomInviteModal from "../components/ChatPage/RoomInviteModal";
 import PasswordModal from "../components/ChatPage/PasswordModal";
 
 import { refreshTokenAtom } from "../components/atom/LoginAtom";
-import { UserAtom } from "../components/atom/UserAtom";
+import { UserAtom, isMyProfileAtom } from "../components/atom/UserAtom";
 import type * as userType from "../components/atom/UserAtom";
 import { useEffect, useState } from "react";
 
@@ -56,6 +56,7 @@ export default function ChatPage() {
 
 	const [gameInviteModal, setGameInviteModal] = useAtom(gameInviteModalAtom);
 	const [adminConsole, setAdminConsole] = useAtom(chatAtom.adminConsoleAtom);
+	const [, setIsMyProfile] = useAtom(isMyProfileAtom);
 
 	PressKey(["F4"], () => {
 		setAdminConsole((prev) => !prev);
@@ -130,7 +131,7 @@ export default function ChatPage() {
 	};
 
 	const logOutHandler = () => {
-		LogOut(setRefreshToken, navigate, "/");
+		LogOut(adminConsole, setRefreshToken, navigate, "/");
 		setHasLogin(false);
 		setIsFirstLogin(true);
 	};
@@ -143,19 +144,23 @@ export default function ChatPage() {
 	}
 
 	async function getMyinfoHandler() {
-		const getMeResponse = await GetMyInfo(setUserInfo);
+		const getMeResponse = await GetMyInfo(adminConsole, setUserInfo);
 		if (getMeResponse == 401) {
-			const refreshResponse = await RefreshToken();
+			const refreshResponse = await RefreshToken(adminConsole);
 			if (refreshResponse !== 201) {
 				logOutHandler();
 			} else {
-				const getMeResponse = await GetMyInfo(setUserInfo);
+				const getMeResponse = await GetMyInfo(adminConsole, setUserInfo);
 				if (getMeResponse == 401) {
 					logOutHandler();
 				}
 			}
 		}
 	}
+
+	useEffect(() => {
+		setIsMyProfile(true);
+	}, []);
 
 
 	useEffect(() => {
@@ -202,7 +207,7 @@ export default function ChatPage() {
 		});
 		socket.socket.on("multiple-login", () => {
 			// 	alert(`multiple login detected!`);
-			LogOut(setRefreshToken, navigate, "/");
+			LogOut(adminConsole, setRefreshToken, navigate, "/");
 			setHasLogin(false);
 			setIsFirstLogin(true);
 		});
@@ -218,7 +223,7 @@ export default function ChatPage() {
 
 	useEffect(() => {
 		socket.socket.on("logout", () => {
-			LogOut(setRefreshToken, navigate, "/");
+			LogOut(adminConsole, setRefreshToken, navigate, "/");
 			setHasLogin(false);
 			setIsFirstLogin(true);
 		});

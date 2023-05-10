@@ -12,21 +12,31 @@ import ChangeImageModal from "../components/ProfilePage/ChangeImageModal";
 import { useAtom } from "jotai";
 import { changeNameModalAtom } from "../components/atom/ModalAtom";
 import { changeImageModalAtom } from "../components/atom/ModalAtom";
-import { UserAtom } from "../components/atom/UserAtom";
+import { UserAtom, isMyProfileAtom, ProfileAtom } from "../components/atom/UserAtom";
 
 export default function ProfilePage() {
   const [changeNameModal, setchangeNameModal] = useAtom(changeNameModalAtom);
   const [changeImageModal, setchangeImageModal] = useAtom(changeImageModalAtom);
   const [userInfo, setUserInfo] = useAtom(UserAtom);
+  const [isMyProfile, setIsMyProfile] = useAtom(isMyProfileAtom);
+  const [profile, setProfile] = useAtom(ProfileAtom);
 
   return (
     <BackGround>
       <TopBar />
-      {changeNameModal ? <ChangeNameModal /> : null}
-      {changeImageModal ? <ChangeImageModal /> : null}
+      {changeNameModal && isMyProfile ? <ChangeNameModal /> : null}
+      {changeImageModal && isMyProfile ? <ChangeImageModal /> : null}
       <ProfilePageBG>
-        <ProfileImage imgUrl={userInfo?.profileUrl ?? "/src/assets/smile.png"} />
-        <ProfileNick nickName={userInfo?.nickname ?? "NickName"} />
+        {
+          isMyProfile
+            ? <ProfileImage imgUrl={userInfo?.profileUrl ?? "/src/assets/smile.png"} />
+            : <ProfileImage imgUrl={profile?.profileUrl ?? "/src/assets/smile.png"} />
+        }
+        {
+          isMyProfile
+            ? <ProfileNick nickName={userInfo?.nickname ?? "NickName"} />
+            : <ProfileNick nickName={profile?.nickname ?? "NickName"} />
+        }
         <ProfileOptions />
         <ProfileFriend />
         <ProfileMatchHistory />

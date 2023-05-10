@@ -96,16 +96,6 @@ export default function UserObj({
                 : followingList[uid] !== undefined
                   ? <div className="UserNickName" style={{ color: `${defaultColor}` }}>{nickName}</div>
                   : <div className="UserNickName" style={{ color: "#333" }}>{nickName}</div>
-
-          // ? chat === 'normal'
-          //     ? blockList[uid] !== undefined
-          //       ? <div className="UserNickName" style={{ color: "#aaa" }}>{nickName}</div>
-          //       : followingList[uid] !== undefined
-          //         ? <div className="UserNickName" style={{ color: `${defaultColor}` }}>{nickName}</div>
-          //         // : dmHistoryList[uid] !== undefined
-          //         //   ? <div className="UserNickName" style={{ color: "#a60" }}>{nickName}</div>
-          //         : <div className="UserNickName" style={{ color: "#333" }}>{nickName}</div>
-          //     : <div className="UserNickName" style={{ color: "#a55" }}>{nickName}</div>
           : chat === 'normal'
             ? <div className="UserNickName" style={{ color: "#0af" }}>{nickName}</div>
             : <div className="UserNickName" style={{ color: "#f00" }}>{nickName}</div>

@@ -90,7 +90,7 @@ function LogoutBtn() {
       .catch((err) => {
         AdminLogPrinter(adminConsole, err);
       });
-    LogOut(setRefreshToken, navigate, "/");
+    LogOut(adminConsole, setRefreshToken, navigate, "/");
     setHasLogin(false);
     setIsFirstLogin(true);
   };
