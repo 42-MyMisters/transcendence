@@ -25,7 +25,7 @@ export default function ChangeNameModal() {
     }
     const format = JSON.stringify({ nickname: newName });
     AdminLogPrinter(adminConsole, format);
-    fetch("http://localhost:4000/user/nickname", {
+    fetch(`${process.env.REACT_APP_API_URL}/user/nickname`, {
       credentials: "include",
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
