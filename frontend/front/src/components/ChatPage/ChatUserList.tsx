@@ -63,7 +63,7 @@ export default function ChatUserList() {
                 chat={'normal'}
                 power="member"
                 callBack={DM}
-                dm={userList[Number(key[0])]?.dmStatus === 'unread' ? true : false}
+                dm={userList[Number(key[0])]?.dmStatus === 'unread'}
                 focusList={'userList'}
               />
               : ''
@@ -81,7 +81,7 @@ export default function ChatUserList() {
                 chat={'normal'}
                 power="member"
                 callBack={DM}
-                dm={userList[Number(key[0])]?.dmStatus === 'unread' ? true : false}
+                dm={userList[Number(key[0])]?.dmStatus === 'unread'}
                 focusList={'userList'}
               />
               : ''
@@ -121,7 +121,7 @@ export default function ChatUserList() {
                   chat={'normal'}
                   power="member"
                   callBack={DM}
-                  dm={userList[Number(key[0])]?.dmStatus === 'unread' ? true : false}
+                  dm={userList[Number(key[0])]?.dmStatus === 'unread'}
                   focusList={'userList'}
                 />
                 : ''
@@ -159,7 +159,7 @@ export default function ChatUserList() {
                 status={userList[Number(key[0])]?.userStatus}
                 chat={'normal'}
                 power="member"
-                dm={userList[Number(key[0])]?.dmStatus === 'unread' ? true : false}
+                dm={userList[Number(key[0])]?.dmStatus === 'unread'}
                 callBack={DM}
                 focusList={'userList'}
               />

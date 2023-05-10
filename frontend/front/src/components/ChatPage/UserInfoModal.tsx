@@ -1,6 +1,6 @@
 import { useAtom } from "jotai";
 import { userInfoModalAtom } from "../../components/atom/ModalAtom";
-import { PressKey } from "../../event/event.util";
+import { AdminLogPrinter, PressKey } from "../../event/event.util";
 import * as api from "../../event/api.request";
 
 import { IoCloseOutline } from "react-icons/io5";
@@ -10,7 +10,7 @@ import * as chatAtom from "../../components/atom/ChatAtom";
 import { refreshTokenAtom } from "../../components/atom/LoginAtom";
 import * as socket from "../../socket/chat.socket";
 import { useNavigate } from "react-router-dom";
-import { UserAtom } from "../../components/atom/UserAtom";
+import { UserAtom, isMyProfileAtom, ProfileAtom } from "../../components/atom/UserAtom";
 
 export default function UserInfoModal() {
   const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
@@ -24,15 +24,18 @@ export default function UserInfoModal() {
   const navigate = useNavigate();
   const [, setRefreshToken] = useAtom(refreshTokenAtom);
   const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
+  const [, setIsMyProfile] = useAtom(isMyProfileAtom);
+  const [, setProfile] = useAtom(ProfileAtom);
 
   const logOutHandler = () => {
-    api.LogOut(setRefreshToken, navigate, "/");
+    api.LogOut(adminConsole, setRefreshToken, navigate, "/");
   };
 
   async function followHandler() {
     const doOrUndo: boolean = followingList[userInfo.uid] === undefined ? true : false;
 
     const followResponse = await api.DoFollow(
+      adminConsole,
       userInfo.uid,
       doOrUndo,
       followingList,
@@ -40,11 +43,12 @@ export default function UserInfoModal() {
       userList
     );
     if (followResponse === 401) {
-      const refreshResponse = await api.RefreshToken();
+      const refreshResponse = await api.RefreshToken(adminConsole);
       if (refreshResponse !== 201) {
         logOutHandler();
       } else {
         const followResponse = await api.DoFollow(
+          adminConsole,
           userInfo.uid,
           doOrUndo,
           followingList,
@@ -55,6 +59,26 @@ export default function UserInfoModal() {
           logOutHandler();
         }
       }
+    }
+  }
+
+  async function getProfileHandler() {
+    const getProfileResponse = await api.GetOtherProfile(adminConsole, setProfile, userInfo.uid);
+    if (getProfileResponse === 401) {
+      const refreshResponse = await api.RefreshToken(adminConsole);
+      if (refreshResponse !== 201) {
+        logOutHandler();
+      } else {
+        const getProfileResponse = await api.GetOtherProfile(adminConsole, setProfile, userInfo.uid);
+        if (getProfileResponse === 401) {
+          logOutHandler();
+        }
+        else {
+          navigate('/profile');
+        }
+      }
+    } else {
+      navigate('/profile');
     }
   }
 
@@ -87,10 +111,11 @@ export default function UserInfoModal() {
     infoModalOff();
   };
 
-  const Profile = () => {
+  const Profile = async () => {
     if (isDefaultUser) return;
-    alert("profile");
     infoModalOff();
+    setIsMyProfile(false);
+    await getProfileHandler();
   };
 
   const Kick = () => {
