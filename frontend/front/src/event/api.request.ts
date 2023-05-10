@@ -64,7 +64,7 @@ export async function toggleTFA(
         status = response.status;
         AdminLogPrinter(adminConsole, '\ntoggleTFA: ', response);
         if (response.status === 200) {
-          console.log(response);
+          AdminLogPrinter(adminConsole, response);
         } else {
           throw new Error(`${response.status}`);
         }
