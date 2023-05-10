@@ -59,13 +59,12 @@ export class UserService {
 			throw new NotFoundException('user not found');
 	}
 
-
 	async showUsers() {
 		return await this.databaseService.findAllUser();
 	}
 
-	async setUserNickname(user: User, changeNickname: string) {
-		this.databaseService.updateUserNickname(user.uid, changeNickname);
+	async setUserNickname(user: User, changeNickname: string): Promise<void> {
+		await this.databaseService.updateUserNickname(user.uid, changeNickname);
 	}
 
 	async setUserRefreshToken(user: User, refresh_token: string) {
