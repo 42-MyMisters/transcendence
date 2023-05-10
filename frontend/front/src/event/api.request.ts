@@ -50,6 +50,36 @@ export async function DoFollow(
   return status;
 }
 
+export async function toggleTFA(
+  adminConsole: boolean,
+): Promise<number> {
+  let status = -1;
+
+  try {
+    await fetch(`${process.env.REACT_APP_API_URL}/user/2fa/toggle`, {
+      credentials: "include",
+      method: "GET",
+    })
+      .then((response) => {
+        status = response.status;
+        AdminLogPrinter(adminConsole, '\ntoggleTFA: ', response);
+        if (response.status === 200) {
+          console.log(response);
+        } else {
+          throw new Error(`${response.status}`);
+        }
+      })
+      .catch((error) => {
+        AdminLogPrinter(adminConsole, `\ntoggleTFA error: ${error}`);
+      });
+  } catch (error) {
+    alert(error);
+  }
+
+  return status;
+}
+
+
 export async function changeProfileImage(
   adminConsole: boolean,
   imageData: FormData,
