@@ -4,10 +4,11 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 
 import { useAtom } from "jotai";
 import { refreshTokenAtom } from "./atom/LoginAtom";
-import { LogOut } from '../event/api.request';
+import { LogOut } from "../event/api.request";
 import * as socket from "../socket/chat.socket";
 import * as chatAtom from "../components/atom/ChatAtom";
 import { AdminLogPrinter } from "../event/event.util";
+import { isMyProfileAtom } from "../components/atom/UserAtom";
 
 export default function TopBar() {
   return (
@@ -60,8 +61,14 @@ function QueueBtn() {
 }
 
 function ProfileBtn() {
+  const [, setIsMyProfile] = useAtom(isMyProfileAtom);
+
+  const profileHandler = () => {
+    setIsMyProfile(true);
+  };
+
   return (
-    <div className="TopBarBtn">
+    <div className="TopBarBtn" onClick={profileHandler} >
       <NavLink to="/profile" className="AStyle" style={getNavLinkStyle}>
         Profile
       </NavLink>
@@ -78,17 +85,19 @@ function LogoutBtn() {
   const navigate = useNavigate();
 
   const handleLogOut = () => {
-    fetch("http://localhost:4000/login/signout", {
+    fetch(`${process.env.REACT_APP_API_URL}/login/signout`, {
       credentials: "include",
       method: "POST",
-    }).then((res) => {
-      if (res.status !== 201) {
-        throw new Error("Logout Error");
-      }
-    }).catch((err) => {
-      AdminLogPrinter(adminConsole, err);
-    });
-    LogOut(setRefreshToken, navigate, "/");
+    })
+      .then((res) => {
+        if (res.status !== 201) {
+          throw new Error("Logout Error");
+        }
+      })
+      .catch((err) => {
+        AdminLogPrinter(adminConsole, err);
+      });
+    LogOut(adminConsole, setRefreshToken, navigate, "/");
     setHasLogin(false);
     setIsFirstLogin(true);
   };

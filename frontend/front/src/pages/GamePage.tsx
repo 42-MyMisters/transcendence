@@ -47,26 +47,27 @@ export default function GamePage() {
 
   return (
     <BackGround>
-      {adminConsole === true
-        ? <div>
-          <button
-            onClick={() => {
-              const loading = !isLoading;
-              setIsLoading(loading);
-            }}
-          >
-            LadderRanking
-          </button>
-          <button
-            onClick={() => {
-              const gameOverModal = !gameResultModal;
-              setGameResultModal(gameOverModal);
-            }}
-          >
-            GameOver
-          </button>
-        </div>
-        : ''
+      {
+        adminConsole
+          ? <div>
+            <button
+              onClick={() => {
+                const loading = !isLoading;
+                setIsLoading(loading);
+              }}
+            >
+              LadderRanking
+            </button>
+            <button
+              onClick={() => {
+                const gameOverModal = !gameResultModal;
+                setGameResultModal(gameOverModal);
+              }}
+            >
+              GameOver
+            </button>
+          </div>
+          : ''
       }
       <TopBar />
       {isLoading ? <LadderBoard /> : <PingPong />}

@@ -47,7 +47,6 @@ export default function PingPong() {
   // 1 sec delay for init value 
   let pingRTTmin: number = 2000;
   let serverClientTimeDiff: number;
-  let gameServerConnected: boolean = false;
   
   const connectionEventHandler = () => {
     if (game.gameSocket.connected) {
@@ -72,9 +71,9 @@ export default function PingPong() {
         pingRTTmin = pingRTT;
         const adjServerTime = serverTime + pingRTTmin / 2;
         serverClientTimeDiff = now - adjServerTime;
+        AdminLogPrinter(adminConsole, `updated serverClientTimeDiff: ${serverClientTimeDiff}ms`);
       }
       AdminLogPrinter(adminConsole, `pingRTTmin: ${pingRTTmin}ms`);
-      AdminLogPrinter(adminConsole, `serverClientTimeDiff: ${serverClientTimeDiff}ms`);
     }
     game.gameSocket.emit('ping', pingEventHandler);
     return () => {
@@ -95,13 +94,12 @@ export default function PingPong() {
   const startEventHandler = () => {
     lastUpdateTime = Date.now();
     AdminLogPrinter(adminConsole, "game start");
-    update(lastUpdateTime);
+    update(Date.now(), lastUpdateTime);
   }
 
   const syncDataHandler = (gameCoord: GameCoordinate) => {
-    lastUpdateTime = Date.now();
     coords = gameCoord;
-    update(coords.time + serverClientTimeDiff);
+    update(Date.now(), coords.time + serverClientTimeDiff);
     Game(coords, canvas);
   }
 
@@ -178,8 +176,8 @@ export default function PingPong() {
   // );
 
   // paddle update first, and then ball position update.
-  function update(curTime: number) {
-    const dt = curTime - lastUpdateTime;
+  function update(curTime: number, lastUpdate: number) {
+    const dt = curTime - lastUpdate;
 
     paddleUpdate(coords.paddle1YUp, coords.paddle1YDown, coords.paddle2YUp, coords.paddle2YDown, dt);
     coords.ballX += coords.ballSpeedX * dt;
@@ -208,7 +206,7 @@ export default function PingPong() {
     }
     lastUpdateTime = curTime;
     Game(coords, canvas);
-    requestAnimationFrame(() => update(Date.now()));
+    requestAnimationFrame(() => update(Date.now() + serverClientTimeDiff, lastUpdateTime));
   }
 
   function paddleUpdate(p1Up: boolean, p1Down: boolean, p2Up: boolean, p2Down: boolean, dt: number) {

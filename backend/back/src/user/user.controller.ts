@@ -1,4 +1,4 @@
-import { Body, ConflictException, Controller, Get, InternalServerErrorException, Logger, Param, Patch, Post, Query, Req, Res, UnauthorizedException, UploadedFiles, UseGuards, UseInterceptors, ValidationPipe } from '@nestjs/common';
+import { Body, ConflictException, Controller, ForbiddenException, Get, InternalServerErrorException, Logger, Param, Patch, Post, Query, Req, Res, UnauthorizedException, UploadedFiles, UseGuards, UseInterceptors, ValidationPipe } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import {Response} from 'express';
 import * as swagger from '@nestjs/swagger';
@@ -215,6 +215,13 @@ export class UserController {
 		return await this.getUserProfie(reqeust);
 	}
 	
+	@Get('/profile/:uid')
+	@UseGuards(Jwt2faAuthGuard)
+	async findUserProfile(@Param('uid')uid: number){
+		return await this.userService.getUserProfile(uid);
+
+	}
+
 	
 	// for debug
 	@Get('/profile-img-change')

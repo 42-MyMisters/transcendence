@@ -390,7 +390,7 @@ export class EventsGateway
 				roomId: tempRoomNumber,
 				roomName: trimmedRoomName,
 				roomType,
-				userList: newRoomMembers,
+				roomUserList: newRoomMembers,
 				myPower: 'owner',
 				status: 'ok'
 			});
@@ -488,7 +488,7 @@ export class EventsGateway
 						roomId,
 						roomName: roomList[roomId].roomName,
 						roomType: roomList[roomId].roomType,
-						userList: roomList[roomId].roomMembers,
+						roomUserList: roomList[roomId].roomMembers,
 						myPower: 'member',
 						status: 'ok'
 					});
@@ -568,7 +568,7 @@ export class EventsGateway
 							roomId,
 							roomName: roomList[roomId].roomName,
 							roomType: roomList[roomId].roomType,
-							userList: roomList[roomId].roomMembers,
+							roomUserList: roomList[roomId].roomMembers,
 							myPower: 'member',
 							status: 'ok',
 							method: 'invite',
@@ -821,7 +821,7 @@ export class EventsGateway
 				roomId: targetId,
 				roomName: 'DM',
 				roomType: 'dm',
-				userList: dmUserList,
+				roomUserList: dmUserList,
 				myPower: 'member',
 				status: 'ok',
 			});
@@ -830,7 +830,7 @@ export class EventsGateway
 					roomId: socket.data.user.uid,
 					roomName: 'DM',
 					roomType: 'dm',
-					userList: dmUserList,
+					roomUserList: dmUserList,
 					myPower: 'member',
 					status: 'ok',
 					method: 'invite'

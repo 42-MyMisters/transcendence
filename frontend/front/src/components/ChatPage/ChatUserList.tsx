@@ -53,18 +53,38 @@ export default function ChatUserList() {
         />
         {
           Object.entries(followingList).map((key) => (
-            <UserObj
-              key={Number(key[0])}
-              uid={Number(key[0])}
-              nickName={userList[Number(key[0])]?.userDisplayName}
-              profileImage={userList[Number(key[0])]?.userProfileUrl}
-              status={userList[Number(key[0])]?.userStatus}
-              chat={'normal'}
-              power="member"
-              callBack={DM}
-              dm={userList[Number(key[0])]?.dmStatus === 'unread' ? true : false}
-              focusList={'userList'}
-            />
+            userList[Number(key[0])]?.userStatus !== 'offline'
+              ? <UserObj
+                key={Number(key[0])}
+                uid={Number(key[0])}
+                nickName={userList[Number(key[0])]?.userDisplayName}
+                profileImage={userList[Number(key[0])]?.userProfileUrl}
+                status={userList[Number(key[0])]?.userStatus}
+                chat={'normal'}
+                power="member"
+                callBack={DM}
+                dm={userList[Number(key[0])]?.dmStatus === 'unread'}
+                focusList={'userList'}
+              />
+              : ''
+          ))
+        }
+        {
+          Object.entries(followingList).map((key) => (
+            userList[Number(key[0])]?.userStatus === 'offline'
+              ? <UserObj
+                key={Number(key[0])}
+                uid={Number(key[0])}
+                nickName={userList[Number(key[0])]?.userDisplayName}
+                profileImage={userList[Number(key[0])]?.userProfileUrl}
+                status={userList[Number(key[0])]?.userStatus}
+                chat={'normal'}
+                power="member"
+                callBack={DM}
+                dm={userList[Number(key[0])]?.dmStatus === 'unread'}
+                focusList={'userList'}
+              />
+              : ''
           ))
         }
         <UserObj
@@ -101,7 +121,7 @@ export default function ChatUserList() {
                   chat={'normal'}
                   power="member"
                   callBack={DM}
-                  dm={userList[Number(key[0])]?.dmStatus === 'unread' ? true : false}
+                  dm={userList[Number(key[0])]?.dmStatus === 'unread'}
                   focusList={'userList'}
                 />
                 : ''
@@ -139,7 +159,7 @@ export default function ChatUserList() {
                 status={userList[Number(key[0])]?.userStatus}
                 chat={'normal'}
                 power="member"
-                dm={userList[Number(key[0])]?.dmStatus === 'unread' ? true : false}
+                dm={userList[Number(key[0])]?.dmStatus === 'unread'}
                 callBack={DM}
                 focusList={'userList'}
               />

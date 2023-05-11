@@ -75,6 +75,9 @@ interface UserType {
   }[];
 }
 
+export const ProfileAtom = atom<UserType>({} as UserType);
+export const isMyProfileAtom = atom<boolean>(true);
+
 export const UserAtom = atom<UserType>({
   uid: 1,
   nickname: "InitName",

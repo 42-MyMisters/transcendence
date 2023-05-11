@@ -32,14 +32,11 @@ export default function ChangeImageModal() {
     AdminLogPrinter(adminConsole, profileRef.current?.files?.[0]!.name);
 
     try {
-      const response = await fetch(
-        "http://localhost:4000/user/profile-img-change",
-        {
-          credentials: "include",
-          method: "POST",
-          body: formData,
-        }
-      );
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/user/profile-img-change`, {
+        credentials: "include",
+        method: "POST",
+        body: formData,
+      });
 
       if (response.ok) {
         let tmp = userInfo;
@@ -73,10 +70,7 @@ export default function ChangeImageModal() {
         <button type="submit" className="ChangeImage" onClick={setNewImage}>
           Save
         </button>
-        <button
-          className="ChangeImageCancel"
-          onClick={() => setchangeImageModal(false)}
-        >
+        <button className="ChangeImageCancel" onClick={() => setchangeImageModal(false)}>
           Cancel
         </button>
       </div>

@@ -1,9 +1,10 @@
-import { io } from 'socket.io-client';
+import { io } from "socket.io-client";
 import { useAtom } from "jotai";
 // import * as chatAtom from '../components/atom/SocketAtom';
 // import type * as gameType from './game.dto';
 
-const URL = "https://localhost";
+const URL = process.env.REACT_APP_API_URL;
+
 const GameNameSpace = "/game";
 
 export const gameSocket = io(`${URL}${GameNameSpace}`, {
@@ -94,14 +95,12 @@ export const gameSocket = io(`${URL}${GameNameSpace}`, {
 
 export function OnSocketGameEvent() {
   // const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
-
 }
 
 export function emitUpPress() {
   gameSocket.emit("upPress");
 }
 export function emitUpRelease() {
-
   gameSocket.emit("upRelease");
 }
 

@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException, UsePipes } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException, UnauthorizedException, UsePipes } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserFollow } from "src/database/entity/user-follow.entity";
 import { User } from "src/database/entity/user.entity";
@@ -63,11 +63,11 @@ export class DatabaseService {
         await this.userRepository.save(user);
     }
 
-    async updateUserNickname(uid: number, nickname: string) {
+    async updateUserNickname(uid: number, nickname: string):Promise<void> {
         try {
             await this.userRepository.update({ uid }, { nickname });
         } catch (error) {
-            throw new ForbiddenException('nickname already exists');
+            throw new BadRequestException('nickname already exists');
         }
     }
 

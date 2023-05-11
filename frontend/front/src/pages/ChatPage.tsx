@@ -20,7 +20,7 @@ import RoomInviteModal from "../components/ChatPage/RoomInviteModal";
 import PasswordModal from "../components/ChatPage/PasswordModal";
 
 import { refreshTokenAtom } from "../components/atom/LoginAtom";
-import { UserAtom } from "../components/atom/UserAtom";
+import { UserAtom, isMyProfileAtom } from "../components/atom/UserAtom";
 import type * as userType from "../components/atom/UserAtom";
 import { useEffect, useState } from "react";
 
@@ -130,7 +130,7 @@ export default function ChatPage() {
 	};
 
 	const logOutHandler = () => {
-		LogOut(setRefreshToken, navigate, "/");
+		LogOut(adminConsole, setRefreshToken, navigate, "/");
 		setHasLogin(false);
 		setIsFirstLogin(true);
 	};
@@ -143,20 +143,19 @@ export default function ChatPage() {
 	}
 
 	async function getMyinfoHandler() {
-		const getMeResponse = await GetMyInfo(setUserInfo);
+		const getMeResponse = await GetMyInfo(adminConsole, setUserInfo);
 		if (getMeResponse == 401) {
-			const refreshResponse = await RefreshToken();
+			const refreshResponse = await RefreshToken(adminConsole);
 			if (refreshResponse !== 201) {
 				logOutHandler();
 			} else {
-				const getMeResponse = await GetMyInfo(setUserInfo);
+				const getMeResponse = await GetMyInfo(adminConsole, setUserInfo);
 				if (getMeResponse == 401) {
 					logOutHandler();
 				}
 			}
 		}
 	}
-
 
 	useEffect(() => {
 		socket.socket.onAny((eventName, ...args) => {
@@ -202,7 +201,7 @@ export default function ChatPage() {
 		});
 		socket.socket.on("multiple-login", () => {
 			// 	alert(`multiple login detected!`);
-			LogOut(setRefreshToken, navigate, "/");
+			LogOut(adminConsole, setRefreshToken, navigate, "/");
 			setHasLogin(false);
 			setIsFirstLogin(true);
 		});
@@ -218,7 +217,7 @@ export default function ChatPage() {
 
 	useEffect(() => {
 		socket.socket.on("logout", () => {
-			LogOut(setRefreshToken, navigate, "/");
+			LogOut(adminConsole, setRefreshToken, navigate, "/");
 			setHasLogin(false);
 			setIsFirstLogin(true);
 		});
@@ -405,7 +404,7 @@ export default function ChatPage() {
 			roomId,
 			roomName,
 			roomType,
-			userList = {},
+			roomUserList = {},
 			myPower,
 			status,
 			method = ''
@@ -413,7 +412,7 @@ export default function ChatPage() {
 			roomId: number,
 			roomName: string,
 			roomType: 'open' | 'protected' | 'private' | 'dm',
-			userList: chatType.userInRoomListDto,
+			roomUserList: chatType.userInRoomListDto,
 			myPower: chatType.userRoomPower,
 			status: 'ok' | 'ko',
 			method?: 'invite' | ''
@@ -427,7 +426,7 @@ export default function ChatPage() {
 						roomType,
 						isJoined: true,
 						detail: {
-							userList: { ...userList },
+							userList: { ...roomUserList },
 							messageList: [],
 							myRoomStatus: 'normal',
 							myRoomPower: myPower
@@ -437,6 +436,17 @@ export default function ChatPage() {
 					setRoomList({ ...roomList, ...newRoomList });
 					if (method !== 'invite') {
 						setFocusRoom(roomId);
+					}
+					if (roomType === 'dm') {
+						const newDmUser: chatType.userDto = {};
+						newDmUser[roomId] = {
+							userDisplayName: userList[roomId].userDisplayName,
+							userProfileUrl: userList[roomId].userProfileUrl,
+							userStatus: userList[roomId].userStatus,
+							dmStatus: 'unread',
+						};
+						setDmHistoryList((prevDmHistoryList) => ({ ...prevDmHistoryList, ...newDmUser }));
+						setUserList((prevUserList) => ({ ...prevUserList, ...newDmUser }));
 					}
 					break;
 				}
@@ -451,7 +461,7 @@ export default function ChatPage() {
 		return () => {
 			socket.socket.off("room-join");
 		};
-	}, [roomList]);
+	}, [roomList, userList, dmHistoryList]);
 
 
 	useEffect(() => {
@@ -642,7 +652,7 @@ export default function ChatPage() {
 	return (
 		<BackGround>
 			{
-				adminConsole === true
+				adminConsole
 					? <div>
 						<button onClick={getMyinfoHandler}> /user/me</button>
 						<button onClick={showMyinfo}> show /user/me</button>
