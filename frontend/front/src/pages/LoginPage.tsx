@@ -22,6 +22,36 @@ import InitialSettingModal from "../components/LoginPage/InitialSetting";
 
 import { AdminLogPrinter } from "../event/event.util";
 
+import { UserType } from "../components/atom/UserAtom";
+import { useState } from "react";
+
+function CheckNickName(): boolean {
+  const [user, setUser] = useState<UserType>();
+
+  fetch(`${process.env.REACT_APP_API_URL}/user/me`, {
+    credentials: "include",
+    method: "GET",
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`${response.status} error occured`);
+      }
+      response.json();
+    })
+    .then((data) => {
+      if (data === undefined) {
+        throw new Error("data is undefined");
+      } else setUser(data);
+    })
+    .catch((error) => {
+      console.log(error);
+      return false;
+    });
+
+  if (user?.nickname.indexOf("#") === -1) return false;
+  else return true;
+}
+
 export default function LoginPage() {
   /* localstorage에 없는데 cookie에 있으면 로그인이 된거다 */
   /* localstorage에 있으면 로그인 된거다 */
@@ -72,9 +102,10 @@ export default function LoginPage() {
       {/* refresh Token이 있으면 SigninModal이 꺼짐 */}
       {/* refresh Token이 없으면 SigninModal이 켜짐 */}
       {!refreshToken && <SignInModal />}
-      {/* refresh Token이 있고 cookie가 없으면 TFAModal실행 */}
-      {refreshToken && !cookie && TFAEnabled && <TFAModal />}
-      {refreshToken ? <InitialSettingModal /> : null}
+      {/* refresh Token이 있고 TFA가 켜져있으면 TFAModal실행 */}
+      {refreshToken && TFAEnabled && <TFAModal />}
+      {/* refersh Token이 있고 닉네임에 #이 있으면 SettingModal 실행 */}
+      {refreshToken && CheckNickName() ? <InitialSettingModal /> : null}
     </BackGround>
   );
 }
