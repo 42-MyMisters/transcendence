@@ -11,10 +11,7 @@ export interface GameCoordinate {
   ballSpeedX: number;
   ballSpeedY: number;
   paddleSpeed: number;
-  paddle1YUp: boolean;
-  paddle1YDown: boolean;
-  paddle2YUp: boolean;
-  paddle2YDown: boolean;
+  keyPress: number[];
   time: number;
   p1Score?: number;
   p2Score?: number;

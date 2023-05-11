@@ -34,10 +34,7 @@ export default function PingPong() {
     ballSpeedX: 0,
     ballSpeedY: 0,
     paddleSpeed: 0.6,
-    paddle1YUp: false,
-    paddle1YDown: false,
-    paddle2YUp: false,
-    paddle2YDown: false,
+    keyPress: [0, 0, 0, 0],
     time: Date.now(),
   }
   let lastUpdateTime = coords.time;
@@ -97,19 +94,23 @@ export default function PingPong() {
     update(Date.now(), lastUpdateTime);
   }
 
+  
   const syncDataHandler = (gameCoord: GameCoordinate) => {
     coords = gameCoord;
-    update(Date.now(), coords.time + serverClientTimeDiff);
+    for (let i = 0; i < 4; i++) {
+      if (coords.keyPress[i] !== 0) {
+        coords.keyPress[i] += serverClientTimeDiff;
+      }
+    }
+    coords.time += serverClientTimeDiff;
+    update(Date.now(), coords.time);
     Game(coords, canvas);
   }
-
-  const paddleEventHandler = (paddleInfo: paddleInfo) => {
-    coords.paddle1YUp = paddleInfo.paddle1YUp;
-    coords.paddle1YDown = paddleInfo.paddle1YDown;
-    coords.paddle2YUp = paddleInfo.paddle2YUp;
-    coords.paddle2YDown = paddleInfo.paddle2YDown;
-    Game(coords, canvas);
-  }
+  
+  // const paddleEventHandler = (paddleInfo: paddleInfo) => {
+  //   update(Date.now(), coords.time + serverClientTimeDiff);
+  //   Game(coords, canvas);
+  // }
 
   const scoreEventhandler = (scoreInfo: scoreInfo) => {
     p1.score = scoreInfo.p1Score;
@@ -145,7 +146,7 @@ export default function PingPong() {
     game.gameSocket.on("start", startEventHandler);
     game.gameSocket.on("scoreInfo", scoreEventhandler);
     game.gameSocket.on("finished", finishEventHandler);
-    game.gameSocket.on("paddleInfo", paddleEventHandler);
+    // game.gameSocket.on("paddleInfo", paddleEventHandler);
     game.gameSocket.on("syncData", syncDataHandler);
     return () => {
       game.gameSocket.off("connect", connectionEventHandler);
@@ -154,7 +155,7 @@ export default function PingPong() {
       game.gameSocket.off("disconnect", disconnectEventHandler);
       game.gameSocket.off("start", startEventHandler);
       game.gameSocket.off("syncData", syncDataHandler);
-      game.gameSocket.off("paddleInfo", paddleEventHandler);
+      // game.gameSocket.off("paddleInfo", paddleEventHandler);
       game.gameSocket.off("scoreInfo", scoreEventhandler);
       game.gameSocket.off("finished", finishEventHandler);
     }
@@ -175,73 +176,119 @@ export default function PingPong() {
   //   ({ uid_left, p1, uid_right }: { uid_left: string; p1: number; uid_right: string }) => { }
   // );
 
+  // function getPaddleInfo() {
+  //   return {
+  //     paddle1Y: coords.paddle1Y,
+  //     paddle2Y: coords.paddle2Y,
+  //     keyPress: coords.keyPress,
+  //     time: coords.time,
+  //   };
+  // }
+
   // paddle update first, and then ball position update.
   function update(curTime: number, lastUpdate: number) {
     const dt = curTime - lastUpdate;
-
-    paddleUpdate(coords.paddle1YUp, coords.paddle1YDown, coords.paddle2YUp, coords.paddle2YDown, dt);
-    coords.ballX += coords.ballSpeedX * dt;
-    coords.ballY += coords.ballSpeedY * dt;
-    const isHitY = collisionCheckY();
-    const isHitX = collisionCheckX();
-    if (isHitY) {
-      if (coords.ballY < ball.radius) {
-        coords.ballY = 2 * ball.radius - coords.ballY;
-        coords.ballSpeedY = -coords.ballSpeedY;
-      } else {
-        coords.ballY = 2 * (HEIGHT - ball.radius) - coords.ballY;
-        coords.ballSpeedY = -coords.ballSpeedY;
+    if (dt > 0) {
+      const keyPressDt: number[] = getKeyPressDt(curTime);
+  
+      paddleUpdate(keyPressDt);
+      coords.ballX += coords.ballSpeedX * dt;
+      coords.ballY += coords.ballSpeedY * dt;
+      const isHitY = collisionCheckY();
+      const isHitX = collisionCheckX();
+      if (isHitY) {
+        if (coords.ballY < ball.radius) {
+          coords.ballY = 2 * ball.radius - coords.ballY;
+          coords.ballSpeedY = -coords.ballSpeedY;
+        } else {
+          coords.ballY = 2 * (HEIGHT - ball.radius) - coords.ballY;
+          coords.ballSpeedY = -coords.ballSpeedY;
+        }
       }
+      if (isHitX == Direction.LEFT) {
+        if (collisionCheckP1Paddle() === Hit.PADDLE) {
+          coords.ballX = 2 * (ball.radius + paddle.width) - coords.ballX;
+          coords.ballSpeedX = -coords.ballSpeedX;
+        }
+      } else if (isHitX === Direction.RIGHT) {
+        if (collisionCheckP2Paddle() === Hit.PADDLE) {
+          coords.ballX = 2 * (WIDTH - ball.radius - paddle.width) - coords.ballX;
+          coords.ballSpeedX = -coords.ballSpeedX;
+        }
+      }
+      lastUpdateTime = curTime;
     }
-    if (isHitX == Direction.LEFT) {
-      if (collisionCheckP1Paddle() === Hit.PADDLE) {
-        coords.ballX = 2 * (ball.radius + paddle.width) - coords.ballX;
-        coords.ballSpeedX = -coords.ballSpeedX;
-      }
-    } else if (isHitX === Direction.RIGHT) {
-      if (collisionCheckP2Paddle() === Hit.PADDLE) {
-        coords.ballX = 2 * (WIDTH - ball.radius - paddle.width) - coords.ballX;
-        coords.ballSpeedX = -coords.ballSpeedX;
-      }
-    }
-    lastUpdateTime = curTime;
     Game(coords, canvas);
-    requestAnimationFrame(() => update(Date.now() + serverClientTimeDiff, lastUpdateTime));
+    requestAnimationFrame(() => update(Date.now(), lastUpdateTime));
   }
 
-  function paddleUpdate(p1Up: boolean, p1Down: boolean, p2Up: boolean, p2Down: boolean, dt: number) {
-    if (p1Up) {
-      if (coords.paddle1Y > 0) {
-        coords.paddle1Y -= coords.paddleSpeed * dt;
+  
+  function getKeyPressDt(curTime: number): number[] {
+    const keyPressDt: number[] = [];
+    for (let i = 0; i < 4; i++) {
+      if (coords.keyPress[i] !== 0 && curTime > coords.keyPress[i]) {
+        keyPressDt.push(curTime - coords.keyPress[i]);
+        coords.keyPress[i] = curTime;
+      } else {
+        keyPressDt.push(0);
+      }
+    }
+    // if (coords.keyPress[0] || coords.keyPress[1] || coords.keyPress[2] || coords.keyPress[3]) {
+    //   AdminLogPrinter(adminConsole, JSON.stringify(coords.keyPress));
+    //   AdminLogPrinter(adminConsole, JSON.stringify(keyPressDt));
+    // }
+    return keyPressDt;
+  }
+  
+  function paddleUpdate(keyPressDt: number[]) {
+    if (keyPressDt[0] !== 0) {
+      if (coords.paddle1Y > 0){
+        coords.paddle1Y -= coords.paddleSpeed * keyPressDt[0];
       }
       if (coords.paddle1Y < 0) {
         coords.paddle1Y = 0;
       }
     }
-    if (p1Down) {
+    if (keyPressDt[1] !== 0) {
       if (coords.paddle1Y < HEIGHT - paddle.height) {
-        coords.paddle1Y += coords.paddleSpeed * dt;
+        coords.paddle1Y += coords.paddleSpeed * keyPressDt[1];
       }
       if (coords.paddle1Y > HEIGHT - paddle.height) {
         coords.paddle1Y = HEIGHT - paddle.height;
       }
     }
-    if (p2Up) {
-      if (coords.paddle2Y > 0) {
-        coords.paddle2Y -= coords.paddleSpeed * dt;
+    if (keyPressDt[2] !== 0) {
+      if (coords.paddle1Y > 0){
+        coords.paddle1Y -= coords.paddleSpeed * keyPressDt[0];
       }
-      if (coords.paddle2Y < 0) {
-        coords.paddle2Y = 0;
+      if (coords.paddle1Y < 0) {
+        coords.paddle1Y = 0;
       }
     }
-    if (p2Down) {
+    if (keyPressDt[3] !== 0) {
       if (coords.paddle2Y < HEIGHT - paddle.height) {
-        coords.paddle2Y += coords.paddleSpeed * dt;
+        coords.paddle2Y += coords.paddleSpeed * keyPressDt[3];
       }
       if (coords.paddle2Y > HEIGHT - paddle.height) {
         coords.paddle2Y = HEIGHT - paddle.height;
       }
     }
+    // if (paddleInfo.paddle2YUp) {
+    //   if (coords.paddle2Y > 0) {
+    //     coords.paddle2Y -= coords.paddleSpeed * dt;
+    //   }
+    //   if (coords.paddle2Y < 0) {
+    //     coords.paddle2Y = 0;
+    //   }
+    // }
+    // if (paddleInfo.paddle2YDown) {
+    //   if (coords.paddle2Y < HEIGHT - paddle.height) {
+    //     coords.paddle2Y += coords.paddleSpeed * dt;
+    //   }
+    //   if (coords.paddle2Y > HEIGHT - paddle.height) {
+    //     coords.paddle2Y = HEIGHT - paddle.height;
+    //   }
+    // }
   }
 
   function collisionCheckX() {

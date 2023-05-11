@@ -56,10 +56,10 @@ export const enum Hit {
 }
 
 export interface paddleInfo {
-  paddle1YUp: boolean,
-  paddle1YDown: boolean,
-  paddle2YUp: boolean,
-  paddle2YDown: boolean,
+  paddle1Y: number,
+  paddle2Y: number,
+  keyPress: number[],
+  time: number,
 }
 
 export interface scoreInfo {

@@ -136,7 +136,7 @@ class Game {
   
   upPress(uid: number) {
     if (this.gameStatus === GameStatus.RUNNING) {
-      this.update();
+      this.update(false);
       if (this.p1 === uid) {
         this.keyPress[0] = Date.now();
       } else {
@@ -148,7 +148,7 @@ class Game {
   
   upRelease(uid: number) {
     if (this.gameStatus === GameStatus.RUNNING) {
-      this.update();
+      this.update(false);
       if (this.p1 === uid) {
         this.keyPress[0] = 0;
       } else {
@@ -160,7 +160,7 @@ class Game {
 
   downPress(uid: number) {
     if (this.gameStatus === GameStatus.RUNNING) {
-      this.update();
+      this.update(false);
       if (this.p1 === uid) {
         this.keyPress[1] = Date.now();
       } else {
@@ -172,7 +172,7 @@ class Game {
   
   downRelease(uid: number) {
     if (this.gameStatus === GameStatus.RUNNING) {
-      this.update();
+      this.update(false);
       if (this.p1 === uid) {
         this.keyPress[1] = 0;
       } else {
@@ -185,7 +185,7 @@ class Game {
   // Event driven update
   private gameLoop() {
     if (this.gameStatus !== GameStatus.FINISHED) {
-      const timeout = this.update();
+      const timeout = this.update(true);
       setTimeout(this.gameLoop.bind(this), timeout);
     }
   }
@@ -270,7 +270,7 @@ class Game {
     return 2000;
   }
 
-  private running(curTime: number): number {
+  private running(curTime: number, isTimeout: boolean): number {
     let timeout = 10;
     const dt = curTime - this.lastUpdate;
     if (dt > 0) {
@@ -301,7 +301,9 @@ class Game {
           return this.updateScore(0);
         }
       }
-      this.nsp.to(this.id).emit("syncData", this.getState());
+      if (isTimeout === true) {
+        this.nsp.to(this.id).emit("syncData", this.getState());
+      }
       timeout = this.getHitTime();
     }
     return timeout;
@@ -325,7 +327,7 @@ class Game {
     return 10;
   }
 
-  private update(): number {
+  private update(isTimeout:boolean): number {
     const curTime = Date.now();
     let timeout:number
     switch(this.gameStatus) {
@@ -334,7 +336,7 @@ class Game {
         break;
       }
       case GameStatus.RUNNING: {
-        timeout = this.running(curTime);
+        timeout = this.running(curTime, isTimeout);
         break;
       }
       case GameStatus.FINISHED: {
@@ -356,7 +358,7 @@ class Game {
   private getKeyPressDt(curTime: number): number[] {
     const keyPressDt: number[] = [];
     for (let i = 0; i < 4; i++) {
-      if (this.keyPress[i] && curTime > this.keyPress[i]) {
+      if (this.keyPress[i] !== 0 && curTime > this.keyPress[i]) {
         keyPressDt.push(curTime - this.keyPress[i]);
         this.keyPress[i] = curTime;
       } else {
@@ -449,21 +451,19 @@ class Game {
       ballSpeedX: this.ballSpeedX,
       ballSpeedY: this.ballSpeedY,
       paddleSpeed: this.paddleSpeed,
-      paddle1YUp: this.isKeyPressed(this.keyPress[0]),
-      paddle1YDown: this.isKeyPressed(this.keyPress[1]),
-      paddle2YUp: this.isKeyPressed(this.keyPress[2]),
-      paddle2YDown: this.isKeyPressed(this.keyPress[3]),
+      keyPress: this.keyPress,
       time: Date.now(),
     };
   }
-
+  
   private emitPaddleInfo() {
-    this.nsp.to(this.id).emit("paddleInfo", {
-      paddle1YUp: this.isKeyPressed(this.keyPress[0]),
-      paddle1YDown: this.isKeyPressed(this.keyPress[1]),
-      paddle2YUp: this.isKeyPressed(this.keyPress[2]),
-      paddle2YDown: this.isKeyPressed(this.keyPress[3]),
-    });
+    this.nsp.to(this.id).emit("syncData", this.getState());
+    // this.nsp.to(this.id).emit("paddleInfo", {
+    //   paddle1Y: this.paddle1Y,
+    //   paddle2Y: this.paddle2Y,
+    //   keyPress: this.keyPress,
+    //   time: Date.now(),
+    // });
   }
 
 }
