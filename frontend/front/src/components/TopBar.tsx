@@ -9,6 +9,7 @@ import * as socket from "../socket/chat.socket";
 import * as chatAtom from "../components/atom/ChatAtom";
 import { AdminLogPrinter } from "../event/event.util";
 import { isMyProfileAtom } from "../components/atom/UserAtom";
+import { isPrivateAtom } from "./atom/GameAtom";
 
 export default function TopBar() {
   return (
@@ -51,8 +52,14 @@ function ChatBtn() {
 }
 
 function QueueBtn() {
+  const [, setIsPrivate] = useAtom(isPrivateAtom);
+
+  const queueHandler = () => {
+    setIsPrivate(false);
+  };
+
   return (
-    <div className="TopBarBtn">
+    <div className="TopBarBtn" onClick={queueHandler}>
       <NavLink to="/game" className="AStyle" style={getNavLinkStyle}>
         Queue
       </NavLink>
@@ -68,7 +75,7 @@ function ProfileBtn() {
   };
 
   return (
-    <div className="TopBarBtn" onClick={profileHandler} >
+    <div className="TopBarBtn" onClick={profileHandler}>
       <NavLink to="/profile" className="AStyle" style={getNavLinkStyle}>
         Profile
       </NavLink>
