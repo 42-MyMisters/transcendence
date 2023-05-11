@@ -3,7 +3,7 @@ import "../styles/TFAQRModal.css";
 import { useAtom } from "jotai";
 import { TFAModalAtom, TFAQRURL } from "./atom/ModalAtom";
 
-export default function TFAQRModal() {
+export default function TFAQRModal({ AuthBtn }: { AuthBtn: () => void }) {
   const [authCode, setAuthCode] = useState("");
   const [qrcodeURL] = useAtom(TFAQRURL);
   const [TFAModal, setTFAModal] = useAtom(TFAModalAtom);
@@ -34,7 +34,7 @@ export default function TFAQRModal() {
             }}
           />
         </div>
-        <button className="TFAAuthBtn" onClick={() => {}}>
+        <button className="TFAAuthBtn" onClick={AuthBtn}>
           Authenticate
         </button>
       </div>

@@ -7,6 +7,7 @@
   z-index: 998;
   background-color: #ffffff;
   opacity: 0.5;
+  border: 1px solid red;
 }
 
 .TFAQRModal {
