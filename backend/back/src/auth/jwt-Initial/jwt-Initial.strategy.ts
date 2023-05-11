@@ -1,17 +1,15 @@
 import { ExtractJwt, Strategy } from "passport-jwt";
 import { PassportStrategy } from "@nestjs/passport";
-import {
-  Injectable,
-  Logger,
-  UnauthorizedException,
-  UnprocessableEntityException,
-} from "@nestjs/common";
+import { Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { UserService } from "../../user/user.service";
 import { TokenPayload } from "../token-payload.entity";
 import config from "config";
 
 @Injectable()
-export class Jwt2faStrategy extends PassportStrategy(Strategy, "jwt-2fa") {
+export class JwtInitialStrategy extends PassportStrategy(
+  Strategy,
+  "jwt-initial",
+) {
   constructor(private readonly userService: UserService) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
@@ -30,8 +28,6 @@ export class Jwt2faStrategy extends PassportStrategy(Strategy, "jwt-2fa") {
   async validate(payload: TokenPayload) {
     const user = await this.userService.getUserByUid(payload.uid);
     if (this.userService.isUserExist(user)) {
-      if (user.nickname.includes("#"))
-        throw new UnprocessableEntityException("User nickname invalid");
       if (!user.twoFactorEnabled) {
         return user;
       }
