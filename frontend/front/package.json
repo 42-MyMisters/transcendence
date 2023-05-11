@@ -13,6 +13,8 @@
     "@types/react-router-dom": "^5.3.3",
     "jotai": "^2.0.4",
     "jwt-decode": "^3.1.2",
+    "merge-descriptors": "^1.0.1",
+    "mimic-fn": "^4.0.0",
     "react": "^18.2.0",
     "react-cookie": "^4.1.1",
     "react-dom": "^18.2.0",

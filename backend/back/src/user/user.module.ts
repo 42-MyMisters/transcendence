@@ -28,4 +28,4 @@ import { JwtInitialStrategy } from "src/auth/jwt-Initial/jwt-Initial.strategy";
   ],
   exports: [UserService, AuthModule, DatabaseModule],
 })
-export class UserModule {}
+export class UserModule { }
