@@ -258,11 +258,11 @@ export default function PingPong() {
       }
     }
     if (keyPressDt[2] !== 0) {
-      if (coords.paddle1Y > 0){
-        coords.paddle1Y -= coords.paddleSpeed * keyPressDt[0];
+      if (coords.paddle2Y > 0){
+        coords.paddle2Y -= coords.paddleSpeed * keyPressDt[2];
       }
-      if (coords.paddle1Y < 0) {
-        coords.paddle1Y = 0;
+      if (coords.paddle2Y < 0) {
+        coords.paddle2Y = 0;
       }
     }
     if (keyPressDt[3] !== 0) {
