@@ -1,7 +1,11 @@
 import { atom } from "jotai";
 // import type * as DTO from '../../socket/game.dto';
 
-export const isQueueAtom = atom<boolean>(false);
+export const isLoadingAtom = atom<boolean>(false);
+
+export const isPrivateAtom = atom<boolean>(false);
+
+export const isGameStartedAtom = atom<boolean>(false);
 
 export let lastUpdate = atom<number>(Date.now());
 
