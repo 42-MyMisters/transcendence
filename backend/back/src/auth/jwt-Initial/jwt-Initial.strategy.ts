@@ -1,22 +1,26 @@
 import { ExtractJwt, Strategy } from "passport-jwt";
 import { PassportStrategy } from "@nestjs/passport";
-import {
-  Injectable,
-  UnauthorizedException,
-  UnprocessableEntityException,
-} from "@nestjs/common";
+import { Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { UserService } from "../../user/user.service";
 import { TokenPayload } from "../token-payload.entity";
 import config from "config";
 
 @Injectable()
-export class JwtRefreshStrategy extends PassportStrategy(
+export class JwtInitialStrategy extends PassportStrategy(
   Strategy,
-  "jwt-refresh",
+  "jwt-initial",
 ) {
   constructor(private readonly userService: UserService) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (request) => {
+          Logger.log(JSON.stringify(request.cookies));
+          if (request?.cookies?.accessToken) {
+            return request.cookies.accessToken;
+          }
+          return null;
+        },
+      ]),
       secretOrKey: config.get<string>("jwt.secret"),
     });
   }
@@ -24,9 +28,12 @@ export class JwtRefreshStrategy extends PassportStrategy(
   async validate(payload: TokenPayload) {
     const user = await this.userService.getUserByUid(payload.uid);
     if (this.userService.isUserExist(user)) {
-      if (user.nickname.includes("#"))
-        throw new UnprocessableEntityException("User nickname invalid");
-      return user;
+      if (!user.twoFactorEnabled) {
+        return user;
+      }
+      if (payload.twoFactorAuthenticated) {
+        return user;
+      }
     }
     throw new UnauthorizedException("User not found");
   }
