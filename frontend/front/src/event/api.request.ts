@@ -65,6 +65,7 @@ export async function toggleTFA(
         AdminLogPrinter(adminConsole, '\ntoggleTFA: ', response);
         if (response.status === 200) {
           AdminLogPrinter(adminConsole, response);
+          // TODO: TFAQRURL ATOM
         } else {
           throw new Error(`${response.status}`);
         }
