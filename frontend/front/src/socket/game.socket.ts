@@ -3,7 +3,8 @@ import { useAtom } from "jotai";
 // import * as chatAtom from '../components/atom/SocketAtom';
 // import type * as gameType from './game.dto';
 
-const URL = process.env.REACT_APP_API_URL;
+// const URL = process.env.REACT_APP_API_URL;
+const URL = "https://localhost";
 
 const GameNameSpace = "/game";
 
@@ -14,7 +15,7 @@ export const gameSocket = io(`${URL}${GameNameSpace}`, {
   autoConnect: false,
   transports: ["polling", "websocket"],
   secure: true,
-  // upgrade: true,
+  upgrade: true,
   // reconnectionDelay: 1000, // defaults to 1000
   // reconnectionDelayMax: 10000, // defaults to 5000
   // withCredentials: true,
@@ -66,32 +67,6 @@ export const gameSocket = io(`${URL}${GameNameSpace}`, {
 //     AdminLogPrinter(adminConsole, err.message); // prints the message associated with the error
 //   });
 
-// gameSocket.on('join-game', ({
-//   uid_left,
-//   p1,
-//   uid_right
-// }: {
-//   uid_left: string;
-//   p1: number;
-//   uid_right: string;
-// }) => {
-
-// });
-
-// gameSocket.on('graphic', ({
-//   p1,
-//   ball_x,
-//   ball_y,
-//   p2
-// }: {
-//   p1: number;
-//   ball_x: number;
-//   ball_y: number;
-//   p2: number;
-// }) => {
-
-// });
-// }
 
 export function OnSocketGameEvent() {
   // const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);

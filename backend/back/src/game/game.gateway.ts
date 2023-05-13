@@ -21,27 +21,30 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     this.gameQueue = [];
     this.gameId = 0;
     // Queue loop
-    setInterval(() => {
-      while (this.gameQueue.length > 1) {
-        const p1 = this.gameQueue.pop();
-        const p2 = this.gameQueue.pop();
-        if (p1 !== undefined && p2 !== undefined) {
-          const gameId = this.gameId.toString();
-          this.gameId++;
-          p1.join(gameId);
-          p2.join(gameId);
-          p1.data.room = gameId;
-          p2.data.room = gameId;
-          this.server.to(gameId).emit('join-game', {p1: p1.data.uid, p2: p2.data.uid});
-          console.log(`${p1.id}: joined ${gameId}, rooms: ${[...p1.rooms]}`);
-          console.log(`${p2.id}: joined ${gameId}, rooms: ${[...p2.rooms]}`);
-          this.gameService.publicGame(gameId, this.server, p1.data.uid, p2.data.uid);
-          this.gameService.getGame(gameId)?.gameStart();
-          // this.gameService.gameStart(gameId);
-        }
+    setInterval(this.gameMatchLogic.bind(this), 5000);
+  }
+  
+  gameMatchLogic() {
+    while (this.gameQueue.length > 1) {
+      const p1 = this.gameQueue.pop();
+      const p2 = this.gameQueue.pop();
+      if (p1 !== undefined && p2 !== undefined) {
+        const gameId = this.gameId.toString();
+        this.gameId++;
+        p1.join(gameId);
+        p2.join(gameId);
+        p1.data.room = gameId;
+        p2.data.room = gameId;
+        this.server.to(gameId).emit('join-game', {p1: p1.data.uid, p2: p2.data.uid});
+        console.log(`${p1.id}: joined ${gameId}, rooms: ${[...p1.rooms]}`);
+        console.log(`${p2.id}: joined ${gameId}, rooms: ${[...p2.rooms]}`);
+        this.gameService.publicGame(gameId, this.server, p1.data.uid, p2.data.uid);
+        this.gameService.getGame(gameId)?.gameStart();
+        // this.server.to(gameId).emit("gameStart", true);
+        // this.gameService.gameStart(gameId);
       }
-      this.logger.log('game queue loop');
-    }, 5000)
+    }
+    this.logger.log('game queue loop');
   }
 
   logger = new Logger('GameGateway');

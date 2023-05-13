@@ -639,7 +639,9 @@ export default function ChatPage() {
 	async function firstLogin() {
 		if (isFirstLogin) {
 			await getMyinfoHandler();
+			AdminLogPrinter(adminConsole, `chat socket id: ${socket.socket.id}`) 
 			socket.socket.connect();
+			AdminLogPrinter(adminConsole, `chat socket id: ${socket.socket.id}`) 
 		}
 		setIsFirstLogin(false);
 	}

@@ -4,7 +4,7 @@ import "../../styles/PingPong.css";
 import React, { useEffect } from "react";
 
 import * as chatAtom from "../atom/ChatAtom";
-import { GameCoordinate, isQueueAtom } from "../atom/GameAtom";
+import { isGameStartedAtom, isPrivateAtom, serverClientTimeDiffAtom } from "../atom/GameAtom";
 import { Game } from "./Pong";
 
 import * as game from "../../socket/game.socket";
@@ -15,6 +15,7 @@ import { gameResultModalAtom, isLoadingAtom } from "../atom/ModalAtom";
 import { ball, Direction, HEIGHT, Hit, p1, p2, paddle, paddleInfo, scoreInfo, WIDTH } from "./GameInfo";
 
 import { AdminLogPrinter } from "../../event/event.util";
+import { GameCoordinate } from "../../socket/game.dto";
 
 export default function PingPong() {
   const [upArrow, setUpArrow] = useState(false);
@@ -23,10 +24,14 @@ export default function PingPong() {
   const canvas = useRef<HTMLCanvasElement>(null);
   
   const [isLoading, setIsLoading] = useAtom(isLoadingAtom);
-  const [isQueue, setIsQueue] = useAtom(isQueueAtom);
+  const [isPrivate, setIsPrivate] = useAtom(isPrivateAtom);
+  const [isGameStart, setIsGameStart] = useAtom(isGameStartedAtom);
+  // const [isQueue, setIsQueue] = useAtom(isQueueAtom);
   const [gameResultModal, setGameResultModal] = useAtom(gameResultModalAtom);
 
-  let coords = {
+  const [serverClientTimeDiff, setServerClientTimeDiff] = useAtom(serverClientTimeDiffAtom);
+
+  let coords: GameCoordinate = {
     paddle1Y: 225,
     ballX: 1150 / 2,
     ballY: 300,
@@ -37,64 +42,10 @@ export default function PingPong() {
     keyPress: [0, 0, 0, 0],
     time: Date.now(),
   }
-  let lastUpdateTime = coords.time;
+  let lastUpdateTime: number = coords.time;
 
-  let pingInterval: NodeJS.Timer;
+  reqeustAnimationLoop(lastUpdateTime, lastUpdateTime);
 
-  // 1 sec delay for init value 
-  let pingRTTmin: number = 2000;
-  let serverClientTimeDiff: number;
-  
-  const connectionEventHandler = () => {
-    if (game.gameSocket.connected) {
-      //This attribute describes whether the socket is currently connected to the server.
-      if (game.gameSocket.recovered) {
-        // any missed packets will be received
-      } else {
-        // new or unrecoverable session
-        AdminLogPrinter(adminConsole, "gameSocket connected");
-        pingInterval = setInterval(pingEvent, 1000);
-      }
-    }
-  }
-  
-  const pingEvent = () => {
-    const curTime = Date.now();
-    const pingEventHandler = (serverTime: number) => {
-      const now = Date.now();
-      const pingRTT = now - curTime;
-      AdminLogPrinter(adminConsole, `pingRTT: ${pingRTT}ms`);
-      if (pingRTTmin > pingRTT) {
-        pingRTTmin = pingRTT;
-        const adjServerTime = serverTime + pingRTTmin / 2;
-        serverClientTimeDiff = now - adjServerTime;
-        AdminLogPrinter(adminConsole, `updated serverClientTimeDiff: ${serverClientTimeDiff}ms`);
-      }
-      AdminLogPrinter(adminConsole, `pingRTTmin: ${pingRTTmin}ms`);
-    }
-    game.gameSocket.emit('ping', pingEventHandler);
-    return () => {
-      game.gameSocket.off('ping', pingEventHandler);
-    }
-  }
-
-  //https://socket.io/docs/v4/client-socket-instance/#disconnect
-  const disconnectEventHandler = (reason: string) => {
-    if (reason === "io server disconnect") {
-    }
-    clearInterval(pingInterval);
-    setIsQueue(false);
-    setIsLoading(false);
-    AdminLogPrinter(adminConsole, "gameSocket disconnected");
-  }
-
-  const startEventHandler = () => {
-    lastUpdateTime = Date.now();
-    AdminLogPrinter(adminConsole, "game start");
-    update(Date.now(), lastUpdateTime);
-  }
-
-  
   const syncDataHandler = (gameCoord: GameCoordinate) => {
     coords = gameCoord;
     for (let i = 0; i < 4; i++) {
@@ -104,13 +55,7 @@ export default function PingPong() {
     }
     coords.time += serverClientTimeDiff;
     update(Date.now(), coords.time);
-    Game(coords, canvas);
   }
-  
-  // const paddleEventHandler = (paddleInfo: paddleInfo) => {
-  //   update(Date.now(), coords.time + serverClientTimeDiff);
-  //   Game(coords, canvas);
-  // }
 
   const scoreEventhandler = (scoreInfo: scoreInfo) => {
     p1.score = scoreInfo.p1Score;
@@ -128,40 +73,20 @@ export default function PingPong() {
     coords.ballSpeedY = 0;
     coords.paddleSpeed = 0;
     Game(coords, canvas);
-  }
-
-  const queueEventHandler = (isQueue: boolean) => {
-    setIsQueue(isQueue);
-  }
-
-  const loadingEventHandler = (isLoading: boolean) => {
-    setIsLoading(isLoading);
+    setGameResultModal(true);
   }
 
   useEffect(() => {
-    game.gameSocket.on("connect", connectionEventHandler);
-    game.gameSocket.on("isQueue", queueEventHandler);
-    game.gameSocket.on("isLoading", loadingEventHandler);
-    game.gameSocket.on("disconnect", disconnectEventHandler);
-    game.gameSocket.on("start", startEventHandler);
     game.gameSocket.on("scoreInfo", scoreEventhandler);
     game.gameSocket.on("finished", finishEventHandler);
-    // game.gameSocket.on("paddleInfo", paddleEventHandler);
     game.gameSocket.on("syncData", syncDataHandler);
     return () => {
-      game.gameSocket.off("connect", connectionEventHandler);
-      game.gameSocket.off("isQueue", queueEventHandler);
-      game.gameSocket.off("isLoading", loadingEventHandler);
-      game.gameSocket.off("disconnect", disconnectEventHandler);
-      game.gameSocket.off("start", startEventHandler);
+
       game.gameSocket.off("syncData", syncDataHandler);
-      // game.gameSocket.off("paddleInfo", paddleEventHandler);
       game.gameSocket.off("scoreInfo", scoreEventhandler);
       game.gameSocket.off("finished", finishEventHandler);
     }
   }, []);
-
-
 
   // // the connection is denied by the server in a middleware function
   // game.gameSocket.on("connect_error", (err) => {
@@ -171,19 +96,10 @@ export default function PingPong() {
   //   console.log(err.message); // prints the message associated with the error
   // });
 
-  // game.gameSocket.on(
-  //   "join-game",
-  //   ({ uid_left, p1, uid_right }: { uid_left: string; p1: number; uid_right: string }) => { }
-  // );
-
-  // function getPaddleInfo() {
-  //   return {
-  //     paddle1Y: coords.paddle1Y,
-  //     paddle2Y: coords.paddle2Y,
-  //     keyPress: coords.keyPress,
-  //     time: coords.time,
-  //   };
-  // }
+  function reqeustAnimationLoop(curTime: number, lastUpdate: number) {
+    update(curTime, lastUpdate);
+    requestAnimationFrame(() => reqeustAnimationLoop(Date.now(), lastUpdateTime));
+  }
 
   // paddle update first, and then ball position update.
   function update(curTime: number, lastUpdate: number) {
@@ -219,7 +135,6 @@ export default function PingPong() {
       lastUpdateTime = curTime;
     }
     Game(coords, canvas);
-    requestAnimationFrame(() => update(Date.now(), lastUpdateTime));
   }
 
   

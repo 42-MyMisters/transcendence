@@ -4,6 +4,18 @@ import { DatabaseService } from "src/database/database.service";
 import { Direction, GameMode, GameStatus, GameType, Hit } from "./game.enum";
 import { Game as GameEntity } from "../database/entity/game.entity";
 
+interface GameCoords {
+  paddle1Y: number,
+  ballX: number,
+  ballY: number,
+  paddle2Y: number,
+  ballSpeedX: number,
+  ballSpeedY: number,
+  paddleSpeed: number,
+  keyPress: number[],
+  time: number,
+}
+
 @Injectable()
 export class GameService {
   private games: Map<string, Game>;
@@ -59,13 +71,14 @@ class Game {
 
   private roundStartTime: number;
   private lastUpdate: number;
+  private lastUpdateCoords: GameCoords;
 
   private p1Score: number;
   private p2Score: number;
 
   private score: number[] = [0, 0];
 
-  // keyPress -> key pressed time list [p1up, p1down, p2up, p2down]
+  // key pressed time list [p1up, p1down, p2up, p2down]
   private keyPress: number[] = [0, 0, 0, 0];
 
   private ballSpeedMultiplier: number = 1.4;
@@ -107,7 +120,8 @@ class Game {
     }
     this.paddle1Y = this.paddle2Y = (this.canvasHeight - this.paddleHeight) / 2;
     this.roundStartTime = Date.now();
-    const objectInfo = {...this.getState()};
+    this.lastUpdateCoords = this.getState();
+    const objectInfo = {...this.lastUpdateCoords};
     objectInfo.ballSpeedX = 0;
     objectInfo.ballSpeedY = 0;
     this.nsp.to(this.id).emit('syncData', objectInfo);
@@ -118,7 +132,7 @@ class Game {
     this.roundStartTime = Date.now();
     this.lastUpdate = this.roundStartTime;
     this.gameLoop();
-    this.nsp.to(this.id).emit('start', true);
+    this.nsp.to(this.id).emit('gameStart', true);
   }
 
   isPlayer(uid: number): boolean {
@@ -136,56 +150,57 @@ class Game {
   
   upPress(uid: number) {
     if (this.gameStatus === GameStatus.RUNNING) {
-      this.update(false);
+      this.update();
       if (this.p1 === uid) {
         this.keyPress[0] = Date.now();
       } else {
         this.keyPress[2] = Date.now();
       }
-      this.emitPaddleInfo();
-    }
+      this.lastUpdateCoords = this.getState();
+      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);    }
   }
   
   upRelease(uid: number) {
     if (this.gameStatus === GameStatus.RUNNING) {
-      this.update(false);
+      this.update();
       if (this.p1 === uid) {
         this.keyPress[0] = 0;
       } else {
         this.keyPress[2] = 0;
       }
-      this.emitPaddleInfo();
-    }
+      this.lastUpdateCoords = this.getState();
+      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);    }
   }
 
   downPress(uid: number) {
     if (this.gameStatus === GameStatus.RUNNING) {
-      this.update(false);
+      this.update();
       if (this.p1 === uid) {
         this.keyPress[1] = Date.now();
       } else {
         this.keyPress[3] = Date.now();
       }
-      this.emitPaddleInfo();
-    }
+      this.lastUpdateCoords = this.getState();
+      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);    }
   }
   
   downRelease(uid: number) {
     if (this.gameStatus === GameStatus.RUNNING) {
-      this.update(false);
+      this.update();
       if (this.p1 === uid) {
         this.keyPress[1] = 0;
       } else {
         this.keyPress[3] = 0;
       }
-      this.emitPaddleInfo();
-    }
+      this.lastUpdateCoords = this.getState();
+      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);    }
   }
 
   // Event driven update
   private gameLoop() {
     if (this.gameStatus !== GameStatus.FINISHED) {
-      const timeout = this.update(true);
+      const timeout = this.update();
+      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);
       setTimeout(this.gameLoop.bind(this), timeout);
     }
   }
@@ -270,7 +285,7 @@ class Game {
     return 2000;
   }
 
-  private running(curTime: number, isTimeout: boolean): number {
+  private running(curTime: number): number {
     let timeout = 10;
     const dt = curTime - this.lastUpdate;
     if (dt > 0) {
@@ -301,9 +316,7 @@ class Game {
           return this.updateScore(0);
         }
       }
-      if (isTimeout === true) {
-        this.nsp.to(this.id).emit("syncData", this.getState());
-      }
+      this.lastUpdateCoords = this.getState();
       timeout = this.getHitTime();
     }
     return timeout;
@@ -327,7 +340,7 @@ class Game {
     return 10;
   }
 
-  private update(isTimeout:boolean): number {
+  private update(): number {
     const curTime = Date.now();
     let timeout:number
     switch(this.gameStatus) {
@@ -336,7 +349,7 @@ class Game {
         break;
       }
       case GameStatus.RUNNING: {
-        timeout = this.running(curTime, isTimeout);
+        timeout = this.running(curTime);
         break;
       }
       case GameStatus.FINISHED: {
@@ -351,7 +364,7 @@ class Game {
       }
     }
     this.lastUpdate = curTime;
-    console.log(`[${Date.now()}] backend game login update`);
+    // console.log(`[${Date.now()}] backend game login update`);
     return timeout;
   }
   
@@ -435,14 +448,7 @@ class Game {
     return Hit.WALL;
   }
 
-  private isKeyPressed(pressTime: number): boolean {
-    if (pressTime != 0) {
-      return true;
-    }
-    return false;
-  }
-
-  private getState() {
+  private getState(): GameCoords {
     return {
       paddle1Y: this.paddle1Y,
       ballX: this.ballX,
@@ -454,16 +460,6 @@ class Game {
       keyPress: this.keyPress,
       time: Date.now(),
     };
-  }
-  
-  private emitPaddleInfo() {
-    this.nsp.to(this.id).emit("syncData", this.getState());
-    // this.nsp.to(this.id).emit("paddleInfo", {
-    //   paddle1Y: this.paddle1Y,
-    //   paddle2Y: this.paddle2Y,
-    //   keyPress: this.keyPress,
-    //   time: Date.now(),
-    // });
   }
 
 }

@@ -1,5 +1,5 @@
 import React from "react";
-import { GameCoordinate } from "../atom/GameAtom";
+import { GameCoordinate } from "../../socket/game.dto";
 import { ball, HEIGHT, net, p1, p2, WIDTH } from "./GameInfo";
 
 function drawRect(
