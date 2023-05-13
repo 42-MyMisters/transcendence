@@ -15,6 +15,7 @@ import {
 import * as swagger from "@nestjs/swagger";
 import config from "config";
 import { Response } from "express";
+import { url } from "inspector";
 import { AuthService } from "src/auth/auth.service";
 import { Jwt2faAuthGuard } from "src/auth/jwt-2fa/jwt-2fa-auth.guard";
 import { JwtRefreshGuard } from "src/auth/jwt-refresh/jwt-refresh-auth.guard";
@@ -32,7 +33,7 @@ export class LoginController {
   constructor(
     private authService: AuthService,
     private userService: UserService,
-  ) {}
+  ) { }
 
   @swagger.ApiOperation({
     summary: "42 OAuth를 이용한 로그인 시도",
@@ -47,13 +48,13 @@ export class LoginController {
   @Get("/oauth")
   @Redirect(
     "https://api.intra.42.fr/oauth/authorize?client_id=" +
-      config.get<string>("intra.client_id") +
-      "&redirect_uri=" +
-      config.get<string>("intra.redirect_uri") +
-      "&response_type=code",
+    config.get<string>("intra.client_id") +
+    "&redirect_uri=" +
+    config.get<string>("intra.redirect_uri") +
+    "&response_type=code",
     302,
   )
-  intra() {}
+  intra() { }
 
   // frontend need to redirect user to 2fa auth page.
 
@@ -112,7 +113,7 @@ export class LoginController {
       // secure: true //only https option
     });
     res.cookie("refreshToken", tokenSet.refresh_token);
-    return res.redirect("http://localhost:3000/");
+    return res.redirect(config.get<string>('public-url.frontend'));
   }
 
   @swagger.ApiQuery({
@@ -181,8 +182,8 @@ export class LoginController {
     @Query("ref") ref: string,
     @Req() request,
     @Res() res,
-  ){
-    this.refreshAccessTokens(" "+ref, request, res);
+  ) {
+    this.refreshAccessTokens(" " + ref, request, res);
   }
 
   @Post("/oauth/refresh")
@@ -256,7 +257,7 @@ export class LoginController {
   @Get("/logout")
   @UseGuards(Jwt2faAuthGuard)
   async red(@Req() request, @Res() response: Response) {
-    await this.logout(request,response);
+    await this.logout(request, response);
     response.send();
   }
 }

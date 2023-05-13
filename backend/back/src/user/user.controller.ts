@@ -43,6 +43,7 @@ import { PasswordDto } from "./dto/Password.dto";
 import { TwoFactorConfirmDto } from "./dto/TwoFactorConfirm.dto";
 import { UserProfileDto } from "./dto/UserProfile.dto";
 import { JwtInitialAuthGuard } from "src/auth/jwt-Initial/jwt-Initial.auth.guard";
+import config from "config";
 
 @swagger.ApiTags("유저")
 @Controller("user")
@@ -50,7 +51,7 @@ export class UserController {
   constructor(
     private authService: AuthService,
     private userService: UserService,
-  ) {}
+  ) { }
   @ApiOperation({
     summary: "2fa 등록 / (이미 등록된 상태라면) 끄기",
     description: "2fa 인증 활성화/비활성화 ",
@@ -113,7 +114,7 @@ export class UserController {
       // secure: true //only https option
     });
     res.cookie("refreshToken", tokenSet.refreshToken);
-    return res.redirect("http://localhost:3000/");
+    return res.redirect(config.get<string>('public-url.frontend'));
   }
 
   @ApiOperation({
@@ -189,7 +190,7 @@ export class UserController {
         .flatten({ background: "#fff" })
         .toFormat("jpeg", { mozjpeg: true })
         .toFile(`img/${filename}`);
-      const profileUrl = `https://localhost/images/${filename}`;
+      const profileUrl = `https://${config.get<string>('dns')}/images/${filename}`;
       await this.userService.setUserProfileUrl(user, profileUrl);
     } catch (e) {
       Logger.error(e);
