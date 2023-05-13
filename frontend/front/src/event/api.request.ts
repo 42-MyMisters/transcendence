@@ -50,6 +50,103 @@ export async function DoFollow(
   return status;
 }
 
+export async function toggleTFA(
+  adminConsole: boolean,
+): Promise<number> {
+  let status = -1;
+
+  try {
+    await fetch(`${process.env.REACT_APP_API_URL}/user/2fa/toggle`, {
+      credentials: "include",
+      method: "GET",
+    })
+      .then((response) => {
+        status = response.status;
+        AdminLogPrinter(adminConsole, '\ntoggleTFA: ', response);
+        if (response.status === 200) {
+          AdminLogPrinter(adminConsole, response);
+          // TODO: TFAQRURL ATOM
+        } else {
+          throw new Error(`${response.status}`);
+        }
+      })
+      .catch((error) => {
+        AdminLogPrinter(adminConsole, `\ntoggleTFA error: ${error}`);
+      });
+  } catch (error) {
+    alert(error);
+  }
+
+  return status;
+}
+
+
+export async function changeProfileImage(
+  adminConsole: boolean,
+  imageData: FormData,
+  callback = (): any => { }
+): Promise<number> {
+  let status = -1;
+
+  try {
+    await fetch(`${process.env.REACT_APP_API_URL}/user/profile-img-change`, {
+      credentials: "include",
+      method: "POST",
+      body: imageData,
+    })
+      .then((response) => {
+        status = response.status;
+        AdminLogPrinter(adminConsole, '\nchangeProfileImage: ', response);
+        if (response.status === 201) {
+          socket.socket.emit('user-change-info', 'image');
+          callback();
+        } else {
+          throw new Error(`${response.status}`);
+        }
+      })
+      .catch((error) => {
+        AdminLogPrinter(adminConsole, `\nchangeProfileImage error: ${error}`);
+      });
+  } catch (error) {
+    alert(error);
+  }
+
+  return status;
+}
+
+export async function changeNickName(
+  adminConsole: boolean,
+  newName: string,
+  callback = (): any => { }
+): Promise<number> {
+  let status = -1;
+
+  await fetch(`${process.env.REACT_APP_API_URL}/user/nickname`, {
+    credentials: "include",
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: newName,
+  })
+    .then((response) => {
+      status = response.status;
+      AdminLogPrinter(adminConsole, '\nchangeNickName:', response);
+      if (response.status === 200) {
+        socket.socket.emit('user-change-info', 'name');
+        callback();
+      } else {
+        throw new Error(`${response.status}`);
+      }
+    })
+    .catch((error) => {
+      if (error.message === "400") {
+        alert("중복된 닉네임입니다.");
+      }
+      AdminLogPrinter(adminConsole, `\nchangeNickName error: ${error}`);
+    });
+
+  return status;
+}
+
 export async function GetMyInfo(
   adminConsole: boolean,
   setUserInfo: setUserInfo
@@ -74,7 +171,7 @@ export async function GetMyInfo(
     .then((response) => {
       AdminLogPrinter(adminConsole, `\nGetMyInfo: ${JSON.stringify(response)}`);
       response.nickname = response.nickname.split("#", 2)[0];
-      setUserInfo({ ...response });
+      setUserInfo({ ...response, date: new Date() });
     })
     .catch((error) => {
       status = error.message;

@@ -1,3 +1,4 @@
 /config
 /db
 .vscode/settings.json
+.trunk/

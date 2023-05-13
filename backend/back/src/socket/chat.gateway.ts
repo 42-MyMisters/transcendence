@@ -334,6 +334,27 @@ export class EventsGateway
 		});
 	}
 
+	@SubscribeMessage("user-change-info")
+	async UserUpdateInfo(
+		@ConnectedSocket() socket: Socket,
+		@MessageBody() {
+			action
+		}: {
+			action: 'name' | 'image'
+		}) {
+		const changedUser: User | null = await this.userService.getUserByUid(socket.data.user.uid);
+		if (changedUser) {
+			userList[socket.data.user.uid].userDisplayName = changedUser.nickname;
+			userList[socket.data.user.uid].userUrl = changedUser.profileUrl;
+			this.nsp.emit("user-update", {
+				userId: changedUser.uid,
+				userDisplayName: changedUser.nickname.split('#', 2)[0],
+				userProfileUrl: changedUser.profileUrl,
+				userStatus: userList[changedUser.uid].status,
+			});
+		}
+	}
+
 	@SubscribeMessage("room-create")
 	async RoomCreate(
 		@ConnectedSocket() socket: Socket,

@@ -7,12 +7,15 @@ import "../../styles/RoomInviteModal.css";
 
 import * as chatAtom from '../atom/ChatAtom';
 import * as socket from "../../socket/chat.socket";
+import { useAutoFocus } from '../../event/event.util';
+
 export default function RoomInviteModal() {
   const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);
   const [nickName, setNickName] = useState("");
   const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
   const [focusRoom,] = useAtom(chatAtom.focusRoomAtom);
   const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
+  const inviteInputRef = useAutoFocus();
 
   PressKey(["Escape"], () => { setInviteModal(false); });
 
@@ -40,7 +43,7 @@ export default function RoomInviteModal() {
       <div className="RoomInviteModal">
         <div className="InviteForm">
           <label htmlFor="Invite">NickName</label>
-          <input id="Invite" minLength={1} type="text" value={nickName} onChange={(e) => setNickName(e.target.value)} onKeyDown={(e) => handleEnterEvent(e)}></input>
+          <input id="Invite" ref={inviteInputRef} minLength={1} type="text" value={nickName} onChange={(e) => setNickName(e.target.value)} onKeyDown={(e) => handleEnterEvent(e)}></input>
         </div>
         <button className="Invite" onClick={handleInvite}>Invite</button>
         <button className="InviteCancel" onClick={() => setInviteModal(false)}>

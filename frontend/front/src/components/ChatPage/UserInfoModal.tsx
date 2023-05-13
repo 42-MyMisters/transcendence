@@ -11,6 +11,7 @@ import { refreshTokenAtom } from "../../components/atom/LoginAtom";
 import * as socket from "../../socket/chat.socket";
 import { useNavigate } from "react-router-dom";
 import { UserAtom, isMyProfileAtom, ProfileAtom } from "../../components/atom/UserAtom";
+import { isPrivateAtom } from "../atom/GameAtom";
 
 export default function UserInfoModal() {
   const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
@@ -20,6 +21,7 @@ export default function UserInfoModal() {
   const [followingList, setFollowingList] = useAtom(chatAtom.followingListAtom);
   const [focusRoom] = useAtom(chatAtom.focusRoomAtom);
   const [blockList, setBlockList] = useAtom(chatAtom.blockListAtom);
+  const [, setIsPrivate] = useAtom(isPrivateAtom);
 
   const navigate = useNavigate();
   const [, setRefreshToken] = useAtom(refreshTokenAtom);
@@ -69,16 +71,19 @@ export default function UserInfoModal() {
       if (refreshResponse !== 201) {
         logOutHandler();
       } else {
-        const getProfileResponse = await api.GetOtherProfile(adminConsole, setProfile, userInfo.uid);
+        const getProfileResponse = await api.GetOtherProfile(
+          adminConsole,
+          setProfile,
+          userInfo.uid
+        );
         if (getProfileResponse === 401) {
           logOutHandler();
-        }
-        else {
-          navigate('/profile');
+        } else {
+          navigate("/profile");
         }
       }
     } else {
-      navigate('/profile');
+      navigate("/profile");
     }
   }
 
@@ -100,8 +105,11 @@ export default function UserInfoModal() {
 
   const Invite = () => {
     if (isDefaultUser) return;
+    setIsPrivate(true); // private Game - Custom Match
     alert("invite");
     infoModalOff();
+    // TODO: socket - Game invite Logic
+    // navigate("/game");
   };
 
   const Ignore = () => {
