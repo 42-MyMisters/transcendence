@@ -9,7 +9,7 @@ import { AdminLogPrinter } from "../event/event.util";
 const URL = process.env.REACT_APP_API_URL;
 const NameSpace = "/sock";
 
-export const socket = io(`${URL}${NameSpace}`, {
+export let socket = io(`${URL}${NameSpace}`, {
   auth: (cb) => {
     cb({ token: localStorage.getItem("refreshToken") });
   },
@@ -66,10 +66,10 @@ export function emitRoomEdit(
   const roomType = roomCheck
     ? "private"
     : roomCurrentType === "protected"
-    ? "protected"
-    : roomPass !== ""
-    ? "protected"
-    : "open";
+      ? "protected"
+      : roomPass !== ""
+        ? "protected"
+        : "open";
   socket.emit(
     "room-edit",
     {

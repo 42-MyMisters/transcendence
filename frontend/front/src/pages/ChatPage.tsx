@@ -187,6 +187,7 @@ export default function ChatPage() {
 			if (reason === "io server disconnect") {
 				// the disconnection was initiated by the server, you need to reconnect manually
 				AdminLogPrinter(adminConsole, 'socket disconnected by server');
+				socket.socket.removeAllListeners();
 			}
 			// else the socket will automatically try to reconnect
 			AdminLogPrinter(adminConsole, "socket disconnected");

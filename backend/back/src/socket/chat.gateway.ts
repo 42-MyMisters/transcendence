@@ -324,7 +324,7 @@ export class EventsGateway
 
 	@SubscribeMessage("chat-logout")
 	Logout(@ConnectedSocket() socket: Socket) {
-		this.logger.log(`${socket.id} logout`);
+		this.logger.warn(`${socket.id} logout`);
 		userList[socket.data.user.uid].status = 'offline';
 		this.nsp.emit("user-update", {
 			userId: socket.data.user.uid,
