@@ -5,7 +5,12 @@ import PingPong from "../components/GamePage/PingPong";
 import TopBar from "../components/TopBar";
 
 import { useAtom } from "jotai";
-import { isGameStartedAtom, isLoadingAtom, isPrivateAtom, serverClientTimeDiffAtom } from "../components/atom/GameAtom";
+import {
+  isGameStartedAtom,
+  isLoadingAtom,
+  isPrivateAtom,
+  serverClientTimeDiffAtom,
+} from "../components/atom/GameAtom";
 
 import * as game from "../socket/game.socket";
 
@@ -31,18 +36,23 @@ export default function GamePage() {
 
   let pingInterval: NodeJS.Timer;
 
-  // 1 sec delay for init value 
+  // 1 sec delay for init value
   let pingRTTmin: number = 2000;
-  
+
   PressKey(["F4"], () => {
     setAdminConsole((prev) => !prev);
   });
 
-  if (isLoading === false) {
-    AdminLogPrinter(adminConsole, "gameSocket connection");
-    game.gameSocket.connect();
-    setIsLoading(true);
-  }
+  useEffect(() => {
+    if (isLoading === false) {
+      AdminLogPrinter(adminConsole, "gameSocket connection");
+      game.gameSocket.connect();
+      setIsLoading(true);
+    }
+    return () => {
+      game.gameSocket.disconnect();
+    };
+  }, [game.gameSocket]);
 
   const connectionEventHandler = () => {
     if (game.gameSocket.connected) {
@@ -55,7 +65,7 @@ export default function GamePage() {
         pingInterval = setInterval(pingEvent, 1000);
       }
     }
-  }
+  };
 
   //https://socket.io/docs/v4/client-socket-instance/#disconnect
   const disconnectionEventHandler = (reason: string) => {
@@ -66,8 +76,8 @@ export default function GamePage() {
     setIsLoading(false);
     setIsPrivate(false);
     AdminLogPrinter(adminConsole, "gameSocket disconnected");
-  }
-  
+  };
+
   const pingEvent = () => {
     const curTime = Date.now();
     const pingEventHandler = (serverTime: number) => {
@@ -82,19 +92,28 @@ export default function GamePage() {
         AdminLogPrinter(adminConsole, `updated serverClientTimeDiff: ${serverClientTimeDiff}ms`);
       }
       AdminLogPrinter(adminConsole, `pingRTTmin: ${pingRTTmin}ms`);
-    }
-    game.gameSocket.emit('ping', pingEventHandler);
+    };
+    game.gameSocket.emit("ping", pingEventHandler);
     return () => {
-      game.gameSocket.off('ping', pingEventHandler);
-    }
-  }
+      game.gameSocket.off("ping", pingEventHandler);
+    };
+  };
 
   const startEventHandler = () => {
     AdminLogPrinter(adminConsole, "game start");
     setIsLoading(false);
     setIsGameStart(true);
-    AdminLogPrinter(adminConsole, `isLoading: ${isLoading}, isPrivate: ${isPrivate}, isGameStart: ${isGameStart}`);
-  }
+    AdminLogPrinter(
+      adminConsole,
+      `isLoading: ${isLoading}, isPrivate: ${isPrivate}, isGameStart: ${isGameStart}`
+    );
+  };
+  useEffect(() => {
+    AdminLogPrinter(
+      adminConsole,
+      `useeffect: isLoading: ${isLoading}, isPrivate: ${isPrivate}, isGameStart: ${isGameStart}`
+    );
+  }, [isLoading, isPrivate, isGameStart]);
 
   useEffect(() => {
     game.gameSocket.on("connect", connectionEventHandler);
@@ -108,7 +127,7 @@ export default function GamePage() {
       game.gameSocket.off("gameStart", startEventHandler);
       // game.gameSocket.off("isQueue", queueEventHandler);
       // game.gameSocket.off("isLoading", loadingEventHandler);
-    }
+    };
   }, [isLoading, isPrivate, isGameStart]);
 
   useEffect(() => {
