@@ -56,6 +56,8 @@ export default function ChatPage() {
 
 	const [gameInviteModal, setGameInviteModal] = useAtom(gameInviteModalAtom);
 	const [adminConsole, setAdminConsole] = useAtom(chatAtom.adminConsoleAtom);
+	const [passwordModal, setPasswordModal] = useAtom(passwordInputModalAtom);
+	const [clickRoom] = useAtom(chatAtom.clickRoomAtom);
 
 	PressKey(["F4"], () => {
 		setAdminConsole((prev) => !prev);
@@ -187,6 +189,7 @@ export default function ChatPage() {
 			if (reason === "io server disconnect") {
 				// the disconnection was initiated by the server, you need to reconnect manually
 				AdminLogPrinter(adminConsole, 'socket disconnected by server');
+				socket.socket.removeAllListeners();
 			}
 			// else the socket will automatically try to reconnect
 			AdminLogPrinter(adminConsole, "socket disconnected");
@@ -201,7 +204,7 @@ export default function ChatPage() {
 		});
 		socket.socket.on("multiple-login", () => {
 			// 	alert(`multiple login detected!`);
-			LogOut(adminConsole, setRefreshToken, navigate, "/");
+			LogOut(adminConsole, setRefreshToken, navigate, "/", 'refresh');
 			setHasLogin(false);
 			setIsFirstLogin(true);
 		});
@@ -364,6 +367,9 @@ export default function ChatPage() {
 					if (focusRoom == roomId) {
 						setFocusRoom(-1);
 					}
+					if (passwordModal && roomId === clickRoom) {
+						setPasswordModal(false);
+					}
 					break;
 				}
 				case 'edit': {
@@ -375,6 +381,9 @@ export default function ChatPage() {
 						detail: roomList[roomId].detail || {} as chatType.roomDetailDto,
 					};
 					setRoomList({ ...roomList, ...newRoomList });
+					if (passwordModal && roomId === clickRoom) {
+						setPasswordModal(false);
+					}
 					break;
 				}
 			}
@@ -382,7 +391,7 @@ export default function ChatPage() {
 		return () => {
 			socket.socket.off("room-list-update");
 		};
-	}, [roomList, focusRoom]);
+	}, [roomList, focusRoom, passwordModal, clickRoom]);
 
 	useEffect(() => {
 		socket.socket.on("room-clear", () => {
@@ -639,14 +648,18 @@ export default function ChatPage() {
 	async function firstLogin() {
 		if (isFirstLogin) {
 			await getMyinfoHandler();
-			socket.socket.connect();
+			setTimeout(() => {
+				socket.socket.connect();
+			}, 420);
+			setIsFirstLogin(false);
 		}
-		setIsFirstLogin(false);
 	}
 
-	if (isFirstLogin) {
-		firstLogin();
-	}
+	useEffect(() => {
+		if (isFirstLogin) {
+			firstLogin();
+		}
+	}, [firstLogin]);
 
 
 	return (
