@@ -9,7 +9,7 @@ import BackGround from "../components/BackGround";
 import SignInModal from "../components/LoginPage/SignIn";
 import TFAModal from "../components/LoginPage/TwoFactorAuth";
 
-import { refreshTokenAtom } from "../components/atom/LoginAtom";
+import { isFirstLoginAtom, refreshTokenAtom } from "../components/atom/LoginAtom";
 import { cookieAtom } from "../components/atom/LoginAtom";
 import { TFAEnabledAtom } from "../components/atom/LoginAtom";
 import ChatPage from "./ChatPage";
@@ -21,6 +21,7 @@ import { hasLoginAtom } from "../components/atom/ChatAtom";
 import InitialSettingModal from "../components/LoginPage/InitialSetting";
 
 import { AdminLogPrinter } from "../event/event.util";
+import { UserAtom } from "../components/atom/UserAtom";
 
 export default function LoginPage() {
   /* localstorage에 없는데 cookie에 있으면 로그인이 된거다 */
@@ -29,44 +30,67 @@ export default function LoginPage() {
   const [cookie, setCookie] = useAtom(cookieAtom);
   const [TFAEnabled, setTFAEnabled] = useAtom(TFAEnabledAtom);
   const [hasLogin, setHasLogin] = useAtom(hasLoginAtom);
+  const [isFirstLogin, setIsFirstLogin] = useAtom(isFirstLoginAtom);
+  const [userInfo, setUserInfo] = useAtom(UserAtom);
+
   const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
 
-  const cookieIMade = "refreshToken";
-  const [cookies, setCookies, removeCookie] = useCookies([cookieIMade]);
+  const refreshTokenKey = "refreshToken";
+  const [cookies, setCookies, removeCookie] = useCookies([refreshTokenKey]);
   const navigate = useNavigate();
+
   useEffect(() => {
-    /* 로그인 경험이 있는지 확인 */
+    if (cookies[refreshTokenKey] !== undefined) {
+      setCookie(true);
+      localStorage.setItem("refreshToken", cookies[refreshTokenKey]);
+      removeCookie(refreshTokenKey);
+      setCookie(false);
+    }
+
     const storedRefreshToken = localStorage.getItem("refreshToken");
     if (storedRefreshToken !== null) {
       setRefreshToken(true);
-    }
-    /* 쿠키가 있음 -> localstorage에 저장해야함 */
-    if (cookies[cookieIMade] !== undefined) {
-      setCookie(true);
-      localStorage.setItem("refreshToken", cookies[cookieIMade]);
-      removeCookie(cookieIMade);
-      setCookie(false);
-    }
-  }, [setRefreshToken, setCookie]); // data change
 
-  useEffect(() => {
-    /* 2FA가 켜져있는지 확인 */
-    const value = localStorage.getItem("refreshToken");
-    if (value) {
-      const decoded: any = jwt_decode(JSON.stringify(value));
+      const decoded: any = jwt_decode(JSON.stringify(storedRefreshToken));
       if (decoded.twoFactorEnabled) {
         setTFAEnabled(true);
       } else {
-        if (hasLogin === false) {
-          setHasLogin(true);
-          navigate("/chat");
-        } else {
-          AdminLogPrinter(adminConsole, "already login -- ??");
-          navigate("/chat");
-        }
+        fetch(`${process.env.REACT_APP_API_URL}/user/me`, {
+          credentials: "include",
+          method: "GET",
+        })
+          .then((response) => {
+            switch (response.status) {
+              case 200: {
+                return response.json();
+              }
+              default: {
+                throw new Error(`${response.status}`);
+              }
+            }
+          })
+          .then((response) => {
+            setUserInfo(response);
+            if (response.nickname.includes("#")) {
+              setIsFirstLogin(true);
+            } else {
+              setIsFirstLogin(false);
+
+              if (hasLogin === false) {
+                setHasLogin(true);
+                navigate("/chat");
+              } else {
+                AdminLogPrinter(adminConsole, "already login -- ??");
+                navigate("/chat");
+              }
+            }
+          });
       }
+    } else {
+      setRefreshToken(false);
     }
-  }, [setTFAEnabled]);
+  }, [setRefreshToken, setCookie]); // data change
+
   return (
     <BackGround>
       {/* refresh Token이 있으면 SigninModal이 꺼짐 */}
@@ -74,7 +98,7 @@ export default function LoginPage() {
       {!refreshToken && <SignInModal />}
       {/* refresh Token이 있고 cookie가 없으면 TFAModal실행 */}
       {refreshToken && !cookie && TFAEnabled && <TFAModal />}
-      {refreshToken ? <InitialSettingModal /> : null}
+      {refreshToken && isFirstLogin ? <InitialSettingModal /> : null}
     </BackGround>
   );
 }
