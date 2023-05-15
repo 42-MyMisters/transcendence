@@ -72,16 +72,16 @@ export default function LoginPage() {
               setIsFirstLogin(true);
             } else {
               setIsFirstLogin(false);
+
+              if (hasLogin === false) {
+                setHasLogin(true);
+                navigate("/chat");
+              } else {
+                AdminLogPrinter(adminConsole, "already login -- ??");
+                navigate("/chat");
+              }
             }
           });
-
-        if (hasLogin === false) {
-          setHasLogin(true);
-          navigate("/chat");
-        } else {
-          AdminLogPrinter(adminConsole, "already login -- ??");
-          navigate("/chat");
-        }
       }
     } else {
       setRefreshToken(false);
