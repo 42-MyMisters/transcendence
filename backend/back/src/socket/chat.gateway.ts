@@ -301,7 +301,6 @@ export class EventsGateway
 		this.logger.verbose(`${socket.id} <> ${userList[socket?.data?.user?.uid]?.socket?.id}`)
 		if (socket.data?.user?.uid !== undefined) {
 			userList[socket.data.user.uid].disconnectedSocket = socket.id;
-			userList[socket.data.user.uid].status = 'offline';
 			if (userList[socket.data.user.uid]?.socket?.id! === socket.id) {
 				this.logger.debug(`${userList[socket.data.user.uid].userDisplayName} is now offline: ${socket.id}`);
 				userList[socket.data.user.uid].socket = undefined;
@@ -309,13 +308,13 @@ export class EventsGateway
 					userId: socket.data.user.uid,
 					userDisplayName: socket.data.user.nickname.split('#', 2)[0],
 					userProfileUrl: socket.data.user.profileUrl,
-					userStatus: userList[socket.data.user.uid].status,
+					userStatus: 'offline',
 				});
 			}
 		}
-		// if (userList[socket?.data?.user?.uid] !== undefined) {
-		// 	userList[socket.data.user.uid].isRefresh = false;
-		// }
+		if (userList[socket?.data?.user?.uid] !== undefined) {
+			userList[socket.data.user.uid].isRefresh = false;
+		}
 		socket.data.roomList?.forEach((roomId: number) => {
 			socket.leave(roomId.toString());
 		});
