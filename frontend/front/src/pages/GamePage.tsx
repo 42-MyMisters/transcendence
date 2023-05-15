@@ -103,11 +103,8 @@ export default function GamePage() {
     AdminLogPrinter(adminConsole, "game start");
     setIsLoading(false);
     setIsGameStart(true);
-    AdminLogPrinter(
-      adminConsole,
-      `isLoading: ${isLoading}, isPrivate: ${isPrivate}, isGameStart: ${isGameStart}`
-    );
   };
+
   useEffect(() => {
     AdminLogPrinter(
       adminConsole,
@@ -129,16 +126,6 @@ export default function GamePage() {
       // game.gameSocket.off("isLoading", loadingEventHandler);
     };
   }, [isLoading, isPrivate, isGameStart]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowComponent(false);
-    }, 5000);
-    //   return () => {
-    //     clearTimeout(timer);
-    //   };
-    // }, []);
-  }, []);
 
   return (
     <BackGround>

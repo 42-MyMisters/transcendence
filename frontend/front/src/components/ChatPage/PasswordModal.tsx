@@ -8,6 +8,7 @@ import "../../styles/PasswordModal.css";
 
 import * as socket from "../../socket/chat.socket";
 import * as chatAtom from "../atom/ChatAtom";
+import { useAutoFocus } from '../../event/event.util';
 
 export default function PasswordModal() {
   const [pwInputModal, setPwInputModal] = useAtom(passwordInputModalAtom);
@@ -16,6 +17,7 @@ export default function PasswordModal() {
   const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
   const [clickRoom,] = useAtom(chatAtom.clickRoomAtom);
   const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
+  const passwordInputRef = useAutoFocus();
 
   PressKey(["Escape"], () => {
     setPwInputModal(false);
@@ -40,7 +42,7 @@ export default function PasswordModal() {
       <div className="PasswordModal">
         <div className="PasswordForm">
           <label htmlFor="Password">Password</label>
-          <input id="Password" type="password" maxLength={20} value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => handleEnterEvent(e)}></input>
+          <input id="Password" ref={passwordInputRef} type="password" maxLength={20} value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => handleEnterEvent(e)}></input>
         </div>
         <button className="Password" onClick={handleJoinRoom}>Join</button>
         <button className="PasswordCancel" onClick={() => setPwInputModal(false)}>

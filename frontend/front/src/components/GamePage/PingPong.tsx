@@ -41,8 +41,8 @@ export default function PingPong() {
   const [gameResultModal, setGameResultModal] = useAtom(gameResultModalAtom);
 
   const [serverClientTimeDiff, setServerClientTimeDiff] = useAtom(serverClientTimeDiffAtom);
-
-  const [coords, setCoords] = useState({
+  
+  let coords = {
     paddle1Y: 225,
     ballX: 1150 / 2,
     ballY: 300,
@@ -52,13 +52,20 @@ export default function PingPong() {
     paddleSpeed: 0.6,
     keyPress: [0, 0, 0, 0],
     time: Date.now(),
-  });
-  let lastUpdateTime: number = coords.time;
+  }
 
-  reqeustAnimationLoop(lastUpdateTime, lastUpdateTime);
+  let lastUpdateTime: number = coords.time;
+  let requestAnimationId: number = 0;
+
+  useEffect(()=> {
+    requestAnimationLoop(lastUpdateTime, lastUpdateTime);
+    return () => {
+      cancelAnimationFrame(requestAnimationId);
+    }
+  }, [serverClientTimeDiff])
 
   const syncDataHandler = (gameCoord: GameCoordinate) => {
-    setCoords(gameCoord);
+    coords = gameCoord;
     for (let i = 0; i < 4; i++) {
       if (coords.keyPress[i] !== 0) {
         coords.keyPress[i] += serverClientTimeDiff;
@@ -88,15 +95,22 @@ export default function PingPong() {
   };
 
   useEffect(() => {
+    game.gameSocket.on("syncData", syncDataHandler);
     game.gameSocket.on("scoreInfo", scoreEventhandler);
     game.gameSocket.on("finished", finishEventHandler);
-    game.gameSocket.on("syncData", syncDataHandler);
     return () => {
       game.gameSocket.off("syncData", syncDataHandler);
       game.gameSocket.off("scoreInfo", scoreEventhandler);
       game.gameSocket.off("finished", finishEventHandler);
     };
   }, []);
+
+  useEffect(() => {
+    game.gameSocket.on("syncData", syncDataHandler);
+    return () => {
+      game.gameSocket.off("syncData", syncDataHandler);
+    };
+  }, [serverClientTimeDiff]);
 
   // // the connection is denied by the server in a middleware function
   // game.gameSocket.on("connect_error", (err) => {
@@ -106,9 +120,9 @@ export default function PingPong() {
   //   console.log(err.message); // prints the message associated with the error
   // });
 
-  function reqeustAnimationLoop(curTime: number, lastUpdate: number) {
+  function requestAnimationLoop(curTime: number, lastUpdate: number) {
     update(curTime, lastUpdate);
-    requestAnimationFrame(() => reqeustAnimationLoop(Date.now(), lastUpdateTime));
+    requestAnimationId = requestAnimationFrame(() => requestAnimationLoop(Date.now(), lastUpdateTime));
   }
 
   // paddle update first, and then ball position update.
@@ -143,8 +157,8 @@ export default function PingPong() {
         }
       }
       lastUpdateTime = curTime;
+      Game(coords, canvas);
     }
-    Game(coords, canvas);
   }
 
   function getKeyPressDt(curTime: number): number[] {
@@ -197,22 +211,6 @@ export default function PingPong() {
         coords.paddle2Y = HEIGHT - paddle.height;
       }
     }
-    // if (paddleInfo.paddle2YUp) {
-    //   if (coords.paddle2Y > 0) {
-    //     coords.paddle2Y -= coords.paddleSpeed * dt;
-    //   }
-    //   if (coords.paddle2Y < 0) {
-    //     coords.paddle2Y = 0;
-    //   }
-    // }
-    // if (paddleInfo.paddle2YDown) {
-    //   if (coords.paddle2Y < HEIGHT - paddle.height) {
-    //     coords.paddle2Y += coords.paddleSpeed * dt;
-    //   }
-    //   if (coords.paddle2Y > HEIGHT - paddle.height) {
-    //     coords.paddle2Y = HEIGHT - paddle.height;
-    //   }
-    // }
   }
 
   function collisionCheckX() {

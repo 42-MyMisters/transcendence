@@ -66,10 +66,10 @@ export function emitRoomEdit(
   const roomType = roomCheck
     ? "private"
     : roomCurrentType === "protected"
-    ? "protected"
-    : roomPass !== ""
-    ? "protected"
-    : "open";
+      ? "protected"
+      : roomPass !== ""
+        ? "protected"
+        : "open";
   socket.emit(
     "room-edit",
     {
