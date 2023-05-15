@@ -303,10 +303,13 @@ export function LogOut(
   adminConsole: boolean,
   setRefreshToken: React.Dispatch<React.SetStateAction<boolean>>,
   navigate: NavigateFunction,
-  to: string
+  to: string,
+  action: 'refresh' | 'logout' = 'logout'
 ) {
   AdminLogPrinter(adminConsole, "logout");
-  socket.socket.emit("chat-logout");
+  if (action === 'logout') {
+    socket.socket.emit("chat-logout");
+  }
   socket.socket.disconnect();
   localStorage.clear();
   setRefreshToken(false);

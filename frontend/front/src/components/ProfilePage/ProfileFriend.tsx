@@ -19,7 +19,7 @@ export default function ProfileFriend() {
         <div className="ProfileFriendList">
           {
             isMyProfile
-              ? Object.keys(followingList).map((key) => {
+              ? Object.keys(followingList)?.map((key) => {
                 return (
                   <UserObj
                     key={key}
@@ -34,7 +34,7 @@ export default function ProfileFriend() {
                   />
                 );
               })
-              : profile.followings.map((key) => {
+              : profile.followings?.map((key) => {
                 return (
                   <UserObj
                     key={key.uid}
