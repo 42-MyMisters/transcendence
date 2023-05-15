@@ -7,11 +7,14 @@ import * as chatAtom from "../../components/atom/ChatAtom";
 import { useAtom } from "jotai";
 import { UserAtom } from "../atom/UserAtom";
 
+import { useAutoFocus } from '../../event/event.util';
+
 export default function InitialSettingModal() {
   const [profileImage, setProfileImage] = useState("");
   const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
   const profileRef = useRef<HTMLInputElement>(null);
   const [userInfo] = useAtom(UserAtom);
+  const InitialSaveNameRef = useAutoFocus();
 
   const saveImageFile = () => {
     if (profileRef.current?.files?.[0]) {
@@ -84,7 +87,7 @@ export default function InitialSettingModal() {
           height: "200px",
         }}
       />
-      <div className="ChangeProfileImageBtn" onClick={() => {}}>
+      <div className="ChangeProfileImageBtn" onClick={() => { }}>
         <label htmlFor="ChangeImage" />
         <input
           id="ChangeImage"
@@ -99,6 +102,7 @@ export default function InitialSettingModal() {
         <label htmlFor="InitialSaveName">New Nickname</label>
         <input
           id="InitialSaveName"
+          ref={InitialSaveNameRef}
           type="text"
           placeholder="New Nickname"
           maxLength={8}
