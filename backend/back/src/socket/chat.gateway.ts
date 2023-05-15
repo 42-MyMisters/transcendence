@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Logger, UnauthorizedException } from "@nestjs/common";
 import {
 	ConnectedSocket,
@@ -189,7 +190,7 @@ export class EventsGateway
 				if (userList[uid] === undefined) {
 					this.logger.debug(`${user.nickname} first connected.`);
 					userList[uid] = {
-						socket: socket,
+						socket: undefined,
 						status: 'online',
 						blockList: [],
 						followList: [],
@@ -198,30 +199,28 @@ export class EventsGateway
 						userUrl: user.profileUrl,
 						isRefresh: false,
 					};
-				} else {
+				} else if (userList[uid].status !== 'offline') {
 					this.logger.debug(`${user.nickname} refreshed. - ${socket.id}`);
-					userList[uid].status = 'online';
 					userList[uid].isRefresh = true;
 					if (userList[uid].socket !== undefined) {
-						this.logger.warn(`${user.nickname} is already connected. - ${userList[uid]?.socket?.id!} <> ${socket.id}`)
-						this.nsp.to(userList[uid]?.socket?.id!).emit("multiple-login");
-						const tempSocket: Socket = userList[uid].socket!;
-						tempSocket?.disconnect();
+						this.logger.warn(`${user.nickname} is already connected. - ${userList[uid]!.socket!.id} <> ${socket.id}`)
+						this.nsp.to(userList[uid]!.socket!.id).emit("multiple-login");
 					}
-					userList[uid].socket = socket;
 				}
-				await this.handleBlockList(socket);
-				await this.handleFollowList(socket, uid);
-				this.handleRoomList(socket)
-				this.handleUserList(socket);
 
 				this.logger.verbose(`${userList[uid].userDisplayName} is now online : ${socket.id}`);
+				userList[uid].status = 'online';
 				this.nsp.emit("user-update", {
 					userId: uid,
 					userDisplayName: user.nickname.split('#', 2)[0],
 					userProfileUrl: user.profileUrl,
-					userStatus: userList[uid].status,
+					userStatus: 'online',
 				});
+				userList[uid].socket = socket;
+				await this.handleBlockList(socket);
+				await this.handleFollowList(socket, uid);
+				this.handleRoomList(socket)
+				this.handleUserList(socket);
 				await this.handleDmList(socket, uid);
 			} else {
 				this.logger.warn(`user not found.`);
@@ -295,11 +294,12 @@ export class EventsGateway
 		socket.data.roomList?.forEach((roomId: number) => {
 			socket.leave(roomId.toString());
 		});
+		this.logger.verbose(`${socket.id} <> ${userList[socket?.data?.user?.uid]?.socket?.id}`)
 		if (socket.data?.user?.uid !== undefined
-			&& userList[socket.data.user.uid]?.socket?.id! === socket.id) {
+			&& userList[socket.data.user.uid]?.socket?.id! === socket.id
+			&& userList[socket.data.user.uid]?.isRefresh === false) {
 			this.logger.verbose(`${userList[socket.data.user.uid].userDisplayName} is now offline: ${socket.id}`);
 			userList[socket.data.user.uid].status = 'offline';
-			delete userList[socket.data.user.uid].socket;
 			userList[socket.data.user.uid].socket = undefined;
 			socket.broadcast.emit("user-update", {
 				userId: socket.data.user.uid,

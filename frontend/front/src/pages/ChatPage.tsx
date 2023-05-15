@@ -202,7 +202,7 @@ export default function ChatPage() {
 		});
 		socket.socket.on("multiple-login", () => {
 			// 	alert(`multiple login detected!`);
-			LogOut(adminConsole, setRefreshToken, navigate, "/");
+			LogOut(adminConsole, setRefreshToken, navigate, "/", 'refresh');
 			setHasLogin(false);
 			setIsFirstLogin(true);
 		});
