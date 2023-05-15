@@ -2,18 +2,31 @@ import "../../styles/BackGround.css";
 import "../../styles/PingPong.css";
 
 import React, { useEffect } from "react";
-import { useAtom } from "jotai";
-import { GameCoordinate } from "../atom/GameAtom";
+
 import * as chatAtom from "../atom/ChatAtom";
+import { isGameStartedAtom, isPrivateAtom, serverClientTimeDiffAtom } from "../atom/GameAtom";
 import { Game } from "./Pong";
 
 import * as game from "../../socket/game.socket";
 
+import { useAtom } from "jotai";
 import { useRef, useState } from "react";
-import { socket } from "../../socket/chat.socket";
-import { ball, Direction, HEIGHT, Hit, p1, p2, paddle, paddleInfo, scoreInfo, WIDTH } from "./GameInfo";
+import { gameResultModalAtom, isLoadingAtom } from "../atom/ModalAtom";
+import {
+  ball,
+  Direction,
+  HEIGHT,
+  Hit,
+  p1,
+  p2,
+  paddle,
+  paddleInfo,
+  scoreInfo,
+  WIDTH,
+} from "./GameInfo";
 
 import { AdminLogPrinter } from "../../event/event.util";
+import { GameCoordinate } from "../../socket/game.dto";
 
 export default function PingPong() {
   const [upArrow, setUpArrow] = useState(false);
@@ -21,6 +34,14 @@ export default function PingPong() {
   const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
   const canvas = useRef<HTMLCanvasElement>(null);
 
+  const [isLoading, setIsLoading] = useAtom(isLoadingAtom);
+  const [isPrivate, setIsPrivate] = useAtom(isPrivateAtom);
+  const [isGameStart, setIsGameStart] = useAtom(isGameStartedAtom);
+  // const [isQueue, setIsQueue] = useAtom(isQueueAtom);
+  const [gameResultModal, setGameResultModal] = useAtom(gameResultModalAtom);
+
+  const [serverClientTimeDiff, setServerClientTimeDiff] = useAtom(serverClientTimeDiffAtom);
+  
   let coords = {
     paddle1Y: 225,
     ballX: 1150 / 2,
@@ -29,203 +50,162 @@ export default function PingPong() {
     ballSpeedX: 0,
     ballSpeedY: 0,
     paddleSpeed: 0.6,
-    paddle1YUp: false,
-    paddle1YDown: false,
-    paddle2YUp: false,
-    paddle2YDown: false,
-  };
-
-  let lastUpdateTime = Date.now();
-
-  let pingInterval: NodeJS.Timer;
-  let pingTime: number;
-
-  game.gameSocket.on("connect", () => {
-    if (game.gameSocket.connected) {
-      //This attribute describes whether the socket is currently connected to the server.
-      if (game.gameSocket.recovered) {
-        // any missed packets will be received
-      } else {
-        // new or unrecoverable session
-        AdminLogPrinter(adminConsole, "gameSocket connected");
-        pingInterval = setInterval(() => {
-          const curTime = Date.now();
-          const handler = (pong: boolean) => {
-            if (pong) {
-              pingTime = Date.now() - curTime;
-              AdminLogPrinter(adminConsole, `ping: ${pingTime}ms`);
-            }
-          }
-          game.gameSocket.emit('ping', handler);
-          return () => {
-            game.gameSocket.off('ping', handler);
-          }
-        }, 1000);
-      }
-    }
-    return () => {
-      game.gameSocket.off("connect");
-    }
-  });
-
-  //https://socket.io/docs/v4/client-socket-instance/#disconnect
-  game.gameSocket.on("disconnect", (reason) => {
-    /**
-     *  BAD, will throw an error
-     *  gameSocket.emit("disconnect");
-     */
-    if (reason === "io server disconnect") {
-      // the disconnection was initiated by the server, you need to reconnect manually
-    }
-    clearInterval(pingInterval);
-    // else the socket will automatically try to reconnect
-    AdminLogPrinter(adminConsole, "gameSocket disconnected");
-  });
-
-  // the connection is denied by the server in a middleware function
-  game.gameSocket.on("connect_error", (err) => {
-    if (err.message === "unauthorized") {
-      // handle each case
-    }
-    AdminLogPrinter(adminConsole, err.message); // prints the message associated with the error
-  });
-
-  game.gameSocket.on(
-    "join-game",
-    ({ uid_left, p1, uid_right }: { uid_left: string; p1: number; uid_right: string }) => { }
-  );
-
-  useEffect(() => {
-    const handler = (started: boolean) => {
-      lastUpdateTime = Date.now();
-      AdminLogPrinter(adminConsole, "update start");
-      update(coords, canvas);
-    };
-    game.gameSocket.on("start", handler);
-    return () => {
-      game.gameSocket.off("start", handler);
-    };
-  }, []);
-
-  useEffect(() => {
-    const handler = (gameCoord: GameCoordinate) => {
-      lastUpdateTime = Date.now();
-      coords = gameCoord;
-      Game(coords, canvas);
-    };
-    game.gameSocket.on("graphic", handler);
-    AdminLogPrinter(adminConsole, `coords: ${JSON.stringify(coords)}`)
-    return () => {
-      socket.off("graphic", handler);
-    }
-  }, []);
-
-  useEffect(() => {
-    const handler = (paddleInfo: paddleInfo) => {
-      coords.paddle1YUp = paddleInfo.paddle1YUp;
-      coords.paddle1YDown = paddleInfo.paddle1YDown;
-      coords.paddle2YUp = paddleInfo.paddle2YUp;
-      coords.paddle2YDown = paddleInfo.paddle2YDown;
-      Game(coords, canvas);
-    };
-    game.gameSocket.on("paddleInfo", handler);
-    return () => {
-      socket.off("paddleInfo", handler);
-    }
-  }, []);
-
-  useEffect(() => {
-    const handler = (scoreInfo: scoreInfo) => {
-      p1.score = scoreInfo.p1Score;
-      p2.score = scoreInfo.p2Score;
-      coords.ballSpeedX = 0;
-      coords.ballSpeedY = 0;
-      coords.paddleSpeed = 0;
-      Game(coords, canvas);
-    };
-    game.gameSocket.on("scoreInfo", handler);
-    return () => {
-      socket.off("scoreInfo", handler);
-    }
-  }, []);
-
-  useEffect(() => {
-    const handler = (scoreInfo: scoreInfo) => {
-      p1.score = scoreInfo.p1Score;
-      p2.score = scoreInfo.p2Score;
-      coords.ballSpeedX = 0;
-      coords.ballSpeedY = 0;
-      coords.paddleSpeed = 0;
-      Game(coords, canvas);
-    };
-    game.gameSocket.on("finished", handler);
-    return () => {
-      socket.off("finished", handler);
-    }
-  }, []);
-
-  function update(coord: GameCoordinate, canvas: React.RefObject<HTMLCanvasElement>) {
-    const curTime = Date.now();
-    const dt = curTime - lastUpdateTime;
-
-    paddleUpdate(coord.paddle1YUp, coord.paddle1YDown, coord.paddle2YUp, coord.paddle2YDown, dt);
-    coord.ballX += coord.ballSpeedX * dt;
-    coord.ballY += coord.ballSpeedY * dt;
-    const isHitY = collisionCheckY();
-    const isHitX = collisionCheckX();
-    if (isHitY) {
-      if (coord.ballY < ball.radius) {
-        coord.ballY = 2 * ball.radius - coord.ballY;
-        coord.ballSpeedY = -coord.ballSpeedY;
-      } else {
-        coord.ballY = 2 * (HEIGHT - ball.radius) - coord.ballY;
-        coord.ballSpeedY = -coord.ballSpeedY;
-      }
-    }
-    if (isHitX == Direction.LEFT) {
-      if (collisionCheckP1Paddle() === Hit.PADDLE) {
-        coord.ballX = 2 * (ball.radius + paddle.width) - coord.ballX;
-        coord.ballSpeedX = -coord.ballSpeedX;
-      }
-    } else if (isHitX === Direction.RIGHT) {
-      if (collisionCheckP2Paddle() === Hit.PADDLE) {
-        coord.ballX = 2 * (WIDTH - ball.radius - paddle.width) - coord.ballX;
-        coord.ballSpeedX = -coord.ballSpeedX;
-      }
-    }
-    lastUpdateTime = curTime;
-    Game(coord, canvas);
-    requestAnimationFrame(() => update(coords, canvas));
+    keyPress: [0, 0, 0, 0],
+    time: Date.now(),
   }
 
-  function paddleUpdate(p1Up: boolean, p1Down: boolean, p2Up: boolean, p2Down: boolean, dt: number) {
-    if (p1Up) {
+  let lastUpdateTime: number = coords.time;
+  let requestAnimationId: number = 0;
+
+  useEffect(()=> {
+    requestAnimationLoop(lastUpdateTime, lastUpdateTime);
+    return () => {
+      cancelAnimationFrame(requestAnimationId);
+    }
+  }, [serverClientTimeDiff])
+
+  const syncDataHandler = (gameCoord: GameCoordinate) => {
+    coords = gameCoord;
+    for (let i = 0; i < 4; i++) {
+      if (coords.keyPress[i] !== 0) {
+        coords.keyPress[i] += serverClientTimeDiff;
+      }
+    }
+    coords.time += serverClientTimeDiff;
+    update(Date.now(), coords.time);
+  };
+
+  const scoreEventhandler = (scoreInfo: scoreInfo) => {
+    p1.score = scoreInfo.p1Score;
+    p2.score = scoreInfo.p2Score;
+    coords.ballSpeedX = 0;
+    coords.ballSpeedY = 0;
+    coords.paddleSpeed = 0;
+    Game(coords, canvas);
+  };
+
+  const finishEventHandler = (scoreInfo: scoreInfo) => {
+    p1.score = scoreInfo.p1Score;
+    p2.score = scoreInfo.p2Score;
+    coords.ballSpeedX = 0;
+    coords.ballSpeedY = 0;
+    coords.paddleSpeed = 0;
+    Game(coords, canvas);
+    setGameResultModal(true);
+  };
+
+  useEffect(() => {
+    game.gameSocket.on("syncData", syncDataHandler);
+    game.gameSocket.on("scoreInfo", scoreEventhandler);
+    game.gameSocket.on("finished", finishEventHandler);
+    return () => {
+      game.gameSocket.off("syncData", syncDataHandler);
+      game.gameSocket.off("scoreInfo", scoreEventhandler);
+      game.gameSocket.off("finished", finishEventHandler);
+    };
+  }, []);
+
+  useEffect(() => {
+    game.gameSocket.on("syncData", syncDataHandler);
+    return () => {
+      game.gameSocket.off("syncData", syncDataHandler);
+    };
+  }, [serverClientTimeDiff]);
+
+  // // the connection is denied by the server in a middleware function
+  // game.gameSocket.on("connect_error", (err) => {
+  //   if (err.message === "unauthorized") {
+  //     // handle each case
+  //   }
+  //   console.log(err.message); // prints the message associated with the error
+  // });
+
+  function requestAnimationLoop(curTime: number, lastUpdate: number) {
+    update(curTime, lastUpdate);
+    requestAnimationId = requestAnimationFrame(() => requestAnimationLoop(Date.now(), lastUpdateTime));
+  }
+
+  // paddle update first, and then ball position update.
+  function update(curTime: number, lastUpdate: number) {
+    const dt = curTime - lastUpdate;
+    if (dt > 0) {
+      const keyPressDt: number[] = getKeyPressDt(curTime);
+
+      paddleUpdate(keyPressDt);
+      coords.ballX += coords.ballSpeedX * dt;
+      coords.ballY += coords.ballSpeedY * dt;
+      const isHitY = collisionCheckY();
+      const isHitX = collisionCheckX();
+      if (isHitY) {
+        if (coords.ballY < ball.radius) {
+          coords.ballY = 2 * ball.radius - coords.ballY;
+          coords.ballSpeedY = -coords.ballSpeedY;
+        } else {
+          coords.ballY = 2 * (HEIGHT - ball.radius) - coords.ballY;
+          coords.ballSpeedY = -coords.ballSpeedY;
+        }
+      }
+      if (isHitX == Direction.LEFT) {
+        if (collisionCheckP1Paddle() === Hit.PADDLE) {
+          coords.ballX = 2 * (ball.radius + paddle.width) - coords.ballX;
+          coords.ballSpeedX = -coords.ballSpeedX;
+        }
+      } else if (isHitX === Direction.RIGHT) {
+        if (collisionCheckP2Paddle() === Hit.PADDLE) {
+          coords.ballX = 2 * (WIDTH - ball.radius - paddle.width) - coords.ballX;
+          coords.ballSpeedX = -coords.ballSpeedX;
+        }
+      }
+      lastUpdateTime = curTime;
+      Game(coords, canvas);
+    }
+  }
+
+  function getKeyPressDt(curTime: number): number[] {
+    const keyPressDt: number[] = [];
+    for (let i = 0; i < 4; i++) {
+      if (coords.keyPress[i] !== 0 && curTime > coords.keyPress[i]) {
+        keyPressDt.push(curTime - coords.keyPress[i]);
+        coords.keyPress[i] = curTime;
+      } else {
+        keyPressDt.push(0);
+      }
+    }
+    // if (coords.keyPress[0] || coords.keyPress[1] || coords.keyPress[2] || coords.keyPress[3]) {
+    //   AdminLogPrinter(adminConsole, JSON.stringify(coords.keyPress));
+    //   AdminLogPrinter(adminConsole, JSON.stringify(keyPressDt));
+    // }
+    return keyPressDt;
+  }
+
+  function paddleUpdate(keyPressDt: number[]) {
+    if (keyPressDt[0] !== 0) {
       if (coords.paddle1Y > 0) {
-        coords.paddle1Y -= coords.paddleSpeed * dt;
+        coords.paddle1Y -= coords.paddleSpeed * keyPressDt[0];
       }
       if (coords.paddle1Y < 0) {
         coords.paddle1Y = 0;
       }
     }
-    if (p1Down) {
+    if (keyPressDt[1] !== 0) {
       if (coords.paddle1Y < HEIGHT - paddle.height) {
-        coords.paddle1Y += coords.paddleSpeed * dt;
+        coords.paddle1Y += coords.paddleSpeed * keyPressDt[1];
       }
       if (coords.paddle1Y > HEIGHT - paddle.height) {
         coords.paddle1Y = HEIGHT - paddle.height;
       }
     }
-    if (p2Up) {
+    if (keyPressDt[2] !== 0) {
       if (coords.paddle2Y > 0) {
-        coords.paddle2Y -= coords.paddleSpeed * dt;
+        coords.paddle2Y -= coords.paddleSpeed * keyPressDt[2];
       }
       if (coords.paddle2Y < 0) {
         coords.paddle2Y = 0;
       }
     }
-    if (p2Down) {
+    if (keyPressDt[3] !== 0) {
       if (coords.paddle2Y < HEIGHT - paddle.height) {
-        coords.paddle2Y += coords.paddleSpeed * dt;
+        coords.paddle2Y += coords.paddleSpeed * keyPressDt[3];
       }
       if (coords.paddle2Y > HEIGHT - paddle.height) {
         coords.paddle2Y = HEIGHT - paddle.height;

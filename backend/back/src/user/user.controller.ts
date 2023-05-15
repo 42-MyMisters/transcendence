@@ -175,7 +175,7 @@ export class UserController {
   @ApiUnauthorizedResponse({ description: "로그인이 필요합니다." })
   @ApiInternalServerErrorResponse({ description: "이미지 에러" })
   @Post("/profile-img-change")
-  @UseGuards(Jwt2faAuthGuard)
+  @UseGuards(JwtInitialAuthGuard)
   @UseInterceptors(AnyFilesInterceptor())
   async changeProfileImg(
     @Req() request,
@@ -201,7 +201,7 @@ export class UserController {
   @ApiUnauthorizedResponse({ description: " 권한 없음 " })
   @ApiBadRequestResponse({ description: "Invalid request parameters" })
   @Patch("/nickname")
-  @UseGuards(Jwt2faAuthGuard)
+  @UseGuards(JwtInitialAuthGuard)
   async updateNickname(
     @Req() request,
     @Body() changeNicknameDto: changeNicknameDto,
