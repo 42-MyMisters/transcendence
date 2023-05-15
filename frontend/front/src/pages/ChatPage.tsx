@@ -640,14 +640,18 @@ export default function ChatPage() {
 	async function firstLogin() {
 		if (isFirstLogin) {
 			await getMyinfoHandler();
-			socket.socket.connect();
+			setTimeout(() => {
+				socket.socket.connect();
+			}, 420);
+			setIsFirstLogin(false);
 		}
-		setIsFirstLogin(false);
 	}
 
-	if (isFirstLogin) {
-		firstLogin();
-	}
+	useEffect(() => {
+		if (isFirstLogin) {
+			firstLogin();
+		}
+	}, [firstLogin]);
 
 
 	return (

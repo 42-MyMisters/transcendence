@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Logger, UnauthorizedException } from "@nestjs/common";
+import { Logger, UnauthorizedException, UnprocessableEntityException } from "@nestjs/common";
 import {
 	ConnectedSocket,
 	MessageBody,
@@ -39,6 +39,7 @@ type ClientRoomListDto = {
 
 interface UserInfo {
 	socket?: Socket;
+	disconnectedSocket?: string;
 	status: userStatus;
 	blockList: number[];
 	followList: number[];
@@ -178,7 +179,7 @@ export class EventsGateway
 
 	async handleConnection(@ConnectedSocket() socket: Socket) {
 		try {
-			this.logger.log(`${socket.id} socket connected.`);
+			this.logger.warn(`${socket.id} socket connected.`);
 			const uid = await this.authService.jwtVerify(socket.handshake.auth.token);
 			const user = await this.userService.getUserByUid(uid);
 
@@ -191,6 +192,7 @@ export class EventsGateway
 					this.logger.debug(`${user.nickname} first connected.`);
 					userList[uid] = {
 						socket: undefined,
+						disconnectedSocket: undefined,
 						status: 'online',
 						blockList: [],
 						followList: [],
@@ -207,21 +209,25 @@ export class EventsGateway
 						this.nsp.to(userList[uid]!.socket!.id).emit("multiple-login");
 					}
 				}
-
-				this.logger.verbose(`${userList[uid].userDisplayName} is now online : ${socket.id}`);
-				userList[uid].status = 'online';
-				this.nsp.emit("user-update", {
-					userId: uid,
-					userDisplayName: user.nickname.split('#', 2)[0],
-					userProfileUrl: user.profileUrl,
-					userStatus: 'online',
-				});
-				userList[uid].socket = socket;
-				await this.handleBlockList(socket);
-				await this.handleFollowList(socket, uid);
-				this.handleRoomList(socket)
-				this.handleUserList(socket);
-				await this.handleDmList(socket, uid);
+				if (userList[uid].disconnectedSocket !== socket.id) {
+					this.logger.debug(`${userList[uid].userDisplayName} is now online : ${socket.id}`);
+					userList[uid].status = 'online';
+					this.nsp.emit("user-update", {
+						userId: uid,
+						userDisplayName: user.nickname.split('#', 2)[0],
+						userProfileUrl: user.profileUrl,
+						userStatus: 'online',
+					});
+					userList[uid].socket = socket;
+					await this.handleBlockList(socket);
+					await this.handleFollowList(socket, uid);
+					this.handleRoomList(socket)
+					this.handleUserList(socket);
+					await this.handleDmList(socket, uid);
+				} else {
+					this.logger.warn(`connect, then disconnect..`);
+					throw new UnprocessableEntityException("Invalid connection.");
+				}
 			} else {
 				this.logger.warn(`user not found.`);
 				throw new UnauthorizedException("User not found.");
@@ -290,27 +296,29 @@ export class EventsGateway
 	}
 
 	handleDisconnect(@ConnectedSocket() socket: Socket) {
+		console.log(" \n");
 		this.logger.warn(`${userList[socket?.data?.user?.uid]?.userDisplayName} : ${socket.id} socket disconnected`);
+		this.logger.verbose(`${socket.id} <> ${userList[socket?.data?.user?.uid]?.socket?.id}`)
+		if (socket.data?.user?.uid !== undefined) {
+			userList[socket.data.user.uid].disconnectedSocket = socket.id;
+			userList[socket.data.user.uid].status = 'offline';
+			if (userList[socket.data.user.uid]?.socket?.id! === socket.id) {
+				this.logger.debug(`${userList[socket.data.user.uid].userDisplayName} is now offline: ${socket.id}`);
+				userList[socket.data.user.uid].socket = undefined;
+				socket.broadcast.emit("user-update", {
+					userId: socket.data.user.uid,
+					userDisplayName: socket.data.user.nickname.split('#', 2)[0],
+					userProfileUrl: socket.data.user.profileUrl,
+					userStatus: userList[socket.data.user.uid].status,
+				});
+			}
+		}
+		// if (userList[socket?.data?.user?.uid] !== undefined) {
+		// 	userList[socket.data.user.uid].isRefresh = false;
+		// }
 		socket.data.roomList?.forEach((roomId: number) => {
 			socket.leave(roomId.toString());
 		});
-		this.logger.verbose(`${socket.id} <> ${userList[socket?.data?.user?.uid]?.socket?.id}`)
-		if (socket.data?.user?.uid !== undefined
-			&& userList[socket.data.user.uid]?.socket?.id! === socket.id
-			&& userList[socket.data.user.uid]?.isRefresh === false) {
-			this.logger.verbose(`${userList[socket.data.user.uid].userDisplayName} is now offline: ${socket.id}`);
-			userList[socket.data.user.uid].status = 'offline';
-			userList[socket.data.user.uid].socket = undefined;
-			socket.broadcast.emit("user-update", {
-				userId: socket.data.user.uid,
-				userDisplayName: socket.data.user.nickname.split('#', 2)[0],
-				userProfileUrl: socket.data.user.profileUrl,
-				userStatus: userList[socket.data.user.uid].status,
-			});
-		}
-		if (userList[socket?.data?.user?.uid] !== undefined) {
-			userList[socket.data.user.uid].isRefresh = false;
-		}
 		socket.data.user = undefined;
 		socket.data.roomList = undefined;
 	}
@@ -486,7 +494,7 @@ export class EventsGateway
 			roomPass?: string;
 		}) {
 		if (roomList[roomId]) {
-			if (roomList[roomId].bannedUsers.includes(socket.data.user.uid)) {
+			if (roomList[roomId].bannedUsers.includes(socket.data.user?.uid)) {
 				return ({ status: 'ko', payload: '\nbanned for 1 min' });
 			}
 			switch (roomList[roomId].roomType) {
