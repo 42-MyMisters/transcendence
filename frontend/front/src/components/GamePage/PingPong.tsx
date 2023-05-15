@@ -12,7 +12,18 @@ import * as game from "../../socket/game.socket";
 import { useAtom } from "jotai";
 import { useRef, useState } from "react";
 import { gameResultModalAtom, isLoadingAtom } from "../atom/ModalAtom";
-import { ball, Direction, HEIGHT, Hit, p1, p2, paddle, paddleInfo, scoreInfo, WIDTH } from "./GameInfo";
+import {
+  ball,
+  Direction,
+  HEIGHT,
+  Hit,
+  p1,
+  p2,
+  paddle,
+  paddleInfo,
+  scoreInfo,
+  WIDTH,
+} from "./GameInfo";
 
 import { AdminLogPrinter } from "../../event/event.util";
 import { GameCoordinate } from "../../socket/game.dto";
@@ -22,7 +33,7 @@ export default function PingPong() {
   const [downArrow, setDownArrow] = useState(false);
   const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
   const canvas = useRef<HTMLCanvasElement>(null);
-  
+
   const [isLoading, setIsLoading] = useAtom(isLoadingAtom);
   const [isPrivate, setIsPrivate] = useAtom(isPrivateAtom);
   const [isGameStart, setIsGameStart] = useAtom(isGameStartedAtom);
@@ -31,7 +42,7 @@ export default function PingPong() {
 
   const [serverClientTimeDiff, setServerClientTimeDiff] = useAtom(serverClientTimeDiffAtom);
 
-  let coords: GameCoordinate = {
+  const [coords, setCoords] = useState({
     paddle1Y: 225,
     ballX: 1150 / 2,
     ballY: 300,
@@ -41,13 +52,13 @@ export default function PingPong() {
     paddleSpeed: 0.6,
     keyPress: [0, 0, 0, 0],
     time: Date.now(),
-  }
+  });
   let lastUpdateTime: number = coords.time;
 
   reqeustAnimationLoop(lastUpdateTime, lastUpdateTime);
 
   const syncDataHandler = (gameCoord: GameCoordinate) => {
-    coords = gameCoord;
+    setCoords(gameCoord);
     for (let i = 0; i < 4; i++) {
       if (coords.keyPress[i] !== 0) {
         coords.keyPress[i] += serverClientTimeDiff;
@@ -55,7 +66,7 @@ export default function PingPong() {
     }
     coords.time += serverClientTimeDiff;
     update(Date.now(), coords.time);
-  }
+  };
 
   const scoreEventhandler = (scoreInfo: scoreInfo) => {
     p1.score = scoreInfo.p1Score;
@@ -64,7 +75,7 @@ export default function PingPong() {
     coords.ballSpeedY = 0;
     coords.paddleSpeed = 0;
     Game(coords, canvas);
-  }
+  };
 
   const finishEventHandler = (scoreInfo: scoreInfo) => {
     p1.score = scoreInfo.p1Score;
@@ -74,18 +85,17 @@ export default function PingPong() {
     coords.paddleSpeed = 0;
     Game(coords, canvas);
     setGameResultModal(true);
-  }
+  };
 
   useEffect(() => {
     game.gameSocket.on("scoreInfo", scoreEventhandler);
     game.gameSocket.on("finished", finishEventHandler);
     game.gameSocket.on("syncData", syncDataHandler);
     return () => {
-
       game.gameSocket.off("syncData", syncDataHandler);
       game.gameSocket.off("scoreInfo", scoreEventhandler);
       game.gameSocket.off("finished", finishEventHandler);
-    }
+    };
   }, []);
 
   // // the connection is denied by the server in a middleware function
@@ -106,7 +116,7 @@ export default function PingPong() {
     const dt = curTime - lastUpdate;
     if (dt > 0) {
       const keyPressDt: number[] = getKeyPressDt(curTime);
-  
+
       paddleUpdate(keyPressDt);
       coords.ballX += coords.ballSpeedX * dt;
       coords.ballY += coords.ballSpeedY * dt;
@@ -137,7 +147,6 @@ export default function PingPong() {
     Game(coords, canvas);
   }
 
-  
   function getKeyPressDt(curTime: number): number[] {
     const keyPressDt: number[] = [];
     for (let i = 0; i < 4; i++) {
@@ -154,10 +163,10 @@ export default function PingPong() {
     // }
     return keyPressDt;
   }
-  
+
   function paddleUpdate(keyPressDt: number[]) {
     if (keyPressDt[0] !== 0) {
-      if (coords.paddle1Y > 0){
+      if (coords.paddle1Y > 0) {
         coords.paddle1Y -= coords.paddleSpeed * keyPressDt[0];
       }
       if (coords.paddle1Y < 0) {
@@ -173,7 +182,7 @@ export default function PingPong() {
       }
     }
     if (keyPressDt[2] !== 0) {
-      if (coords.paddle2Y > 0){
+      if (coords.paddle2Y > 0) {
         coords.paddle2Y -= coords.paddleSpeed * keyPressDt[2];
       }
       if (coords.paddle2Y < 0) {
