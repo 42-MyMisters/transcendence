@@ -3,6 +3,7 @@ import { ConnectedSocket, OnGatewayConnection, OnGatewayDisconnect, OnGatewayIni
 import { Namespace, Socket } from 'socket.io';
 import { AuthService } from 'src/auth/auth.service';
 import { UserService } from 'src/user/user.service';
+import { GameType } from './game.enum';
 import { GameService } from './game.service';
 
 
@@ -11,6 +12,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   // private userSocket: Map<number, Socket>
   private gameQueue: Socket[];
   private gameId: number;
+  private userInGame: Map<number, string>;
   constructor(
     private userService: UserService,
 		private authService: AuthService,
@@ -19,27 +21,30 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     this.gameQueue = [];
     this.gameId = 0;
     // Queue loop
-    setInterval(() => {
-      while (this.gameQueue.length > 1) {
-        const p1 = this.gameQueue.pop();
-        const p2 = this.gameQueue.pop();
-        if (p1 !== undefined && p2 !== undefined) {
-          const gameId = this.gameId.toString();
-          this.gameId++;
-          p1.join(gameId);
-          p2.join(gameId);
-          p1.data.room = gameId;
-          p2.data.room = gameId;
-          this.server.to(gameId).emit('join-game', {p1: p1.data.uid, p2: p2.data.uid});
-          console.log(`${p1.id}: joined ${gameId}, rooms: ${[...p1.rooms]}`);
-          console.log(`${p2.id}: joined ${gameId}, rooms: ${[...p2.rooms]}`);
-          this.gameService.createGame(gameId, this.server, p1.data.uid, p2.data.uid);
-          this.gameService.getGame(gameId)?.gameStart();
-          // this.gameService.gameStart(gameId);
-        }
+    setInterval(this.gameMatchLogic.bind(this), 5000);
+  }
+  
+  gameMatchLogic() {
+    while (this.gameQueue.length > 1) {
+      const p1 = this.gameQueue.pop();
+      const p2 = this.gameQueue.pop();
+      if (p1 !== undefined && p2 !== undefined) {
+        const gameId = this.gameId.toString();
+        this.gameId++;
+        p1.join(gameId);
+        p2.join(gameId);
+        p1.data.room = gameId;
+        p2.data.room = gameId;
+        this.server.to(gameId).emit('join-game', {p1: p1.data.uid, p2: p2.data.uid});
+        console.log(`${p1.id}: joined ${gameId}, rooms: ${[...p1.rooms]}`);
+        console.log(`${p2.id}: joined ${gameId}, rooms: ${[...p2.rooms]}`);
+        this.gameService.publicGame(gameId, this.server, p1.data.uid, p2.data.uid);
+        this.gameService.getGame(gameId)?.gameStart();
+        // this.server.to(gameId).emit("gameStart", true);
+        // this.gameService.gameStart(gameId);
       }
-      this.logger.log('game queue loop');
-    }, 5000)
+    }
+    this.logger.log('game queue loop');
   }
 
   logger = new Logger('GameGateway');
@@ -54,9 +59,16 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   async handleConnection(@ConnectedSocket() socket: Socket) {
     try {
       socket.data.uid = await this.authService.jwtVerify(socket.handshake.auth.token);
-      // socket.data.elo = await this.userService.getUserByUid(socket.data.uid);
+      const user = await this.userService.getUserByUid(socket.data.uid);
+      socket.data.elo = user!.elo;
       if (socket.handshake.auth.data === undefined) {
-        this.gameQueue.push(socket);
+        if (socket.handshake.auth.type === GameType.PRIVATE) {
+          socket.emit("isLoading", true);
+        } else {
+          this.gameQueue.push(socket);
+          socket.emit("isQueue", true);
+        }
+        // this.userInGame.add(socket.data.uid);
       } else {
         // for observer
         if (this.gameService.getGame(socket.handshake.auth.data) !== undefined) {
@@ -84,6 +96,9 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.logger.log(`${socket.data.uid} observer left.`);
       }
     }
+    // if (socket.data.uid) {
+    //   this.userInGame.delete(socket.data.uid);
+    // }
     this.logger.log(`${socket.data.uid} join game failed.`);
   }
 
@@ -100,7 +115,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
         curGame.upPress(socket.data.uid);
       }
-      console.log(`up button pressed.`);
     }
   }
   
@@ -111,7 +125,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
         curGame.downPress(socket.data.uid);
       }
-      console.log(`down button pressed.`);
     }
   }
   
@@ -122,7 +135,6 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
         curGame.upRelease(socket.data.uid);
       }
-      console.log(`up button released.`);
     }
   }
   
@@ -133,13 +145,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
         curGame.downRelease(socket.data.uid);
       }
-      console.log(`down button released.`);
     }
   }
-  // @SubscribeMessage('startGame')
-  // async startGame(client: any, payload: any) {
-    //   this.gameService.createGame(payload.id);
-    // }
 
   @SubscribeMessage('inviteGame')
   async inviteGame(socket: Socket, payload: any) {
@@ -147,8 +154,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   @SubscribeMessage('ping')
-  async pong(socket: Socket, payload: any) {
-    return true;
+  async pong() {
+    return Date.now();
   }
 
 

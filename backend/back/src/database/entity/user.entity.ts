@@ -15,20 +15,23 @@ export class User extends BaseEntity {
 	@Column({ unique: true, nullable: true, type: 'varchar' })
 	email: string | null;
 
-	@Column({ unique: true })
+	@Column({ unique: true, type:'varchar' })
 	nickname: string;
 
 	@Column({ nullable: true, type: 'varchar', length: 60 })
 	refreshToken: string | null;
-
-	@Column()
+	
+	@Column( {type: 'varchar'} )
 	profileUrl: string;
-
-	@Column()
+	
+	@Column( {type: 'boolean', default: false} )
 	twoFactorEnabled: boolean;
-
+	
 	@Column({ nullable: true, type: 'varchar' })
 	twoFactorSecret: string | null;
+	
+	@Column({type: 'integer', default: 0})
+	elo: number;
 
 	@OneToMany(type => UserFollow, follower => follower.fromUser,)
 	followers: UserFollow[];
@@ -54,6 +57,7 @@ export class User extends BaseEntity {
 		user.email = intraUserDto.email;
 		user.nickname = intraUserDto.login + "#" + intraUserDto.id;
 		user.profileUrl = intraUserDto.image.link;
+		user.elo = 0;
 		user.twoFactorEnabled = false;
 		return user;
 	}
