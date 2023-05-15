@@ -21,6 +21,7 @@ import { hasLoginAtom } from "../components/atom/ChatAtom";
 import InitialSettingModal from "../components/LoginPage/InitialSetting";
 
 import { AdminLogPrinter } from "../event/event.util";
+import { UserAtom } from "../components/atom/UserAtom";
 
 export default function LoginPage() {
   /* localstorage에 없는데 cookie에 있으면 로그인이 된거다 */
@@ -30,6 +31,7 @@ export default function LoginPage() {
   const [TFAEnabled, setTFAEnabled] = useAtom(TFAEnabledAtom);
   const [hasLogin, setHasLogin] = useAtom(hasLoginAtom);
   const [isFirstLogin, setIsFirstLogin] = useAtom(isFirstLoginAtom);
+  const [userInfo, setUserInfo] = useAtom(UserAtom);
 
   const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
 
@@ -68,6 +70,7 @@ export default function LoginPage() {
             }
           })
           .then((response) => {
+            setUserInfo(response);
             if (response.nickname.includes("#")) {
               setIsFirstLogin(true);
             } else {
@@ -95,7 +98,7 @@ export default function LoginPage() {
       {!refreshToken && <SignInModal />}
       {/* refresh Token이 있고 cookie가 없으면 TFAModal실행 */}
       {refreshToken && !cookie && TFAEnabled && <TFAModal />}
-      {refreshToken && !hasLogin ? <InitialSettingModal /> : null}
+      {refreshToken && isFirstLogin ? <InitialSettingModal /> : null}
     </BackGround>
   );
 }

@@ -5,11 +5,13 @@ import { useNavigate } from "react-router-dom";
 import { AdminLogPrinter } from "../../event/event.util";
 import * as chatAtom from "../../components/atom/ChatAtom";
 import { useAtom } from "jotai";
+import { UserAtom } from "../atom/UserAtom";
 
 export default function InitialSettingModal() {
-  const [profileImage, setProfileImage] = useState("/smile.png");
+  const [profileImage, setProfileImage] = useState("");
   const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
   const profileRef = useRef<HTMLInputElement>(null);
+  const [userInfo] = useAtom(UserAtom);
 
   const saveImageFile = () => {
     if (profileRef.current?.files?.[0]) {
@@ -76,7 +78,7 @@ export default function InitialSettingModal() {
       <div
         className="DefaultProfileImg"
         style={{
-          backgroundImage: `url(${profileImage})`,
+          backgroundImage: `url(${profileImage === "" ? userInfo.profileUrl : profileImage})`,
           backgroundSize: "200px",
           width: "200px",
           height: "200px",
