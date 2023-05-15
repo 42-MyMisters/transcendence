@@ -11,12 +11,16 @@ import { UserController } from "./user.controller";
 import { UserService } from "./user.service";
 import { JwtInitialAuthGuard } from "src/auth/jwt-Initial/jwt-Initial.auth.guard";
 import { JwtInitialStrategy } from "src/auth/jwt-Initial/jwt-Initial.strategy";
+import { JwtAuthGuard } from 'src/auth/jwt/jwt-auth.guard';
+import { JwtStrategy } from 'src/auth/jwt/jwt.strategy';
 
 @Module({
   imports: [DatabaseModule, AuthModule],
   controllers: [UserController],
   providers: [
     UserService,
+    JwtAuthGuard,
+    JwtStrategy,
     Jwt2faAuthGuard,
     Jwt2faStrategy,
     LocalAuthGuard,
