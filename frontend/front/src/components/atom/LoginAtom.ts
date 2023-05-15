@@ -7,3 +7,5 @@ export const cookieAtom = atom(false);
 export const TFAEnabledAtom = atom(false);
 
 export const TFAAuthenticatedAtom = atom(false);
+
+export const isFirstLoginAtom = atom(true);
