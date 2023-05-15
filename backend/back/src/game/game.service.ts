@@ -120,7 +120,7 @@ class Game {
     }
     this.paddle1Y = this.paddle2Y = (this.canvasHeight - this.paddleHeight) / 2;
     this.roundStartTime = Date.now();
-    this.lastUpdateCoords = this.getState();
+    this.lastUpdateCoords = this.getState(this.roundStartTime);
     const objectInfo = {...this.lastUpdateCoords};
     objectInfo.ballSpeedX = 0;
     objectInfo.ballSpeedY = 0;
@@ -156,8 +156,8 @@ class Game {
       } else {
         this.keyPress[2] = Date.now();
       }
-      this.lastUpdateCoords = this.getState();
-      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);    }
+      this.lastUpdateCoords = this.getState(this.lastUpdateCoords.time);
+      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);}
   }
   
   upRelease(uid: number) {
@@ -168,8 +168,8 @@ class Game {
       } else {
         this.keyPress[2] = 0;
       }
-      this.lastUpdateCoords = this.getState();
-      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);    }
+      this.lastUpdateCoords = this.getState(this.lastUpdateCoords.time);
+      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);}
   }
 
   downPress(uid: number) {
@@ -180,8 +180,8 @@ class Game {
       } else {
         this.keyPress[3] = Date.now();
       }
-      this.lastUpdateCoords = this.getState();
-      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);    }
+      this.lastUpdateCoords = this.getState(this.lastUpdateCoords.time);
+      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);}
   }
   
   downRelease(uid: number) {
@@ -192,8 +192,8 @@ class Game {
       } else {
         this.keyPress[3] = 0;
       }
-      this.lastUpdateCoords = this.getState();
-      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);    }
+      this.lastUpdateCoords = this.getState(this.lastUpdateCoords.time);
+      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);}
   }
 
   // Event driven update
@@ -280,7 +280,7 @@ class Game {
     this.gameStatus = GameStatus.COUNTDOWN;
     this.score[i]++;
     this.round++;
-    this.nsp.to(this.id).emit("syncData", this.getState());
+    // this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);
     this.nsp.to(this.id).emit("scoreInfo", {p1Score: this.score[0], p2Score: this.score[1]});
     return 2000;
   }
@@ -316,7 +316,7 @@ class Game {
           return this.updateScore(0);
         }
       }
-      this.lastUpdateCoords = this.getState();
+      this.lastUpdateCoords = this.getState(curTime);
       timeout = this.getHitTime();
     }
     return timeout;
@@ -448,7 +448,7 @@ class Game {
     return Hit.WALL;
   }
 
-  private getState(): GameCoords {
+  private getState(time: number): GameCoords {
     return {
       paddle1Y: this.paddle1Y,
       ballX: this.ballX,
@@ -458,7 +458,7 @@ class Game {
       ballSpeedY: this.ballSpeedY,
       paddleSpeed: this.paddleSpeed,
       keyPress: this.keyPress,
-      time: Date.now(),
+      time: time,
     };
   }
 
