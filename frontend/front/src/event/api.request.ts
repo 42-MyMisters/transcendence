@@ -66,11 +66,9 @@ export async function toggleTFA(
         AdminLogPrinter(adminConsole, '\ntoggleTFA: ', response);
         if (response.status === 200) {
           AdminLogPrinter(adminConsole, response);
-          let img: any = new Image();
-          img.src = response.body;
-          setQRcodeURL(img.src);
-          console.log(img);
-          // TODO: TFAQRURL ATOM
+          console.log(response!.body!.toString());
+          setQRcodeURL(response!.body!.toString());
+          // Buffer.from(response.data, 'binary').toString('base64')
         } else {
           throw new Error(`${response.status}`);
         }
