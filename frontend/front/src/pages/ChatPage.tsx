@@ -56,6 +56,8 @@ export default function ChatPage() {
 
 	const [gameInviteModal, setGameInviteModal] = useAtom(gameInviteModalAtom);
 	const [adminConsole, setAdminConsole] = useAtom(chatAtom.adminConsoleAtom);
+	const [passwordModal, setPasswordModal] = useAtom(passwordInputModalAtom);
+	const [clickRoom] = useAtom(chatAtom.clickRoomAtom);
 
 	PressKey(["F4"], () => {
 		setAdminConsole((prev) => !prev);
@@ -365,6 +367,9 @@ export default function ChatPage() {
 					if (focusRoom == roomId) {
 						setFocusRoom(-1);
 					}
+					if (passwordModal && roomId === clickRoom) {
+						setPasswordModal(false);
+					}
 					break;
 				}
 				case 'edit': {
@@ -376,6 +381,9 @@ export default function ChatPage() {
 						detail: roomList[roomId].detail || {} as chatType.roomDetailDto,
 					};
 					setRoomList({ ...roomList, ...newRoomList });
+					if (passwordModal && roomId === clickRoom) {
+						setPasswordModal(false);
+					}
 					break;
 				}
 			}
@@ -383,7 +391,7 @@ export default function ChatPage() {
 		return () => {
 			socket.socket.off("room-list-update");
 		};
-	}, [roomList, focusRoom]);
+	}, [roomList, focusRoom, passwordModal, clickRoom]);
 
 	useEffect(() => {
 		socket.socket.on("room-clear", () => {
