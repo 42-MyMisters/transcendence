@@ -181,6 +181,56 @@ export async function GetMyInfo(
   return status;
 }
 
+
+export async function FirstTimeGetMyInfo(
+  adminConsole: boolean,
+  hasLogin: boolean,
+  setUserInfo: setUserInfo,
+  navigate: NavigateFunction,
+  setHasLogin: React.Dispatch<React.SetStateAction<boolean>>,
+  setIsFirstLogin: React.Dispatch<React.SetStateAction<boolean>>,
+): Promise<number> {
+  let status = -1;
+
+  await fetch(`${process.env.REACT_APP_API_URL}/user/me`, {
+    credentials: "include",
+    method: "GET",
+  })
+    .then((response) => {
+      switch (response.status) {
+        case 200: {
+          status = 200;
+          return response.json();
+        }
+        default: {
+          throw new Error(`${response.status}`);
+        }
+      }
+    })
+    .then((response) => {
+      setUserInfo(response);
+      if (response.nickname.includes("#")) {
+        setIsFirstLogin(true);
+      } else {
+        setIsFirstLogin(false);
+
+        if (hasLogin === false) {
+          setHasLogin(true);
+          navigate("/chat");
+        } else {
+          AdminLogPrinter(adminConsole, "already login -- ??");
+          navigate("/chat");
+        }
+      }
+    })
+    .catch((error) => {
+      status = error.message;
+      AdminLogPrinter(adminConsole, `\nFirstTimeGetMyInfo catch_error: ${error} `);
+    });
+
+  return status;
+}
+
 export async function GetOtherProfile(
   adminConsole: boolean,
   setUserInfo: setUserInfo,
