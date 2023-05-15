@@ -40,6 +40,8 @@ export default function LoginPage() {
   const [cookies, setCookies, removeCookie] = useCookies([refreshTokenKey]);
   const navigate = useNavigate();
 
+  console.log("debug -- loginPage");
+
   const logOutHandler = () => {
     api.LogOut(adminConsole, setRefreshToken, navigate, "/");
   };
@@ -90,6 +92,15 @@ export default function LoginPage() {
       {/* refresh Token이 있고 cookie가 없으면 TFAModal실행 */}
       {refreshToken && !cookie && TFAEnabled && <TFAModal />}
       {refreshToken && isFirstLogin ? <InitialSettingModal /> : null}
+      {/* {
+        refreshToken
+          ? !cookie && TFAEnabled
+            ? <TFAModal />
+            : isFirstLogin
+              ? <InitialSettingModal />
+              : ''
+          : <SignInModal />
+      } */}
     </BackGround>
   );
 }

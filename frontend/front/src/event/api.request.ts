@@ -218,8 +218,7 @@ export async function FirstTimeGetMyInfo(
           setHasLogin(true);
           navigate("/chat");
         } else {
-          AdminLogPrinter(adminConsole, "already login -- ??");
-          navigate("/chat");
+          alert("already login");
         }
       }
     })

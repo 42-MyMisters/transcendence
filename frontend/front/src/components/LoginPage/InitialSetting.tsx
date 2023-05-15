@@ -4,16 +4,21 @@ import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AdminLogPrinter } from "../../event/event.util";
 import * as chatAtom from "../../components/atom/ChatAtom";
+import { isFirstLoginAtom } from "../../components/atom/LoginAtom";
 import { useAtom } from "jotai";
 import { UserAtom } from "../atom/UserAtom";
 
 import { useAutoFocus } from '../../event/event.util';
+import { hasLoginAtom } from "../../components/atom/ChatAtom";
 
 export default function InitialSettingModal() {
   const [profileImage, setProfileImage] = useState("");
   const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
   const profileRef = useRef<HTMLInputElement>(null);
   const [userInfo] = useAtom(UserAtom);
+  const [isFirstLogin, setIsFirstLogin] = useAtom(isFirstLoginAtom);
+  const [hasLogin, setHasLogin] = useAtom(hasLoginAtom);
+
   const InitialSaveNameRef = useAutoFocus();
 
   const saveImageFile = () => {
@@ -73,6 +78,8 @@ export default function InitialSettingModal() {
       alert(error);
     }
     AdminLogPrinter(adminConsole, newName);
+    setIsFirstLogin(false);
+    setHasLogin(true);
     navigate("/chat");
   };
 
