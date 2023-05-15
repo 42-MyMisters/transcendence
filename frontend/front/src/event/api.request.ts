@@ -52,6 +52,7 @@ export async function DoFollow(
 
 export async function toggleTFA(
   adminConsole: boolean,
+  setQRcodeURL: React.Dispatch<React.SetStateAction<string>>,
 ): Promise<number> {
   let status = -1;
 
@@ -65,6 +66,10 @@ export async function toggleTFA(
         AdminLogPrinter(adminConsole, '\ntoggleTFA: ', response);
         if (response.status === 200) {
           AdminLogPrinter(adminConsole, response);
+          let img: any = new Image();
+          img.src = response.body;
+          setQRcodeURL(img.src);
+          console.log(img);
           // TODO: TFAQRURL ATOM
         } else {
           throw new Error(`${response.status}`);

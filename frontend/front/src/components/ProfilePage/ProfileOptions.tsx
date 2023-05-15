@@ -11,6 +11,8 @@ import "../../styles/ProfilePage.css";
 import { useEffect } from 'react';
 import { refreshTokenAtom } from "../../components/atom/LoginAtom";
 import { AdminLogPrinter } from '../../event/event.util';
+import { TFAModalAtom, TFAQRURL } from "../../components/atom/ModalAtom";
+import { PressKey } from "../../event/event.util";
 
 export default function ProfileOptions() {
   const [changeNameModal, setchangeNameModal] = useAtom(changeNameModalAtom);
@@ -21,19 +23,25 @@ export default function ProfileOptions() {
   const [isTFAChanged, setIsTFAChanged] = useAtom(isTFAChange);
   const [, setRefreshToken] = useAtom(refreshTokenAtom);
   const navigate = useNavigate();
+  const [qrcodeURL, setQRcodeURL] = useAtom(TFAQRURL);
+  const [TFAModal, setTFAModal] = useAtom(TFAModalAtom);
 
   const logOutHandler = () => {
     api.LogOut(adminConsole, setRefreshToken, navigate, "/");
   };
 
+  PressKey(["Escape"], () => {
+    setTFAModal(false); // NOTE: for closing TFAQRModal, need to be modified when qr auth code accepting
+  });
+
   const handleFTARequest = async () => {
-    const FTARes = await api.toggleTFA(adminConsole);
+    const FTARes = await api.toggleTFA(adminConsole, setQRcodeURL);
     if (FTARes === 401) {
       const refreshResponse = await api.RefreshToken(adminConsole);
       if (refreshResponse !== 201) {
         logOutHandler();
       } else {
-        const getMeResponse = await api.toggleTFA(adminConsole);
+        const getMeResponse = await api.toggleTFA(adminConsole, setQRcodeURL);
         if (getMeResponse == 401) {
           logOutHandler();
         }
@@ -46,6 +54,7 @@ export default function ProfileOptions() {
       if (tfa) {
         AdminLogPrinter(adminConsole, "\n2FA on");
         handleFTARequest();
+        setTFAModal(true);
       } else {
         AdminLogPrinter(adminConsole, "\n2FA off");
         handleFTARequest();
