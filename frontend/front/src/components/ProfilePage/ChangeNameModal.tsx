@@ -49,8 +49,8 @@ export default function ChangeNameModal() {
 
   const handleChangeName = async () => {
     const trimNewName = newName.trim();
-    if (trimNewName.length < 2 || trimNewName.length > 12) {
-      alert("변경할 닉네임은 2글자 이상, 12글자 이하여야 합니다.")
+    if (trimNewName.length < 2 || trimNewName.length > 8) {
+      alert("변경할 닉네임은 2글자 이상, 8글자 이하여야 합니다.")
       setNewName("");
       return;
     } else if (trimNewName === userInfo.nickname) {

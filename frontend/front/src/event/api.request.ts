@@ -84,7 +84,8 @@ export async function toggleTFA(
 export async function changeProfileImage(
   adminConsole: boolean,
   imageData: FormData,
-  callback = (): any => { }
+  callback = (): any => { },
+  action: boolean = true
 ): Promise<number> {
   let status = -1;
 
@@ -99,7 +100,7 @@ export async function changeProfileImage(
         AdminLogPrinter(adminConsole, '\nchangeProfileImage: ', response);
         if (response.status === 201) {
           socket.socket.emit('user-change-info', 'image');
-          callback();
+          action && callback();
         } else {
           throw new Error(`${response.status}`);
         }
@@ -117,7 +118,8 @@ export async function changeProfileImage(
 export async function changeNickName(
   adminConsole: boolean,
   newName: string,
-  callback = (): any => { }
+  callback = (): any => { },
+  action: boolean = true
 ): Promise<number> {
   let status = -1;
 
@@ -132,7 +134,7 @@ export async function changeNickName(
       AdminLogPrinter(adminConsole, '\nchangeNickName:', response);
       if (response.status === 200) {
         socket.socket.emit('user-change-info', 'name');
-        callback();
+        action && callback();
       } else {
         throw new Error(`${response.status}`);
       }
