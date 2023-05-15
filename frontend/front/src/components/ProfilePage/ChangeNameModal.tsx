@@ -57,6 +57,10 @@ export default function ChangeNameModal() {
       alert("현재 닉네임과 동일합니다.")
       setNewName("");
       return;
+    } else if (newName.includes("#")) {
+      alert("#은 포함될 수 없습니다.");
+      setNewName("");
+      return;
     }
     const format = JSON.stringify({ nickname: newName });
     AdminLogPrinter(adminConsole, `changeNickName: ${format}`);

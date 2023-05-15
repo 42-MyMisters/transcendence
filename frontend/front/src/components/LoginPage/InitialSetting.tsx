@@ -1,6 +1,6 @@
 import "../../styles/LoginModals.css";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AdminLogPrinter } from "../../event/event.util";
 import * as chatAtom from "../../components/atom/ChatAtom";
@@ -8,7 +8,6 @@ import { isFirstLoginAtom, refreshTokenAtom } from "../../components/atom/LoginA
 import { useAtom } from "jotai";
 import { UserAtom } from "../atom/UserAtom";
 
-import { useAutoFocus } from '../../event/event.util';
 import { hasLoginAtom } from "../../components/atom/ChatAtom";
 import * as api from '../../event/api.request';
 
@@ -20,11 +19,24 @@ export default function InitialSettingModal() {
   const [isFirstLogin, setIsFirstLogin] = useAtom(isFirstLoginAtom);
   const [hasLogin, setHasLogin] = useAtom(hasLoginAtom);
   const [, setRefreshToken] = useAtom(refreshTokenAtom);
+  const [checkError, setCheckError] = useState(false);
 
-  const InitialSaveNameRef = useAutoFocus();
 
   const [newName, setNewName] = useState("");
   const navigate = useNavigate();
+
+  const useAutoFocus = () => {
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    }, [checkError]);
+
+    return inputRef;
+  };
+  const InitialSaveNameRef = useAutoFocus();
 
   const saveImageFile = () => {
     if (profileRef.current?.files?.[0]) {
@@ -102,16 +114,11 @@ export default function InitialSettingModal() {
 
 
   const setDefaultInfo = async () => {
-    if (newName.trim().length < 2 || newName.trim().length > 8) {
-      alert("변경할 닉네임은 2글자 이상, 8글자 이하여야 합니다.")
-      setNewName("");
-      return;
-    }
-
     const imageRes = await changeNewImageHandler();
     if (imageRes === false) {
       alert("프로필 이미지 변경에 실패했습니다.");
       setProfileImage("");
+      setCheckError((prev) => (!prev));
       return;
     }
 
@@ -119,6 +126,7 @@ export default function InitialSettingModal() {
     if (nickRes === false) {
       alert("닉네임 변경에 실패했습니다.");
       setNewName("");
+      setCheckError((prev) => (!prev));
       return;
     }
 
