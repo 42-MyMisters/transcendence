@@ -9,7 +9,7 @@ import { AdminLogPrinter } from "../event/event.util";
 const URL = process.env.REACT_APP_API_URL;
 const NameSpace = "/sock";
 
-export let socket = io(`${URL}${NameSpace}`, {
+export const socket = io(`${URL}${NameSpace}`, {
   auth: (cb) => {
     cb({ token: localStorage.getItem("refreshToken") });
   },
