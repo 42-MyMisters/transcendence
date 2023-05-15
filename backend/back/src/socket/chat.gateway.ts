@@ -212,18 +212,18 @@ export class EventsGateway
 				if (userList[uid].disconnectedSocket !== socket.id) {
 					this.logger.debug(`${userList[uid].userDisplayName} is now online : ${socket.id}`);
 					userList[uid].status = 'online';
-					this.nsp.emit("user-update", {
-						userId: uid,
-						userDisplayName: user.nickname.split('#', 2)[0],
-						userProfileUrl: user.profileUrl,
-						userStatus: 'online',
-					});
 					userList[uid].socket = socket;
 					await this.handleBlockList(socket);
 					await this.handleFollowList(socket, uid);
 					this.handleRoomList(socket)
 					this.handleUserList(socket);
 					await this.handleDmList(socket, uid);
+					this.nsp.emit("user-update", {
+						userId: uid,
+						userDisplayName: user.nickname.split('#', 2)[0],
+						userProfileUrl: user.profileUrl,
+						userStatus: 'online',
+					});
 				} else {
 					this.logger.warn(`connect, then disconnect..`);
 					throw new UnprocessableEntityException("Invalid connection.");
