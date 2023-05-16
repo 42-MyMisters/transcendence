@@ -105,7 +105,11 @@ export class UserController {
       throw new UnauthorizedException("Wrong authentication code");
     }
     await this.userService.setUserTwoFactorEnabled(request.user, true);
-    const tokenSet = await this.authService.loginWith2fa(request.user);
+    const updatedUserInfo = await this.userService.getUserByUid(request.user.uid,);
+    if (!updatedUserInfo) {
+      throw new UnauthorizedException("User Not Found");
+    }
+    const tokenSet = await this.authService.loginWith2fa(updatedUserInfo);
 
     res.cookie("accessToken", tokenSet.accessToken, {
       httpOnly: true,
@@ -241,7 +245,7 @@ export class UserController {
   @UseGuards(JwtInitialAuthGuard)
   async getUserProfie(@Req() reqeust): Promise<UserProfileDto> {
     const user = reqeust.user;
-    return await this.userService.getUserProfile(user.uid);
+    return await this.userService.getUserProfile(user.uid, true);
   }
 
   @Get("/me")

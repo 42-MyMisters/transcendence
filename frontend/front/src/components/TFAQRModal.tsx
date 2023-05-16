@@ -38,9 +38,11 @@ export default function TFAQRModal() {
 
 
   PressKey(["Escape"], () => {
-    setTFAModal(false);
     setQRcodeURL("");
-    setTfa(false);
+    if (TFAModal) {
+      setTfa(false);
+    }
+    setTFAModal(false);
   });
 
   const logOutHandler = () => {
@@ -78,7 +80,6 @@ export default function TFAQRModal() {
     setTFAModal(false);
     setTfa(true);
     setQRcodeURL("");
-    logOutHandler();
   };
 
   const handleEnterEvent = (e: keyboardKey) => {

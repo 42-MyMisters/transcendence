@@ -21,7 +21,7 @@ import { hasLoginAtom } from "../components/atom/ChatAtom";
 import InitialSettingModal from "../components/LoginPage/InitialSetting";
 
 import { AdminLogPrinter } from "../event/event.util";
-import { UserAtom, TFAAtom } from "../components/atom/UserAtom";
+import { UserAtom } from "../components/atom/UserAtom";
 import * as api from "../event/api.request";
 
 export default function LoginPage() {
@@ -38,7 +38,6 @@ export default function LoginPage() {
 
   const refreshTokenKey = "refreshToken";
   const [cookies, setCookies, removeCookie] = useCookies([refreshTokenKey]);
-  const [tfa, setTfa] = useAtom(TFAAtom);
   const navigate = useNavigate();
 
   const logOutHandler = () => {
@@ -74,7 +73,6 @@ export default function LoginPage() {
 
       const decoded: any = jwt_decode(JSON.stringify(storedRefreshToken));
       if (decoded.twoFactorEnabled) {
-        setTfa(true);
         if (!decoded.twoFactorAuthenticated) {
           setTFAEnabled(true);
         } else {
@@ -82,7 +80,6 @@ export default function LoginPage() {
           navigate("/chat");
         }
       } else {
-        setTfa(false);
         initialSettingHandler();
       }
     } else {

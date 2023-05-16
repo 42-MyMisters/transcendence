@@ -212,7 +212,7 @@ export class UserService {
 		return followingUserDtos;
 	}
 
-	async getUserProfile(uid: number): Promise<UserProfileDto> {
+	async getUserProfile(uid: number, isMe: boolean = false): Promise<UserProfileDto> {
 		const findUser = await this.databaseService.findUserByUid(uid);
 		if (!this.isUserExist(findUser))
 			throw new NotFoundException(`${uid} user not found`);
@@ -222,6 +222,9 @@ export class UserService {
 		const gameStatus = await this.databaseService.findAllGameByUserid(uid);
 		userDto.winGames = gameStatus.winGames;
 		userDto.loseGames = gameStatus.loseGames;
+		if (!isMe) {
+			userDto.tfaEnabled = false;
+		}
 
 		return userDto;
 	}

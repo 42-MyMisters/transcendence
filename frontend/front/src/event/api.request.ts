@@ -222,7 +222,9 @@ export async function changeNickName(
 
 export async function GetMyInfo(
   adminConsole: boolean,
-  setUserInfo: setUserInfo
+  setUserInfo: setUserInfo,
+  setTfa: React.Dispatch<React.SetStateAction<boolean>> = () => { },
+  action: boolean = false,
 ): Promise<number> {
   let status = -1;
 
@@ -243,7 +245,9 @@ export async function GetMyInfo(
     })
     .then((response) => {
       AdminLogPrinter(adminConsole, `\nGetMyInfo: ${JSON.stringify(response)}`);
-      response.nickname = response.nickname.split("#", 2)[0];
+      if (action) {
+        setTfa(response.tfaEnabled);
+      }
       setUserInfo({ ...response, date: new Date() });
     })
     .catch((error) => {
@@ -325,7 +329,6 @@ export async function GetOtherProfile(
     })
     .then((response) => {
       AdminLogPrinter(adminConsole, `\nGetOtherProfile: ${JSON.stringify(response)}`);
-      response.nickname = response.nickname.split("#", 2)[0];
       setUserInfo({ ...response });
     })
     .catch((error) => {
