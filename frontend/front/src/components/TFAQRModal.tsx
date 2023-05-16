@@ -1,15 +1,14 @@
-import { useState, useEffect, useRef } from "react";
-import "../styles/TFAQRModal.css";
-import { useAtom } from "jotai";
-import { TFAModalAtom, TFAQRURL } from "./atom/ModalAtom";
-import { useAutoFocus } from '../event/event.util';
 import { keyboardKey } from '@testing-library/user-event';
-import { TFAAtom } from "./atom/UserAtom";
-import { PressKey, AdminLogPrinter } from "../event/event.util";
-import * as api from '../event/api.request';
+import { useAtom } from "jotai";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from 'react-router-dom';
 import * as chatAtom from "../components/atom/ChatAtom";
 import { refreshTokenAtom } from "../components/atom/LoginAtom";
-import { useNavigate } from 'react-router-dom';
+import * as api from '../event/api.request';
+import { AdminLogPrinter, PressKey } from "../event/event.util";
+import "../styles/TFAQRModal.css";
+import { TFAModalAtom, TFAQRURL } from "./atom/ModalAtom";
+import { TFAAtom } from "./atom/UserAtom";
 
 export default function TFAQRModal() {
   const [checkError, setCheckError] = useState(false);
@@ -44,10 +43,6 @@ export default function TFAQRModal() {
     }
     setTFAModal(false);
   });
-
-  const logOutHandler = () => {
-    api.LogOut(adminConsole, setRefreshToken, navigate, "/");
-  };
 
   const handleAuthenticate = async (): Promise<boolean> => {
     if (!Number(authCode) || !Number.isInteger(Number(authCode)) || Number(authCode) < 0) {

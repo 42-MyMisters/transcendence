@@ -6,6 +6,7 @@ import {
   Get,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
   Param,
   Patch,
   Post,
@@ -107,7 +108,7 @@ export class UserController {
     await this.userService.setUserTwoFactorEnabled(request.user, true);
     const updatedUserInfo = await this.userService.getUserByUid(request.user.uid,);
     if (!updatedUserInfo) {
-      throw new UnauthorizedException("User Not Found");
+      throw new NotFoundException("User Not Found");
     }
     const tokenSet = await this.authService.loginWith2fa(updatedUserInfo);
 

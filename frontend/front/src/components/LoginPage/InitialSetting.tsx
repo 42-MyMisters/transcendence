@@ -67,12 +67,10 @@ export default function InitialSettingModal() {
         if (getMeResponse === 401) {
           logOutHandler();
         } else {
-          setProfileImage("");
           return true;
         }
       }
     } else {
-      setProfileImage("");
       return true;
     }
     return false;
@@ -101,12 +99,10 @@ export default function InitialSettingModal() {
         if (getMeResponse === 401) {
           logOutHandler();
         } else {
-          setNewName("");
           return true;
         }
       }
     } else {
-      setNewName("");
       return true;
     }
     return false;
@@ -121,6 +117,7 @@ export default function InitialSettingModal() {
       setCheckError((prev) => (!prev));
       return;
     }
+    setProfileImage("");
 
     const nickRes = await handleChangeName();
     if (nickRes === false) {
@@ -129,6 +126,7 @@ export default function InitialSettingModal() {
       setCheckError((prev) => (!prev));
       return;
     }
+    setNewName("");
 
     AdminLogPrinter(adminConsole, newName);
     setIsFirstLogin(false);

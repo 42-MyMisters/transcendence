@@ -1,21 +1,21 @@
-import "../../styles/LoginModals.css";
 import { keyboardKey } from '@testing-library/user-event';
-import { useRef, useState, useEffect } from "react";
-import * as chatAtom from "../../components/atom/ChatAtom";
-import * as api from "../../event/api.request";
 import { useAtom } from "jotai";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from 'react-router-dom';
+import * as chatAtom from "../../components/atom/ChatAtom";
 import { hasLoginAtom } from "../../components/atom/ChatAtom";
 import { isFirstLoginAtom, } from "../../components/atom/LoginAtom";
+import * as api from "../../event/api.request";
 import { AdminLogPrinter } from '../../event/event.util';
+import "../../styles/LoginModals.css";
 
 export default function TFAModal() {
   const [checkError, setCheckError] = useState(false);
   const [authCode, setAuthCode] = useState("");
   const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
 
-  const [isFirstLogin, setIsFirstLogin] = useAtom(isFirstLoginAtom);
-  const [hasLogin, setHasLogin] = useAtom(hasLoginAtom);
+  const [, setIsFirstLogin] = useAtom(isFirstLoginAtom);
+  const [, setHasLogin] = useAtom(hasLoginAtom);
   const navigate = useNavigate();
 
   const useAutoFocus = () => {

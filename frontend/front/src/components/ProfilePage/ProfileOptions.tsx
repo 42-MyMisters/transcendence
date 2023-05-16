@@ -46,7 +46,7 @@ export default function ProfileOptions() {
   const handleTFA = async () => {
     if (tfa) {
       AdminLogPrinter(adminConsole, "\n2FA off");
-      handleFTARequest();
+      await handleFTARequest();
     } else {
       AdminLogPrinter(adminConsole, "\n2FA on");
       await handleFTARequest();
