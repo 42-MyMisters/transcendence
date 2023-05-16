@@ -38,13 +38,13 @@ export default function ChangeImageModal() {
 
   async function getMyinfoHandler() {
     const getMeResponse = await api.GetMyInfo(adminConsole, setUserInfo);
-    if (getMeResponse == 401) {
+    if (getMeResponse === 401) {
       const refreshResponse = await api.RefreshToken(adminConsole);
       if (refreshResponse !== 201) {
         logOutHandler();
       } else {
         const getMeResponse = await api.GetMyInfo(adminConsole, setUserInfo);
-        if (getMeResponse == 401) {
+        if (getMeResponse === 401) {
           logOutHandler();
         }
       }
@@ -66,8 +66,8 @@ export default function ChangeImageModal() {
       if (refreshResponse !== 201) {
         logOutHandler();
       } else {
-        const getMeResponse = await api.changeProfileImage(adminConsole, formData, getMyinfoHandler);
-        if (getMeResponse == 401) {
+        const changeNickNameRes = await api.changeProfileImage(adminConsole, formData, getMyinfoHandler);
+        if (changeNickNameRes === 401) {
           logOutHandler();
         } else {
           setchangeImageModal(false);

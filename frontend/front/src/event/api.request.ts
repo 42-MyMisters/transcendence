@@ -52,6 +52,7 @@ export async function DoFollow(
 
 export async function toggleTFA(
   adminConsole: boolean,
+  setQRcodeURL: React.Dispatch<React.SetStateAction<string>>,
 ): Promise<number> {
   let status = -1;
 
@@ -64,11 +65,13 @@ export async function toggleTFA(
         status = response.status;
         AdminLogPrinter(adminConsole, '\ntoggleTFA: ', response);
         if (response.status === 200) {
-          AdminLogPrinter(adminConsole, response);
-          // TODO: TFAQRURL ATOM
+          return response.text();
         } else {
           throw new Error(`${response.status}`);
         }
+      })
+      .then((res) => {
+        setQRcodeURL(res);
       })
       .catch((error) => {
         AdminLogPrinter(adminConsole, `\ntoggleTFA error: ${error}`);
@@ -80,32 +83,30 @@ export async function toggleTFA(
   return status;
 }
 
-
-export async function changeProfileImage(
+export async function confirmTFA(
   adminConsole: boolean,
-  imageData: FormData,
-  callback = (): any => { }
+  format: string,
 ): Promise<number> {
   let status = -1;
 
   try {
-    await fetch(`${process.env.REACT_APP_API_URL}/user/profile-img-change`, {
+    await fetch(`${process.env.REACT_APP_API_URL}/user/2fa/toggle/confirm`, {
       credentials: "include",
       method: "POST",
-      body: imageData,
+      headers: { "Content-Type": "application/json" },
+      body: format,
     })
       .then((response) => {
         status = response.status;
-        AdminLogPrinter(adminConsole, '\nchangeProfileImage: ', response);
-        if (response.status === 201) {
-          socket.socket.emit('user-change-info', 'image');
-          callback();
+        AdminLogPrinter(adminConsole, '\nconfirmTFA: ', response);
+        if (response.status === 302) {
+          return;
         } else {
           throw new Error(`${response.status}`);
         }
       })
       .catch((error) => {
-        AdminLogPrinter(adminConsole, `\nchangeProfileImage error: ${error}`);
+        AdminLogPrinter(adminConsole, `\nconfirmTFA error: ${error}`);
       });
   } catch (error) {
     alert(error);
@@ -114,10 +115,72 @@ export async function changeProfileImage(
   return status;
 }
 
+export async function loginWithTFA(
+  adminConsole: boolean,
+  format: string,
+): Promise<number> {
+  let status = -1;
+
+  await fetch(`${process.env.REACT_APP_API_URL}/login/2fa/auth`, {
+    credentials: "include",
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: format,
+  })
+    .then((response) => {
+      status = response.status;
+      AdminLogPrinter(adminConsole, '\nloginWithTFA: ', response);
+      if (response.status === 302) {
+        return;
+      } else {
+        throw new Error(`${response.status}`);
+      }
+    })
+    .catch((error) => {
+      AdminLogPrinter(adminConsole, `\nloginWithTFA error: ${error}`);
+    });
+
+  return status;
+}
+
+export async function changeProfileImage(
+  adminConsole: boolean,
+  imageData: FormData,
+  callback = (): any => { },
+  action: boolean = true
+): Promise<number> {
+  let status = -1;
+
+  await fetch(`${process.env.REACT_APP_API_URL}/user/profile-img-change`, {
+    credentials: "include",
+    method: "POST",
+    body: imageData,
+  })
+    .then((response) => {
+      status = response.status;
+      AdminLogPrinter(adminConsole, '\nchangeProfileImage: ', response);
+      if (response.status === 201) {
+        if (action) {
+          socket.socket.emit('user-change-info', 'image');
+          callback();
+        }
+      } else {
+        throw new Error(`${response.status}`);
+      }
+    })
+    .catch((error) => {
+      AdminLogPrinter(adminConsole, `\nchangeProfileImage error: ${error}`);
+      alert(error);
+    });
+
+  return status;
+}
+
 export async function changeNickName(
   adminConsole: boolean,
   newName: string,
-  callback = (): any => { }
+  callback = (): any => { },
+  action: boolean = true
 ): Promise<number> {
   let status = -1;
 
@@ -131,8 +194,11 @@ export async function changeNickName(
       status = response.status;
       AdminLogPrinter(adminConsole, '\nchangeNickName:', response);
       if (response.status === 200) {
-        socket.socket.emit('user-change-info', 'name');
-        callback();
+        if (action) {
+
+          socket.socket.emit('user-change-info', 'name');
+          callback();
+        }
       } else {
         throw new Error(`${response.status}`);
       }
@@ -149,7 +215,9 @@ export async function changeNickName(
 
 export async function GetMyInfo(
   adminConsole: boolean,
-  setUserInfo: setUserInfo
+  setUserInfo: setUserInfo,
+  setTfa: React.Dispatch<React.SetStateAction<boolean>> = () => { },
+  action: boolean = false,
 ): Promise<number> {
   let status = -1;
 
@@ -170,12 +238,62 @@ export async function GetMyInfo(
     })
     .then((response) => {
       AdminLogPrinter(adminConsole, `\nGetMyInfo: ${JSON.stringify(response)}`);
-      response.nickname = response.nickname.split("#", 2)[0];
+      if (action) {
+        setTfa(response.tfaEnabled);
+      }
       setUserInfo({ ...response, date: new Date() });
     })
     .catch((error) => {
       status = error.message;
       AdminLogPrinter(adminConsole, `\nGetMyInfo catch_error: ${error} `);
+    });
+
+  return status;
+}
+
+
+export async function FirstTimeGetMyInfo(
+  adminConsole: boolean,
+  hasLogin: boolean,
+  setUserInfo: setUserInfo,
+  navigate: NavigateFunction,
+  setHasLogin: React.Dispatch<React.SetStateAction<boolean>>,
+  setIsFirstLogin: React.Dispatch<React.SetStateAction<boolean>>,
+): Promise<number> {
+  let status = -1;
+
+  await fetch(`${process.env.REACT_APP_API_URL}/user/me`, {
+    credentials: "include",
+    method: "GET",
+  })
+    .then((response) => {
+      switch (response.status) {
+        case 200: {
+          status = 200;
+          return response.json();
+        }
+        default: {
+          throw new Error(`${response.status}`);
+        }
+      }
+    })
+    .then((response) => {
+      setUserInfo(response);
+      if (response.nickname.includes("#")) {
+        setIsFirstLogin(true);
+      } else {
+        setIsFirstLogin(false);
+        if (hasLogin === false) {
+          setHasLogin(true);
+          navigate("/chat");
+        } else {
+          alert("already login");
+        }
+      }
+    })
+    .catch((error) => {
+      status = error.message;
+      AdminLogPrinter(adminConsole, `\nFirstTimeGetMyInfo catch_error: ${error} `);
     });
 
   return status;
@@ -204,7 +322,6 @@ export async function GetOtherProfile(
     })
     .then((response) => {
       AdminLogPrinter(adminConsole, `\nGetOtherProfile: ${JSON.stringify(response)}`);
-      response.nickname = response.nickname.split("#", 2)[0];
       setUserInfo({ ...response });
     })
     .catch((error) => {

@@ -112,7 +112,7 @@ export class UserService {
 		await this.databaseService.deleteFollow(curUser.uid, userToUnfollow.uid);
 	}
 
-	async findAllBlock(curUser: User): Promise<UserBlock[] | null>{
+	async findAllBlock(curUser: User): Promise<UserBlock[] | null> {
 		const blockList = await this.databaseService.findAllBlockByUid(curUser.uid);
 		if (blockList.length === 0)
 			return null;
@@ -203,7 +203,7 @@ export class UserService {
 	}
 	async getFollowingUserInfo(uid: number): Promise<FollowingUserDto[] | null> {
 		const findFollowingUser = await this.getUserFollowing(uid);
-		if (findFollowingUser.length === 0){
+		if (findFollowingUser.length === 0) {
 			return null;
 		}
 		const followingUserDtos = await Promise.all(findFollowingUser.map(async (userFollow) => {
@@ -212,7 +212,7 @@ export class UserService {
 		return followingUserDtos;
 	}
 
-	async getUserProfile(uid: number): Promise<UserProfileDto>{
+	async getUserProfile(uid: number, isMe: boolean = false): Promise<UserProfileDto> {
 		const findUser = await this.databaseService.findUserByUid(uid);
 		if (!this.isUserExist(findUser))
 			throw new NotFoundException(`${uid} user not found`);
@@ -222,6 +222,9 @@ export class UserService {
 		const gameStatus = await this.databaseService.findAllGameByUserid(uid);
 		userDto.winGames = gameStatus.winGames;
 		userDto.loseGames = gameStatus.loseGames;
+		if (!isMe) {
+			userDto.tfaEnabled = false;
+		}
 
 		return userDto;
 	}

@@ -1,17 +1,42 @@
 import "../../styles/LoginModals.css";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AdminLogPrinter } from "../../event/event.util";
 import * as chatAtom from "../../components/atom/ChatAtom";
+import { isFirstLoginAtom, refreshTokenAtom } from "../../components/atom/LoginAtom";
 import { useAtom } from "jotai";
 import { UserAtom } from "../atom/UserAtom";
+
+import { hasLoginAtom } from "../../components/atom/ChatAtom";
+import * as api from '../../event/api.request';
 
 export default function InitialSettingModal() {
   const [profileImage, setProfileImage] = useState("");
   const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
   const profileRef = useRef<HTMLInputElement>(null);
   const [userInfo] = useAtom(UserAtom);
+  const [isFirstLogin, setIsFirstLogin] = useAtom(isFirstLoginAtom);
+  const [hasLogin, setHasLogin] = useAtom(hasLoginAtom);
+  const [, setRefreshToken] = useAtom(refreshTokenAtom);
+  const [checkError, setCheckError] = useState(false);
+
+
+  const [newName, setNewName] = useState("");
+  const navigate = useNavigate();
+
+  const useAutoFocus = () => {
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    }, [checkError]);
+
+    return inputRef;
+  };
+  const InitialSaveNameRef = useAutoFocus();
 
   const saveImageFile = () => {
     if (profileRef.current?.files?.[0]) {
@@ -20,56 +45,92 @@ export default function InitialSettingModal() {
     }
   };
 
-  const [newName, setNewName] = useState("");
-  const navigate = useNavigate();
+  const logOutHandler = () => {
+    api.LogOut(adminConsole, setRefreshToken, navigate, "/");
+  };
 
-  const setDefaultInfo = async () => {
-    if (newName.length < 2 || newName.trim().length < 2) {
-      alert("닉네임은 2글자 이상이어야 합니다.");
-      setNewName("");
-      return;
+  const HandlechangeImage = async (): Promise<boolean> => {
+    if (profileImage === "") {
+      return true;
     }
-
     const formData = new FormData();
-    if (profileRef.current?.files?.[0]) {
-      formData.append("profileImage", profileRef.current?.files?.[0]!);
-      AdminLogPrinter(adminConsole, profileRef.current?.files?.[0]!.name);
-    }
+    formData.append("profileImage", profileRef.current?.files?.[0]!);
+    AdminLogPrinter(adminConsole, profileRef.current?.files?.[0]!.name);
 
-    const nickNameFormat = JSON.stringify({ nickname: newName });
-
-    try {
-      if (profileRef.current?.files?.[0]) {
-        const profileChange = await fetch(
-          `${process.env.REACT_APP_API_URL}/user/profile-img-change`,
-          {
-            credentials: "include",
-            method: "POST",
-            body: formData,
-          }
-        );
-
-        if (!profileChange.ok) {
-          alert("파일 업로드에 실패했습니다.");
-          return;
+    const changeNickNameRes = await api.changeProfileImage(adminConsole, formData);
+    if (changeNickNameRes === 401) {
+      const refreshResponse = await api.RefreshToken(adminConsole);
+      if (refreshResponse !== 201) {
+        logOutHandler();
+      } else {
+        const getMeResponse = await api.changeProfileImage(adminConsole, formData);
+        if (getMeResponse === 401) {
+          logOutHandler();
+        } else {
+          return true;
         }
       }
-
-      const nickNameChange = await fetch(`${process.env.REACT_APP_API_URL}/user/nickname`, {
-        credentials: "include",
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: nickNameFormat,
-      });
-
-      if (!nickNameChange.ok) {
-        alert("닉네임 변경에 실패했습니다.");
-        return;
-      }
-    } catch (error) {
-      alert(error);
+    } else {
+      return true;
     }
+    return false;
+  };
+
+  const handleChangeName = async (): Promise<boolean> => {
+    const trimNewName = newName.trim();
+    if (trimNewName.length < 2 || trimNewName.length > 8) {
+      alert("변경할 닉네임은 2글자 이상, 8글자 이하여야 합니다.")
+      return false;
+    } else if (newName.includes("#")) {
+      alert("#은 포함될 수 없습니다.");
+      return false;
+    }
+
+    const format = JSON.stringify({ nickname: newName });
+    AdminLogPrinter(adminConsole, `changeNickName: ${format}`);
+
+    const changeNickNameRes = await api.changeNickName(adminConsole, format);
+    if (changeNickNameRes === 401) {
+      const refreshResponse = await api.RefreshToken(adminConsole);
+      if (refreshResponse !== 201) {
+        logOutHandler();
+      } else {
+        const getMeResponse = await api.changeNickName(adminConsole, format);
+        if (getMeResponse === 401) {
+          logOutHandler();
+        } else {
+          return true;
+        }
+      }
+    } else {
+      return true;
+    }
+    return false;
+  };
+
+
+  const setDefaultInfo = async () => {
+    const imageRes = await HandlechangeImage();
+    if (imageRes === false) {
+      alert("프로필 이미지 변경에 실패했습니다.");
+      setProfileImage("");
+      setCheckError((prev) => (!prev));
+      return;
+    }
+    setProfileImage("");
+
+    const nickRes = await handleChangeName();
+    if (nickRes === false) {
+      alert("닉네임 변경에 실패했습니다.");
+      setNewName("");
+      setCheckError((prev) => (!prev));
+      return;
+    }
+    setNewName("");
+
     AdminLogPrinter(adminConsole, newName);
+    setIsFirstLogin(false);
+    setHasLogin(true);
     navigate("/chat");
   };
 
@@ -84,7 +145,7 @@ export default function InitialSettingModal() {
           height: "200px",
         }}
       />
-      <div className="ChangeProfileImageBtn" onClick={() => {}}>
+      <div className="ChangeProfileImageBtn" >
         <label htmlFor="ChangeImage" />
         <input
           id="ChangeImage"
@@ -99,6 +160,7 @@ export default function InitialSettingModal() {
         <label htmlFor="InitialSaveName">New Nickname</label>
         <input
           id="InitialSaveName"
+          ref={InitialSaveNameRef}
           type="text"
           placeholder="New Nickname"
           maxLength={8}
@@ -111,6 +173,6 @@ export default function InitialSettingModal() {
       <button className="InitialSettingSaveBtn" onClick={setDefaultInfo}>
         Save
       </button>
-    </div>
+    </div >
   );
 }

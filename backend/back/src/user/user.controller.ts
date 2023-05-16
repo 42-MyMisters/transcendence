@@ -6,6 +6,7 @@ import {
   Get,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
   Param,
   Patch,
   Post,
@@ -50,7 +51,7 @@ export class UserController {
   constructor(
     private authService: AuthService,
     private userService: UserService,
-  ) {}
+  ) { }
   @ApiOperation({
     summary: "2fa 등록 / (이미 등록된 상태라면) 끄기",
     description: "2fa 인증 활성화/비활성화 ",
@@ -105,7 +106,11 @@ export class UserController {
       throw new UnauthorizedException("Wrong authentication code");
     }
     await this.userService.setUserTwoFactorEnabled(request.user, true);
-    const tokenSet = await this.authService.loginWith2fa(request.user);
+    const updatedUserInfo = await this.userService.getUserByUid(request.user.uid,);
+    if (!updatedUserInfo) {
+      throw new NotFoundException("User Not Found");
+    }
+    const tokenSet = await this.authService.loginWith2fa(updatedUserInfo);
 
     res.cookie("accessToken", tokenSet.accessToken, {
       httpOnly: true,
@@ -113,7 +118,8 @@ export class UserController {
       // secure: true //only https option
     });
     res.cookie("refreshToken", tokenSet.refreshToken);
-    return res.redirect("http://localhost:3000/");
+    res.sendStatus(302);
+    // return res.redirect("http://localhost:3000/");
   }
 
   @ApiOperation({
@@ -240,7 +246,7 @@ export class UserController {
   @UseGuards(JwtInitialAuthGuard)
   async getUserProfie(@Req() reqeust): Promise<UserProfileDto> {
     const user = reqeust.user;
-    return await this.userService.getUserProfile(user.uid);
+    return await this.userService.getUserProfile(user.uid, true);
   }
 
   @Get("/me")

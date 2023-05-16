@@ -49,12 +49,16 @@ export default function ChangeNameModal() {
 
   const handleChangeName = async () => {
     const trimNewName = newName.trim();
-    if (trimNewName.length < 2 || trimNewName.length > 12) {
-      alert("변경할 닉네임은 2글자 이상, 12글자 이하여야 합니다.")
+    if (trimNewName.length < 2 || trimNewName.length > 8) {
+      alert("변경할 닉네임은 2글자 이상, 8글자 이하여야 합니다.")
       setNewName("");
       return;
     } else if (trimNewName === userInfo.nickname) {
       alert("현재 닉네임과 동일합니다.")
+      setNewName("");
+      return;
+    } else if (newName.includes("#")) {
+      alert("#은 포함될 수 없습니다.");
       setNewName("");
       return;
     }
@@ -67,8 +71,8 @@ export default function ChangeNameModal() {
       if (refreshResponse !== 201) {
         logOutHandler();
       } else {
-        const getMeResponse = await api.changeNickName(adminConsole, format, getMyinfoHandler);
-        if (getMeResponse == 401) {
+        const changeNickNameRes = await api.changeNickName(adminConsole, format, getMyinfoHandler);
+        if (changeNickNameRes == 401) {
           logOutHandler();
         } else {
           setchangeNameModal(false);
