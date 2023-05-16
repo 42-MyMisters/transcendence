@@ -73,7 +73,10 @@ export default function GamePage() {
     AdminLogPrinter(adminConsole, "gameSocket disconnected");
   };
 
-  const startEventHandler = () => {
+  // const startEventHandler = () => {
+  // };
+  
+  const gameStartEventHandler = () => {
     AdminLogPrinter(adminConsole, "game start");
     if (isLoading) {
       setIsLoading(false);
@@ -81,6 +84,10 @@ export default function GamePage() {
     if (!isGameStart) {
       setIsGameStart(true);
     }
+    // p1.score = 0;
+    // p2.score = 0;
+    // update(Date.now(), coords.time);
+    // Game(coords, canvas);
   };
 
   useEffect(() => {
@@ -94,11 +101,11 @@ export default function GamePage() {
     if (isLoading) {
       game.gameSocket.on("connect", connectionEventHandler);
       game.gameSocket.on("disconnect", disconnectionEventHandler);
-      game.gameSocket.on("gameStart", startEventHandler);
+      game.gameSocket.on("gameStart", gameStartEventHandler);
       return () => {
         game.gameSocket.off("connect", connectionEventHandler);
         game.gameSocket.off("disconnect", disconnectionEventHandler);
-        game.gameSocket.off("gameStart", startEventHandler);
+        game.gameSocket.off("gameStart", gameStartEventHandler);
       };
     }
   }, [isLoading]);
