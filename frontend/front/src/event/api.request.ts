@@ -121,28 +121,25 @@ export async function loginWithTFA(
 ): Promise<number> {
   let status = -1;
 
-  try {
-    await fetch(`${process.env.REACT_APP_API_URL}/login/2fa/auth`, {
-      credentials: "include",
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: format,
+  await fetch(`${process.env.REACT_APP_API_URL}/login/2fa/auth`, {
+    credentials: "include",
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: format,
+  })
+    .then((response) => {
+      status = response.status;
+      AdminLogPrinter(adminConsole, '\nloginWithTFA: ', response);
+      if (response.status === 302) {
+        return;
+      } else {
+        throw new Error(`${response.status}`);
+      }
     })
-      .then((response) => {
-        status = response.status;
-        AdminLogPrinter(adminConsole, '\nloginWithTFA: ', response);
-        if (response.status === 302) {
-          return;
-        } else {
-          throw new Error(`${response.status}`);
-        }
-      })
-      .catch((error) => {
-        AdminLogPrinter(adminConsole, `\nloginWithTFA error: ${error}`);
-      });
-  } catch (error) {
-    alert(error);
-  }
+    .catch((error) => {
+      AdminLogPrinter(adminConsole, `\nloginWithTFA error: ${error}`);
+      alert(error);
+    });
 
   return status;
 }
@@ -155,30 +152,27 @@ export async function changeProfileImage(
 ): Promise<number> {
   let status = -1;
 
-  try {
-    await fetch(`${process.env.REACT_APP_API_URL}/user/profile-img-change`, {
-      credentials: "include",
-      method: "POST",
-      body: imageData,
-    })
-      .then((response) => {
-        status = response.status;
-        AdminLogPrinter(adminConsole, '\nchangeProfileImage: ', response);
-        if (response.status === 201) {
-          if (action) {
-            socket.socket.emit('user-change-info', 'image');
-            callback();
-          }
-        } else {
-          throw new Error(`${response.status}`);
+  await fetch(`${process.env.REACT_APP_API_URL}/user/profile-img-change`, {
+    credentials: "include",
+    method: "POST",
+    body: imageData,
+  })
+    .then((response) => {
+      status = response.status;
+      AdminLogPrinter(adminConsole, '\nchangeProfileImage: ', response);
+      if (response.status === 201) {
+        if (action) {
+          socket.socket.emit('user-change-info', 'image');
+          callback();
         }
-      })
-      .catch((error) => {
-        AdminLogPrinter(adminConsole, `\nchangeProfileImage error: ${error}`);
-      });
-  } catch (error) {
-    alert(error);
-  }
+      } else {
+        throw new Error(`${response.status}`);
+      }
+    })
+    .catch((error) => {
+      AdminLogPrinter(adminConsole, `\nchangeProfileImage error: ${error}`);
+      alert(error);
+    });
 
   return status;
 }
