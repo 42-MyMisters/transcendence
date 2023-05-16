@@ -40,8 +40,6 @@ export default function LoginPage() {
   const [cookies, setCookies, removeCookie] = useCookies([refreshTokenKey]);
   const navigate = useNavigate();
 
-  console.log("debug -- loginPage");
-
   const logOutHandler = () => {
     api.LogOut(adminConsole, setRefreshToken, navigate, "/");
   };
@@ -82,7 +80,7 @@ export default function LoginPage() {
     } else {
       setRefreshToken(false);
     }
-  }, [setRefreshToken, setCookie]); // data change
+  }, [cookies]);
 
   useEffect(() => {
 
@@ -98,8 +96,8 @@ export default function LoginPage() {
       {/* {refreshToken && isFirstLogin ? <InitialSettingModal /> : null} */}
       {
         refreshToken
-          ? !cookie && TFAEnabled
-            ? <TFAModal />
+          ? TFAEnabled
+            ? < TFAModal />
             : isFirstLogin
               ? <InitialSettingModal />
               : ''

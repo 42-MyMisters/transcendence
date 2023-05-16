@@ -1004,19 +1004,19 @@ export class EventsGateway
 
 			const resDmUserList: Record<number, ClientUserDto> = {};
 
-			for (const uid of dmListQueue!) {
+			for (const uid of dmListQueue) {
 				if (userList[uid] === undefined) {
 					const targetUser = await this.userService.getUserByUid(uid);
-					if (targetUser === undefined) return;
+					if (targetUser == undefined) return;
 					resDmUserList[uid] = {
-						userDisplayName: targetUser?.nickname!,
-						userProfileUrl: targetUser?.profileUrl!,
+						userDisplayName: targetUser.nickname,
+						userProfileUrl: targetUser.profileUrl,
 						userStatus: 'offline'
 					};
 				} else {
 					resDmUserList[uid] = {
-						userDisplayName: userList[uid].userDisplayName!,
-						userProfileUrl: userList[uid].userUrl!,
+						userDisplayName: userList[uid].userDisplayName || 'undefined userName',
+						userProfileUrl: userList[uid].userUrl || "https://cdn.intra.42.fr/users/d8e2bd2560244d587d621f2cdf808be4/polarbear.gif",
 						userStatus: userList[uid].status || 'offline'
 					};
 				}

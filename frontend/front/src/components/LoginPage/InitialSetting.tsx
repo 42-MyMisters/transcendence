@@ -49,7 +49,7 @@ export default function InitialSettingModal() {
     api.LogOut(adminConsole, setRefreshToken, navigate, "/");
   };
 
-  const changeNewImageHandler = async (): Promise<boolean> => {
+  const HandlechangeImage = async (): Promise<boolean> => {
     if (profileImage === "") {
       return true;
     }
@@ -114,7 +114,7 @@ export default function InitialSettingModal() {
 
 
   const setDefaultInfo = async () => {
-    const imageRes = await changeNewImageHandler();
+    const imageRes = await HandlechangeImage();
     if (imageRes === false) {
       alert("프로필 이미지 변경에 실패했습니다.");
       setProfileImage("");

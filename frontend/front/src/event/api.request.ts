@@ -115,6 +115,37 @@ export async function confirmTFA(
   return status;
 }
 
+export async function loginWithTFA(
+  adminConsole: boolean,
+  format: string,
+): Promise<number> {
+  let status = -1;
+
+  try {
+    await fetch(`${process.env.REACT_APP_API_URL}/login/2fa/auth`, {
+      credentials: "include",
+      method: "POST",
+      body: format,
+    })
+      .then((response) => {
+        status = response.status;
+        AdminLogPrinter(adminConsole, '\nloginWithTFA: ', response);
+        if (response.status === 200) {
+          return;
+        } else {
+          throw new Error(`${response.status}`);
+        }
+      })
+      .catch((error) => {
+        AdminLogPrinter(adminConsole, `\nloginWithTFA error: ${error}`);
+      });
+  } catch (error) {
+    alert(error);
+  }
+
+  return status;
+}
+
 export async function changeProfileImage(
   adminConsole: boolean,
   imageData: FormData,
