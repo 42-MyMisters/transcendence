@@ -71,8 +71,8 @@ export default function ChangeNameModal() {
       if (refreshResponse !== 201) {
         logOutHandler();
       } else {
-        const getMeResponse = await api.changeNickName(adminConsole, format, getMyinfoHandler);
-        if (getMeResponse == 401) {
+        const changeNickNameRes = await api.changeNickName(adminConsole, format, getMyinfoHandler);
+        if (changeNickNameRes == 401) {
           logOutHandler();
         } else {
           setchangeNameModal(false);

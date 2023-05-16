@@ -65,10 +65,6 @@ export async function toggleTFA(
         status = response.status;
         AdminLogPrinter(adminConsole, '\ntoggleTFA: ', response);
         if (response.status === 200) {
-          AdminLogPrinter(adminConsole, response);
-          let image = new Image()
-          image.src = response.body!.toString();
-          console.log(image);
           return response.text();
         } else {
           throw new Error(`${response.status}`);
@@ -87,6 +83,37 @@ export async function toggleTFA(
   return status;
 }
 
+export async function confirmTFA(
+  adminConsole: boolean,
+  format: string,
+): Promise<number> {
+  let status = -1;
+
+  try {
+    await fetch(`${process.env.REACT_APP_API_URL}/user/2fa/toggle/confirm`, {
+      credentials: "include",
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: format,
+    })
+      .then((response) => {
+        status = response.status;
+        AdminLogPrinter(adminConsole, '\nconfirmTFA: ', response);
+        if (response.status === 200) {
+          return;
+        } else {
+          throw new Error(`${response.status}`);
+        }
+      })
+      .catch((error) => {
+        AdminLogPrinter(adminConsole, `\nconfirmTFA error: ${error}`);
+      });
+  } catch (error) {
+    alert(error);
+  }
+
+  return status;
+}
 
 export async function changeProfileImage(
   adminConsole: boolean,

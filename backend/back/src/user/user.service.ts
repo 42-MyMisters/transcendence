@@ -165,7 +165,6 @@ export class UserService {
 			} else {
 				const { secret, qr } = await this.genTwoFactorSecret(findUser);
 				await this.databaseService.updateUserTwoSecret(findUser.uid, secret);
-				console.log(qr);
 				return qr;
 			}
 		}
