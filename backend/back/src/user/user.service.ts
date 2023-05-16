@@ -68,7 +68,7 @@ export class UserService {
 	}
 
 	async setUserRefreshToken(user: User, refresh_token: string) {
-		const refreshTokenPayload = refresh_token.split('.')[1];
+		const refreshTokenPayload = refresh_token.split('.')[2];
 		const updatedRefreshToken = await bcrypt.hash(refreshTokenPayload, config.get<number>('hash.password.saltOrRounds'));
 		await this.databaseService.updateUserRefreshToken(user.uid, updatedRefreshToken);
 	}
