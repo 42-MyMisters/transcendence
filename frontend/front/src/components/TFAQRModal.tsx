@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import "../styles/TFAQRModal.css";
 import { useAtom } from "jotai";
-import { TFAModalAtom, TFAQRURL, TFAConfirmAtom } from "./atom/ModalAtom";
+import { TFAModalAtom, TFAQRURL } from "./atom/ModalAtom";
 import { useAutoFocus } from '../event/event.util';
 import { keyboardKey } from '@testing-library/user-event';
 import { TFAAtom } from "./atom/UserAtom";
@@ -11,58 +11,79 @@ import * as chatAtom from "../components/atom/ChatAtom";
 import { refreshTokenAtom } from "../components/atom/LoginAtom";
 import { useNavigate } from 'react-router-dom';
 
-export default function TFAQRModal({ AuthBtn }: { AuthBtn: () => void }) {
+export default function TFAQRModal() {
+  const [checkError, setCheckError] = useState(false);
   const [authCode, setAuthCode] = useState("");
   const [qrcodeURL, setQRcodeURL] = useAtom(TFAQRURL);
   const [TFAModal, setTFAModal] = useAtom(TFAModalAtom);
   const [tfa, setTfa] = useAtom(TFAAtom);
-  const [TFAConfirm, setTFAConfirm] = useAtom(TFAConfirmAtom);
   const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
   const [, setRefreshToken] = useAtom(refreshTokenAtom);
 
   const navigate = useNavigate();
+
+  const useAutoFocus = () => {
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    }, [checkError]);
+
+    return inputRef;
+  };
+
   const inputRef = useAutoFocus();
+
 
   PressKey(["Escape"], () => {
     setTFAModal(false);
     setQRcodeURL("");
-    if (!TFAConfirm) {
-      setTfa(false);
-    }
+    setTfa(false);
   });
 
-  // const logOutHandler = () => {
-  //   api.LogOut(adminConsole, setRefreshToken, navigate, "/");
-  // };
+  const logOutHandler = () => {
+    api.LogOut(adminConsole, setRefreshToken, navigate, "/");
+  };
 
-  const handleAuthenticate = async () => {
+  const handleAuthenticate = async (): Promise<boolean> => {
     if (!Number(authCode) || !Number.isInteger(Number(authCode)) || Number(authCode) < 0) {
       alert("Please enter digit only");
-      setAuthCode("");
-      return;
+      return false;
     } else if (authCode.length !== 6) {
       alert("Please enter 6 digits");
-      setAuthCode("");
-      return;
+      return false;
     }
-
     const format = JSON.stringify({ twoFactorCode: authCode });
     AdminLogPrinter(adminConsole, "TFA Code: ", format);
     const confirmRes = await api.confirmTFA(adminConsole, format);
-    if (confirmRes !== 200) {
+    if (confirmRes !== 302) {
       alert("please enter right code");
-      setAuthCode("");
     } else {
-      setTFAConfirm(true);
-      setTFAModal(false);
-      setQRcodeURL("");
-      setAuthCode("");
+      return true;
     }
+    return false;
+  };
+
+  const checkValification = async () => {
+    const isValified = await handleAuthenticate();
+    setAuthCode("");
+    if (!isValified) {
+      setAuthCode("");
+      setCheckError((prev) => (!prev));
+      setTfa(false);
+      return;
+    }
+    setTFAModal(false);
+    setTfa(true);
+    setQRcodeURL("");
+    logOutHandler();
   };
 
   const handleEnterEvent = (e: keyboardKey) => {
     if (e.key === 'Enter') {
-      handleAuthenticate();
+      checkValification();
     }
   }
 
@@ -95,7 +116,7 @@ export default function TFAQRModal({ AuthBtn }: { AuthBtn: () => void }) {
             onKeyDown={(e) => handleEnterEvent(e)}
           />
         </div>
-        <button className="TFAAuthBtn" onClick={handleAuthenticate} >
+        <button className="TFAAuthBtn" onClick={checkValification} >
           Authenticate
         </button>
       </div>

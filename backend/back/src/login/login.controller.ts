@@ -32,7 +32,7 @@ export class LoginController {
   constructor(
     private authService: AuthService,
     private userService: UserService,
-  ) {}
+  ) { }
 
   @swagger.ApiOperation({
     summary: "42 OAuth를 이용한 로그인 시도",
@@ -47,13 +47,13 @@ export class LoginController {
   @Get("/oauth")
   @Redirect(
     "https://api.intra.42.fr/oauth/authorize?client_id=" +
-      config.get<string>("intra.client_id") +
-      "&redirect_uri=" +
-      config.get<string>("intra.redirect_uri") +
-      "&response_type=code",
+    config.get<string>("intra.client_id") +
+    "&redirect_uri=" +
+    config.get<string>("intra.redirect_uri") +
+    "&response_type=code",
     302,
   )
-  intra() {}
+  intra() { }
 
   // frontend need to redirect user to 2fa auth page.
 
@@ -181,8 +181,8 @@ export class LoginController {
     @Query("ref") ref: string,
     @Req() request,
     @Res() res,
-  ){
-    this.refreshAccessTokens(" "+ref, request, res);
+  ) {
+    this.refreshAccessTokens(" " + ref, request, res);
   }
 
   @Post("/oauth/refresh")
@@ -208,7 +208,7 @@ export class LoginController {
   // /2fa/auth will return new accessToken.
   @Post("/2fa/auth")
   @UseGuards(JwtAuthGuard)
-  async auth(@Req() request, @Body() body) {
+  async auth(@Req() request, @Res() res: Response, @Body() body) {
     Logger.log("trying 2fa login");
     const isCodeValid = await this.authService.isTwoFactorCodeValid(
       body.twoFactorCode,
@@ -217,16 +217,20 @@ export class LoginController {
     if (!isCodeValid) {
       throw new UnauthorizedException("Wrong authentication code");
     }
-    const tokens = await this.authService.loginWith2fa(request.user);
-    request.cookie("accessToken", tokens.accessToken, {
+    const tokenSet = await this.authService.loginWith2fa(request.user);
+    await this.userService.setUserRefreshToken(
+      request.user,
+      tokenSet.refreshToken,
+    );
+
+    res.cookie("accessToken", tokenSet.accessToken, {
       httpOnly: true,
       sameSite: "strict",
       // secure: true //only https option
     });
-    await this.userService.setUserRefreshToken(
-      request.user,
-      tokens.refreshToken,
-    );
+    res.cookie("refreshToken", tokenSet.refreshToken);
+    res.sendStatus(302);
+    // return res.redirect("http://localhost:3000/");
   }
 
   // login with email & password.
@@ -256,7 +260,7 @@ export class LoginController {
   @Get("/logout")
   @UseGuards(Jwt2faAuthGuard)
   async red(@Req() request, @Res() response: Response) {
-    await this.logout(request,response);
+    await this.logout(request, response);
     response.send();
   }
 }

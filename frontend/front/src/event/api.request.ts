@@ -99,7 +99,7 @@ export async function confirmTFA(
       .then((response) => {
         status = response.status;
         AdminLogPrinter(adminConsole, '\nconfirmTFA: ', response);
-        if (response.status === 200) {
+        if (response.status === 302) {
           return;
         } else {
           throw new Error(`${response.status}`);
@@ -125,12 +125,13 @@ export async function loginWithTFA(
     await fetch(`${process.env.REACT_APP_API_URL}/login/2fa/auth`, {
       credentials: "include",
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: format,
     })
       .then((response) => {
         status = response.status;
         AdminLogPrinter(adminConsole, '\nloginWithTFA: ', response);
-        if (response.status === 200) {
+        if (response.status === 302) {
           return;
         } else {
           throw new Error(`${response.status}`);

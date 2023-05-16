@@ -113,7 +113,8 @@ export class UserController {
       // secure: true //only https option
     });
     res.cookie("refreshToken", tokenSet.refreshToken);
-    return res.redirect("http://localhost:3000/");
+    res.sendStatus(302);
+    // return res.redirect("http://localhost:3000/");
   }
 
   @ApiOperation({

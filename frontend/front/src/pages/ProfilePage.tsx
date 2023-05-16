@@ -29,7 +29,7 @@ export default function ProfilePage() {
       <TopBar />
       {
         TFAModal
-          ? <TFAQRModal AuthBtn={() => { }} />
+          ? <TFAQRModal />
           : ''
       }
       {changeNameModal && isMyProfile ? <ChangeNameModal /> : null}

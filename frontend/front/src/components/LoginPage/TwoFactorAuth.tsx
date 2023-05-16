@@ -7,6 +7,7 @@ import { useAtom } from "jotai";
 import { useNavigate } from 'react-router-dom';
 import { hasLoginAtom } from "../../components/atom/ChatAtom";
 import { isFirstLoginAtom, } from "../../components/atom/LoginAtom";
+import { AdminLogPrinter } from '../../event/event.util';
 
 export default function TFAModal() {
   const [checkError, setCheckError] = useState(false);
@@ -39,9 +40,11 @@ export default function TFAModal() {
       alert("Please enter 6 digits");
       return false;
     }
-    const format = authCode.toString();
-    const confirmRes = await api.loginWithTFA(adminConsole, format);
-    if (confirmRes !== 201) {
+
+    const format = JSON.stringify({ twoFactorCode: authCode });
+    AdminLogPrinter(adminConsole, "TFA Code: ", format);
+    const loginTFARes = await api.loginWithTFA(adminConsole, format);
+    if (loginTFARes !== 302) {
       alert("please enter right code");
       return false;
     } else {
