@@ -67,7 +67,7 @@ export default function ChangeImageModal() {
         logOutHandler();
       } else {
         const changeNickNameRes = await api.changeProfileImage(adminConsole, formData, getMyinfoHandler);
-        if (changeNickNameRes == 401) {
+        if (changeNickNameRes === 401) {
           logOutHandler();
         } else {
           setchangeImageModal(false);
