@@ -145,7 +145,7 @@ export default function InitialSettingModal() {
           height: "200px",
         }}
       />
-      <div className="ChangeProfileImageBtn" onClick={() => { }}>
+      <div className="ChangeProfileImageBtn" >
         <label htmlFor="ChangeImage" />
         <input
           id="ChangeImage"
