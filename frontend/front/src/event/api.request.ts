@@ -254,7 +254,6 @@ export async function FirstTimeGetMyInfo(
         setIsFirstLogin(true);
       } else {
         setIsFirstLogin(false);
-
         if (hasLogin === false) {
           setHasLogin(true);
           navigate("/chat");

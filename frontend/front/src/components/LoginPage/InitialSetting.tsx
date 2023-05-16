@@ -57,14 +57,14 @@ export default function InitialSettingModal() {
     formData.append("profileImage", profileRef.current?.files?.[0]!);
     AdminLogPrinter(adminConsole, profileRef.current?.files?.[0]!.name);
 
-    const changeNickNameRes = await api.changeProfileImage(adminConsole, formData, () => { }, false);
+    const changeNickNameRes = await api.changeProfileImage(adminConsole, formData);
     if (changeNickNameRes === 401) {
       const refreshResponse = await api.RefreshToken(adminConsole);
       if (refreshResponse !== 201) {
         logOutHandler();
       } else {
-        const getMeResponse = await api.changeProfileImage(adminConsole, formData, () => { }, false);
-        if (getMeResponse == 401) {
+        const getMeResponse = await api.changeProfileImage(adminConsole, formData);
+        if (getMeResponse === 401) {
           logOutHandler();
         } else {
           setProfileImage("");
@@ -91,14 +91,14 @@ export default function InitialSettingModal() {
     const format = JSON.stringify({ nickname: newName });
     AdminLogPrinter(adminConsole, `changeNickName: ${format}`);
 
-    const changeNickNameRes = await api.changeNickName(adminConsole, format, () => { }, false);
+    const changeNickNameRes = await api.changeNickName(adminConsole, format);
     if (changeNickNameRes === 401) {
       const refreshResponse = await api.RefreshToken(adminConsole);
       if (refreshResponse !== 201) {
         logOutHandler();
       } else {
-        const getMeResponse = await api.changeNickName(adminConsole, format, () => { }, false);
-        if (getMeResponse == 401) {
+        const getMeResponse = await api.changeNickName(adminConsole, format);
+        if (getMeResponse === 401) {
           logOutHandler();
         } else {
           setNewName("");

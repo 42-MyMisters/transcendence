@@ -48,13 +48,13 @@ export default function LoginPage() {
 
   const initialSettingHandler = async () => {
     const getMeResponse = await api.FirstTimeGetMyInfo(adminConsole, hasLogin, setUserInfo, navigate, setHasLogin, setIsFirstLogin);
-    if (getMeResponse == 401) {
+    if (getMeResponse === 401) {
       const refreshResponse = await api.RefreshToken(adminConsole);
       if (refreshResponse !== 201) {
         logOutHandler();
       } else {
         const getMeResponse = await api.FirstTimeGetMyInfo(adminConsole, hasLogin, setUserInfo, navigate, setHasLogin, setIsFirstLogin);
-        if (getMeResponse == 401) {
+        if (getMeResponse === 401) {
           logOutHandler();
         }
       }
@@ -84,15 +84,19 @@ export default function LoginPage() {
     }
   }, [setRefreshToken, setCookie]); // data change
 
+  useEffect(() => {
+
+  }, []);
+
   return (
     <BackGround>
       {/* refresh Token이 있으면 SigninModal이 꺼짐 */}
       {/* refresh Token이 없으면 SigninModal이 켜짐 */}
-      {!refreshToken && <SignInModal />}
+      {/* {!refreshToken && <SignInModal />} */}
       {/* refresh Token이 있고 cookie가 없으면 TFAModal실행 */}
-      {refreshToken && !cookie && TFAEnabled && <TFAModal />}
-      {refreshToken && isFirstLogin ? <InitialSettingModal /> : null}
-      {/* {
+      {/* {refreshToken && !cookie && TFAEnabled && <TFAModal />} */}
+      {/* {refreshToken && isFirstLogin ? <InitialSettingModal /> : null} */}
+      {
         refreshToken
           ? !cookie && TFAEnabled
             ? <TFAModal />
@@ -100,7 +104,7 @@ export default function LoginPage() {
               ? <InitialSettingModal />
               : ''
           : <SignInModal />
-      } */}
+      }
     </BackGround>
   );
 }
