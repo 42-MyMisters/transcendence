@@ -66,12 +66,16 @@ export async function toggleTFA(
         AdminLogPrinter(adminConsole, '\ntoggleTFA: ', response);
         if (response.status === 200) {
           AdminLogPrinter(adminConsole, response);
-          console.log(response!.body!.toString());
-          setQRcodeURL(response!.body!.toString());
-          // Buffer.from(response.data, 'binary').toString('base64')
+          let image = new Image()
+          image.src = response.body!.toString();
+          console.log(image);
+          return response.text();
         } else {
           throw new Error(`${response.status}`);
         }
+      })
+      .then((res) => {
+        setQRcodeURL(res);
       })
       .catch((error) => {
         AdminLogPrinter(adminConsole, `\ntoggleTFA error: ${error}`);
@@ -102,8 +106,10 @@ export async function changeProfileImage(
         status = response.status;
         AdminLogPrinter(adminConsole, '\nchangeProfileImage: ', response);
         if (response.status === 201) {
-          socket.socket.emit('user-change-info', 'image');
-          action && callback();
+          if (action) {
+            socket.socket.emit('user-change-info', 'image');
+            callback();
+          }
         } else {
           throw new Error(`${response.status}`);
         }
@@ -136,8 +142,11 @@ export async function changeNickName(
       status = response.status;
       AdminLogPrinter(adminConsole, '\nchangeNickName:', response);
       if (response.status === 200) {
-        socket.socket.emit('user-change-info', 'name');
-        action && callback();
+        if (action) {
+
+          socket.socket.emit('user-change-info', 'name');
+          callback();
+        }
       } else {
         throw new Error(`${response.status}`);
       }

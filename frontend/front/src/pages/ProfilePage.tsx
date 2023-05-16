@@ -27,6 +27,11 @@ export default function ProfilePage() {
   return (
     <BackGround>
       <TopBar />
+      {
+        TFAModal
+          ? <TFAQRModal AuthBtn={() => { }} />
+          : ''
+      }
       {changeNameModal && isMyProfile ? <ChangeNameModal /> : null}
       {changeImageModal && isMyProfile ? <ChangeImageModal /> : null}
       <ProfilePageBG>
@@ -39,11 +44,6 @@ export default function ProfilePage() {
           isMyProfile
             ? <ProfileNick nickName={userInfo?.nickname ?? "NickName"} />
             : <ProfileNick nickName={profile?.nickname ?? "NickName"} />
-        }
-        {
-          TFAModal
-            ? <TFAQRModal AuthBtn={() => { }} />
-            : ''
         }
         <ProfileOptions />
         <ProfileFriend />

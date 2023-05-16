@@ -15,7 +15,7 @@ export default function TFAQRModal({ AuthBtn }: { AuthBtn: () => void }) {
         <div
           className="TFAQRCode"
           style={{
-            backgroundImage: `uri(${atob(qrcodeURL)})`,
+            backgroundImage: `url(${qrcodeURL})`,
             backgroundSize: "200px",
             width: "200px",
             height: "200px",
