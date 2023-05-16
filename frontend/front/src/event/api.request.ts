@@ -138,7 +138,6 @@ export async function loginWithTFA(
     })
     .catch((error) => {
       AdminLogPrinter(adminConsole, `\nloginWithTFA error: ${error}`);
-      alert(error);
     });
 
   return status;
