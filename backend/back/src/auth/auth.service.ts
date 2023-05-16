@@ -133,9 +133,9 @@ export class AuthService {
 
   async refreshAccessToken(refresh_token: string, user: User) {
     const refreshToken = refresh_token.split(" ")[1];
-    const refreshTokenPayload = refreshToken.split(".")[1];
+    const refreshTokenVerify = refreshToken.split(".")[2];
     const isMatch = await bcrypt.compare(
-      refreshTokenPayload,
+      refreshTokenVerify,
       user.refreshToken,
     );
     if (isMatch) {
