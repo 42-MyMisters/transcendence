@@ -84,10 +84,16 @@ export default function GamePage() {
     if (!isGameStart) {
       setIsGameStart(true);
     }
-    // p1.score = 0;
-    // p2.score = 0;
-    // update(Date.now(), coords.time);
-    // Game(coords, canvas);
+  };
+
+  const observerHandler = () => {
+    AdminLogPrinter(adminConsole, "observer");
+    if (isLoading) {
+      setIsLoading(false);
+    }
+    if (!isGameStart) {
+      setIsGameStart(true);
+    }
   };
 
   useEffect(() => {
