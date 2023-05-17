@@ -1,0 +1,25 @@
+db:
+  host: "postgres"
+  username: "tsdev"
+  password: "111111"
+  synchronize: true
+
+jwt:
+  secret: "dev-test"
+
+jwt-refresh:
+  exp: "7d"
+
+intra:
+  client_id: "u-s4t2ud-d66732cf3b341b21ff4c3596d13133df0c2365a3c855440ea26cb9b60f52c668"
+  client_secret: "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"
+  redirect_uri: "http://wchaeserver.mooo.com:4000/login/oauth/callback"
+  url: "https://api.intra.42.fr/oauth/token"
+
+hash:
+  password:
+    saltOrRounds: 10
+
+public-url:
+    backend: 'http://wchaeserver.mooo.com:4000'
+    frontend: 'http://wchaeserver.mooo.com:3000'

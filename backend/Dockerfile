@@ -14,7 +14,7 @@ STOPSIGNAL SIGKILL
 
 WORKDIR /data/back
 
-ENTRYPOINT npm i && npm run start:dev
+ENTRYPOINT npm i && npm run start:rel
 
 CMD sleep 90 && psql < /dummy.sql
 

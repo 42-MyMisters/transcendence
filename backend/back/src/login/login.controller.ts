@@ -112,7 +112,7 @@ export class LoginController {
       // secure: true //only https option
     });
     res.cookie("refreshToken", tokenSet.refresh_token);
-    return res.redirect("http://localhost:3000/");
+    return res.redirect(config.get<string>('public-url.frontend'));
   }
 
   @swagger.ApiQuery({
