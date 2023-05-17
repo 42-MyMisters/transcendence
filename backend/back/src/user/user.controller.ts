@@ -6,6 +6,7 @@ import {
   Get,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
   Param,
   Patch,
   Post,
@@ -106,7 +107,11 @@ export class UserController {
       throw new UnauthorizedException("Wrong authentication code");
     }
     await this.userService.setUserTwoFactorEnabled(request.user, true);
-    const tokenSet = await this.authService.loginWith2fa(request.user);
+    const updatedUserInfo = await this.userService.getUserByUid(request.user.uid,);
+    if (!updatedUserInfo) {
+      throw new NotFoundException("User Not Found");
+    }
+    const tokenSet = await this.authService.loginWith2fa(updatedUserInfo);
 
     res.cookie("accessToken", tokenSet.accessToken, {
       httpOnly: true,
@@ -114,7 +119,8 @@ export class UserController {
       // secure: true //only https option
     });
     res.cookie("refreshToken", tokenSet.refreshToken);
-    return res.redirect(config.get<string>('public-url.frontend'));
+    res.sendStatus(302);
+    // return res.redirect("http://localhost:3000/");
   }
 
   @ApiOperation({
@@ -241,7 +247,7 @@ export class UserController {
   @UseGuards(JwtInitialAuthGuard)
   async getUserProfie(@Req() reqeust): Promise<UserProfileDto> {
     const user = reqeust.user;
-    return await this.userService.getUserProfile(user.uid);
+    return await this.userService.getUserProfile(user.uid, true);
   }
 
   @Get("/me")

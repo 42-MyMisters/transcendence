@@ -22,6 +22,7 @@ import InitialSettingModal from "../components/LoginPage/InitialSetting";
 
 import { AdminLogPrinter } from "../event/event.util";
 import { UserAtom } from "../components/atom/UserAtom";
+import * as api from "../event/api.request";
 
 export default function LoginPage() {
   /* localstorage에 없는데 cookie에 있으면 로그인이 된거다 */
@@ -39,6 +40,25 @@ export default function LoginPage() {
   const [cookies, setCookies, removeCookie] = useCookies([refreshTokenKey]);
   const navigate = useNavigate();
 
+  const logOutHandler = () => {
+    api.LogOut(adminConsole, setRefreshToken, navigate, "/");
+  };
+
+  const initialSettingHandler = async () => {
+    const getMeResponse = await api.FirstTimeGetMyInfo(adminConsole, hasLogin, setUserInfo, navigate, setHasLogin, setIsFirstLogin);
+    if (getMeResponse === 401) {
+      const refreshResponse = await api.RefreshToken(adminConsole);
+      if (refreshResponse !== 201) {
+        logOutHandler();
+      } else {
+        const getMeResponse = await api.FirstTimeGetMyInfo(adminConsole, hasLogin, setUserInfo, navigate, setHasLogin, setIsFirstLogin);
+        if (getMeResponse === 401) {
+          logOutHandler();
+        }
+      }
+    }
+  };
+
   useEffect(() => {
     if (cookies[refreshTokenKey] !== undefined) {
       setCookie(true);
@@ -53,52 +73,37 @@ export default function LoginPage() {
 
       const decoded: any = jwt_decode(JSON.stringify(storedRefreshToken));
       if (decoded.twoFactorEnabled) {
-        setTFAEnabled(true);
+        if (!decoded.twoFactorAuthenticated) {
+          setTFAEnabled(true);
+        } else {
+          setHasLogin(true);
+          navigate("/chat");
+        }
       } else {
-        fetch(`${process.env.REACT_APP_API_URL}/user/me`, {
-          credentials: "include",
-          method: "GET",
-        })
-          .then((response) => {
-            switch (response.status) {
-              case 200: {
-                return response.json();
-              }
-              default: {
-                throw new Error(`${response.status}`);
-              }
-            }
-          })
-          .then((response) => {
-            setUserInfo(response);
-            if (response.nickname.includes("#")) {
-              setIsFirstLogin(true);
-            } else {
-              setIsFirstLogin(false);
-
-              if (hasLogin === false) {
-                setHasLogin(true);
-                navigate("/chat");
-              } else {
-                AdminLogPrinter(adminConsole, "already login -- ??");
-                navigate("/chat");
-              }
-            }
-          });
+        initialSettingHandler();
       }
     } else {
       setRefreshToken(false);
     }
-  }, [setRefreshToken, setCookie]); // data change
+  }, [cookies]);
 
   return (
     <BackGround>
       {/* refresh Token이 있으면 SigninModal이 꺼짐 */}
       {/* refresh Token이 없으면 SigninModal이 켜짐 */}
-      {!refreshToken && <SignInModal />}
+      {/* {!refreshToken && <SignInModal />} */}
       {/* refresh Token이 있고 cookie가 없으면 TFAModal실행 */}
-      {refreshToken && !cookie && TFAEnabled && <TFAModal />}
-      {refreshToken && isFirstLogin ? <InitialSettingModal /> : null}
+      {/* {refreshToken && !cookie && TFAEnabled && <TFAModal />} */}
+      {/* {refreshToken && isFirstLogin ? <InitialSettingModal /> : null} */}
+      {
+        refreshToken
+          ? TFAEnabled
+            ? < TFAModal />
+            : isFirstLogin
+              ? <InitialSettingModal />
+              : ''
+          : <SignInModal />
+      }
     </BackGround>
   );
 }

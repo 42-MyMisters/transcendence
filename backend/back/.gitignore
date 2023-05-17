@@ -144,4 +144,9 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 
+<<<<<<< HEAD
 img/
+=======
+# img
+img/*
+>>>>>>> 3d6e1ce17764a55034500bbaf0ee2a0730b14def

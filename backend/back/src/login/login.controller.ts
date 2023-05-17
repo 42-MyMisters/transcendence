@@ -209,7 +209,7 @@ export class LoginController {
   // /2fa/auth will return new accessToken.
   @Post("/2fa/auth")
   @UseGuards(JwtAuthGuard)
-  async auth(@Req() request, @Body() body) {
+  async auth(@Req() request, @Res() res: Response, @Body() body) {
     Logger.log("trying 2fa login");
     const isCodeValid = await this.authService.isTwoFactorCodeValid(
       body.twoFactorCode,
@@ -218,16 +218,20 @@ export class LoginController {
     if (!isCodeValid) {
       throw new UnauthorizedException("Wrong authentication code");
     }
-    const tokens = await this.authService.loginWith2fa(request.user);
-    request.cookie("accessToken", tokens.accessToken, {
+    const tokenSet = await this.authService.loginWith2fa(request.user);
+    await this.userService.setUserRefreshToken(
+      request.user,
+      tokenSet.refreshToken,
+    );
+
+    res.cookie("accessToken", tokenSet.accessToken, {
       httpOnly: true,
       sameSite: "strict",
       // secure: true //only https option
     });
-    await this.userService.setUserRefreshToken(
-      request.user,
-      tokens.refreshToken,
-    );
+    res.cookie("refreshToken", tokenSet.refreshToken);
+    res.sendStatus(302);
+    // return res.redirect("http://localhost:3000/");
   }
 
   // login with email & password.

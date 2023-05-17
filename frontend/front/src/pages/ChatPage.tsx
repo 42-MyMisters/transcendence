@@ -20,7 +20,7 @@ import RoomInviteModal from "../components/ChatPage/RoomInviteModal";
 import PasswordModal from "../components/ChatPage/PasswordModal";
 
 import { refreshTokenAtom } from "../components/atom/LoginAtom";
-import { UserAtom, isMyProfileAtom } from "../components/atom/UserAtom";
+import { UserAtom, TFAAtom } from "../components/atom/UserAtom";
 import type * as userType from "../components/atom/UserAtom";
 import { useEffect, useState } from "react";
 
@@ -58,6 +58,7 @@ export default function ChatPage() {
 	const [adminConsole, setAdminConsole] = useAtom(chatAtom.adminConsoleAtom);
 	const [passwordModal, setPasswordModal] = useAtom(passwordInputModalAtom);
 	const [clickRoom] = useAtom(chatAtom.clickRoomAtom);
+	const [tfa, setTfa] = useAtom(TFAAtom);
 
 	PressKey(["F4"], () => {
 		setAdminConsole((prev) => !prev);
@@ -145,13 +146,13 @@ export default function ChatPage() {
 	}
 
 	async function getMyinfoHandler() {
-		const getMeResponse = await GetMyInfo(adminConsole, setUserInfo);
+		const getMeResponse = await GetMyInfo(adminConsole, setUserInfo, setTfa, true);
 		if (getMeResponse == 401) {
 			const refreshResponse = await RefreshToken(adminConsole);
 			if (refreshResponse !== 201) {
 				logOutHandler();
 			} else {
-				const getMeResponse = await GetMyInfo(adminConsole, setUserInfo);
+				const getMeResponse = await GetMyInfo(adminConsole, setUserInfo, setTfa, true);
 				if (getMeResponse == 401) {
 					logOutHandler();
 				}
