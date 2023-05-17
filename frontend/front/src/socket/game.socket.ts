@@ -4,7 +4,7 @@ import { useAtom } from "jotai";
 // import type * as gameType from './game.dto';
 
 // const URL = process.env.REACT_APP_API_URL;
-const URL = "https://localhost";
+const URL = "https://wchaeserver.mooo.com";
 
 const GameNameSpace = "/game";
 
