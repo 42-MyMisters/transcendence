@@ -15,15 +15,14 @@ import {
 import * as swagger from "@nestjs/swagger";
 import config from "config";
 import { Response } from "express";
-import { url } from "inspector";
 import { AuthService } from "src/auth/auth.service";
 import { Jwt2faAuthGuard } from "src/auth/jwt-2fa/jwt-2fa-auth.guard";
 import { JwtRefreshGuard } from "src/auth/jwt-refresh/jwt-refresh-auth.guard";
 import { JwtAuthGuard } from "src/auth/jwt/jwt-auth.guard";
 import { LocalAuthGuard } from "src/auth/local/local-auth.guard";
 import {
-  callFunctionDescriptionOfRefreshRoute,
-  ResponseErrorDto
+  ResponseErrorDto,
+  callFunctionDescriptionOfRefreshRoute
 } from "src/swagger/response.util";
 import { UserService } from "src/user/user.service";
 
