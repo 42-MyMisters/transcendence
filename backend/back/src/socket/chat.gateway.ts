@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { Logger, UnauthorizedException, UnprocessableEntityException } from "@nestjs/common";
+import { ConflictException, Logger, UnauthorizedException, UnprocessableEntityException } from "@nestjs/common";
 import {
 	ConnectedSocket,
 	MessageBody,
@@ -181,7 +181,14 @@ export class EventsGateway
 		try {
 			this.logger.warn(`${socket.id} socket connected.`);
 			const uid = await this.authService.jwtVerify(socket.handshake.auth.token);
+			socket.data.tempUid = uid;
+			this.logger.debug(`${socket.id} after jwtVerify.`);
 			const user = await this.userService.getUserByUid(uid);
+			this.logger.debug(`${socket.id} after getUserByUid.`);
+
+			if (userList[uid]?.disconnectedSocket === socket.id) {
+				throw new ConflictException();
+			}
 
 			if (this.userService.isUserExist(user)) {
 				this.nsp.to(socket.id).emit("room-clear");
@@ -197,18 +204,21 @@ export class EventsGateway
 						blockList: [],
 						followList: [],
 						userId: user.uid,
-						userDisplayName: user.nickname.split('#', 2)[0],
+						userDisplayName: user.nickname,
 						userUrl: user.profileUrl,
 						isRefresh: false,
 					};
 				} else if (userList[uid].status !== 'offline') {
-					this.logger.debug(`${user.nickname} refreshed. - ${socket.id}`);
-					userList[uid].isRefresh = true;
+					this.logger.debug(`[${userList[uid].status}]-${user.nickname} multi connection. - ${socket.id}`);
 					if (userList[uid].socket !== undefined) {
 						this.logger.warn(`${user.nickname} is already connected. - ${userList[uid]!.socket!.id} <> ${socket.id}`)
 						this.nsp.to(userList[uid]!.socket!.id).emit("multiple-login");
 					}
+				} else {
+					this.logger.debug(`[${userList[uid].status}]-${user.nickname} reconnect - ${socket.id}`);
+					userList[uid].isRefresh = true;
 				}
+
 				if (userList[uid].disconnectedSocket !== socket.id) {
 					this.logger.debug(`${userList[uid].userDisplayName} is now online : ${socket.id}`);
 					userList[uid].status = 'online';
@@ -220,7 +230,7 @@ export class EventsGateway
 					await this.handleDmList(socket, uid);
 					this.nsp.emit("user-update", {
 						userId: uid,
-						userDisplayName: user.nickname.split('#', 2)[0],
+						userDisplayName: user.nickname,
 						userProfileUrl: user.profileUrl,
 						userStatus: 'online',
 					});
@@ -239,87 +249,38 @@ export class EventsGateway
 		}
 	}
 
-	handleDeleteRoomLogic(socket: Socket, roomId: number) {
-		let roomMemberCount = 0;
-		let action: 'delete' | 'leave' = 'leave'
-		if (roomList[roomId] !== undefined) {
-			Object.entries(roomList[roomId]?.roomMembers).forEach(() => {
-				roomMemberCount++;
-			});
-			if (roomMemberCount <= 1) {
-				this.nsp.emit("room-list-update", {
-					action: 'delete',
-					roomName: roomList[roomId].roomName,
-					roomId,
-					roomType: roomList[roomId].roomType
-				});
-				delete roomList[roomId];
-				roomNumberQueue.push(roomId);
-				ROOM_COUNT--;
-				this.logger.debug(`Room ${roomId} deleted.\n`);
-				action = 'delete';
-			} else {
-				socket.to(roomId.toString()).emit("room-in-action", {
-					roomId,
-					action: 'leave',
-					targetId: socket.data.user.uid,
-				});
-				delete roomList[roomId].roomMembers[socket.data.user.uid];
-				if (roomList[roomId].roomOwner === socket.data.user.uid) {
-					let newOwner: number;
-
-					if (roomList[roomId].roomAdmins.length === 0) {
-						this.logger.debug(`Room ${roomId} has no admin.\n`);
-						newOwner = Number(Object.keys(roomList[roomId].roomMembers)[0]);
-						roomList[roomId].roomOwner = newOwner;
-						roomList[roomId].roomMembers[newOwner].userRoomPower = 'owner';
-					} else {
-						this.logger.debug(`Room ${roomId} has admin.\n`);
-						newOwner = roomList[roomId].roomAdmins[0];
-						roomList[roomId].roomOwner = newOwner
-						roomList[roomId].roomMembers[newOwner].userRoomPower = 'owner';
-						roomList[roomId].roomAdmins.shift();
-					}
-					this.nsp.to(roomId.toString()).emit("room-in-action", {
-						roomId,
-						action: 'owner',
-						targetId: newOwner,
-					});
-				} else if (roomList[roomId].roomAdmins.includes(socket.data.user.uid)) {
-					roomList[roomId].roomAdmins = roomList[roomId].roomAdmins.filter((adminId) => { return adminId !== socket.data.user.uid; });
-				}
-			}
-			socket.leave(roomId.toString());
-			delete socket.data.roomList[roomId];
-			return action;
-		}
-	}
-
 	handleDisconnect(@ConnectedSocket() socket: Socket) {
 		console.log(" \n");
 		this.logger.warn(`${userList[socket?.data?.user?.uid]?.userDisplayName} : ${socket.id} socket disconnected`);
 		this.logger.verbose(`${socket.id} <> ${userList[socket?.data?.user?.uid]?.socket?.id}`)
 		if (socket.data?.user?.uid !== undefined) {
 			userList[socket.data.user.uid].disconnectedSocket = socket.id;
-			if (userList[socket.data.user.uid]?.socket?.id! === socket.id) {
+			if (userList[socket.data.user.uid]?.socket?.id === socket.id) {
 				this.logger.debug(`${userList[socket.data.user.uid].userDisplayName} is now offline: ${socket.id}`);
 				userList[socket.data.user.uid].socket = undefined;
+				userList[socket.data.user.uid].status = 'offline';
 				socket.broadcast.emit("user-update", {
 					userId: socket.data.user.uid,
-					userDisplayName: socket.data.user.nickname.split('#', 2)[0],
+					userDisplayName: socket.data.user.nickname,
 					userProfileUrl: socket.data.user.profileUrl,
 					userStatus: 'offline',
 				});
 			}
-		}
-		if (userList[socket?.data?.user?.uid] !== undefined) {
 			userList[socket.data.user.uid].isRefresh = false;
+		} else {
+			userList[socket.data.tempUid].disconnectedSocket = socket.id;
 		}
 		socket.data.roomList?.forEach((roomId: number) => {
 			socket.leave(roomId.toString());
 		});
-		socket.data.user = undefined;
-		socket.data.roomList = undefined;
+	}
+
+	@SubscribeMessage("server-log")
+	ServerLog(
+		@ConnectedSocket() socket: Socket,
+		@MessageBody() msg: string
+	) {
+		this.logger.error(`${socket.id}: `, msg);
 	}
 
 	@SubscribeMessage("clear-data")
@@ -335,7 +296,7 @@ export class EventsGateway
 		userList[socket.data.user.uid].status = 'offline';
 		this.nsp.emit("user-update", {
 			userId: socket.data.user.uid,
-			userDisplayName: socket.data.user.nickname.split('#', 2)[0],
+			userDisplayName: socket.data.user.nickname,
 			userProfileUrl: socket.data.user.profileUrl,
 			userStatus: userList[socket.data.user.uid].status,
 		});
@@ -355,7 +316,7 @@ export class EventsGateway
 			userList[socket.data.user.uid].userUrl = changedUser.profileUrl;
 			this.nsp.emit("user-update", {
 				userId: changedUser.uid,
-				userDisplayName: changedUser.nickname.split('#', 2)[0],
+				userDisplayName: changedUser.nickname,
 				userProfileUrl: changedUser.profileUrl,
 				userStatus: userList[changedUser.uid].status,
 			});
@@ -557,6 +518,59 @@ export class EventsGateway
 			return ({ status: 'leave' });
 		} else {
 			return ({ status: 'delete' });
+		}
+	}
+
+	handleDeleteRoomLogic(socket: Socket, roomId: number) {
+		let action: 'delete' | 'leave' = 'leave'
+		if (roomList[roomId] !== undefined) {
+			const roomMemberCount = Object.entries(roomList[roomId]?.roomMembers).length;
+			if (roomMemberCount <= 1) {
+				this.nsp.emit("room-list-update", {
+					action: 'delete',
+					roomName: roomList[roomId].roomName,
+					roomId,
+					roomType: roomList[roomId].roomType
+				});
+				delete roomList[roomId];
+				roomNumberQueue.push(roomId);
+				ROOM_COUNT--;
+				this.logger.debug(`Room ${roomId} deleted.\n`);
+				action = 'delete';
+			} else {
+				socket.to(roomId.toString()).emit("room-in-action", {
+					roomId,
+					action: 'leave',
+					targetId: socket.data.user.uid,
+				});
+				delete roomList[roomId].roomMembers[socket.data.user.uid];
+				if (roomList[roomId].roomOwner === socket.data.user.uid) {
+					let newOwner: number;
+
+					if (roomList[roomId].roomAdmins.length === 0) {
+						this.logger.debug(`Room ${roomId} has no admin.\n`);
+						newOwner = Number(Object.keys(roomList[roomId].roomMembers)[0]);
+						roomList[roomId].roomOwner = newOwner;
+						roomList[roomId].roomMembers[newOwner].userRoomPower = 'owner';
+					} else {
+						this.logger.debug(`Room ${roomId} has admin.\n`);
+						newOwner = roomList[roomId].roomAdmins[0];
+						roomList[roomId].roomOwner = newOwner
+						roomList[roomId].roomMembers[newOwner].userRoomPower = 'owner';
+						roomList[roomId].roomAdmins.shift();
+					}
+					this.nsp.to(roomId.toString()).emit("room-in-action", {
+						roomId,
+						action: 'owner',
+						targetId: newOwner,
+					});
+				} else if (roomList[roomId].roomAdmins.includes(socket.data.user.uid)) {
+					roomList[roomId].roomAdmins = roomList[roomId].roomAdmins.filter((adminId) => { return adminId !== socket.data.user.uid; });
+				}
+			}
+			socket.leave(roomId.toString());
+			delete socket.data.roomList[roomId];
+			return action;
 		}
 	}
 

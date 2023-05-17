@@ -97,10 +97,10 @@ export default function LoginPage() {
       {/* {refreshToken && isFirstLogin ? <InitialSettingModal /> : null} */}
       {
         refreshToken
-          ? TFAEnabled
-            ? < TFAModal />
-            : isFirstLogin
-              ? <InitialSettingModal />
+          ? isFirstLogin
+            ? <InitialSettingModal />
+            : TFAEnabled
+              ? < TFAModal />
               : ''
           : <SignInModal />
       }

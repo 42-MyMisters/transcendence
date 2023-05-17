@@ -8,4 +8,4 @@ export const TFAEnabledAtom = atom(false);
 
 export const TFAAuthenticatedAtom = atom(false);
 
-export const isFirstLoginAtom = atom(true);
+export const isFirstLoginAtom = atom(false);
