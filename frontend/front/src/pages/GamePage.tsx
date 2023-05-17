@@ -12,7 +12,6 @@ import {
   serverClientTimeDiffAtom,
 } from "../components/atom/GameAtom";
 
-import * as game from "../socket/game.socket";
 
 import * as chatAtom from "../components/atom/ChatAtom";
 import { gameResultModalAtom } from "../components/atom/ModalAtom";
@@ -21,6 +20,10 @@ import LadderBoard from "../components/GamePage/LadderBoard";
 
 import Waiting from "../components/GamePage/Waiting";
 import { AdminLogPrinter, PressKey } from "../event/event.util";
+import { io, Socket } from 'socket.io-client';
+
+const URL = process.env.REACT_APP_API_URL;
+const NameSpace = "/game";
 
 export default function GamePage() {
   const [showComponent, setShowComponent] = useState(true);
@@ -32,6 +35,24 @@ export default function GamePage() {
 
   const [adminConsole, setAdminConsole] = useAtom(chatAtom.adminConsoleAtom);
 
+  const gameSocket: Socket = io(`${URL}${NameSpace}`, {
+    auth: (cb) => {
+      cb({
+        token: localStorage.getItem("refreshToken")
+      });
+    },
+    autoConnect: false,
+    transports: ["polling", "websocket"],
+    secure: true,
+    upgrade: true,
+    // reconnectionDelay: 1000, // defaults to 1000
+    // reconnectionDelayMax: 10000, // defaults to 5000
+    // withCredentials: true,
+    // path: "/socket.io",
+  });
+
+
+
   PressKey(["F4"], () => {
     setAdminConsole((prev) => !prev);
   });
@@ -39,18 +60,18 @@ export default function GamePage() {
   useEffect(() => {
     if (isLoading === false) {
       AdminLogPrinter(adminConsole, `gameSocket connection`);
-      game.gameSocket.connect();
+      gameSocket.connect();
       setIsLoading(true);
       return () => {
-        game.gameSocket.disconnect();
+        gameSocket.disconnect();
       };
     }
   }, []);
 
   const connectionEventHandler = () => {
-    if (game.gameSocket.connected) {
+    if (gameSocket.connected) {
       //This attribute describes whether the socket is currently connected to the server.
-      if (game.gameSocket.recovered) {
+      if (gameSocket.recovered) {
         // any missed packets will be received
       } else {
         // new or unrecoverable session
@@ -75,7 +96,7 @@ export default function GamePage() {
 
   // const startEventHandler = () => {
   // };
-  
+
   const gameStartEventHandler = () => {
     AdminLogPrinter(adminConsole, "game start");
     if (isLoading) {
@@ -105,13 +126,13 @@ export default function GamePage() {
 
   useEffect(() => {
     if (isLoading) {
-      game.gameSocket.on("connect", connectionEventHandler);
-      game.gameSocket.on("disconnect", disconnectionEventHandler);
-      game.gameSocket.on("gameStart", gameStartEventHandler);
+      gameSocket.on("connect", connectionEventHandler);
+      gameSocket.on("disconnect", disconnectionEventHandler);
+      gameSocket.on("gameStart", gameStartEventHandler);
       return () => {
-        game.gameSocket.off("connect", connectionEventHandler);
-        game.gameSocket.off("disconnect", disconnectionEventHandler);
-        game.gameSocket.off("gameStart", gameStartEventHandler);
+        gameSocket.off("connect", connectionEventHandler);
+        gameSocket.off("disconnect", disconnectionEventHandler);
+        gameSocket.off("gameStart", gameStartEventHandler);
       };
     }
   }, [isLoading]);
@@ -148,7 +169,7 @@ export default function GamePage() {
           <LadderBoard />
         )
       ) : isGameStart ? (
-        <PingPong />
+        <PingPong gameSocket={gameSocket} />
       ) : (
         <Waiting />
       )}
