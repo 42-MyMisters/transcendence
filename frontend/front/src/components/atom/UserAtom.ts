@@ -73,11 +73,11 @@ interface UserType {
     loserScore: number;
     createdAt: string;
   }[];
+  tfaEnabled: boolean;
   date?: Date;
 }
 
 export const TFAAtom = atom<boolean>(false);
-export const isTFAChange = atom<boolean>(false);
 export const ProfileAtom = atom<UserType>({} as UserType);
 export const isMyProfileAtom = atom<boolean>(true);
 
@@ -172,7 +172,9 @@ export const UserAtom = atom<UserType>({
       winnerScore: 5,
       loserScore: 4,
       createdAt: "string",
-    }],
+    },
+  ],
+  tfaEnabled: false,
 });
 
 export type { UserType };

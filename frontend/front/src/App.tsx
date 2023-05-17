@@ -20,7 +20,6 @@ function CheckLogin({ children }: { children: JSX.Element }) {
     return (
       <>
         <LoginPage />
-        {/* {children} */}
       </>
     );
   } else {
@@ -40,10 +39,10 @@ export default function App() {
           <Router>
             <CheckLogin>
               <Routes>
+                <Route path="/" element={<LoginPage />}></Route>
                 <Route path="/chat" element={<ChatPage />}></Route>
                 <Route path="/game" element={<GamePage />}></Route>
                 <Route path="/profile" element={<ProfilePage />}></Route>
-                <Route path="/" element={<LoginPage />}></Route>
                 <Route path="*" element={<NotFoundPage />}></Route>
               </Routes>
             </CheckLogin>

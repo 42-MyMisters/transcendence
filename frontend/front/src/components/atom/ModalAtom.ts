@@ -21,3 +21,4 @@ export const gameInviteModalAtom = atom(false);
 export const TFAModalAtom = atom(false);
 
 export const TFAQRURL = atom("");
+
