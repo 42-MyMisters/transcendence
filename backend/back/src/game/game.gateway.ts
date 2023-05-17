@@ -64,6 +64,9 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     try {
       socket.data.uid = await this.authService.jwtVerify(socket.handshake.auth.token);
       const user = await this.userService.getUserByUid(socket.data.uid);
+      if (!socket.connected) {
+        throw new UnauthorizedException("already disconnected.");
+      }
       socket.data.elo = user!.elo;
       const userInGame = this.userInGame.get(socket.data.uid);
       if (userInGame === undefined) {
@@ -131,10 +134,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         }         
       }
     }
-    // if (socket.data.uid) {
-    //   this.userInGame.delete(socket.data.uid);
-    // }
-    this.logger.log(`${socket.data.uid} join game failed.`);
+    this.logger.log(`${socket.data.uid} disconnected.`);
   }
 
   @SubscribeMessage('status')
@@ -185,6 +185,12 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   @SubscribeMessage('inviteGame')
   async inviteGame(socket: Socket, payload: any) {
+    this.gameService.getGame(payload.id);
+  }
+
+  @SubscribeMessage('modeSelect')
+  async modeSelect(socket: Socket, payload: any) {
+
     this.gameService.getGame(payload.id);
   }
 

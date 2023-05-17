@@ -136,6 +136,10 @@ class Game {
   }
 
   gameStart() {
+    this.gameStatus = GameStatus.MODESELECT;
+  }
+  
+  modeSelect() {
     this.gameStatus = GameStatus.COUNTDOWN;
     this.roundStartTime = Date.now();
     this.lastUpdate = this.roundStartTime;
@@ -370,6 +374,10 @@ class Game {
     const curTime = Date.now();
     let timeout:number
     switch(this.gameStatus) {
+      case GameStatus.MODESELECT: {
+        timeout = 10;
+        break;
+      }
       case GameStatus.COUNTDOWN: {
         timeout = this.countdown(curTime);
         break;
