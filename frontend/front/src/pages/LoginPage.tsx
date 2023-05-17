@@ -101,7 +101,7 @@ export default function LoginPage() {
             ? <InitialSettingModal />
             : TFAEnabled
               ? < TFAModal />
-              : ''
+              : <SignInModal />
           : <SignInModal />
       }
     </BackGround>

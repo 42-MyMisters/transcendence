@@ -168,7 +168,7 @@ export class EventsGateway
 		private databaseService: DatabaseService,
 	) { }
 
-	private logger = new Logger("Chatting - Gateway");
+	private logger = new Logger("Chat");
 
 	@WebSocketServer()
 	nsp: Namespace;
@@ -182,9 +182,9 @@ export class EventsGateway
 			this.logger.warn(`${socket.id} socket connected.`);
 			const uid = await this.authService.jwtVerify(socket.handshake.auth.token);
 			socket.data.tempUid = uid;
-			this.logger.debug(`${socket.id} after jwtVerify.`);
+			this.logger.debug(`- ${socket.id} after jwtVerify.`);
 			const user = await this.userService.getUserByUid(uid);
-			this.logger.debug(`${socket.id} after getUserByUid.`);
+			this.logger.debug(`-- ${socket.id} after getUserByUid.`);
 
 			if (userList[uid]?.disconnectedSocket === socket.id) {
 				throw new ConflictException();

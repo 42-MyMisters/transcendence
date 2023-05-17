@@ -22,56 +22,6 @@ export const gameSocket = io(`${URL}${GameNameSpace}`, {
   // path: "/socket.io",
 });
 
-// export function OnSocketCoreEvent() {
-
-//   // catch all incoming events
-//   gameSocket.onAny((eventName, ...args) => {
-//     AdminLogPrinter(adminConsole, "incoming ", eventName, args);
-//   });
-
-//   // catch all outgoing events
-//   gameSocket.prependAny((eventName, ...args) => {
-//     AdminLogPrinter(adminConsole, "outgoing ", eventName, args);
-//   });
-
-//   gameSocket.on("connect", () => {
-//     if (gameSocket.connected) {
-//       //This attribute describes whether the socket is currently connected to the server.
-//       if (gameSocket.recovered) {
-//         // any missed packets will be received
-//       } else {
-//         // new or unrecoverable session
-//         AdminLogPrinter(adminConsole, "gameSocket connected : " + gameSocket.id);
-//       }
-//     }
-//   });
-
-//   //https://socket.io/docs/v4/client-socket-instance/#disconnect
-//   gameSocket.on("disconnect", (reason) => {
-//     /**
-//      *  BAD, will throw an error
-//      *  gameSocket.emit("disconnect");
-//     */
-//     if (reason === "io server disconnect") {
-//       // the disconnection was initiated by the server, you need to reconnect manually
-//     }
-//     // else the socket will automatically try to reconnect
-//     AdminLogPrinter(adminConsole, "gameSocket disconnected");
-//   });
-
-//   // the connection is denied by the server in a middleware function
-//   gameSocket.on("connect_error", (err) => {
-//     if (err.message === "unauthorized") {
-//       // handle each case
-//     }
-//     AdminLogPrinter(adminConsole, err.message); // prints the message associated with the error
-//   });
-
-
-export function OnSocketGameEvent() {
-  // const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
-}
-
 export function emitUpPress() {
   gameSocket.emit("upPress");
 }
