@@ -10,11 +10,10 @@ import { setSwagger } from './swagger/swagger';
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
   app.use(cookieParser());
-  const serverConfig: any = config.get('server');
-  const port: any = serverConfig.port;
-
+  const port: string = config.get<string>('server.port');
+  const frontUrl: string = config.get<string>('public-url.frontend');
   app.enableCors({
-    origin: ['http://localhost:3000'],
+    origin: [frontUrl],
     methods: ['GET', 'POST', 'PATCH'],
     credentials: true,
   });
