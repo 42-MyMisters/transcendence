@@ -40,9 +40,11 @@ export default function PingPong() {
   // const [isQueue, setIsQueue] = useAtom(isQueueAtom);
   const [gameResultModal, setGameResultModal] = useAtom(gameResultModalAtom);
 
-  const [serverClientTimeDiff, setServerClientTimeDiff] = useAtom(serverClientTimeDiffAtom);
+  // const [serverClientTimeDiff, setServerClientTimeDiff] = useAtom(serverClientTimeDiffAtom);
   
-  let coords = {
+  let serverClientTimeDiff: number = 1000;
+
+  let coords: GameCoordinate = {
     paddle1Y: 225,
     ballX: 1150 / 2,
     ballY: 300,
@@ -56,13 +58,41 @@ export default function PingPong() {
 
   let lastUpdateTime: number = coords.time;
   let requestAnimationId: number = 0;
+  
+  // 1 sec delay for init value
+  let pingRTTmin: number = 2000;
+  let pingInterval: NodeJS.Timer;
+  
+  const pingEvent = () => {
+    if (!isGameStart) {
+      clearInterval(pingInterval);
+    }
+    const curTime = Date.now();
+    const pingEventHandler = (serverTime: number) => {
+      const now = Date.now();
+      const pingRTT = now - curTime;
+      AdminLogPrinter(adminConsole, `\npingRTT: ${pingRTT}ms`);
+      if (pingRTTmin > pingRTT) {
+        pingRTTmin = pingRTT;
+        const adjServerTime = serverTime + pingRTTmin / 2;
+        serverClientTimeDiff = now - adjServerTime
+      }
+      AdminLogPrinter(adminConsole, `pingRTTmin: ${pingRTTmin}ms`);
+    };      
+    game.gameSocket.emit("ping", pingEventHandler);
+    // return () => {
+    //   game.gameSocket.off("ping", pingEventHandler);
+    // };
+  };
 
   useEffect(()=> {
-    requestAnimationLoop(lastUpdateTime, lastUpdateTime);
+    pingInterval = setInterval(pingEvent, 1000);
     return () => {
-      cancelAnimationFrame(requestAnimationId);
+      console.log("clear pingInterval");
+      clearInterval(pingInterval);
     }
-  }, [serverClientTimeDiff])
+  }, []);
+
 
   const syncDataHandler = (gameCoord: GameCoordinate) => {
     coords = gameCoord;
@@ -73,44 +103,59 @@ export default function PingPong() {
     }
     coords.time += serverClientTimeDiff;
     update(Date.now(), coords.time);
+    console.log("syncData update");
   };
 
-  const scoreEventhandler = (scoreInfo: scoreInfo) => {
+  const scoreEventHandler = (scoreInfo: scoreInfo) => {
     p1.score = scoreInfo.p1Score;
     p2.score = scoreInfo.p2Score;
     coords.ballSpeedX = 0;
     coords.ballSpeedY = 0;
     coords.paddleSpeed = 0;
+    update(Date.now(), coords.time);
     Game(coords, canvas);
   };
-
+  
   const finishEventHandler = (scoreInfo: scoreInfo) => {
+    console.log("finished!!!!!!");
     p1.score = scoreInfo.p1Score;
     p2.score = scoreInfo.p2Score;
     coords.ballSpeedX = 0;
     coords.ballSpeedY = 0;
     coords.paddleSpeed = 0;
+    update(Date.now(), coords.time);
     Game(coords, canvas);
-    setGameResultModal(true);
+    if (isGameStart) {
+      setIsGameStart(false);
+    }
+    if (!gameResultModal) {
+      setGameResultModal(true);
+    }
   };
+  
+  const countdownEventHandler = () => {
+    AdminLogPrinter(adminConsole, "countdown!!!");
+  }
 
   useEffect(() => {
     game.gameSocket.on("syncData", syncDataHandler);
-    game.gameSocket.on("scoreInfo", scoreEventhandler);
+    game.gameSocket.on("scoreInfo", scoreEventHandler);
     game.gameSocket.on("finished", finishEventHandler);
+    game.gameSocket.on("countdown", countdownEventHandler);
     return () => {
       game.gameSocket.off("syncData", syncDataHandler);
-      game.gameSocket.off("scoreInfo", scoreEventhandler);
+      game.gameSocket.off("scoreInfo", scoreEventHandler);
       game.gameSocket.off("finished", finishEventHandler);
+      game.gameSocket.off("countdown", countdownEventHandler);
     };
   }, []);
 
-  useEffect(() => {
-    game.gameSocket.on("syncData", syncDataHandler);
+  useEffect(()=> {
+    requestAnimationLoop(Date.now(), lastUpdateTime);
     return () => {
-      game.gameSocket.off("syncData", syncDataHandler);
-    };
-  }, [serverClientTimeDiff]);
+      cancelAnimationFrame(requestAnimationId);
+    }
+  }, []);
 
   // // the connection is denied by the server in a middleware function
   // game.gameSocket.on("connect_error", (err) => {
@@ -121,7 +166,9 @@ export default function PingPong() {
   // });
 
   function requestAnimationLoop(curTime: number, lastUpdate: number) {
-    update(curTime, lastUpdate);
+    if (coords.keyPress !== null) {
+      update(curTime, lastUpdate);
+    }
     requestAnimationId = requestAnimationFrame(() => requestAnimationLoop(Date.now(), lastUpdateTime));
   }
 
@@ -136,8 +183,8 @@ export default function PingPong() {
       coords.ballY += coords.ballSpeedY * dt;
       const isHitY = collisionCheckY();
       const isHitX = collisionCheckX();
-      if (isHitY) {
-        if (coords.ballY < ball.radius) {
+      if (isHitY !== Direction.NONE) {
+        if (isHitY === Direction.UP) {
           coords.ballY = 2 * ball.radius - coords.ballY;
           coords.ballSpeedY = -coords.ballSpeedY;
         } else {
@@ -145,15 +192,17 @@ export default function PingPong() {
           coords.ballSpeedY = -coords.ballSpeedY;
         }
       }
-      if (isHitX == Direction.LEFT) {
-        if (collisionCheckP1Paddle() === Hit.PADDLE) {
-          coords.ballX = 2 * (ball.radius + paddle.width) - coords.ballX;
-          coords.ballSpeedX = -coords.ballSpeedX;
-        }
-      } else if (isHitX === Direction.RIGHT) {
-        if (collisionCheckP2Paddle() === Hit.PADDLE) {
-          coords.ballX = 2 * (WIDTH - ball.radius - paddle.width) - coords.ballX;
-          coords.ballSpeedX = -coords.ballSpeedX;
+      if (isHitX !== Direction.NONE) {
+        if (isHitX === Direction.LEFT) {
+          if (collisionCheckP1Paddle() === Hit.PADDLE) {
+            coords.ballX = 2 * (ball.radius + paddle.width) - coords.ballX;
+            coords.ballSpeedX = -coords.ballSpeedX;
+          }
+        } else {
+          if (collisionCheckP2Paddle() === Hit.PADDLE) {
+            coords.ballX = 2 * (WIDTH - ball.radius - paddle.width) - coords.ballX;
+            coords.ballSpeedX = -coords.ballSpeedX;
+          }
         }
       }
       lastUpdateTime = curTime;
@@ -171,10 +220,6 @@ export default function PingPong() {
         keyPressDt.push(0);
       }
     }
-    // if (coords.keyPress[0] || coords.keyPress[1] || coords.keyPress[2] || coords.keyPress[3]) {
-    //   AdminLogPrinter(adminConsole, JSON.stringify(coords.keyPress));
-    //   AdminLogPrinter(adminConsole, JSON.stringify(keyPressDt));
-    // }
     return keyPressDt;
   }
 
@@ -247,6 +292,8 @@ export default function PingPong() {
 
   useEffect(() => {
     // first draw
+    p1.score = 0;
+    p2.score = 0;
     Game(coords, canvas);
   }, []);
 

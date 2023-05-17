@@ -54,6 +54,14 @@ export class GameService {
     }
   }
 
+  gameState(gameId: string) {
+    const game = this.games.get(gameId);
+    if (game !== undefined) {
+      return game.getStatus();
+    }
+    return GameStatus.FINISHED;
+  }
+
 }
 
 class Game {
@@ -120,7 +128,7 @@ class Game {
     }
     this.paddle1Y = this.paddle2Y = (this.canvasHeight - this.paddleHeight) / 2;
     this.roundStartTime = Date.now();
-    this.lastUpdateCoords = this.getState();
+    this.lastUpdateCoords = this.curState(this.roundStartTime);
     const objectInfo = {...this.lastUpdateCoords};
     objectInfo.ballSpeedX = 0;
     objectInfo.ballSpeedY = 0;
@@ -128,11 +136,17 @@ class Game {
   }
 
   gameStart() {
+    this.gameStatus = GameStatus.MODESELECT;
+  }
+  
+  modeSelect() {
     this.gameStatus = GameStatus.COUNTDOWN;
     this.roundStartTime = Date.now();
     this.lastUpdate = this.roundStartTime;
+    this.nsp.to(this.id).emit('gameStart');
+    console.log('gameStart1!!!!!!');
     this.gameLoop();
-    this.nsp.to(this.id).emit('gameStart', true);
+    console.log('gameStart2!!!!!!');
   }
 
   isPlayer(uid: number): boolean {
@@ -156,8 +170,9 @@ class Game {
       } else {
         this.keyPress[2] = Date.now();
       }
-      this.lastUpdateCoords = this.getState();
-      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);    }
+      this.lastUpdateCoords = this.curState(this.lastUpdateCoords.time);
+      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);
+    }
   }
   
   upRelease(uid: number) {
@@ -168,8 +183,9 @@ class Game {
       } else {
         this.keyPress[2] = 0;
       }
-      this.lastUpdateCoords = this.getState();
-      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);    }
+      this.lastUpdateCoords = this.curState(this.lastUpdateCoords.time);
+      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);
+    }
   }
 
   downPress(uid: number) {
@@ -180,8 +196,9 @@ class Game {
       } else {
         this.keyPress[3] = Date.now();
       }
-      this.lastUpdateCoords = this.getState();
-      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);    }
+      this.lastUpdateCoords = this.curState(this.lastUpdateCoords.time);
+      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);
+    }
   }
   
   downRelease(uid: number) {
@@ -192,17 +209,23 @@ class Game {
       } else {
         this.keyPress[3] = 0;
       }
-      this.lastUpdateCoords = this.getState();
-      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);    }
+      this.lastUpdateCoords = this.curState(this.lastUpdateCoords.time);
+      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);
+    }
+  }
+
+  getStatus(): GameStatus {
+    return this.gameStatus;
   }
 
   // Event driven update
   private gameLoop() {
-    if (this.gameStatus !== GameStatus.FINISHED) {
-      const timeout = this.update();
+    let timeout:number = 10;
+    timeout = this.update();
+    if (this.gameStatus === GameStatus.RUNNING) {
       this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);
-      setTimeout(this.gameLoop.bind(this), timeout);
     }
+    setTimeout(this.gameLoop.bind(this), timeout);
   }
 
   private isFinished(): boolean{
@@ -213,13 +236,14 @@ class Game {
     if (this.isFinished() === true) {
       this.gameStatus = GameStatus.FINISHED;
       return 100;
-    } else if (curTime - this.roundStartTime >= 2000) {
+    } else if (curTime - this.roundStartTime >= 3000) {
       this.gameStatus = GameStatus.RUNNING;
       this.init();
-      this.nsp.to(this.id).emit('countdown', true);
+      // this.nsp.to(this.id).emit('countdown', true);
       return 100;
     }
-    return 2000;
+    this.nsp.to(this.id).emit('countdown', true);
+    return curTime - this.roundStartTime + 3000;
   }
 
   private getHitTime(): number {
@@ -276,13 +300,17 @@ class Game {
     this.ballSpeedX = -this.ballSpeedX;
   }
 
-  private updateScore(i: number): number {
+  private updateScore(i: number, time: number): number {
     this.gameStatus = GameStatus.COUNTDOWN;
     this.score[i]++;
     this.round++;
-    this.nsp.to(this.id).emit("syncData", this.getState());
+    this.lastUpdateCoords = this.curState(time);
+    for(let i = 0; i < 4; i++) {
+      this.lastUpdateCoords.keyPress[i] = 0;
+    }
+    this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);
     this.nsp.to(this.id).emit("scoreInfo", {p1Score: this.score[0], p2Score: this.score[1]});
-    return 2000;
+    return 3000;
   }
 
   private running(curTime: number): number {
@@ -295,28 +323,30 @@ class Game {
       this.ballY += this.ballSpeedY * dt;
       const isHitY = this.collisionCheckY();
       const isHitX = this.collisionCheckX();
-      if (isHitY) {
-        if (this.ballY < this.ballRadius) {
+      if (isHitY !== Direction.NONE) {
+        if (isHitY === Direction.UP) {
           this.ballY = 2 * this.ballRadius - this.ballY;
         } else {
           this.ballY = 2 * (this.canvasHeight - this.ballRadius) - this.ballY;
         }
         this.ballSpeedY = -this.ballSpeedY;
       }
-      if (isHitX == Direction.LEFT) {
-        if (this.collisionCheckP1Paddle() === Hit.PADDLE) {
-          this.hitP1Paddle();
+      if (isHitX !== Direction.NONE) {
+        if (isHitX == Direction.LEFT) {
+          if (this.collisionCheckP1Paddle() === Hit.PADDLE) {
+            this.hitP1Paddle();
+          } else {
+            return this.updateScore(1, curTime);
+          }
         } else {
-          return this.updateScore(1);
-        }
-      } else if (isHitX === Direction.RIGHT) {
-        if (this.collisionCheckP2Paddle() === Hit.PADDLE) {
-          this.hitP2Paddle();
-        } else {
-          return this.updateScore(0);
+          if (this.collisionCheckP2Paddle() === Hit.PADDLE) {
+            this.hitP2Paddle();
+          } else {
+            return this.updateScore(0, curTime);
+          }
         }
       }
-      this.lastUpdateCoords = this.getState();
+      this.lastUpdateCoords = this.curState(curTime);
       timeout = this.getHitTime();
     }
     return timeout;
@@ -344,6 +374,10 @@ class Game {
     const curTime = Date.now();
     let timeout:number
     switch(this.gameStatus) {
+      case GameStatus.MODESELECT: {
+        timeout = 10;
+        break;
+      }
       case GameStatus.COUNTDOWN: {
         timeout = this.countdown(curTime);
         break;
@@ -353,7 +387,8 @@ class Game {
         break;
       }
       case GameStatus.FINISHED: {
-        this.nsp.to(this.id).emit("finished", { p1: this.score[0], p2: this.score[1] });
+        console.log("finished!!!!!");
+        this.nsp.to(this.id).emit("finished", {p1Score: this.score[0], p2Score: this.score[1]});
         this.gameStatus = GameStatus.DISCONNECT;
         timeout = 1000;
         break;
@@ -448,7 +483,7 @@ class Game {
     return Hit.WALL;
   }
 
-  private getState(): GameCoords {
+  private curState(time: number): GameCoords {
     return {
       paddle1Y: this.paddle1Y,
       ballX: this.ballX,
@@ -458,8 +493,7 @@ class Game {
       ballSpeedY: this.ballSpeedY,
       paddleSpeed: this.paddleSpeed,
       keyPress: this.keyPress,
-      time: Date.now(),
+      time: time,
     };
   }
-
 }
