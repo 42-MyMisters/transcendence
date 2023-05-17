@@ -8,11 +8,6 @@ const URL = "https://localhost";
 
 const GameNameSpace = "/game";
 
-// export const gameSocketAtom: Socket = atom<Socket | null>({
-
-// // });
-
-
 export const gameSocket = io(`${URL}${GameNameSpace}`, {
   auth: (cb) => {
     cb({
