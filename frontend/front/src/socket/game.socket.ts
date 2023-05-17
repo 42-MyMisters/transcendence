@@ -1,5 +1,5 @@
-import { io } from "socket.io-client";
-import { useAtom } from "jotai";
+import { Socket, io } from "socket.io-client";
+import { atom } from "jotai";
 // import * as chatAtom from '../components/atom/SocketAtom';
 // import type * as gameType from './game.dto';
 
@@ -8,9 +8,16 @@ const URL = "https://localhost";
 
 const GameNameSpace = "/game";
 
+// export const gameSocketAtom: Socket = atom<Socket | null>({
+
+// // });
+
+
 export const gameSocket = io(`${URL}${GameNameSpace}`, {
   auth: (cb) => {
-    cb({ token: localStorage.getItem("refreshToken") });
+    cb({
+      token: localStorage.getItem("refreshToken")
+    });
   },
   autoConnect: false,
   transports: ["polling", "websocket"],

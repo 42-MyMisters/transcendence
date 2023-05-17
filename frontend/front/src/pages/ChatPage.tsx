@@ -649,9 +649,7 @@ export default function ChatPage() {
 	async function firstLogin() {
 		if (isFirstLogin) {
 			await getMyinfoHandler();
-			setTimeout(() => {
-				socket.socket.connect();
-			}, 420);
+			socket.socket.connect();
 			setIsFirstLogin(false);
 		}
 	}
@@ -660,7 +658,7 @@ export default function ChatPage() {
 		if (isFirstLogin) {
 			firstLogin();
 		}
-	}, [firstLogin]);
+	}, [isFirstLogin]);
 
 
 	return (

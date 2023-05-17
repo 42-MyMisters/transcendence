@@ -186,7 +186,7 @@ export class EventsGateway
 			const user = await this.userService.getUserByUid(uid);
 			this.logger.debug(`-- ${socket.id} after getUserByUid.`);
 
-			if (userList[uid]?.disconnectedSocket === socket.id) {
+			if (!socket.connected) {
 				throw new ConflictException();
 			}
 
@@ -254,7 +254,6 @@ export class EventsGateway
 		this.logger.warn(`${userList[socket?.data?.user?.uid]?.userDisplayName} : ${socket.id} socket disconnected`);
 		this.logger.verbose(`${socket.id} <> ${userList[socket?.data?.user?.uid]?.socket?.id}`)
 		if (socket.data?.user?.uid !== undefined) {
-			userList[socket.data.user.uid].disconnectedSocket = socket.id;
 			if (userList[socket.data.user.uid]?.socket?.id === socket.id) {
 				this.logger.debug(`${userList[socket.data.user.uid].userDisplayName} is now offline: ${socket.id}`);
 				userList[socket.data.user.uid].socket = undefined;
@@ -268,7 +267,6 @@ export class EventsGateway
 			}
 			userList[socket.data.user.uid].isRefresh = false;
 		} else {
-			userList[socket.data.tempUid].disconnectedSocket = socket.id;
 		}
 		socket.data.roomList?.forEach((roomId: number) => {
 			socket.leave(roomId.toString());
