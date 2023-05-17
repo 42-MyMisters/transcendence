@@ -9,3 +9,5 @@ export const TFAEnabledAtom = atom(false);
 export const TFAAuthenticatedAtom = atom(false);
 
 export const isFirstLoginAtom = atom(false);
+
+export const loginModalJudgeAtom = atom(false);

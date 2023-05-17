@@ -155,8 +155,14 @@ export default function ChatPage() {
 				const getMeResponse = await GetMyInfo(adminConsole, setUserInfo, setTfa, true);
 				if (getMeResponse == 401) {
 					logOutHandler();
+				} else {
+					socket.socket.connect();
+					setIsFirstLogin(false);
 				}
 			}
+		} else {
+			socket.socket.connect();
+			setIsFirstLogin(false);
 		}
 	}
 
@@ -649,8 +655,8 @@ export default function ChatPage() {
 	async function firstLogin() {
 		if (isFirstLogin) {
 			await getMyinfoHandler();
-			socket.socket.connect();
-			setIsFirstLogin(false);
+			// socket.socket.connect();
+			// setIsFirstLogin(false);
 		}
 	}
 
@@ -658,7 +664,7 @@ export default function ChatPage() {
 		if (isFirstLogin) {
 			firstLogin();
 		}
-	}, [isFirstLogin]);
+	}, []);
 
 
 	return (
