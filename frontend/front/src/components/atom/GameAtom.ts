@@ -3,9 +3,9 @@ import { atom } from "jotai";
 
 export const isLoadingAtom = atom<boolean>(false);
 
+export const isMatchedAtom = atom<boolean>(false);
+
 export const isPrivateAtom = atom<boolean>(false);
 
 export const isGameStartedAtom = atom<boolean>(false);
 
-// init value: 2000
-export const serverClientTimeDiffAtom = atom<number>(2000);

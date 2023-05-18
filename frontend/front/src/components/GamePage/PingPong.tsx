@@ -4,7 +4,7 @@ import "../../styles/PingPong.css";
 import React, { useEffect } from "react";
 
 import * as chatAtom from "../atom/ChatAtom";
-import { isGameStartedAtom, isPrivateAtom, serverClientTimeDiffAtom } from "../atom/GameAtom";
+import { isGameStartedAtom, isPrivateAtom } from "../atom/GameAtom";
 import { Game } from "./Pong";
 
 
