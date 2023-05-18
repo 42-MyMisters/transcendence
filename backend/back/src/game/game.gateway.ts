@@ -11,6 +11,8 @@ import { GameService } from './game.service';
 export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   // private userSocket: Map<number, Socket>
   private gamePool: Map<number, Socket[]>;
+  private readyQueue: Socket[];
+  private privatePool: Map<number, Socket>;
   private gameId: number;
   private userInGame: Map<number, string>;
   constructor(
@@ -19,12 +21,36 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     private gameService: GameService,
 	) {
     this.gamePool = new Map<number, Socket[]>();
+    this.readyQueue = [];
     this.gameId = 0;
     // Queue loop
     setInterval(this.gameMatchLogic.bind(this), 3000);
   }
   
   gameMatchLogic() {
+    const putUserInGamePool = () => {
+      if (this.readyQueue.length !== 0) {
+        const curTime = Date.now();
+        let i = 0;
+        for (let sock of this.readyQueue) {
+          if (curTime - sock.data.timestamp >= 5000) {
+            const eloAdj = Math.trunc(sock.data.elo / 5);
+            const eloList = this.gamePool.get(eloAdj);
+            if (eloList !== undefined) {
+              eloList.push(sock);
+            } else {
+              this.gamePool.set(eloAdj, [sock])
+            }
+            i++;
+          } else {
+            if (i !== 0) {
+              this.readyQueue = this.readyQueue.slice(i)
+            }
+            break;
+          }
+        }
+      }
+    }
     // while (this.gamePool.length > 1) {
     //   const p1 = this.gamePool.pop();
     //   const p2 = this.gamePool.pop();
@@ -44,8 +70,16 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     //     // this.gameService.gameStart(gameId);
     //   }
     // }
+
+    let cnt = 0;
+    const tmpPool: Map<number, Socket[]> = new Map<number, Socket[]>();
+    this.gamePool.forEach((val) => {
+      cnt += val.length;
+      // val.forEach()
+    });
     const gameId = this.gameId.toString();
     this.gameId++;
+    putUserInGamePool();
     this.logger.log('game queue loop');
   }
   
@@ -58,80 +92,116 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     // WebSocket 서버 초기화 작업
   }
 
-  // socket.handshake.auth: token(token for auth), data(uid for observing), type(gameType)
+  joinRoom(socket: Socket, gameId: string) {
+    socket.join(gameId);
+    socket.data.room = gameId;
+  }
+  
+  // socket.handshake.auth: token(token for auth), observ(uid for observing), invite(uid for invite), type(gameType)
   // socket.data: uid(socket uid), elo(user elo score), queueStack(for matching stack)
   async handleConnection(@ConnectedSocket() socket: Socket) {
     try {
       socket.data.uid = await this.authService.jwtVerify(socket.handshake.auth.token);
-      const user = await this.userService.getUserByUid(socket.data.uid);
-      if (!socket.connected) {
+      if (socket.disconnected) {
+        // socket disconnected before putting in gamePool.
         throw new UnauthorizedException("already disconnected.");
       }
-      socket.data.elo = user!.elo;
-      const userInGame = this.userInGame.get(socket.data.uid);
-      if (userInGame === undefined) {
-        if (socket.handshake.auth.data === undefined) {
+      if (socket.handshake.auth.invite !== undefined) {
+        const host = this.privatePool[socket.handshake.auth.invite];
+        if (host !== undefined) {
+          const p1 = host.data.uid;
+          const p2 = socket.data.uid;
+          const gameId = p1.toString() + "+" + p2.toString();
+          this.joinRoom(host, gameId);
+          this.joinRoom(socket, gameId);
+          this.privatePool.delete(p1);
+          this.gameService.createGame(gameId, this.server, p1, p2, GameType.PRIVATE);
+        } else {
+          this.privatePool.set(socket.data.uid, socket);
+        }
+      } else if (socket.handshake.auth.observ !== undefined) {
+        const gameId = this.userInGame.get(socket.handshake.auth.data);
+        if (gameId !== undefined && this.gameService.gameState(gameId) < GameStatus.FINISHED) {
+          socket.emit("observer joined room");
+          socket.join(gameId);
+        } else {
+          console.log("Already finished. Disconnect socket.");
+          throw new UnauthorizedException("already finished");
+        }
+      } else {
+        // queue match
+        const user = await this.userService.getUserByUid(socket.data.uid);
+        if (socket.disconnected || user === null) {
+          // socket disconnected before putting in gamePool.
+          throw new UnauthorizedException("already disconnected or user not found.");
+        }
+        socket.data.elo = user.elo;
+        const userInGame = this.userInGame.get(socket.data.uid);
+        if (userInGame === undefined) {
           socket.emit("isLoading", true);
           if (socket.handshake.auth.type === GameType.PRIVATE) {
             socket.emit("isPrivate", true);
           } else {
-            socket.data.queueStack = 0;
-            const eloList = this.gamePool.get(socket.data.elo);
-            if (eloList !== undefined) {
-              eloList.push(socket);
-            } else {
-              this.gamePool.set(socket.data.elo, [socket]);
-            }
+            socket.data.timestamp = Date.now();
+            this.readyQueue.push(socket);
+            // const eloAdj = Math.trunc(socket.data.elo / 5);
+            // const eloList = this.gamePool.get(eloAdj);
+            // if (eloList !== undefined) {
+            //   eloList.push(socket);
+            // } else {
+            //   this.gamePool.set(eloAdj, [socket]);
+            // }
             // this.gameQueue.push(socket.data.elo, socket);
           }
-        } else { // for observer
-          const gameId = this.userInGame.get(socket.handshake.auth.data);
-          // observer join
-          if (gameId !== undefined && this.gameService.gameState(gameId) < GameStatus.FINISHED) {
-            socket.emit("observer");
-            socket.join(gameId);
-          } else {
-            console.log("Already finished. Disconnect socket.");
-            throw new UnauthorizedException("already finished");
-          }
+        } else {
+          console.log("Reconnected.");
+          socket.join(userInGame);
         }
-      } else {
-        console.log("Reconnected.");
-        socket.join(userInGame);
       }
     } catch(e) {
-      this.logger.log(`${socket.data.uid} invalid connection. disconnect socket.`);
+      this.logger.log(`${socket.data.uid} invalid connection. reason: ${e}. disconnect socket.`);
       socket.disconnect();
     }
   }
 
   handleDisconnect(@ConnectedSocket() socket: Socket) {
     if (socket.data.room !== undefined) {
-      const cur_game = this.gameService.getGame(socket.data.room);
-      if (cur_game === undefined) {
+      // Game finished or socket disconnected while game playing(Maybe refreshed).
+      const curGame = this.gameService.getGame(socket.data.room);
+      if (curGame === undefined) {
         this.logger.log(`${socket.data.uid} invalid socket connection disconnected.`);
-      } else if (cur_game.isPlayer(socket.data.uid)) {
-        cur_game.playerLeft(socket.data.uid);
+      } else if (curGame.isPlayer(socket.data.uid)) {
+        curGame.playerLeft(socket.data.uid);
         this.logger.log(`${socket.data.uid} player left.`);
       } else {
         this.logger.log(`${socket.data.uid} observer left.`);
       }
     } else {
-      const eloList = this.gamePool.get(socket.data.elo);
-      if (eloList !== undefined) {
-        if (eloList.length !== 1) {
-          this.gamePool.set(socket.data.elo, eloList.filter((sock) => {return sock !== socket}));
-        } else {
-          this.gamePool.delete(socket.data.elo);
-        }
+      if (socket.handshake.auth.observ !== undefined) {
+        // game is already finished. disconnect observer socket.
+        // nothing to handle.
+      } else if (socket.handshake.auth.invite !== undefined) {
+        // guest reject invite. disconnect host.
+        // remove from the privatePool.
+        this.privatePool.delete(socket.data.uid);
       } else {
-        // already matched?
-        const game = this.userInGame.get(socket.data.uid);
-        if (game !== undefined) {
-          this.logger.log('already matched');
+        const queueLen = this.readyQueue.length;
+        this.readyQueue = this.readyQueue.filter((sock) => {return sock !== socket});
+        if (this.readyQueue.length !== queueLen) {
+          // Not moved to gamePool. remove from the readyQueue.
+          // Nothing to handle.
         } else {
-          this.logger.log('invalid user access');
-        }         
+          // Cancel game queue. Not matched.
+          const eloAdj = Math.trunc(socket.data.elo / 5);
+          const eloList = this.gamePool.get(eloAdj);
+          if (eloList !== undefined) {
+            if (eloList.length !== 1) {
+              this.gamePool.set(eloAdj, eloList.filter((sock) => {return sock !== socket}));
+            } else {
+              this.gamePool.delete(eloAdj);
+            }
+          }
+        }
       }
     }
     this.logger.log(`${socket.data.uid} disconnected.`);

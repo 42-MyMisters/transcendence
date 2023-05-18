@@ -22,7 +22,8 @@ import Waiting from "../components/GamePage/Waiting";
 import { AdminLogPrinter, PressKey } from "../event/event.util";
 import { io, Socket } from 'socket.io-client';
 
-const URL = process.env.REACT_APP_API_URL;
+// const URL = process.env.REACT_APP_API_URL;
+const URL = "https://localhost";
 const NameSpace = "/game";
 
 export default function GamePage() {
