@@ -23,64 +23,9 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     this.gamePool = new Map<number, Socket[]>();
     this.readyQueue = [];
     this.gameId = 0;
+    this.userInGame = new Map<number, string>();
     // Queue loop
-    setInterval(this.gameMatchLogic.bind(this), 3000);
-  }
-  
-  gameMatchLogic() {
-    const putUserInGamePool = () => {
-      if (this.readyQueue.length !== 0) {
-        const curTime = Date.now();
-        let i = 0;
-        for (let sock of this.readyQueue) {
-          if (curTime - sock.data.timestamp >= 5000) {
-            const eloAdj = Math.trunc(sock.data.elo / 5);
-            const eloList = this.gamePool.get(eloAdj);
-            if (eloList !== undefined) {
-              eloList.push(sock);
-            } else {
-              this.gamePool.set(eloAdj, [sock])
-            }
-            i++;
-          } else {
-            if (i !== 0) {
-              this.readyQueue = this.readyQueue.slice(i)
-            }
-            break;
-          }
-        }
-      }
-    }
-    // while (this.gamePool.length > 1) {
-    //   const p1 = this.gamePool.pop();
-    //   const p2 = this.gamePool.pop();
-    //   if (p1 !== undefined && p2 !== undefined) {
-    //     const gameId = this.gameId.toString();
-    //     this.gameId++;
-    //     p1.join(gameId);
-    //     p2.join(gameId);
-    //     p1.data.room = gameId;
-    //     p2.data.room = gameId;
-    //     this.server.to(gameId).emit('join-game', {p1: p1.data.uid, p2: p2.data.uid});
-    //     console.log(`${p1.id}: joined ${gameId}, rooms: ${[...p1.rooms]}`);
-    //     console.log(`${p2.id}: joined ${gameId}, rooms: ${[...p2.rooms]}`);
-    //     this.gameService.publicGame(gameId, this.server, p1.data.uid, p2.data.uid);
-    //     this.gameService.getGame(gameId)?.gameStart();
-    //     // this.server.to(gameId).emit("gameStart", true);
-    //     // this.gameService.gameStart(gameId);
-    //   }
-    // }
-
-    let cnt = 0;
-    const tmpPool: Map<number, Socket[]> = new Map<number, Socket[]>();
-    this.gamePool.forEach((val) => {
-      cnt += val.length;
-      // val.forEach()
-    });
-    const gameId = this.gameId.toString();
-    this.gameId++;
-    putUserInGamePool();
-    this.logger.log('game queue loop');
+    setInterval(this.gameMatchLogic.bind(this), 5000);
   }
   
   logger = new Logger('GameGateway');
@@ -92,9 +37,83 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     // WebSocket 서버 초기화 작업
   }
 
+  gameMatchLogic() {
+    const curTime = Date.now();
+    const putUserInGamePool = (curTime: number) => {
+      if (this.readyQueue.length !== 0) {
+        while (this.readyQueue.length && curTime - this.readyQueue[0].data.timestamp >= 5000) {
+          const sock = this.readyQueue.shift()!;
+          const eloAdj = Math.trunc(sock.data.elo / 5);
+          const eloList = this.gamePool.get(eloAdj);
+          if (eloList !== undefined) {
+            eloList.push(sock);
+          } else {
+            this.gamePool.set(eloAdj, [sock]);
+          }
+        }
+        this.gamePool = new Map<number, Socket[]>(Array.from(this.gamePool).sort((a, b) => a[0] - b[0]));
+      }
+    }
+    // console.log(`readyQueue: ${this.readyQueue}`);
+    // const tmp: {elo:number, range:number}[] = [];
+    for (const [elo, socketList] of this.gamePool) {
+      // quick match from the same tier pool.
+      while (socketList.length > 1) {
+        const sockA = socketList.shift()!;
+        const sockB = socketList.shift()!;
+        let p1: number, p2: number;
+        if (sockA.data.elo <= sockB.data.elo) {
+          p1 = sockA.data.uid;
+          p2 = sockB.data.uid;
+        } else {
+          p1 = sockB.data.uid;
+          p2 = sockA.data.uid;
+        }
+        const gameId = (this.gameId++).toString();
+        this.userInGame.set(p1, gameId).set(p2, gameId);
+        // this.joinRoom(sockB!, gameId);
+        // this.joinRoom(sockA!, gameId);
+        
+        const joinRoom = [
+          sockA.join(gameId),
+          sockB.join(gameId),
+        ];
+        Promise.all(joinRoom);
+        sockA.data.room = gameId;
+        sockB.data.room = gameId;
+        // sockA.join(gameId);
+        // sockB.join(gameId);
+        console.log(`${sockA.data.uid} joined room list ${JSON.stringify(sockA.rooms)}`);
+        this.gameService.createGame(gameId, this.server, p1, p2, GameType.PUBLIC);
+      }
+      if (socketList.length) {
+        // tmp.push({elo:elo, range:Math.trunc(socketList[0].data.time / 5)});
+      } else {
+        this.gamePool.delete(elo);
+      }
+    }
+    // if (tmp.length > 1) {
+    //   // match making from 
+    //   // tmp.sort((a, b) => a.time - b.time);
+    //   for(const p of tmp) {
+    //     for (let i = 1; i <= p.range; i++) {
+    //       const op = tmp.find((a)=> a.elo === p.elo + i || a.elo === p.elo - i);
+    //       if (op !== undefined) {
+            
+    //       }
+    //     } 
+        
+    //   }
+    // }
+    putUserInGamePool(curTime);
+    this.logger.log('game queue loop');
+  }
+  
   joinRoom(socket: Socket, gameId: string) {
+    console.log(`${socket.id} joined ${gameId}`);
     socket.join(gameId);
     socket.data.room = gameId;
+    console.log(`${socket.id} joined room list ${JSON.stringify(socket.rooms)}`);
   }
   
   // socket.handshake.auth: token(token for auth), observ(uid for observing), invite(uid for invite), type(gameType)
@@ -106,12 +125,14 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         // socket disconnected before putting in gamePool.
         throw new UnauthorizedException("already disconnected.");
       }
+      console.log(`socket data uid: ${socket.data.uid}`)
       if (socket.handshake.auth.invite !== undefined) {
         const host = this.privatePool[socket.handshake.auth.invite];
         if (host !== undefined) {
           const p1 = host.data.uid;
           const p2 = socket.data.uid;
           const gameId = p1.toString() + "+" + p2.toString();
+          this.userInGame.set(p1, gameId).set(p2, gameId);
           this.joinRoom(host, gameId);
           this.joinRoom(socket, gameId);
           this.privatePool.delete(p1);
@@ -130,13 +151,14 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         }
       } else {
         // queue match
-        const user = await this.userService.getUserByUid(socket.data.uid);
+        const uid = socket.data.uid;
+        const user = await this.userService.getUserByUid(uid);
         if (socket.disconnected || user === null) {
           // socket disconnected before putting in gamePool.
           throw new UnauthorizedException("already disconnected or user not found.");
         }
         socket.data.elo = user.elo;
-        const userInGame = this.userInGame.get(socket.data.uid);
+        const userInGame = this.userInGame.get(uid);
         if (userInGame === undefined) {
           socket.emit("isLoading", true);
           if (socket.handshake.auth.type === GameType.PRIVATE) {
@@ -155,7 +177,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
           }
         } else {
           console.log("Reconnected.");
-          socket.join(userInGame);
+          socket.join(this.userInGame.get(uid)!);
         }
       }
     } catch(e) {
