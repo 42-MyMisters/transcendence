@@ -14,6 +14,12 @@ import {
 	gameInviteModalAtom,
 } from "../components/atom/ModalAtom";
 
+import {
+	isGameStartedAtom,
+	isLoadingAtom,
+} from "../components/atom/GameAtom";
+
+
 import UserInfoModal from "../components/ChatPage/UserInfoModal";
 import RoomModal from "../components/ChatPage/RoomModal";
 import RoomInviteModal from "../components/ChatPage/RoomInviteModal";
@@ -59,6 +65,10 @@ export default function ChatPage() {
 	const [passwordModal, setPasswordModal] = useAtom(passwordInputModalAtom);
 	const [clickRoom] = useAtom(chatAtom.clickRoomAtom);
 	const [tfa, setTfa] = useAtom(TFAAtom);
+
+
+	const [isLoading, setIsLoading] = useAtom(isLoadingAtom);
+	const [isGameStart, setIsGameStart] = useAtom(isGameStartedAtom);
 
 	PressKey(["F4"], () => {
 		setAdminConsole((prev) => !prev);
@@ -657,6 +667,18 @@ export default function ChatPage() {
 			await getMyinfoHandler();
 		}
 	}
+
+	useEffect(() => {
+		if (isLoading) {
+			socket.emitUserUpdate(adminConsole, 'inGame');
+		}
+	}, [isLoading]);
+
+	useEffect(() => {
+		if (userList[userInfo.uid].userStatus === 'inGame' && !isGameStart) {
+			socket.emitUserUpdate(adminConsole, 'online');
+		}
+	}, [isGameStart]);
 
 	useEffect(() => {
 		if (isFirstLogin) {

@@ -385,3 +385,10 @@ export function emitDM(adminConsole: boolean, targetId: number, message: string)
     }
   );
 }
+
+export function emitUserUpdate(adminConsole: boolean, status: chatType.userStatus) {
+  socket.emit(
+    "user-update",
+    status,
+  );
+}

@@ -37,20 +37,20 @@ export default function GamePage() {
   const [userInfo, setUserInfo] = useAtom(UserAtom);
 
   const [socket, setSocket] = useState(io());
-  
+
   let isP1: boolean;
-  
+
   class socketAuth {
     token: string | null;
     type: GameType;
-    observ?: number;
     invite?: number;
+    observ?: number;
     constructor() {
       this.token = localStorage.getItem("refreshToken");
-      this.type = GameType.PUBLIC;
+      this.type = isPrivate ? GameType.PRIVATE : GameType.PUBLIC;
     }
   }
-  
+
   const auth: socketAuth = new socketAuth();
 
   // const URL = process.env.REACT_APP_API_URL;
@@ -65,11 +65,11 @@ export default function GamePage() {
     upgrade: true,
   });
 
-  
+
   PressKey(["F4"], () => {
     setAdminConsole((prev) => !prev);
   });
-  
+
   useEffect(() => {
     AdminLogPrinter(adminConsole, `gameSocket connection`);
     gameSocket.connect();
@@ -147,7 +147,7 @@ export default function GamePage() {
       gameSocket.off("disconnect", disconnectionEventHandler);
     };
   }, [isPrivate, isGameStart]);
-  
+
   useEffect(() => {
     gameSocket.on("matched", matchEventHandler);
     return () => {
@@ -157,7 +157,7 @@ export default function GamePage() {
 
   // useEffect(() => {
   //   return () => {
-  //   }      
+  //   }
   // }, [isLoading, isMatched, isGameStart]);
 
   return (
@@ -197,7 +197,7 @@ export default function GamePage() {
         )
       ) : isGameStart ? (
         <PingPong gameSocket={socket} />
-        
+
       ) : (
         <Waiting />
       )}

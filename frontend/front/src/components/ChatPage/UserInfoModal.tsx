@@ -105,11 +105,19 @@ export default function UserInfoModal() {
 
   const Invite = () => {
     if (isDefaultUser) return;
-    setIsPrivate(true); // private Game - Custom Match
-    alert("invite");
-    infoModalOff();
-    // TODO: socket - Game invite Logic
-    // navigate("/game");
+    if (userList[userInfo.uid].userStatus === 'offline') {
+      alert('유저가 오프라인 상태입니다.');
+      return;
+    } else if (userList[userInfo.uid].userStatus === 'online') {
+      // online = invite
+      infoModalOff();
+      navigate("/game");
+
+    } else {
+      // ingame = check inLoading or inGaming -> observ
+
+      setIsPrivate(true);
+    }
   };
 
   const Ignore = () => {

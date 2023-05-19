@@ -316,6 +316,26 @@ export class EventsGateway
 		}
 	}
 
+	@SubscribeMessage("user-update")
+	UserUpdate(
+		@ConnectedSocket() socket: Socket,
+		@MessageBody() {
+			status
+		}: {
+			status: userStatus;
+		}
+	) {
+		if (userList[socket.data.user.uid]) {
+			userList[socket.data.user.uid].status = status;
+			this.nsp.emit("user-update", {
+				userId: userList[socket.data.user.uid].userId,
+				userDisplayName: userList[socket.data.user.uid].userDisplayName,
+				userProfileUrl: userList[socket.data.user.uid].userUrl,
+				userStatus: userList[socket.data.user.uid].status,
+			});
+		}
+	}
+
 	@SubscribeMessage("room-create")
 	async RoomCreate(
 		@ConnectedSocket() socket: Socket,
