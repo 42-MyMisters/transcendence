@@ -371,12 +371,16 @@ export function LogOut(
   setRefreshToken: React.Dispatch<React.SetStateAction<boolean>>,
   navigate: NavigateFunction,
   to: string,
-  action: 'refresh' | 'logout' = 'logout'
+  action: 'refresh' | 'logout' = 'logout',
+  msg: string = ''
 ) {
   AdminLogPrinter(adminConsole, "logout");
   if (action === 'logout') {
     socket.socket.emit("chat-logout");
+  } else {
+    console.log("Login other device : ", socket.socket.id);
   }
+  socket.socket.emit("server-log", msg);
   socket.socket.disconnect();
   localStorage.clear();
   setRefreshToken(false);

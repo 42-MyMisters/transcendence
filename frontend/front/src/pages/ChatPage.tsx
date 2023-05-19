@@ -106,7 +106,7 @@ export default function ChatPage() {
 	};
 
 	const showSocketState = () => {
-		AdminLogPrinter(adminConsole, `socket state: ${socketState}`);
+		AdminLogPrinter(adminConsole, `socket state: ${socketState}: ${socket.socket.id}`);
 	};
 
 
@@ -205,7 +205,7 @@ export default function ChatPage() {
 		});
 		socket.socket.on("multiple-login", () => {
 			// 	alert(`multiple login detected!`);
-			LogOut(adminConsole, setRefreshToken, navigate, "/", 'refresh');
+			LogOut(adminConsole, setRefreshToken, navigate, "/", 'refresh', "multiple-login");
 			setHasLogin(false);
 			setIsFirstLogin(true);
 		});
@@ -649,9 +649,7 @@ export default function ChatPage() {
 	async function firstLogin() {
 		if (isFirstLogin) {
 			await getMyinfoHandler();
-			setTimeout(() => {
-				socket.socket.connect();
-			}, 420);
+			socket.socket.connect();
 			setIsFirstLogin(false);
 		}
 	}
@@ -660,7 +658,7 @@ export default function ChatPage() {
 		if (isFirstLogin) {
 			firstLogin();
 		}
-	}, [firstLogin]);
+	}, [isFirstLogin]);
 
 
 	return (
