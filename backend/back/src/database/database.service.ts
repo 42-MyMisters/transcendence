@@ -63,6 +63,14 @@ export class DatabaseService {
         await this.userRepository.save(user);
     }
 
+    async updateUserElo(uid: number, elo: number):Promise<void> {
+        try {
+            await this.userRepository.update({ uid }, { elo });
+        } catch (error) {
+            throw new BadRequestException('elo update error');
+        }
+    }
+
     async updateUserNickname(uid: number, nickname: string):Promise<void> {
         try {
             await this.userRepository.update({ uid }, { nickname });

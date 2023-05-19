@@ -22,11 +22,8 @@ export class Game extends BaseEntity {
 	@Column()
 	loserScore: number;
 
-	@Column({
-		type: 'enum',
-		enum: GameType,
-	  })
-	gameType: GameType;
+	@Column()
+	gameType: number;
 	
 	@CreateDateColumn()
 	createdAt: Date;

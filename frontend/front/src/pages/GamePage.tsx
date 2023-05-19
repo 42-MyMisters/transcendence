@@ -8,10 +8,9 @@ import { useAtom } from "jotai";
 import {
   isGameStartedAtom,
   isLoadingAtom,
+  isMatchedAtom,
   isPrivateAtom,
-  serverClientTimeDiffAtom,
 } from "../components/atom/GameAtom";
-
 
 import * as chatAtom from "../components/atom/ChatAtom";
 import { gameResultModalAtom } from "../components/atom/ModalAtom";
@@ -21,63 +20,74 @@ import LadderBoard from "../components/GamePage/LadderBoard";
 import Waiting from "../components/GamePage/Waiting";
 import { AdminLogPrinter, PressKey } from "../event/event.util";
 import { io, Socket } from 'socket.io-client';
-
-// const URL = process.env.REACT_APP_API_URL;
-const URL = "https://localhost";
-const NameSpace = "/game";
+import { UserAtom } from "../components/atom/UserAtom";
+import { GameType } from "../socket/game.dto";
 
 export default function GamePage() {
   const [showComponent, setShowComponent] = useState(true);
   const [gameResultModal, setGameResultModal] = useAtom(gameResultModalAtom);
 
   const [isLoading, setIsLoading] = useAtom(isLoadingAtom);
+  const [isMatched, setIsMatched] = useAtom(isMatchedAtom);
   const [isPrivate, setIsPrivate] = useAtom(isPrivateAtom);
   const [isGameStart, setIsGameStart] = useAtom(isGameStartedAtom);
 
   const [adminConsole, setAdminConsole] = useAtom(chatAtom.adminConsoleAtom);
 
+  const [userInfo, setUserInfo] = useAtom(UserAtom);
+
+  const [socket, setSocket] = useState(io());
+  
+  let isP1: boolean;
+  
+  class socketAuth {
+    token: string | null;
+    type: GameType;
+    observ?: number;
+    invite?: number;
+    constructor() {
+      this.token = localStorage.getItem("refreshToken");
+      this.type = GameType.PUBLIC;
+    }
+  }
+  
+  const auth: socketAuth = new socketAuth();
+
+  // const URL = process.env.REACT_APP_API_URL;
+  const URL = "https://localhost";
+  const NameSpace = "/game";
+
   const gameSocket: Socket = io(`${URL}${NameSpace}`, {
-    auth: (cb) => {
-      cb({
-        token: localStorage.getItem("refreshToken")
-      });
-    },
+    auth: auth,
     autoConnect: false,
     transports: ["polling", "websocket"],
     secure: true,
     upgrade: true,
-    // reconnectionDelay: 1000, // defaults to 1000
-    // reconnectionDelayMax: 10000, // defaults to 5000
-    // withCredentials: true,
-    // path: "/socket.io",
   });
 
-
-
+  
   PressKey(["F4"], () => {
     setAdminConsole((prev) => !prev);
   });
-
+  
   useEffect(() => {
-    if (isLoading === false) {
-      AdminLogPrinter(adminConsole, `gameSocket connection`);
-      gameSocket.connect();
-      setIsLoading(true);
-      return () => {
-        gameSocket.disconnect();
-      };
-    }
+    AdminLogPrinter(adminConsole, `gameSocket connection`);
+    gameSocket.connect();
+    setSocket(gameSocket);
+    setIsLoading(true);
+    return () => {
+      gameSocket!.disconnect();
+    };
   }, []);
 
   const connectionEventHandler = () => {
-    if (gameSocket.connected) {
+    if (gameSocket!.connected) {
       //This attribute describes whether the socket is currently connected to the server.
-      if (gameSocket.recovered) {
+      if (gameSocket!.recovered) {
         // any missed packets will be received
       } else {
         // new or unrecoverable session
         AdminLogPrinter(adminConsole, "gameSocket connected");
-        // pingInterval = setInterval(pingEvent, 1000);
       }
     }
   };
@@ -86,57 +96,69 @@ export default function GamePage() {
   const disconnectionEventHandler = (reason: string) => {
     if (reason === "io server disconnect") {
     }
-    if (isLoading) {
-      setIsLoading(false);
-    }
-    if (isPrivate) {
-      setIsPrivate(false);
-    }
+    setIsPrivate(false);
+    setIsGameStart(false);
+    setGameResultModal(false);
     AdminLogPrinter(adminConsole, "gameSocket disconnected");
   };
 
-  // const startEventHandler = () => {
-  // };
-
   const gameStartEventHandler = () => {
     AdminLogPrinter(adminConsole, "game start");
-    if (isLoading) {
-      setIsLoading(false);
+    setIsLoading(false);
+    setIsMatched(false);
+    setIsGameStart(true);
+  };
+
+  const matchEventHandler = (playerInfo: { p1: number, p2: number }) => {
+    AdminLogPrinter(adminConsole, "matched");
+    if (playerInfo.p1 === userInfo.uid) {
+      isP1 = true;
+    } else {
+      isP1 = false;
     }
-    if (!isGameStart) {
-      setIsGameStart(true);
-    }
+    setIsMatched(true);
   };
 
   const observerHandler = () => {
     AdminLogPrinter(adminConsole, "observer");
-    if (isLoading) {
-      setIsLoading(false);
-    }
-    if (!isGameStart) {
-      setIsGameStart(true);
-    }
+    setIsLoading(false);
+    setIsGameStart(true);
   };
 
   useEffect(() => {
     AdminLogPrinter(
       adminConsole,
-      `useeffect: isLoading: ${isLoading}, isPrivate: ${isPrivate}, isGameStart: ${isGameStart}`
+      `useeffect: isLoading: ${isLoading}, isPrivate: ${isPrivate}, isMatched: ${isMatched}, isGameStart: ${isGameStart}`
     );
-  }, [isLoading, isPrivate, isGameStart]);
+  }, [isLoading, isPrivate, isGameStart, isMatched]);
 
   useEffect(() => {
-    if (isLoading) {
-      gameSocket.on("connect", connectionEventHandler);
-      gameSocket.on("disconnect", disconnectionEventHandler);
-      gameSocket.on("gameStart", gameStartEventHandler);
-      return () => {
-        gameSocket.off("connect", connectionEventHandler);
-        gameSocket.off("disconnect", disconnectionEventHandler);
-        gameSocket.off("gameStart", gameStartEventHandler);
-      };
+    gameSocket.on("connect", connectionEventHandler);
+    gameSocket.on("gameStart", gameStartEventHandler);
+    return () => {
+      gameSocket.off("connect", connectionEventHandler);
+      gameSocket.off("gameStart", gameStartEventHandler);
+    };
+  }, [isGameStart]);
+
+  useEffect(() => {
+    gameSocket.on("disconnect", disconnectionEventHandler);
+    return () => {
+      gameSocket.off("disconnect", disconnectionEventHandler);
+    };
+  }, [isPrivate, isGameStart]);
+  
+  useEffect(() => {
+    gameSocket.on("matched", matchEventHandler);
+    return () => {
+      gameSocket.off("matched", matchEventHandler);
     }
-  }, [isLoading]);
+  }, [isMatched]);
+
+  // useEffect(() => {
+  //   return () => {
+  //   }      
+  // }, [isLoading, isMatched, isGameStart]);
 
   return (
     <BackGround>
@@ -167,10 +189,15 @@ export default function GamePage() {
         isPrivate ? (
           <Waiting />
         ) : (
-          <LadderBoard />
+          isMatched ? (
+            <Waiting />
+          ) : (
+            <LadderBoard />
+          )
         )
       ) : isGameStart ? (
-        <PingPong gameSocket={gameSocket} />
+        <PingPong gameSocket={socket} />
+        
       ) : (
         <Waiting />
       )}

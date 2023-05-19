@@ -33,7 +33,10 @@ export class GameService {
 
   createGame(gameId: string, nsp: Namespace, p1Id: number, p2Id: number, gameType: GameType) {
     try {
-      this.games.set(gameId, new Game(gameId, nsp, p1Id, p2Id, gameType, this.databaseService));
+      const curGame = new Game(gameId, nsp, p1Id, p2Id, gameType, this.databaseService);
+      this.games.set(gameId, curGame);
+      curGame.gameStart();
+      console.log(`game started!!!!`);
     } catch (e) {
       throw new InternalServerErrorException("Fail to create game.");
     }
@@ -47,13 +50,6 @@ export class GameService {
     this.games.delete(gameId);
   }
 
-  gameStart(gameId: string) {
-    const curGame = this.games.get(gameId);
-    if (curGame !== undefined) {
-      curGame.gameStart();
-    }
-  }
-
   gameState(gameId: string) {
     const game = this.games.get(gameId);
     if (game !== undefined) {
@@ -61,7 +57,6 @@ export class GameService {
     }
     return GameStatus.FINISHED;
   }
-
 }
 
 class Game {
@@ -137,16 +132,21 @@ class Game {
 
   gameStart() {
     this.gameStatus = GameStatus.MODESELECT;
+    this.roundStartTime = Date.now();
+    this.nsp.to(this.id).emit('matched', { p1: this.p1, p2: this.p2 });
+    this.gameLoop();
   }
   
-  modeSelect() {
-    this.gameStatus = GameStatus.COUNTDOWN;
-    this.roundStartTime = Date.now();
-    this.lastUpdate = this.roundStartTime;
-    this.nsp.to(this.id).emit('gameStart');
-    console.log('gameStart1!!!!!!');
-    this.gameLoop();
-    console.log('gameStart2!!!!!!');
+  modeSelect(curTime: number) {
+    if (curTime - this.roundStartTime >= 5000) {
+      this.gameStatus = GameStatus.COUNTDOWN;
+      this.roundStartTime = Date.now();
+      this.lastUpdate = this.roundStartTime;
+      console.log('gameStart emit!!!!!!');
+      this.nsp.to(this.id).emit('gameStart');
+      return 1;
+    }
+    return 5000 - curTime + this.roundStartTime;
   }
 
   isPlayer(uid: number): boolean {
@@ -214,14 +214,19 @@ class Game {
     }
   }
 
+  setMode(uid: number, mode: GameMode) {
+    if (uid === this.p1) {
+      this.gameModeTmp = mode;
+    }
+  }
+
   getStatus(): GameStatus {
     return this.gameStatus;
   }
 
   // Event driven update
   private gameLoop() {
-    let timeout:number = 10;
-    timeout = this.update();
+    const timeout = this.update();
     if (this.gameStatus === GameStatus.RUNNING) {
       this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);
     }
@@ -354,19 +359,24 @@ class Game {
 
   private disconnect(): number {
     const result = new GameEntity();
+    let winnerElo: number, loserElo: number;
     if (this.score[0] < this.score[1]){
       result.winnerId = this.p2;
       result.loserId = this.p1;
       result.winnerScore = this.score[1];
       result.loserScore = this.score[0];
+      // {winnerElo, loserElo} = this.eloLogic(this.p2, this.p1, )
     } else {
       result.winnerId = this.p1;
       result.loserId = this.p2;
       result.winnerScore = this.score[0];
       result.loserScore = this.score[1];
     }
-    result.gameType = GameType.PUBLIC;
-    this.databaseService.saveGame(result);
+    result.gameType = this.gameType;
+    // const save = this.databaseService.saveGame(result);
+    // Promise.all([save]);
+    // this.databaseService.updateUserElo(winnerUid, result[0]);
+    // this.databaseService.updateUserElo(loserUid, result[1]);
     return 10;
   }
 
@@ -375,7 +385,7 @@ class Game {
     let timeout:number
     switch(this.gameStatus) {
       case GameStatus.MODESELECT: {
-        timeout = 10;
+        timeout = this.modeSelect(curTime);
         break;
       }
       case GameStatus.COUNTDOWN: {
@@ -398,6 +408,7 @@ class Game {
         break;
       }
     }
+
     this.lastUpdate = curTime;
     // console.log(`[${Date.now()}] backend game login update`);
     return timeout;
@@ -496,4 +507,39 @@ class Game {
       time: time,
     };
   }
+
+
+  private expectRating(myElo: number, opElo: number) {
+    // 예상승률 =  1 /  ( 1 +  10 ^ ((상대레이팅점수 - 나의 현재 레이팅점수 ) / 400) )
+    const rate = 400;
+    const exponent = (opElo - myElo) / rate;
+    const probability = 1 / (1 + Math.pow(10, exponent));
+    return probability;
+  }
+
+  private async newRating(myElo: number, opElo: number, isWin: boolean) {
+    const K = 32;
+    // rounded value
+    if (isWin) {
+      return Math.round(myElo + K  * (1 - this.expectRating(myElo, opElo)));
+    } else {
+      return Math.round(myElo + K  * (0 - this.expectRating(myElo, opElo)));
+    }
+  }
+
+  private eloLogic(winnerElo: number, loserElo: number) {
+    // Rn =  Ro +  K  (  W      -    We    )
+    // 레이팅점수   =  현재레이팅점수  +   상수  ( 경기결과  -    예상승률 )
+    // we =  1  / ( 1 +  10^  (( Rb - Ra  ) / 400) )
+    const result = Promise.all([
+      this.newRating(winnerElo, loserElo, true),
+      this.newRating(loserElo, winnerElo, false),
+    ]);
+    
+    return { winnerElo: result[0], loserElo: result[1] };
+
+    // console.log("win = " + winResult);
+    // console.log("lose = " + loseResult);
+  }
+
 }

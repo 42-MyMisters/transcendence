@@ -4,7 +4,7 @@ import "../../styles/PingPong.css";
 import React, { useEffect } from "react";
 
 import * as chatAtom from "../atom/ChatAtom";
-import { isGameStartedAtom, isPrivateAtom, serverClientTimeDiffAtom } from "../atom/GameAtom";
+import { isGameStartedAtom, isPrivateAtom } from "../atom/GameAtom";
 import { Game } from "./Pong";
 
 
@@ -26,16 +26,20 @@ import {
 
 import { AdminLogPrinter } from "../../event/event.util";
 import { GameCoordinate } from "../../socket/game.dto";
-import { Socket } from 'socket.io-client';
+import { Socket } from "socket.io-client";
 
 
-interface GameSocketDto {
-  gameSocket: Socket;
-};
+// interface GameSocketDto {
+//   gameSocket: Socket;
+// };
 
-export default function PingPong(
-  game: GameSocketDto
-) {
+export default function PingPong({
+  gameSocket,
+}: {
+  gameSocket: Socket,
+}){
+  console.log("gameSocket connected? ",gameSocket.connected);
+
   const [upArrow, setUpArrow] = useState(false);
   const [downArrow, setDownArrow] = useState(false);
   const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
@@ -74,6 +78,9 @@ export default function PingPong(
     if (!isGameStart) {
       clearInterval(pingInterval);
     }
+    console.log(gameSocket.connected);
+    console.log(gameSocket.id);
+    console.log(gameSocket);
     const curTime = Date.now();
     const pingEventHandler = (serverTime: number) => {
       const now = Date.now();
@@ -86,13 +93,11 @@ export default function PingPong(
       }
       AdminLogPrinter(adminConsole, `pingRTTmin: ${pingRTTmin}ms`);
     };
-    game.gameSocket.emit("ping", pingEventHandler);
-    // return () => {
-    //   game.gameSocket.off("ping", pingEventHandler);
-    // };
+    gameSocket.emit("ping", pingEventHandler);
   };
 
   useEffect(() => {
+    console.log("pingInterval");
     pingInterval = setInterval(pingEvent, 1000);
     return () => {
       console.log("clear pingInterval");
@@ -132,12 +137,7 @@ export default function PingPong(
     coords.paddleSpeed = 0;
     update(Date.now(), coords.time);
     Game(coords, canvas);
-    if (isGameStart) {
-      setIsGameStart(false);
-    }
-    if (!gameResultModal) {
-      setGameResultModal(true);
-    }
+    setGameResultModal(true);
   };
 
   const countdownEventHandler = () => {
@@ -145,15 +145,15 @@ export default function PingPong(
   }
 
   useEffect(() => {
-    game.gameSocket.on("syncData", syncDataHandler);
-    game.gameSocket.on("scoreInfo", scoreEventHandler);
-    game.gameSocket.on("finished", finishEventHandler);
-    game.gameSocket.on("countdown", countdownEventHandler);
+    gameSocket.on("syncData", syncDataHandler);
+    gameSocket.on("scoreInfo", scoreEventHandler);
+    gameSocket.on("finished", finishEventHandler);
+    gameSocket.on("countdown", countdownEventHandler);
     return () => {
-      game.gameSocket.off("syncData", syncDataHandler);
-      game.gameSocket.off("scoreInfo", scoreEventHandler);
-      game.gameSocket.off("finished", finishEventHandler);
-      game.gameSocket.off("countdown", countdownEventHandler);
+      gameSocket.off("syncData", syncDataHandler);
+      gameSocket.off("scoreInfo", scoreEventHandler);
+      gameSocket.off("finished", finishEventHandler);
+      gameSocket.off("countdown", countdownEventHandler);
     };
   }, []);
 
@@ -165,7 +165,7 @@ export default function PingPong(
   }, []);
 
   // // the connection is denied by the server in a middleware function
-  // game.gameSocket.on("connect_error", (err) => {
+  // gameSocket.on("connect_error", (err) => {
   //   if (err.message === "unauthorized") {
   //     // handle each case
   //   }
@@ -309,13 +309,13 @@ export default function PingPong(
       if (event.code === "ArrowUp") {
         if (!upArrow) {
           setUpArrow(true);
-          game.gameSocket.emit("upPress");
+          gameSocket.emit("upPress");
           AdminLogPrinter(adminConsole, "up press");
         }
       } else if (event.code === "ArrowDown") {
         if (!downArrow) {
           setDownArrow(true);
-          game.gameSocket.emit("downPress");
+          gameSocket.emit("downPress");
           AdminLogPrinter(adminConsole, "down press");
         }
       }
@@ -325,13 +325,13 @@ export default function PingPong(
       if (event.code === "ArrowUp") {
         if (upArrow) {
           setUpArrow(false);
-          game.gameSocket.emit("upRelease");
+          gameSocket.emit("upRelease");
           AdminLogPrinter(adminConsole, "up release");
         }
       } else if (event.code === "ArrowDown") {
         if (downArrow) {
           setDownArrow(false);
-          game.gameSocket.emit("downRelease");
+          gameSocket.emit("downRelease");
           AdminLogPrinter(adminConsole, "down release");
         }
       }
