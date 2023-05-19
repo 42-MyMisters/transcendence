@@ -655,8 +655,6 @@ export default function ChatPage() {
 	async function firstLogin() {
 		if (isFirstLogin) {
 			await getMyinfoHandler();
-			// socket.socket.connect();
-			// setIsFirstLogin(false);
 		}
 	}
 
