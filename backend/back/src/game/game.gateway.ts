@@ -3,7 +3,7 @@ import { ConnectedSocket, OnGatewayConnection, OnGatewayDisconnect, OnGatewayIni
 import { Namespace, Socket } from 'socket.io';
 import { AuthService } from 'src/auth/auth.service';
 import { UserService } from 'src/user/user.service';
-import { GameStatus, GameType } from './game.enum';
+import { GameMode, GameStatus, GameType } from './game.enum';
 import { GameService } from './game.service';
 
 
@@ -81,11 +81,16 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         Promise.all(joinRoom);
         sockA.data.room = gameId;
         sockB.data.room = gameId;
+        // console.log(`${sockA.data.uid} connected? ${sockA.connected}`);
+        // sockA.join(gameId);
+        // console.log(`${sockA.data.uid} connected? ${}`);
         // sockA.join(gameId);
         // sockB.join(gameId);
-        console.log(`${sockA.data.uid} joined room list ${JSON.stringify(sockA.rooms)}`);
+        console.log(`${sockA.data.uid} joined room list `, sockA.rooms);
+        console.log(`${sockB.data.uid} joined room list `, sockB.rooms);
         this.gameService.createGame(gameId, this.server, p1, p2, GameType.PUBLIC);
       }
+
       if (socketList.length) {
         // tmp.push({elo:elo, range:Math.trunc(socketList[0].data.time / 5)});
       } else {
@@ -160,9 +165,9 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         socket.data.elo = user.elo;
         const userInGame = this.userInGame.get(uid);
         if (userInGame === undefined) {
-          socket.emit("isLoading", true);
+          // socket.emit("isLoading", true);
           if (socket.handshake.auth.type === GameType.PRIVATE) {
-            socket.emit("isPrivate", true);
+            // socket.emit("isPrivate", true);
           } else {
             socket.data.timestamp = Date.now();
             this.readyQueue.push(socket);
@@ -176,6 +181,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
             // this.gameQueue.push(socket.data.elo, socket);
           }
         } else {
+          
           console.log("Reconnected.");
           socket.join(this.userInGame.get(uid)!);
         }
@@ -194,6 +200,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.logger.log(`${socket.data.uid} invalid socket connection disconnected.`);
       } else if (curGame.isPlayer(socket.data.uid)) {
         curGame.playerLeft(socket.data.uid);
+        this.userInGame.delete(socket.data.uid);
         this.logger.log(`${socket.data.uid} player left.`);
       } else {
         this.logger.log(`${socket.data.uid} observer left.`);
@@ -281,13 +288,18 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   @SubscribeMessage('modeSelect')
-  async modeSelect(socket: Socket, payload: any) {
-
-    this.gameService.getGame(payload.id);
+  async modeSelect(socket: Socket, mode: GameMode) {
+    const curGame = this.gameService.getGame(socket.data.uid);
+    if (curGame !== undefined) {
+      if (curGame.getStatus() === GameStatus.MODESELECT && curGame.isPlayer(socket.data.uid)) {
+        curGame.setMode(socket.data.uid, mode);
+      }
+    }
   }
 
   @SubscribeMessage('ping')
   async pong() {
+    console.log("pong");
     return Date.now();
   }
 
