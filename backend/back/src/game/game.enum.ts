@@ -12,10 +12,11 @@ export const enum Hit {
 }
 
 export const enum GameStatus {
-  COUNTDOWN = 0,
-  RUNNING = 1,
-  FINISHED = 2,
-  DISCONNECT = 3,
+  MODESELECT = 0,
+  COUNTDOWN = 1,
+  RUNNING = 2,
+  FINISHED = 3,
+  DISCONNECT = 4,
 }
 
 export const enum GameMode {

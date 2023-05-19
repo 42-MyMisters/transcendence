@@ -33,7 +33,10 @@ export class GameService {
 
   createGame(gameId: string, nsp: Namespace, p1Id: number, p2Id: number, gameType: GameType) {
     try {
-      this.games.set(gameId, new Game(gameId, nsp, p1Id, p2Id, gameType, this.databaseService));
+      const curGame = new Game(gameId, nsp, p1Id, p2Id, gameType, this.databaseService);
+      this.games.set(gameId, curGame);
+      curGame.gameStart();
+      console.log(`game started!!!!`);
     } catch (e) {
       throw new InternalServerErrorException("Fail to create game.");
     }
@@ -47,13 +50,13 @@ export class GameService {
     this.games.delete(gameId);
   }
 
-  gameStart(gameId: string) {
-    const curGame = this.games.get(gameId);
-    if (curGame !== undefined) {
-      curGame.gameStart();
+  gameState(gameId: string) {
+    const game = this.games.get(gameId);
+    if (game !== undefined) {
+      return game.getStatus();
     }
+    return GameStatus.FINISHED;
   }
-
 }
 
 class Game {
@@ -120,7 +123,7 @@ class Game {
     }
     this.paddle1Y = this.paddle2Y = (this.canvasHeight - this.paddleHeight) / 2;
     this.roundStartTime = Date.now();
-    this.lastUpdateCoords = this.getState();
+    this.lastUpdateCoords = this.curState(this.roundStartTime);
     const objectInfo = {...this.lastUpdateCoords};
     objectInfo.ballSpeedX = 0;
     objectInfo.ballSpeedY = 0;
@@ -128,11 +131,22 @@ class Game {
   }
 
   gameStart() {
-    this.gameStatus = GameStatus.COUNTDOWN;
+    this.gameStatus = GameStatus.MODESELECT;
     this.roundStartTime = Date.now();
-    this.lastUpdate = this.roundStartTime;
+    this.nsp.to(this.id).emit('matched', { p1: this.p1, p2: this.p2 });
     this.gameLoop();
-    this.nsp.to(this.id).emit('gameStart', true);
+  }
+  
+  modeSelect(curTime: number) {
+    if (curTime - this.roundStartTime >= 5000) {
+      this.gameStatus = GameStatus.COUNTDOWN;
+      this.roundStartTime = Date.now();
+      this.lastUpdate = this.roundStartTime;
+      console.log('gameStart emit!!!!!!');
+      this.nsp.to(this.id).emit('gameStart');
+      return 1;
+    }
+    return 5000 - curTime + this.roundStartTime;
   }
 
   isPlayer(uid: number): boolean {
@@ -156,8 +170,9 @@ class Game {
       } else {
         this.keyPress[2] = Date.now();
       }
-      this.lastUpdateCoords = this.getState();
-      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);    }
+      this.lastUpdateCoords = this.curState(this.lastUpdateCoords.time);
+      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);
+    }
   }
   
   upRelease(uid: number) {
@@ -168,8 +183,9 @@ class Game {
       } else {
         this.keyPress[2] = 0;
       }
-      this.lastUpdateCoords = this.getState();
-      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);    }
+      this.lastUpdateCoords = this.curState(this.lastUpdateCoords.time);
+      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);
+    }
   }
 
   downPress(uid: number) {
@@ -180,8 +196,9 @@ class Game {
       } else {
         this.keyPress[3] = Date.now();
       }
-      this.lastUpdateCoords = this.getState();
-      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);    }
+      this.lastUpdateCoords = this.curState(this.lastUpdateCoords.time);
+      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);
+    }
   }
   
   downRelease(uid: number) {
@@ -192,17 +209,28 @@ class Game {
       } else {
         this.keyPress[3] = 0;
       }
-      this.lastUpdateCoords = this.getState();
-      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);    }
+      this.lastUpdateCoords = this.curState(this.lastUpdateCoords.time);
+      this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);
+    }
+  }
+
+  setMode(uid: number, mode: GameMode) {
+    if (uid === this.p1) {
+      this.gameModeTmp = mode;
+    }
+  }
+
+  getStatus(): GameStatus {
+    return this.gameStatus;
   }
 
   // Event driven update
   private gameLoop() {
-    if (this.gameStatus !== GameStatus.FINISHED) {
-      const timeout = this.update();
+    const timeout = this.update();
+    if (this.gameStatus === GameStatus.RUNNING) {
       this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);
-      setTimeout(this.gameLoop.bind(this), timeout);
     }
+    setTimeout(this.gameLoop.bind(this), timeout);
   }
 
   private isFinished(): boolean{
@@ -213,13 +241,14 @@ class Game {
     if (this.isFinished() === true) {
       this.gameStatus = GameStatus.FINISHED;
       return 100;
-    } else if (curTime - this.roundStartTime >= 2000) {
+    } else if (curTime - this.roundStartTime >= 3000) {
       this.gameStatus = GameStatus.RUNNING;
       this.init();
-      this.nsp.to(this.id).emit('countdown', true);
+      // this.nsp.to(this.id).emit('countdown', true);
       return 100;
     }
-    return 2000;
+    this.nsp.to(this.id).emit('countdown', true);
+    return curTime - this.roundStartTime + 3000;
   }
 
   private getHitTime(): number {
@@ -276,13 +305,17 @@ class Game {
     this.ballSpeedX = -this.ballSpeedX;
   }
 
-  private updateScore(i: number): number {
+  private updateScore(i: number, time: number): number {
     this.gameStatus = GameStatus.COUNTDOWN;
     this.score[i]++;
     this.round++;
-    this.nsp.to(this.id).emit("syncData", this.getState());
+    this.lastUpdateCoords = this.curState(time);
+    for(let i = 0; i < 4; i++) {
+      this.lastUpdateCoords.keyPress[i] = 0;
+    }
+    this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);
     this.nsp.to(this.id).emit("scoreInfo", {p1Score: this.score[0], p2Score: this.score[1]});
-    return 2000;
+    return 3000;
   }
 
   private running(curTime: number): number {
@@ -295,28 +328,30 @@ class Game {
       this.ballY += this.ballSpeedY * dt;
       const isHitY = this.collisionCheckY();
       const isHitX = this.collisionCheckX();
-      if (isHitY) {
-        if (this.ballY < this.ballRadius) {
+      if (isHitY !== Direction.NONE) {
+        if (isHitY === Direction.UP) {
           this.ballY = 2 * this.ballRadius - this.ballY;
         } else {
           this.ballY = 2 * (this.canvasHeight - this.ballRadius) - this.ballY;
         }
         this.ballSpeedY = -this.ballSpeedY;
       }
-      if (isHitX == Direction.LEFT) {
-        if (this.collisionCheckP1Paddle() === Hit.PADDLE) {
-          this.hitP1Paddle();
+      if (isHitX !== Direction.NONE) {
+        if (isHitX == Direction.LEFT) {
+          if (this.collisionCheckP1Paddle() === Hit.PADDLE) {
+            this.hitP1Paddle();
+          } else {
+            return this.updateScore(1, curTime);
+          }
         } else {
-          return this.updateScore(1);
-        }
-      } else if (isHitX === Direction.RIGHT) {
-        if (this.collisionCheckP2Paddle() === Hit.PADDLE) {
-          this.hitP2Paddle();
-        } else {
-          return this.updateScore(0);
+          if (this.collisionCheckP2Paddle() === Hit.PADDLE) {
+            this.hitP2Paddle();
+          } else {
+            return this.updateScore(0, curTime);
+          }
         }
       }
-      this.lastUpdateCoords = this.getState();
+      this.lastUpdateCoords = this.curState(curTime);
       timeout = this.getHitTime();
     }
     return timeout;
@@ -324,19 +359,24 @@ class Game {
 
   private disconnect(): number {
     const result = new GameEntity();
+    let winnerElo: number, loserElo: number;
     if (this.score[0] < this.score[1]){
       result.winnerId = this.p2;
       result.loserId = this.p1;
       result.winnerScore = this.score[1];
       result.loserScore = this.score[0];
+      // {winnerElo, loserElo} = this.eloLogic(this.p2, this.p1, )
     } else {
       result.winnerId = this.p1;
       result.loserId = this.p2;
       result.winnerScore = this.score[0];
       result.loserScore = this.score[1];
     }
-    result.gameType = GameType.PUBLIC;
-    this.databaseService.saveGame(result);
+    result.gameType = this.gameType;
+    // const save = this.databaseService.saveGame(result);
+    // Promise.all([save]);
+    // this.databaseService.updateUserElo(winnerUid, result[0]);
+    // this.databaseService.updateUserElo(loserUid, result[1]);
     return 10;
   }
 
@@ -344,6 +384,10 @@ class Game {
     const curTime = Date.now();
     let timeout:number
     switch(this.gameStatus) {
+      case GameStatus.MODESELECT: {
+        timeout = this.modeSelect(curTime);
+        break;
+      }
       case GameStatus.COUNTDOWN: {
         timeout = this.countdown(curTime);
         break;
@@ -353,7 +397,8 @@ class Game {
         break;
       }
       case GameStatus.FINISHED: {
-        this.nsp.to(this.id).emit("finished", { p1: this.score[0], p2: this.score[1] });
+        console.log("finished!!!!!");
+        this.nsp.to(this.id).emit("finished", {p1Score: this.score[0], p2Score: this.score[1]});
         this.gameStatus = GameStatus.DISCONNECT;
         timeout = 1000;
         break;
@@ -363,6 +408,7 @@ class Game {
         break;
       }
     }
+
     this.lastUpdate = curTime;
     // console.log(`[${Date.now()}] backend game login update`);
     return timeout;
@@ -448,7 +494,7 @@ class Game {
     return Hit.WALL;
   }
 
-  private getState(): GameCoords {
+  private curState(time: number): GameCoords {
     return {
       paddle1Y: this.paddle1Y,
       ballX: this.ballX,
@@ -458,8 +504,42 @@ class Game {
       ballSpeedY: this.ballSpeedY,
       paddleSpeed: this.paddleSpeed,
       keyPress: this.keyPress,
-      time: Date.now(),
+      time: time,
     };
+  }
+
+
+  private expectRating(myElo: number, opElo: number) {
+    // 예상승률 =  1 /  ( 1 +  10 ^ ((상대레이팅점수 - 나의 현재 레이팅점수 ) / 400) )
+    const rate = 400;
+    const exponent = (opElo - myElo) / rate;
+    const probability = 1 / (1 + Math.pow(10, exponent));
+    return probability;
+  }
+
+  private async newRating(myElo: number, opElo: number, isWin: boolean) {
+    const K = 32;
+    // rounded value
+    if (isWin) {
+      return Math.round(myElo + K  * (1 - this.expectRating(myElo, opElo)));
+    } else {
+      return Math.round(myElo + K  * (0 - this.expectRating(myElo, opElo)));
+    }
+  }
+
+  private eloLogic(winnerElo: number, loserElo: number) {
+    // Rn =  Ro +  K  (  W      -    We    )
+    // 레이팅점수   =  현재레이팅점수  +   상수  ( 경기결과  -    예상승률 )
+    // we =  1  / ( 1 +  10^  (( Rb - Ra  ) / 400) )
+    const result = Promise.all([
+      this.newRating(winnerElo, loserElo, true),
+      this.newRating(loserElo, winnerElo, false),
+    ]);
+    
+    return { winnerElo: result[0], loserElo: result[1] };
+
+    // console.log("win = " + winResult);
+    // console.log("lose = " + loseResult);
   }
 
 }

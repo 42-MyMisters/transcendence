@@ -1,4 +1,3 @@
-
 export interface GameCoordinate {
   paddle1Y: number;
   ballX: number;
@@ -9,4 +8,9 @@ export interface GameCoordinate {
   paddleSpeed: number;
   keyPress: number[];
   time: number;
+}
+
+export const enum GameType {
+  PUBLIC = 0,
+  PRIVATE = 1,
 }

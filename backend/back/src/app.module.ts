@@ -6,7 +6,7 @@ import { MemoryModule } from './cache/memory.module';
 import { typeORMConfig } from './configs/typeorm.config';
 import { GameModule } from './game/game.module';
 import { LoginModule } from './login/login.module';
-import { EventsModule } from './socket/chat.module';
+import { EventsModule } from './chat/chat.module';
 import { TesterModule } from './tester/tester.module';
 
 @Module({
