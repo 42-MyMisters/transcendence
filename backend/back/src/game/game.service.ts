@@ -132,17 +132,21 @@ class Game {
 
   gameStart() {
     this.gameStatus = GameStatus.MODESELECT;
+    this.roundStartTime = Date.now();
     this.nsp.to(this.id).emit('matched', { p1: this.p1, p2: this.p2 });
+    this.gameLoop();
   }
   
-  modeSelect() {
-    this.gameStatus = GameStatus.COUNTDOWN;
-    this.roundStartTime = Date.now();
-    this.lastUpdate = this.roundStartTime;
-    this.nsp.to(this.id).emit('gameStart');
-    console.log('gameStart1!!!!!!');
-    this.gameLoop();
-    console.log('gameStart2!!!!!!');
+  modeSelect(curTime: number) {
+    if (curTime - this.roundStartTime >= 5000) {
+      this.gameStatus = GameStatus.COUNTDOWN;
+      this.roundStartTime = Date.now();
+      this.lastUpdate = this.roundStartTime;
+      console.log('gameStart emit!!!!!!');
+      this.nsp.to(this.id).emit('gameStart');
+      return 1;
+    }
+    return 5000 - curTime + this.roundStartTime;
   }
 
   isPlayer(uid: number): boolean {
@@ -210,14 +214,19 @@ class Game {
     }
   }
 
+  setMode(uid: number, mode: GameMode) {
+    if (uid === this.p1) {
+      this.gameModeTmp = mode;
+    }
+  }
+
   getStatus(): GameStatus {
     return this.gameStatus;
   }
 
   // Event driven update
   private gameLoop() {
-    let timeout:number = 10;
-    timeout = this.update();
+    const timeout = this.update();
     if (this.gameStatus === GameStatus.RUNNING) {
       this.nsp.to(this.id).emit("syncData", this.lastUpdateCoords);
     }
@@ -363,8 +372,9 @@ class Game {
       result.winnerScore = this.score[0];
       result.loserScore = this.score[1];
     }
-    result.gameType = GameType.PUBLIC;
-    this.databaseService.saveGame(result);
+    result.gameType = this.gameType;
+    // const save = this.databaseService.saveGame(result);
+    // Promise.all([save]);
     // this.databaseService.updateUserElo(winnerUid, result[0]);
     // this.databaseService.updateUserElo(loserUid, result[1]);
     return 10;
@@ -375,7 +385,7 @@ class Game {
     let timeout:number
     switch(this.gameStatus) {
       case GameStatus.MODESELECT: {
-        timeout = 10;
+        timeout = this.modeSelect(curTime);
         break;
       }
       case GameStatus.COUNTDOWN: {
@@ -398,6 +408,7 @@ class Game {
         break;
       }
     }
+
     this.lastUpdate = curTime;
     // console.log(`[${Date.now()}] backend game login update`);
     return timeout;
