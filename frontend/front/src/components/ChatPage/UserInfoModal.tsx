@@ -202,7 +202,7 @@ export default function UserInfoModal() {
           {userInfo.isFollow ? "unfollow" : "follow"}
         </div>
         <div className="invite" onClick={Invite}>
-          {userInfo.userState != "ingame" ? "invite" : "observe"}
+          {userInfo.userState !== "inGame" ? "invite" : "observe"}
         </div>
         <div className="ignore" onClick={Ignore}>
           {userInfo.isIgnored ? "unignore" : "ignore"}

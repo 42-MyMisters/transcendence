@@ -12,6 +12,7 @@ import {
   isPrivateAtom,
 } from "../components/atom/GameAtom";
 
+import * as chatSocket from "../socket/chat.socket";
 import * as chatAtom from "../components/atom/ChatAtom";
 import { gameResultModalAtom } from "../components/atom/ModalAtom";
 import GameResultModal from "../components/GamePage/GameResultModal";

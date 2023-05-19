@@ -669,13 +669,14 @@ export default function ChatPage() {
 	}
 
 	useEffect(() => {
+		console.log(`isLoading: ${isLoading}`);
 		if (isLoading) {
 			socket.emitUserUpdate(adminConsole, 'inGame');
 		}
 	}, [isLoading]);
 
 	useEffect(() => {
-		if (userList[userInfo.uid].userStatus === 'inGame' && !isGameStart) {
+		if (userList[userInfo.uid]?.userStatus === 'inGame' && !isGameStart) {
 			socket.emitUserUpdate(adminConsole, 'online');
 		}
 	}, [isGameStart]);
