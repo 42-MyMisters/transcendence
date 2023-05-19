@@ -182,9 +182,7 @@ export class EventsGateway
 			this.logger.warn(`${socket.id} socket connected.`);
 			const uid = await this.authService.jwtVerify(socket.handshake.auth.token);
 			socket.data.tempUid = uid;
-			this.logger.debug(`- ${socket.id} after jwtVerify.`);
 			const user = await this.userService.getUserByUid(uid);
-			this.logger.debug(`-- ${socket.id} after getUserByUid.`);
 
 			if (!socket.connected) {
 				throw new ConflictException();
@@ -267,6 +265,7 @@ export class EventsGateway
 			}
 			userList[socket.data.user.uid].isRefresh = false;
 		} else {
+			this.logger.warn(`${socket.id} invalid connection. disconnect socket.`);
 		}
 		socket.data.roomList?.forEach((roomId: number) => {
 			socket.leave(roomId.toString());
@@ -303,11 +302,7 @@ export class EventsGateway
 	@SubscribeMessage("user-change-info")
 	async UserUpdateInfo(
 		@ConnectedSocket() socket: Socket,
-		@MessageBody() {
-			action
-		}: {
-			action: 'name' | 'image'
-		}) {
+	) {
 		const changedUser: User | null = await this.userService.getUserByUid(socket.data.user.uid);
 		if (changedUser) {
 			userList[socket.data.user.uid].userDisplayName = changedUser.nickname;

@@ -161,7 +161,7 @@ export async function changeProfileImage(
       AdminLogPrinter(adminConsole, '\nchangeProfileImage: ', response);
       if (response.status === 201) {
         if (action) {
-          socket.socket.emit('user-change-info', 'image');
+          socket.socket.emit('user-change-info');
           callback();
         }
       } else {
@@ -196,7 +196,7 @@ export async function changeNickName(
       if (response.status === 200) {
         if (action) {
 
-          socket.socket.emit('user-change-info', 'name');
+          socket.socket.emit('user-change-info');
           callback();
         }
       } else {
