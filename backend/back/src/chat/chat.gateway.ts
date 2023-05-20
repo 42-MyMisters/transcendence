@@ -328,7 +328,7 @@ export class EventsGateway
 			status: userStatus;
 		}
 	) {
-		if (userList[socket.data.user.uid]) {
+		if (socket.data?.user?.uid && userList[socket.data.user.uid]) {
 			userList[socket.data.user.uid].status = status;
 			this.nsp.emit("user-update", {
 				userId: userList[socket.data.user.uid].userId,
@@ -396,8 +396,8 @@ export class EventsGateway
 			result: 'accept' | 'decline';
 		}
 	) {
-		if (userList[targetId] && userList[targetId].socket) {
-			this.nsp.to(userList[targetId].socket!.id).emit("game-invite-check", { targetId, result });
+		if (userList[targetId] && userList[targetId].socket && socket.data.user.uid !== undefined) {
+			this.nsp.to(userList[targetId].socket!.id).emit("game-invite-check", { targetId: socket.data.user.uid, result });
 		}
 	}
 

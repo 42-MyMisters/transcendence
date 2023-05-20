@@ -1,4 +1,4 @@
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom, useSetAtom, useAtomValue } from "jotai";
 import { userInfoModalAtom } from "../../components/atom/ModalAtom";
 import { AdminLogPrinter, PressKey } from "../../event/event.util";
 import * as api from "../../event/api.request";
@@ -23,6 +23,7 @@ export default function UserInfoModal() {
   const [blockList, setBlockList] = useAtom(chatAtom.blockListAtom);
   const [, setIsPrivate] = useAtom(isPrivateAtom);
   const setGameInviteInfo = useSetAtom(gameInviteInfoAtom);
+  const myInfo = useAtomValue(UserAtom);
 
   const navigate = useNavigate();
   const [, setRefreshToken] = useAtom(refreshTokenAtom);
@@ -105,10 +106,10 @@ export default function UserInfoModal() {
   };
 
   const callbackInvite = () => {
-    infoModalOff();
-    setIsPrivate(true);
-    setGameInviteInfo({ gameType: 'invite', userId: userInfo.uid });
     socket.emitGameInvite({ adminConsole, navigate }, userInfo.uid, userInfo.nickName);
+    setGameInviteInfo({ gameType: 'invite', userId: myInfo.uid });
+    setIsPrivate(true);
+    infoModalOff();
     navigate("/game");
   };
   const callbackObserv = () => {

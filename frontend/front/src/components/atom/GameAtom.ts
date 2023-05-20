@@ -18,4 +18,4 @@ type gameInviteInfo = {
 
 export const gameInviteInfoAtom = atom<gameInviteInfo>({ gameType: 'queue', userId: - 1 });
 
-export const gameInviteCheckAtom = atom<number>(-1);
+export const gameinviteFromAtom = atom<number>(-1);

@@ -12,7 +12,7 @@ import {
 	isLoadingAtom,
 	isGameQuitAtom,
 	gameInviteInfoAtom,
-	gameInviteCheckAtom,
+	gameinviteFromAtom,
 } from "../components/atom/GameAtom";
 
 import { useEffect } from "react";
@@ -56,8 +56,8 @@ export default function ChatWrapper({ children }: { children: JSX.Element }) {
 	const isLoading = useAtomValue(isLoadingAtom);
 	const isGameStart = useAtomValue(isGameStartedAtom);
 	const isGameQuit = useAtomValue(isGameQuitAtom);
-	const setGameInviteInfo = useSetAtom(gameInviteInfoAtom);
-	const setGameInviteCheck = useSetAtom(gameInviteCheckAtom);
+	const [gameInviteInfo, setGameInviteInfo] = useAtom(gameInviteInfoAtom);
+	const setGameInviteFrom = useSetAtom(gameinviteFromAtom);
 
 	PressKey(["F4"], () => {
 		setAdminConsole((prev) => !prev);
@@ -590,10 +590,12 @@ export default function ChatWrapper({ children }: { children: JSX.Element }) {
 			userId: number
 		}) => {
 			if (blockList[userId]) {
-				socket.emitGameInviteCheck({ adminConsole }, userId, 'decline');
+				setTimeout(() => {
+					socket.emitGameInviteCheck({ adminConsole }, userId, 'decline');
+				}, 5000);
 				return;
 			}
-			setGameInviteCheck(userId);
+			setGameInviteFrom(userId);
 			setGameInviteModal(true);
 		});
 		return () => {

@@ -55,26 +55,27 @@ export default function GamePage() {
       this.type = isPrivate ? GameType.PRIVATE : GameType.PUBLIC;
       if (gameInviteInfo.gameType === 'invite') {
         this.invite = gameInviteInfo.userId;
-      }
-      else if (gameInviteInfo.gameType === 'observe') {
+      } else if (gameInviteInfo.gameType === 'observe') {
         this.observ = gameInviteInfo.userId;
       }
     }
   }
 
-  const auth: socketAuth = new socketAuth();
 
   // const URL = process.env.REACT_APP_API_URL;
   const URL = "https://localhost";
   const NameSpace = "/game";
 
-  const gameSocket: Socket = io(`${URL}${NameSpace}`, {
+  const auth = new socketAuth();
+
+  const gameSocket = io(`${URL}${NameSpace}`, {
     auth: auth,
     autoConnect: false,
     transports: ["polling", "websocket"],
     secure: true,
     upgrade: true,
   });
+
 
 
   PressKey(["F4"], () => {
