@@ -22,8 +22,8 @@ import { TFAAtom, UserAtom } from "../components/atom/UserAtom";
 import { useNavigate } from "react-router-dom";
 import * as chatAtom from "../components/atom/ChatAtom";
 import { GetMyInfo, LogOut, RefreshToken } from "../event/api.request";
-import type * as chatType from "./chat.dto";
-import * as socket from "./chat.socket";
+import type * as chatType from "../socket/chat.dto";
+import * as socket from "../socket/chat.socket";
 
 import { AdminLogPrinter, PressKey } from "../event/event.util";
 

@@ -2,7 +2,7 @@ import { StrictMode, useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
 import ChatPage from "./pages/ChatPage";
-import ChatWrapper from "./socket/ChatWrapper";
+import ChatWrapper from "./pages/ChatWrapper";
 import GamePage from "./pages/GamePage";
 import ProfilePage from "./pages/ProfilePage";
 import LoginPage from "./pages/LoginPage";
