@@ -50,7 +50,7 @@ export default function ChatPage() {
 	const navigate = useNavigate();
 	const setRefreshToken = useSetAtom(refreshTokenAtom);
 
-	const [gameInviteModal, setGameInviteModal] = useAtom(gameInviteModalAtom);
+	const gameInviteModal = useAtomValue(gameInviteModalAtom);
 	const [adminConsole, setAdminConsole] = useAtom(chatAtom.adminConsoleAtom);
 	const setTfa = useSetAtom(TFAAtom);
 
@@ -169,7 +169,6 @@ export default function ChatPage() {
 						<button onClick={showServerUser}> show server user</button>
 						<button onClick={showServerRoom}> show server room</button>
 						<button onClick={showSocketState}> socket state</button>
-						<button onClick={() => setGameInviteModal(true)}> gameinvite</button>
 					</div>
 					: ''
 			}

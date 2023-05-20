@@ -6,6 +6,7 @@ import { gameInviteModalAtom } from "../atom/ModalAtom";
 import * as chatAtom from "../../components/atom/ChatAtom";
 import * as socket from "../../socket/chat.socket";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from 'react';
 
 export default function GameInviteModal() {
   const setGameInviteModal = useSetAtom(gameInviteModalAtom);
@@ -16,9 +17,12 @@ export default function GameInviteModal() {
   const adminConsole = useAtomValue(chatAtom.adminConsoleAtom);
   const navigate = useNavigate();
 
-  PressKey(["Escape"], () => {
-    setGameInviteModal(false);
-  });
+  useEffect(() => {
+    PressKey(["Escape"], () => {
+      setGameInviteModal(false);
+      socket.emitGameInviteCheck({ adminConsole }, gameInviteCheck, 'decline');
+    });
+  }, [gameInviteCheck]);
 
   return (
     <>
