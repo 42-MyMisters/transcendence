@@ -103,20 +103,26 @@ export default function UserInfoModal() {
     infoModalOff();
   };
 
+  const callbackInvite = () => {
+    infoModalOff();
+    setIsPrivate(true);
+    navigate("/game");
+  };
+  const callbackObserv = () => {
+    infoModalOff();
+    navigate("/game");
+  };
+  const callbackError = () => {
+    infoModalOff();
+    alert('유저가 게임 대기열에 있습니다.')
+  };
+
   const Invite = () => {
     if (isDefaultUser) return;
     if (userList[userInfo.uid].userStatus === 'offline') {
       alert('유저가 오프라인 상태입니다.');
-      return;
-    } else if (userList[userInfo.uid].userStatus === 'online') {
-      // online = invite
-      infoModalOff();
-      navigate("/game");
-
     } else {
-      // ingame = check inLoading or inGaming -> observ
-
-      setIsPrivate(true);
+      socket.emitGameStatus(userInfo.uid, callbackInvite, callbackObserv, callbackError)
     }
   };
 

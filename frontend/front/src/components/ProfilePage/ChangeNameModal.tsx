@@ -34,13 +34,13 @@ export default function ChangeNameModal() {
 
   async function getMyinfoHandler() {
     const getMeResponse = await api.GetMyInfo(adminConsole, setUserInfo);
-    if (getMeResponse == 401) {
+    if (getMeResponse === 401) {
       const refreshResponse = await api.RefreshToken(adminConsole);
       if (refreshResponse !== 201) {
         logOutHandler();
       } else {
         const getMeResponse = await api.GetMyInfo(adminConsole, setUserInfo);
-        if (getMeResponse == 401) {
+        if (getMeResponse === 401) {
           logOutHandler();
         }
       }
@@ -72,7 +72,7 @@ export default function ChangeNameModal() {
         logOutHandler();
       } else {
         const changeNickNameRes = await api.changeNickName(adminConsole, format, getMyinfoHandler);
-        if (changeNickNameRes == 401) {
+        if (changeNickNameRes === 401) {
           logOutHandler();
         } else {
           setchangeNameModal(false);

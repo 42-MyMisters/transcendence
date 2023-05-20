@@ -35,8 +35,8 @@ export default function ProfileOptions() {
       if (refreshResponse !== 201) {
         logOutHandler();
       } else {
-        const getMeResponse = await api.toggleTFA(adminConsole, setQRcodeURL);
-        if (getMeResponse == 401) {
+        const FTARes = await api.toggleTFA(adminConsole, setQRcodeURL);
+        if (FTARes === 401) {
           logOutHandler();
         }
       }

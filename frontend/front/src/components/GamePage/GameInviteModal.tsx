@@ -1,29 +1,26 @@
-import { useAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
+import { PressKey } from "../../event/event.util";
 import "../../styles/GameInviteModal.css";
+import { isPrivateAtom, gameInviteInfoAtom } from "../atom/GameAtom";
 import { gameInviteModalAtom } from "../atom/ModalAtom";
-import { isPrivateAtom } from "../atom/GameAtom";
 
-export default function GameInviteModal({
-  from,
-  AcceptBtn,
-  DeclineBtn,
-}: {
-  from: string;
-  AcceptBtn: () => void;
-  DeclineBtn: () => void;
-}) {
-  const [, setGameInviteModal] = useAtom(gameInviteModalAtom);
-  const [, setIsPrivate] = useAtom(isPrivateAtom);
+export default function GameInviteModal() {
+  const setGameInviteModal = useSetAtom(gameInviteModalAtom);
+  const setIsPrivate = useSetAtom(isPrivateAtom);
+  const gameInviteInfo = useAtomValue(gameInviteInfoAtom);
+
+  PressKey(["Escape"], () => {
+    setGameInviteModal(false);
+  });
 
   return (
     <>
       <div className="GameInviteModalBG" />
       <div className="GameInviteModal">
-        <div className="GameInviteModalTxt">{`Game Invite\nfrom ${from}`}</div>
+        <div className="GameInviteModalTxt">{`Game Invite\nfrom ${gameInviteInfo}`}</div>
         <button
           className="GameInviteModalAcceptBtn"
           onClick={() => {
-            AcceptBtn();
             setGameInviteModal(false);
             setIsPrivate(true);
           }}
@@ -33,7 +30,6 @@ export default function GameInviteModal({
         <button
           className="GameInviteModalDeclineBtn"
           onClick={() => {
-            DeclineBtn();
             setGameInviteModal(false);
           }}
         >

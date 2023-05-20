@@ -1,4 +1,5 @@
 type userStatus = 'online' | 'offline' | 'inGame';
+type gameStatus = 'ready' | 'playing' | 'end';
 type userRoomStatus = 'normal' | 'mute';
 type userRoomPower = 'owner' | 'admin' | 'member';
 
@@ -57,4 +58,4 @@ type roomListDto = {
 	}
 }
 
-export type { userDto, userSimpleDto, roomDetailDto, roomMessageDto, roomListDto, userInRoomListDto, userStatus, userRoomStatus, userRoomPower, dmDto };
+export type { userDto, userSimpleDto, roomDetailDto, roomMessageDto, roomListDto, userInRoomListDto, userStatus, userRoomStatus, userRoomPower, dmDto, gameStatus };

@@ -9,3 +9,4 @@ export const isPrivateAtom = atom<boolean>(false);
 
 export const isGameStartedAtom = atom<boolean>(false);
 
+export const gameInviteInfoAtom = atom<string>("");

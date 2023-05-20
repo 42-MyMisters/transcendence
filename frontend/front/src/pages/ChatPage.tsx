@@ -178,15 +178,7 @@ export default function ChatPage() {
 			{roomModal ? <RoomModal /> : null}
 			{inviteModal ? <RoomInviteModal /> : null}
 			{pwInputModal ? <PasswordModal /> : null}
-			{gameInviteModal ? (
-				<GameInviteModal
-					from="yuhwang"
-					AcceptBtn={() => {
-						setGameInviteModal(false);
-					}}
-					DeclineBtn={() => { }}
-				/>
-			) : null}
+			{gameInviteModal ? <GameInviteModal /> : null}
 			<ChatRoomList />
 			<ChatUserList />
 			<ChatArea />

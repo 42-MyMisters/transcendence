@@ -587,12 +587,19 @@ export default function ChatWrapper({ children }: { children: JSX.Element }) {
 		console.log(`isLoading: ${isLoading}`);
 		if (isLoading) {
 			socket.emitUserUpdate(adminConsole, 'inGame');
+			socket.emitGameUpdate(adminConsole, 'ready');
 		}
 	}, [isLoading]);
 
 	useEffect(() => {
-		if (userList[userInfo.uid]?.userStatus === 'inGame' && !isGameStart) {
-			socket.emitUserUpdate(adminConsole, 'online');
+		if (userList[userInfo.uid]?.userStatus === 'inGame') {
+
+			if (isGameStart) {
+				socket.emitGameUpdate(adminConsole, 'playing');
+			} else {
+				socket.emitUserUpdate(adminConsole, 'online');
+				socket.emitGameUpdate(adminConsole, 'end');
+			}
 		}
 	}, [isGameStart]);
 

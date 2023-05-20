@@ -394,3 +394,36 @@ export function emitUserUpdate(adminConsole: boolean, status: chatType.userStatu
     }
   );
 }
+
+export function emitGameUpdate(adminConsole: boolean, status: chatType.gameStatus) {
+  socket.emit(
+    "game-update",
+    {
+      status,
+    }
+  );
+}
+
+export function emitGameStatus(targetId: number, invite: () => void, observ: () => void, error: () => void) {
+  socket.emit(
+    "game-status",
+    {
+      targetId
+    },
+    ({ status }: { status: chatType.gameStatus | undefined }) => {
+      switch (status) {
+        case 'playing': {
+          observ();
+          break;
+        }
+        case 'end': {
+          invite();
+          break;
+        }
+        default: {
+          error();
+        }
+      }
+    }
+  );
+}

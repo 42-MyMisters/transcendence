@@ -267,9 +267,9 @@ export async function FirstTimeGetMyInfo(
     method: "GET",
   })
     .then((response) => {
+      status = 200;
       switch (response.status) {
         case 200: {
-          status = 200;
           return response.json();
         }
         default: {
@@ -292,7 +292,6 @@ export async function FirstTimeGetMyInfo(
       }
     })
     .catch((error) => {
-      status = error.message;
       AdminLogPrinter(adminConsole, `\nFirstTimeGetMyInfo catch_error: ${error} `);
     });
 

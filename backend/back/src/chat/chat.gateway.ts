@@ -23,6 +23,7 @@ import * as bcrypt from 'bcrypt';
 
 type roomType = 'open' | 'protected' | 'private' | 'dm';
 type userStatus = 'online' | 'offline' | 'inGame';
+type gameStatus = 'ready' | 'playing' | 'end';
 type userRoomStatus = 'normal' | 'mute';
 type userRoomPower = 'owner' | 'admin' | 'member';
 
@@ -41,6 +42,7 @@ interface UserInfo {
 	socket?: Socket;
 	disconnectedSocket?: string;
 	status: userStatus;
+	gameStatus?: gameStatus;
 	blockList: number[];
 	followList: number[];
 	userId?: number;
@@ -199,6 +201,7 @@ export class EventsGateway
 						socket: undefined,
 						disconnectedSocket: undefined,
 						status: 'online',
+						gameStatus: 'end',
 						blockList: [],
 						followList: [],
 						userId: user.uid,
@@ -333,6 +336,34 @@ export class EventsGateway
 				userProfileUrl: userList[socket.data.user.uid].userUrl,
 				userStatus: userList[socket.data.user.uid].status,
 			});
+		}
+	}
+
+	@SubscribeMessage("game-update")
+	GameUpdate(
+		@ConnectedSocket() socket: Socket,
+		@MessageBody() {
+			status
+		}: {
+			status: gameStatus
+		}
+	) {
+		if (userList[socket.data.user.uid]) {
+			userList[socket.data.user.uid].gameStatus = status;
+		}
+	}
+
+	@SubscribeMessage("game-status")
+	GameStatus(
+		@ConnectedSocket() socket: Socket,
+		@MessageBody() {
+			targetId
+		}: {
+			targetId: number
+		}
+	) {
+		if (userList[targetId]) {
+			return { status: userList[targetId].gameStatus };
 		}
 	}
 
