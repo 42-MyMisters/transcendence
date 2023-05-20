@@ -61,7 +61,6 @@ export default function GamePage() {
     }
   }
 
-
   // const URL = process.env.REACT_APP_API_URL;
   const URL = "https://localhost";
   const NameSpace = "/game";
@@ -75,8 +74,6 @@ export default function GamePage() {
     secure: true,
     upgrade: true,
   });
-
-
 
   PressKey(["F4"], () => {
     setAdminConsole((prev) => !prev);
@@ -100,14 +97,14 @@ export default function GamePage() {
     setIsLoading(true);
     return () => {
       clearState();
-      gameSocket!.disconnect();
+      gameSocket.disconnect();
     };
   }, []);
 
   const connectionEventHandler = () => {
-    if (gameSocket!.connected) {
+    if (gameSocket.connected) {
       //This attribute describes whether the socket is currently connected to the server.
-      if (gameSocket!.recovered) {
+      if (gameSocket.recovered) {
         // any missed packets will be received
       } else {
         // new or unrecoverable session
