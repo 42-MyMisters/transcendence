@@ -367,6 +367,40 @@ export class EventsGateway
 		}
 	}
 
+	@SubscribeMessage("game-invite")
+	GameInvite(
+		@ConnectedSocket() socket: Socket,
+		@MessageBody() {
+			targetId
+		}: {
+			targetId: number
+		}
+	) {
+		if (userList[targetId] === undefined) {
+			return { status: 'ko', payload: '\nuser not found' };
+		} else if (userList[targetId].socket === undefined) {
+			return { status: 'ko', payload: '\nuser offline' };
+		}
+		this.nsp.to(userList[targetId].socket!.id).emit("game-invite", { userId: socket.data.user.uid });
+		return { status: 'ok' };
+	}
+
+	@SubscribeMessage("game-invite-check")
+	GameInviteCheck(
+		@ConnectedSocket() socket: Socket,
+		@MessageBody() {
+			targetId,
+			result
+		}: {
+			targetId: number;
+			result: 'accept' | 'decline';
+		}
+	) {
+		if (userList[targetId] && userList[targetId].socket) {
+			this.nsp.to(userList[targetId].socket!.id).emit("game-invite-check", { targetId, result });
+		}
+	}
+
 	@SubscribeMessage("room-create")
 	async RoomCreate(
 		@ConnectedSocket() socket: Socket,

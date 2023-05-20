@@ -11,6 +11,8 @@ import {
 	isGameStartedAtom,
 	isLoadingAtom,
 	isGameQuitAtom,
+	gameInviteInfoAtom,
+	gameInviteCheckAtom,
 } from "../components/atom/GameAtom";
 
 import { useEffect } from "react";
@@ -54,6 +56,8 @@ export default function ChatWrapper({ children }: { children: JSX.Element }) {
 	const isLoading = useAtomValue(isLoadingAtom);
 	const isGameStart = useAtomValue(isGameStartedAtom);
 	const isGameQuit = useAtomValue(isGameQuitAtom);
+	const setGameInviteInfo = useSetAtom(gameInviteInfoAtom);
+	const setGameInviteCheck = useSetAtom(gameInviteCheckAtom);
 
 	PressKey(["F4"], () => {
 		setAdminConsole((prev) => !prev);
@@ -578,6 +582,41 @@ export default function ChatWrapper({ children }: { children: JSX.Element }) {
 			socket.socket.off("message");
 		};
 	}, [roomList, blockList, userList, userInfo, focusRoom]);
+
+	useEffect(() => {
+		socket.socket.on("game-invite", ({
+			userId
+		}: {
+			userId: number
+		}) => {
+			if (blockList[userId]) {
+				socket.emitGameInviteCheck({ adminConsole }, userId, 'decline');
+				return;
+			}
+			setGameInviteCheck(userId);
+			setGameInviteModal(true);
+		});
+		return () => {
+			socket.socket.off("game-invite");
+		};
+	}, [blockList]);
+
+	useEffect(() => {
+		socket.socket.on("game-invite-check", ({
+			targetId,
+			result
+		}: {
+			targetId: number
+			result: 'accept' | 'decline'
+		}) => {
+			if (result === 'decline') {
+				alert(`${userList[targetId].userDisplayName} declined your game invite`);
+			}
+		});
+		return () => {
+			socket.socket.off("game-invite-check");
+		};
+	}, [userList]);
 
 	async function firstLogin() {
 		if (isFirstLogin) {

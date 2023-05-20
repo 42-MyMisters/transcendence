@@ -11,6 +11,7 @@ import {
   isMatchedAtom,
   isPrivateAtom,
   isGameQuitAtom,
+  gameInviteInfoAtom,
 } from "../components/atom/GameAtom";
 
 import * as chatSocket from "../socket/chat.socket";
@@ -34,6 +35,7 @@ export default function GamePage() {
   const [isPrivate, setIsPrivate] = useAtom(isPrivateAtom);
   const [isGameStart, setIsGameStart] = useAtom(isGameStartedAtom);
   const setIsGameQuit = useSetAtom(isGameQuitAtom);
+  const [gameInviteInfo, setGameInviteInfo] = useAtom(gameInviteInfoAtom);
 
   const [adminConsole, setAdminConsole] = useAtom(chatAtom.adminConsoleAtom);
 
@@ -51,6 +53,12 @@ export default function GamePage() {
     constructor() {
       this.token = localStorage.getItem("refreshToken");
       this.type = isPrivate ? GameType.PRIVATE : GameType.PUBLIC;
+      if (gameInviteInfo.gameType === 'invite') {
+        this.invite = gameInviteInfo.userId;
+      }
+      else if (gameInviteInfo.gameType === 'observe') {
+        this.observ = gameInviteInfo.userId;
+      }
     }
   }
 
@@ -86,6 +94,7 @@ export default function GamePage() {
     AdminLogPrinter(adminConsole, `gameSocket connection`);
     gameSocket.connect();
     setSocket(gameSocket);
+    setGameInviteInfo({ gameType: 'queue', userId: -1 });
     setIsGameQuit(false);
     setIsLoading(true);
     return () => {
