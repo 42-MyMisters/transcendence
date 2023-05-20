@@ -23,6 +23,7 @@ import * as bcrypt from 'bcrypt';
 
 type roomType = 'open' | 'protected' | 'private' | 'dm';
 type userStatus = 'online' | 'offline' | 'inGame';
+type gameStatus = 'ready' | 'playing' | 'end';
 type userRoomStatus = 'normal' | 'mute';
 type userRoomPower = 'owner' | 'admin' | 'member';
 
@@ -41,6 +42,7 @@ interface UserInfo {
 	socket?: Socket;
 	disconnectedSocket?: string;
 	status: userStatus;
+	gameStatus?: gameStatus;
 	blockList: number[];
 	followList: number[];
 	userId?: number;
@@ -182,9 +184,7 @@ export class EventsGateway
 			this.logger.warn(`${socket.id} socket connected.`);
 			const uid = await this.authService.jwtVerify(socket.handshake.auth.token);
 			socket.data.tempUid = uid;
-			this.logger.debug(`- ${socket.id} after jwtVerify.`);
 			const user = await this.userService.getUserByUid(uid);
-			this.logger.debug(`-- ${socket.id} after getUserByUid.`);
 
 			if (!socket.connected) {
 				throw new ConflictException();
@@ -201,6 +201,7 @@ export class EventsGateway
 						socket: undefined,
 						disconnectedSocket: undefined,
 						status: 'online',
+						gameStatus: 'end',
 						blockList: [],
 						followList: [],
 						userId: user.uid,
@@ -267,6 +268,7 @@ export class EventsGateway
 			}
 			userList[socket.data.user.uid].isRefresh = false;
 		} else {
+			this.logger.warn(`${socket.id} invalid connection. disconnect socket.`);
 		}
 		socket.data.roomList?.forEach((roomId: number) => {
 			socket.leave(roomId.toString());
@@ -303,11 +305,7 @@ export class EventsGateway
 	@SubscribeMessage("user-change-info")
 	async UserUpdateInfo(
 		@ConnectedSocket() socket: Socket,
-		@MessageBody() {
-			action
-		}: {
-			action: 'name' | 'image'
-		}) {
+	) {
 		const changedUser: User | null = await this.userService.getUserByUid(socket.data.user.uid);
 		if (changedUser) {
 			userList[socket.data.user.uid].userDisplayName = changedUser.nickname;
@@ -318,6 +316,88 @@ export class EventsGateway
 				userProfileUrl: changedUser.profileUrl,
 				userStatus: userList[changedUser.uid].status,
 			});
+		}
+	}
+
+	@SubscribeMessage("user-update")
+	UserUpdate(
+		@ConnectedSocket() socket: Socket,
+		@MessageBody() {
+			status
+		}: {
+			status: userStatus;
+		}
+	) {
+		if (socket.data?.user?.uid && userList[socket.data.user.uid]) {
+			userList[socket.data.user.uid].status = status;
+			this.nsp.emit("user-update", {
+				userId: userList[socket.data.user.uid].userId,
+				userDisplayName: userList[socket.data.user.uid].userDisplayName,
+				userProfileUrl: userList[socket.data.user.uid].userUrl,
+				userStatus: userList[socket.data.user.uid].status,
+			});
+		}
+	}
+
+	@SubscribeMessage("game-update")
+	GameUpdate(
+		@ConnectedSocket() socket: Socket,
+		@MessageBody() {
+			status
+		}: {
+			status: gameStatus
+		}
+	) {
+		if (socket.data.user.uid !== undefined && userList[socket.data.user.uid]) {
+			userList[socket.data.user.uid].gameStatus = status;
+		}
+	}
+
+	@SubscribeMessage("game-status")
+	GameStatus(
+		@ConnectedSocket() socket: Socket,
+		@MessageBody() {
+			targetId
+		}: {
+			targetId: number
+		}
+	) {
+		if (userList[targetId]) {
+			return { status: userList[targetId].gameStatus };
+		}
+	}
+
+	@SubscribeMessage("game-invite")
+	GameInvite(
+		@ConnectedSocket() socket: Socket,
+		@MessageBody() {
+			targetId
+		}: {
+			targetId: number
+		}
+	) {
+		if (userList[targetId] === undefined) {
+			return { status: 'ko', payload: '\nuser not found' };
+		} else if (userList[targetId].socket === undefined) {
+			return { status: 'ko', payload: '\nuser offline' };
+		}
+		this.nsp.to(userList[targetId].socket!.id).emit("game-invite", { userId: socket.data.user.uid });
+		return { status: 'ok' };
+	}
+
+	@SubscribeMessage("game-invite-check")
+	GameInviteCheck(
+		@ConnectedSocket() socket: Socket,
+		@MessageBody() {
+			targetId,
+			result
+		}: {
+			targetId: number;
+			result: 'accept' | 'decline';
+		}
+	) {
+		if (userList[targetId] && userList[targetId].socket && socket.data.user.uid !== undefined) {
+			this.nsp.to(userList[targetId].socket!.id).emit("game-invite-check", { targetId: socket.data.user.uid, result });
 		}
 	}
 
@@ -589,42 +669,42 @@ export class EventsGateway
 		try {
 			const targetUser: User | null = await this.userService.getUserByNickname(targetName);
 			if (targetUser === null) {
-				return ({ status: 'ko', payload: `\n ${targetName}\nuser not found` });
+				return ({ status: 'ko', payload: `\n ${targetName} user not found` });
+			} else if (roomList[roomId].roomMembers[targetUser.uid] !== undefined) {
+				return ({ status: 'ko', payload: `\n${targetName} already in this room` });
+			} else if (roomList[roomId].bannedUsers.includes(targetUser.uid)) {
+				return ({ status: 'ko', payload: `\n${targetName} banned for 1 min` });
 			} else {
-				if (roomList[roomId].roomMembers[targetUser.uid] !== undefined) {
-					return ({ status: 'ko', payload: `\n ${targetName}\nalready in this room` });
-				} else {
-					console.log(targetUser);
-					const newMember: RoomMember = {
-						userRoomStatus: 'normal',
-						userRoomPower: 'member',
-					}
-					roomList[roomId].roomMembers[targetUser.uid] = newMember;
-					const targetSocket: Socket | undefined = userList[targetUser.uid].socket;
-					targetSocket?.join(roomId.toString());
-					targetSocket?.data.roomList.push(roomId);
-					if (targetSocket?.id !== undefined) {
-						this.nsp.to(targetSocket?.id).emit("room-join", {
-							roomId,
-							roomName: roomList[roomId].roomName,
-							roomType: roomList[roomId].roomType,
-							roomUserList: roomList[roomId].roomMembers,
-							myPower: 'member',
-							status: 'ok',
-							method: 'invite',
-						});
-					}
-					this.nsp.to(roomId.toString()).emit('room-in-action', {
-						roomId,
-						action: 'newMember',
-						targetId: targetUser.uid,
-					});
-					return ({ status: 'ok' });
+				const newMember: RoomMember = {
+					userRoomStatus: 'normal',
+					userRoomPower: 'member',
 				}
+				roomList[roomId].roomMembers[targetUser.uid] = newMember;
+				const targetSocket: Socket | undefined = userList[targetUser.uid].socket;
+				if (targetSocket === undefined) {
+					throw new Error('target socket not found');
+				}
+				targetSocket.join(roomId.toString());
+				targetSocket.data.roomList.push(roomId);
+				this.nsp.to(targetSocket.id).emit("room-join", {
+					roomId,
+					roomName: roomList[roomId].roomName,
+					roomType: roomList[roomId].roomType,
+					roomUserList: roomList[roomId].roomMembers,
+					myPower: 'member',
+					status: 'ok',
+					method: 'invite',
+				});
+				this.nsp.to(roomId.toString()).emit('room-in-action', {
+					roomId,
+					action: 'newMember',
+					targetId: targetUser.uid,
+				});
+				return ({ status: 'ok' });
 			}
 		}
 		catch (e) {
-			return ({ status: 'ko', payload: `\n ${targetName}\nuser not found\n${e}` });
+			return ({ status: 'ko', payload: `\n${targetName} ${e}` });
 		}
 	}
 

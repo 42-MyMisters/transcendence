@@ -37,8 +37,8 @@ export default function PingPong({
   gameSocket,
 }: {
   gameSocket: Socket,
-}){
-  console.log("gameSocket connected? ",gameSocket.connected);
+}) {
+  console.log("gameSocket connected? ", gameSocket.connected);
 
   const [upArrow, setUpArrow] = useState(false);
   const [downArrow, setDownArrow] = useState(false);
@@ -138,6 +138,7 @@ export default function PingPong({
     update(Date.now(), coords.time);
     Game(coords, canvas);
     setGameResultModal(true);
+    clearInterval(pingInterval);
   };
 
   const countdownEventHandler = () => {
@@ -307,12 +308,14 @@ export default function PingPong({
   useEffect(() => {
     function handleKeyPress(event: globalThis.KeyboardEvent) {
       if (event.code === "ArrowUp") {
+        event.preventDefault();
         if (!upArrow) {
           setUpArrow(true);
           gameSocket.emit("upPress");
           AdminLogPrinter(adminConsole, "up press");
         }
       } else if (event.code === "ArrowDown") {
+        event.preventDefault();
         if (!downArrow) {
           setDownArrow(true);
           gameSocket.emit("downPress");
@@ -323,12 +326,14 @@ export default function PingPong({
 
     function handleKeyRelease(event: globalThis.KeyboardEvent) {
       if (event.code === "ArrowUp") {
+        event.preventDefault();
         if (upArrow) {
           setUpArrow(false);
           gameSocket.emit("upRelease");
           AdminLogPrinter(adminConsole, "up release");
         }
       } else if (event.code === "ArrowDown") {
+        event.preventDefault();
         if (downArrow) {
           setDownArrow(false);
           gameSocket.emit("downRelease");

@@ -1,5 +1,4 @@
 import jwt_decode from "jwt-decode";
-import { Link } from "react-router-dom";
 
 import { useAtom } from "jotai";
 import { useEffect } from "react";
@@ -9,18 +8,14 @@ import BackGround from "../components/BackGround";
 import SignInModal from "../components/LoginPage/SignIn";
 import TFAModal from "../components/LoginPage/TwoFactorAuth";
 
-import { isFirstLoginAtom, refreshTokenAtom } from "../components/atom/LoginAtom";
-import { cookieAtom } from "../components/atom/LoginAtom";
-import { TFAEnabledAtom } from "../components/atom/LoginAtom";
-import ChatPage from "./ChatPage";
+import { useState } from 'react';
 import { useNavigate } from "react-router-dom";
+import { TFAEnabledAtom, cookieAtom, isFirstLoginAtom, refreshTokenAtom, loginModalJudgeAtom } from "../components/atom/LoginAtom";
 
-import * as socket from "../socket/chat.socket";
+import InitialSettingModal from "../components/LoginPage/InitialSetting";
 import * as chatAtom from "../components/atom/ChatAtom";
 import { hasLoginAtom } from "../components/atom/ChatAtom";
-import InitialSettingModal from "../components/LoginPage/InitialSetting";
 
-import { AdminLogPrinter } from "../event/event.util";
 import { UserAtom } from "../components/atom/UserAtom";
 import * as api from "../event/api.request";
 
@@ -33,6 +28,7 @@ export default function LoginPage() {
   const [hasLogin, setHasLogin] = useAtom(hasLoginAtom);
   const [isFirstLogin, setIsFirstLogin] = useAtom(isFirstLoginAtom);
   const [userInfo, setUserInfo] = useAtom(UserAtom);
+  const [loginModalJudge, setLoginModalJudge] = useAtom(loginModalJudgeAtom);
 
   const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
 
@@ -84,6 +80,7 @@ export default function LoginPage() {
       }
     } else {
       setRefreshToken(false);
+      setLoginModalJudge(true);
     }
   }, [cookies]);
 
@@ -101,8 +98,10 @@ export default function LoginPage() {
             ? <InitialSettingModal />
             : TFAEnabled
               ? < TFAModal />
-              : <SignInModal />
-          : <SignInModal />
+              : ''
+          : loginModalJudge
+            ? <SignInModal />
+            : ''
       }
     </BackGround>
   );

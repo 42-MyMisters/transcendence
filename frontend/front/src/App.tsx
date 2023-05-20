@@ -2,6 +2,7 @@ import { StrictMode, useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
 import ChatPage from "./pages/ChatPage";
+import ChatWrapper from "./pages/ChatWrapper";
 import GamePage from "./pages/GamePage";
 import ProfilePage from "./pages/ProfilePage";
 import LoginPage from "./pages/LoginPage";
@@ -38,13 +39,15 @@ export default function App() {
         <div className="WindowWrap">
           <Router>
             <CheckLogin>
-              <Routes>
-                <Route path="/" element={<LoginPage />}></Route>
-                <Route path="/chat" element={<ChatPage />}></Route>
-                <Route path="/game" element={<GamePage />}></Route>
-                <Route path="/profile" element={<ProfilePage />}></Route>
-                <Route path="*" element={<NotFoundPage />}></Route>
-              </Routes>
+              <ChatWrapper>
+                <Routes>
+                  <Route path="/" element={<LoginPage />}></Route>
+                  <Route path="/chat" element={<ChatPage />}></Route>
+                  <Route path="/game" element={<GamePage />}></Route>
+                  <Route path="/profile" element={<ProfilePage />}></Route>
+                  <Route path="*" element={<NotFoundPage />}></Route>
+                </Routes>
+              </ChatWrapper>
             </CheckLogin>
           </Router>
         </div>

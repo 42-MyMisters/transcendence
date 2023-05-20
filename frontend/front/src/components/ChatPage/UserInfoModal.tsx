@@ -1,4 +1,4 @@
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom, useAtomValue } from "jotai";
 import { userInfoModalAtom } from "../../components/atom/ModalAtom";
 import { AdminLogPrinter, PressKey } from "../../event/event.util";
 import * as api from "../../event/api.request";
@@ -11,7 +11,7 @@ import { refreshTokenAtom } from "../../components/atom/LoginAtom";
 import * as socket from "../../socket/chat.socket";
 import { useNavigate } from "react-router-dom";
 import { UserAtom, isMyProfileAtom, ProfileAtom } from "../../components/atom/UserAtom";
-import { isPrivateAtom } from "../atom/GameAtom";
+import { isPrivateAtom, gameInviteInfoAtom } from "../atom/GameAtom";
 
 export default function UserInfoModal() {
   const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
@@ -22,6 +22,8 @@ export default function UserInfoModal() {
   const [focusRoom] = useAtom(chatAtom.focusRoomAtom);
   const [blockList, setBlockList] = useAtom(chatAtom.blockListAtom);
   const [, setIsPrivate] = useAtom(isPrivateAtom);
+  const setGameInviteInfo = useSetAtom(gameInviteInfoAtom);
+  const myInfo = useAtomValue(UserAtom);
 
   const navigate = useNavigate();
   const [, setRefreshToken] = useAtom(refreshTokenAtom);
@@ -103,13 +105,30 @@ export default function UserInfoModal() {
     infoModalOff();
   };
 
+  const callbackInvite = () => {
+    socket.emitGameInvite({ adminConsole, navigate }, userInfo.uid, userInfo.nickName);
+    setGameInviteInfo({ gameType: 'invite', userId: myInfo.uid });
+    setIsPrivate(true);
+    infoModalOff();
+    navigate("/game");
+  };
+  const callbackObserv = () => {
+    infoModalOff();
+    setGameInviteInfo({ gameType: 'observe', userId: userInfo.uid });
+    navigate("/game");
+  };
+  const callbackError = () => {
+    infoModalOff();
+    alert('유저가 게임 대기열에 있습니다.')
+  };
+
   const Invite = () => {
     if (isDefaultUser) return;
-    setIsPrivate(true); // private Game - Custom Match
-    alert("invite");
-    infoModalOff();
-    // TODO: socket - Game invite Logic
-    // navigate("/game");
+    if (userList[userInfo.uid].userStatus === 'offline') {
+      alert('유저가 오프라인 상태입니다.');
+    } else {
+      socket.emitGameStatus(userInfo.uid, callbackInvite, callbackObserv, callbackError)
+    }
   };
 
   const Ignore = () => {
@@ -194,7 +213,7 @@ export default function UserInfoModal() {
           {userInfo.isFollow ? "unfollow" : "follow"}
         </div>
         <div className="invite" onClick={Invite}>
-          {userInfo.userState != "ingame" ? "invite" : "observe"}
+          {userInfo.userState !== "inGame" ? "invite" : "observe"}
         </div>
         <div className="ignore" onClick={Ignore}>
           {userInfo.isIgnored ? "unignore" : "ignore"}

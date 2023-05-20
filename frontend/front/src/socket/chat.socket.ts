@@ -1,4 +1,5 @@
 import { io } from "socket.io-client";
+import { NavigateFunction } from "react-router-dom";
 import { useAtom } from "jotai";
 import * as chatAtom from "../components/atom/ChatAtom";
 import * as userAtom from "../components/atom/UserAtom";
@@ -383,5 +384,88 @@ export function emitDM(adminConsole: boolean, targetId: number, message: string)
         AdminLogPrinter(adminConsole, `dm to ${targetId} is failed: ${message}`);
       }
     }
+  );
+}
+
+export function emitUserUpdate(adminConsole: boolean, status: chatType.userStatus) {
+  socket.emit(
+    "user-update",
+    {
+      status,
+    }
+  );
+}
+
+export function emitGameUpdate(adminConsole: boolean, status: chatType.gameStatus) {
+  socket.emit(
+    "game-update",
+    {
+      status,
+    }
+  );
+}
+
+export function emitGameStatus(targetId: number, invite: () => void, observ: () => void, error: () => void) {
+  socket.emit(
+    "game-status",
+    {
+      targetId
+    },
+    ({ status }: { status: chatType.gameStatus | undefined }) => {
+      switch (status) {
+        case 'playing': {
+          observ();
+          break;
+        }
+        case 'end': {
+          invite();
+          break;
+        }
+        default: {
+          error();
+        }
+      }
+    }
+  );
+}
+
+export function emitGameInvite({
+  adminConsole,
+  navigate
+}: {
+  adminConsole: boolean
+  navigate: NavigateFunction,
+}, targetId: number,
+  targetName: string,
+) {
+  socket.emit(
+    "game-invite",
+    {
+      targetId
+    },
+    ({ status, payload }: { status: "ok" | "ko", payload?: string }) => {
+      if (status === "ok") {
+        AdminLogPrinter(adminConsole, `game invite to ${targetName} is sended`);
+      } else {
+        AdminLogPrinter(adminConsole, `game invite to ${targetName} is failed\n${payload}`);
+        alert(`game invite to ${targetName} is failed`);
+      }
+    }
+  );
+}
+
+export function emitGameInviteCheck({
+  adminConsole,
+}: {
+  adminConsole: boolean
+}, targetId: number,
+  result: 'accept' | 'decline'
+) {
+  socket.emit(
+    "game-invite-check",
+    {
+      targetId,
+      result
+    },
   );
 }
