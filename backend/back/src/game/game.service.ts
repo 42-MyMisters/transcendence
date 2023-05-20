@@ -3,6 +3,7 @@ import { Namespace } from "socket.io";
 import { DatabaseService } from "src/database/database.service";
 import { Direction, GameMode, GameStatus, GameType, Hit } from "./game.enum";
 import { Game as GameEntity } from "../database/entity/game.entity";
+import { GameInfo } from "./game.gateway";
 
 interface GameCoords {
   paddle1Y: number,
@@ -70,7 +71,6 @@ class Game {
   private round: number;
   
   private gameMode: GameMode;
-  private gameModeTmp: GameMode;
 
   private roundStartTime: number;
   private lastUpdate: number;
@@ -106,6 +106,7 @@ class Game {
     this.ballSpeedMax = canvasWidth / 2000 * this.ballSpeedMultiplier,
     // this.score[0] = this.score[1] = 0;
     this.round = 0;
+    this.gameMode = GameMode.DEFAULT;
   }
 
   private init() {
@@ -151,6 +152,11 @@ class Game {
 
   isPlayer(uid: number): boolean {
     return this.p1 === uid || this.p2 === uid;
+  }
+  
+
+  isP1(uid: number): boolean {
+    return this.p1 === uid;
   }
   
   playerLeft(uid: number) {
@@ -215,13 +221,19 @@ class Game {
   }
 
   setMode(uid: number, mode: GameMode) {
-    if (uid === this.p1) {
-      this.gameModeTmp = mode;
-    }
+    this.gameMode = mode;
   }
 
   getStatus(): GameStatus {
     return this.gameStatus;
+  }
+
+  gameInfo(): GameInfo {
+    return {
+      gameMode: this.gameMode,
+      p1: this.p1,
+      p2: this.p2,
+    }
   }
 
   // Event driven update

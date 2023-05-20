@@ -6,6 +6,17 @@ import { UserService } from 'src/user/user.service';
 import { GameMode, GameStatus, GameType } from './game.enum';
 import { GameService } from './game.service';
 
+export interface GameInfo {
+  gameMode: GameMode,
+  p1: number,
+  p2: number,
+}
+
+interface GameConnection {
+  gameId: string,
+  connection: number,
+}
+
 
 @WebSocketGateway({ namespace: 'game', cors: { origin: '*' } })
 export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
@@ -14,7 +25,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   private readyQueue: Socket[];
   private privatePool: Map<number, Socket>;
   private gameId: number;
-  private userInGame: Map<number, string>;
+  private userInGame: Map<number, GameConnection>;
   constructor(
     private userService: UserService,
 		private authService: AuthService,
@@ -23,7 +34,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     this.gamePool = new Map<number, Socket[]>();
     this.readyQueue = [];
     this.gameId = 0;
-    this.userInGame = new Map<number, string>();
+    this.userInGame = new Map<number, GameConnection>();
     // Queue loop
     setInterval(this.gameMatchLogic.bind(this), 5000);
   }
@@ -70,7 +81,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
           p2 = sockA.data.uid;
         }
         const gameId = (this.gameId++).toString();
-        this.userInGame.set(p1, gameId).set(p2, gameId);
+        this.userInGame.set(p1, {gameId, connection: 1}).set(p2,{gameId, connection: 1});
         // this.joinRoom(sockB!, gameId);
         // this.joinRoom(sockA!, gameId);
         
@@ -137,7 +148,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
           const p1 = host.data.uid;
           const p2 = socket.data.uid;
           const gameId = p1.toString() + "+" + p2.toString();
-          this.userInGame.set(p1, gameId).set(p2, gameId);
+          this.userInGame.set(p1, {gameId, connection: 1}).set(p2, {gameId, connection: 1});
           this.joinRoom(host, gameId);
           this.joinRoom(socket, gameId);
           this.privatePool.delete(p1);
@@ -146,10 +157,10 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
           this.privatePool.set(socket.data.uid, socket);
         }
       } else if (socket.handshake.auth.observ !== undefined) {
-        const gameId = this.userInGame.get(socket.handshake.auth.data);
-        if (gameId !== undefined && this.gameService.gameState(gameId) < GameStatus.FINISHED) {
+        const gameConnection = this.userInGame.get(socket.handshake.auth.data);
+        if (gameConnection !== undefined && this.gameService.gameState(gameConnection.gameId) < GameStatus.FINISHED) {
           socket.emit("observer joined room");
-          socket.join(gameId);
+          socket.join(gameConnection.gameId);
         } else {
           console.log("Already finished. Disconnect socket.");
           throw new UnauthorizedException("already finished");
@@ -163,8 +174,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
           throw new UnauthorizedException("already disconnected or user not found.");
         }
         socket.data.elo = user.elo;
-        const userInGame = this.userInGame.get(uid);
-        if (userInGame === undefined) {
+        const gameConnection = this.userInGame.get(uid);
+        if (gameConnection === undefined) {
           // socket.emit("isLoading", true);
           if (socket.handshake.auth.type === GameType.PRIVATE) {
             // socket.emit("isPrivate", true);
@@ -181,9 +192,9 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
             // this.gameQueue.push(socket.data.elo, socket);
           }
         } else {
-          
           console.log("Reconnected.");
-          socket.join(this.userInGame.get(uid)!);
+          gameConnection.connection++;
+          socket.join(gameConnection.gameId);
         }
       }
     } catch(e) {
@@ -200,7 +211,11 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.logger.log(`${socket.data.uid} invalid socket connection disconnected.`);
       } else if (curGame.isPlayer(socket.data.uid)) {
         curGame.playerLeft(socket.data.uid);
-        this.userInGame.delete(socket.data.uid);
+        const gameConnection = this.userInGame.get(socket.data.uid);
+        if (gameConnection) {
+          gameConnection.connection--;
+        }
+        // this.userInGame.delete(socket.data.uid);
         this.logger.log(`${socket.data.uid} player left.`);
       } else {
         this.logger.log(`${socket.data.uid} observer left.`);
@@ -237,13 +252,13 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   @SubscribeMessage('status')
-  async status(socket: Socket, payload: any) {
+  status(socket: Socket, payload: any) {
     console.log(socket.rooms);
     console.log(payload);
   }
 
   @SubscribeMessage('upPress')
-  async upPress(socket: Socket, payload: any) {
+  upPress(socket: Socket, payload: any) {
     if (socket.data.room) {
       const curGame = this.gameService.getGame(socket.data.room);
       if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
@@ -253,7 +268,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
   
   @SubscribeMessage('downPress')
-  async downPress(socket: Socket, payload: any) {
+  downPress(socket: Socket, payload: any) {
     if (socket.data.room) {
       const curGame = this.gameService.getGame(socket.data.room);
       if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
@@ -263,7 +278,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
   
   @SubscribeMessage('upRelease')
-  async upRelease(socket: Socket, payload: any) {
+  upRelease(socket: Socket, payload: any) {
     if (socket.data.room) {
       const curGame = this.gameService.getGame(socket.data.room);
       if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
@@ -273,7 +288,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
   
   @SubscribeMessage('downRelease')
-  async downRelease(socket: Socket, payload: any) {
+  downRelease(socket: Socket, payload: any) {
     if (socket.data.room) {
       const curGame = this.gameService.getGame(socket.data.room);
       if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
@@ -283,23 +298,31 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   @SubscribeMessage('inviteGame')
-  async inviteGame(socket: Socket, payload: any) {
+  inviteGame(socket: Socket, payload: any) {
     this.gameService.getGame(payload.id);
   }
 
   @SubscribeMessage('modeSelect')
-  async modeSelect(socket: Socket, mode: GameMode) {
+  modeSelect(socket: Socket, mode: GameMode) {
     const curGame = this.gameService.getGame(socket.data.uid);
     if (curGame !== undefined) {
-      if (curGame.getStatus() === GameStatus.MODESELECT && curGame.isPlayer(socket.data.uid)) {
+      if (curGame.getStatus() === GameStatus.MODESELECT && curGame.isP1(socket.data.uid)) {
         curGame.setMode(socket.data.uid, mode);
       }
     }
   }
+  
+  @SubscribeMessage('getGameInfo')
+  getGameInfo(socket: Socket): GameInfo | null {
+    const curGame = this.gameService.getGame(socket.data.uid);
+    if (curGame !== undefined) {
+      return curGame.gameInfo();
+    }
+    return null;
+  }
 
   @SubscribeMessage('ping')
-  async pong() {
-    console.log("pong");
+  pong() {
     return Date.now();
   }
 
