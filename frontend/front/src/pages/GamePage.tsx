@@ -4,12 +4,13 @@ import "../components/GamePage/PingPong";
 import PingPong from "../components/GamePage/PingPong";
 import TopBar from "../components/TopBar";
 
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import {
   isGameStartedAtom,
   isLoadingAtom,
   isMatchedAtom,
   isPrivateAtom,
+  isGameQuitAtom,
 } from "../components/atom/GameAtom";
 
 import * as chatSocket from "../socket/chat.socket";
@@ -32,6 +33,7 @@ export default function GamePage() {
   const [isMatched, setIsMatched] = useAtom(isMatchedAtom);
   const [isPrivate, setIsPrivate] = useAtom(isPrivateAtom);
   const [isGameStart, setIsGameStart] = useAtom(isGameStartedAtom);
+  const setIsGameQuit = useSetAtom(isGameQuitAtom);
 
   const [adminConsole, setAdminConsole] = useAtom(chatAtom.adminConsoleAtom);
 
@@ -75,8 +77,15 @@ export default function GamePage() {
     AdminLogPrinter(adminConsole, `gameSocket connection`);
     gameSocket.connect();
     setSocket(gameSocket);
+    setIsGameQuit(false);
     setIsLoading(true);
     return () => {
+      setIsPrivate(false);
+      setIsGameStart(false);
+      setIsLoading(false);
+      setIsMatched(false);
+      setGameResultModal(false);
+      setIsGameQuit(true);
       gameSocket!.disconnect();
     };
   }, []);
@@ -97,9 +106,13 @@ export default function GamePage() {
   const disconnectionEventHandler = (reason: string) => {
     if (reason === "io server disconnect") {
     }
+    console.log(`gameSocket end`, reason);
     setIsPrivate(false);
     setIsGameStart(false);
+    setIsLoading(false);
+    setIsMatched(false);
     setGameResultModal(false);
+    setIsGameQuit(true);
     AdminLogPrinter(adminConsole, "gameSocket disconnected");
   };
 

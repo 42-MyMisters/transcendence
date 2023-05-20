@@ -10,6 +10,7 @@ import {
 import {
 	isGameStartedAtom,
 	isLoadingAtom,
+	isGameQuitAtom,
 } from "../components/atom/GameAtom";
 
 import { useEffect } from "react";
@@ -52,6 +53,7 @@ export default function ChatWrapper({ children }: { children: JSX.Element }) {
 
 	const isLoading = useAtomValue(isLoadingAtom);
 	const isGameStart = useAtomValue(isGameStartedAtom);
+	const isGameQuit = useAtomValue(isGameQuitAtom);
 
 	PressKey(["F4"], () => {
 		setAdminConsole((prev) => !prev);
@@ -584,7 +586,6 @@ export default function ChatWrapper({ children }: { children: JSX.Element }) {
 	}
 
 	useEffect(() => {
-		console.log(`isLoading: ${isLoading}`);
 		if (isLoading) {
 			socket.emitUserUpdate(adminConsole, 'inGame');
 			socket.emitGameUpdate(adminConsole, 'ready');
@@ -592,16 +593,17 @@ export default function ChatWrapper({ children }: { children: JSX.Element }) {
 	}, [isLoading]);
 
 	useEffect(() => {
-		if (userList[userInfo.uid]?.userStatus === 'inGame') {
-
-			if (isGameStart) {
-				socket.emitGameUpdate(adminConsole, 'playing');
-			} else {
-				socket.emitUserUpdate(adminConsole, 'online');
-				socket.emitGameUpdate(adminConsole, 'end');
-			}
+		if (isGameStart) {
+			socket.emitGameUpdate(adminConsole, 'playing');
 		}
 	}, [isGameStart]);
+
+	useEffect(() => {
+		if (isGameQuit) {
+			socket.emitGameUpdate(adminConsole, 'end');
+			socket.emitUserUpdate(adminConsole, 'online');
+		}
+	}, [isGameQuit]);
 
 	useEffect(() => {
 		if (isFirstLogin) {

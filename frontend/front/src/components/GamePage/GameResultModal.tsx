@@ -1,7 +1,12 @@
-import { useAtom } from "jotai";
+import { useSetAtom } from "jotai";
+import { useNavigate } from "react-router-dom";
+import {
+  isGameStartedAtom,
+  isPrivateAtom,
+} from "../../components/atom/GameAtom";
 import "../../styles/GameResultModal.css";
 import { gameResultModalAtom } from "../atom/ModalAtom";
-import { useNavigate } from "react-router-dom";
+
 
 export default function GameResultModal({
   result,
@@ -12,7 +17,9 @@ export default function GameResultModal({
   leftScore: number;
   rightScore: number;
 }) {
-  const [, setGameResultModal] = useAtom(gameResultModalAtom);
+  const setIsGameStart = useSetAtom(isGameStartedAtom);
+  const setIsPrivate = useSetAtom(isPrivateAtom);
+  const setGameResultModal = useSetAtom(gameResultModalAtom);
   const navigate = useNavigate();
 
   return (
@@ -24,6 +31,8 @@ export default function GameResultModal({
         <button
           className="GameResultModalBtn"
           onClick={() => {
+            setIsPrivate(false);
+            setIsGameStart(false);
             setGameResultModal(false);
             navigate("/chat");
           }}

@@ -8,7 +8,7 @@ db:
   database: "ts-dev"
 
 jwt:
-  expiresIn: 3600
+  expiresIn: 60
 
 jwt-refresh:
   exp: 200000

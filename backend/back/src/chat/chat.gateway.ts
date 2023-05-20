@@ -348,7 +348,7 @@ export class EventsGateway
 			status: gameStatus
 		}
 	) {
-		if (userList[socket.data.user.uid]) {
+		if (socket.data.user.uid !== undefined && userList[socket.data.user.uid]) {
 			userList[socket.data.user.uid].gameStatus = status;
 		}
 	}
