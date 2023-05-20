@@ -195,7 +195,6 @@ export async function changeNickName(
       AdminLogPrinter(adminConsole, '\nchangeNickName:', response);
       if (response.status === 200) {
         if (action) {
-
           socket.socket.emit('user-change-info');
           callback();
         }
@@ -226,6 +225,7 @@ export async function GetMyInfo(
     method: "GET",
   })
     .then((response) => {
+      status = response.status;
       switch (response.status) {
         case 200: {
           status = 200;
@@ -244,7 +244,6 @@ export async function GetMyInfo(
       setUserInfo({ ...response, date: new Date() });
     })
     .catch((error) => {
-      status = error.message;
       AdminLogPrinter(adminConsole, `\nGetMyInfo catch_error: ${error} `);
     });
 
@@ -267,7 +266,7 @@ export async function FirstTimeGetMyInfo(
     method: "GET",
   })
     .then((response) => {
-      status = 200;
+      status = response.status;
       switch (response.status) {
         case 200: {
           return response.json();
@@ -309,9 +308,9 @@ export async function GetOtherProfile(
     method: "GET",
   })
     .then((response) => {
+      status = response.status;
       switch (response.status) {
         case 200: {
-          status = 200;
           return response.json();
         }
         default: {
@@ -324,7 +323,6 @@ export async function GetOtherProfile(
       setUserInfo({ ...response });
     })
     .catch((error) => {
-      status = error.message;
       AdminLogPrinter(adminConsole, `\nGetOtherProfile catch_error: ${error} `);
     });
 
