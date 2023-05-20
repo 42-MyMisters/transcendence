@@ -32,6 +32,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     private gameService: GameService,
 	) {
     this.gamePool = new Map<number, Socket[]>();
+    this.privatePool = new Map<number, Socket>();
     this.readyQueue = [];
     this.gameId = 0;
     this.userInGame = new Map<number, GameConnection>();
@@ -137,14 +138,20 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   async handleConnection(@ConnectedSocket() socket: Socket) {
     try {
       socket.data.uid = await this.authService.jwtVerify(socket.handshake.auth.token);
+      console.log(`socket invite: ${socket.handshake.auth.invite}`);
+      console.log(`socket observ: ${socket.handshake.auth.observ}`);
       if (socket.disconnected) {
         // socket disconnected before putting in gamePool.
         throw new UnauthorizedException("already disconnected.");
       }
-      console.log(`socket data uid: ${socket.data.uid}`)
-      if (socket.handshake.auth.invite !== undefined) {
-        const host = this.privatePool[socket.handshake.auth.invite];
+      const invite:number = socket.handshake.auth.invite;
+      const observ:number = socket.handshake.auth.observ;
+      console.log(`socket data uid: ${socket.data.uid}`);
+
+      if (invite !== undefined) {
+        const host = this.privatePool[invite];
         if (host !== undefined) {
+          console.log(`Invite client uid: ${socket.data.uid}`);
           const p1 = host.data.uid;
           const p2 = socket.data.uid;
           const gameId = p1.toString() + "+" + p2.toString();
@@ -154,10 +161,11 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
           this.privatePool.delete(p1);
           this.gameService.createGame(gameId, this.server, p1, p2, GameType.PRIVATE);
         } else {
+          console.log(`Invite host uid: ${socket.data.uid}`);
           this.privatePool.set(socket.data.uid, socket);
         }
-      } else if (socket.handshake.auth.observ !== undefined) {
-        const gameConnection = this.userInGame.get(socket.handshake.auth.data);
+      } else if (observ !== undefined) {
+        const gameConnection = this.userInGame.get(observ);
         if (gameConnection !== undefined && this.gameService.gameState(gameConnection.gameId) < GameStatus.FINISHED) {
           socket.emit("observer joined room");
           socket.join(gameConnection.gameId);

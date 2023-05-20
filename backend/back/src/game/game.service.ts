@@ -387,8 +387,10 @@ class Game {
     result.gameType = this.gameType;
     // const save = this.databaseService.saveGame(result);
     // Promise.all([save]);
-    // this.databaseService.updateUserElo(winnerUid, result[0]);
-    // this.databaseService.updateUserElo(loserUid, result[1]);
+    if (this.gameType === GameType.PUBLIC) {
+      // this.databaseService.updateUserElo(winnerUid, result[0]);
+      // this.databaseService.updateUserElo(loserUid, result[1]);
+    }
     return 10;
   }
 

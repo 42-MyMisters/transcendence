@@ -50,13 +50,13 @@ export default function GamePage() {
     type: GameType;
     invite?: number;
     observ?: number;
-    constructor() {
+    constructor(inviteInfo: {gameType: string, userId: number}) {
       this.token = localStorage.getItem("refreshToken");
       this.type = isPrivate ? GameType.PRIVATE : GameType.PUBLIC;
-      if (gameInviteInfo.gameType === 'invite') {
-        this.invite = gameInviteInfo.userId;
-      } else if (gameInviteInfo.gameType === 'observe') {
-        this.observ = gameInviteInfo.userId;
+      if (inviteInfo.gameType === 'invite') {
+        this.invite = inviteInfo.userId;
+      } else if (inviteInfo.gameType === 'observe') {
+        this.observ = inviteInfo.userId;
       }
     }
   }
@@ -66,7 +66,7 @@ export default function GamePage() {
   const URL = "https://localhost";
   const NameSpace = "/game";
 
-  const auth = new socketAuth();
+  const auth = new socketAuth(gameInviteInfo);
 
   const gameSocket = io(`${URL}${NameSpace}`, {
     auth: auth,
