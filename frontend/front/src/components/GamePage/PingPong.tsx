@@ -37,8 +37,8 @@ export default function PingPong({
   gameSocket,
 }: {
   gameSocket: Socket,
-}){
-  console.log("gameSocket connected? ",gameSocket.connected);
+}) {
+  console.log("gameSocket connected? ", gameSocket.connected);
 
   const [upArrow, setUpArrow] = useState(false);
   const [downArrow, setDownArrow] = useState(false);
@@ -138,6 +138,7 @@ export default function PingPong({
     update(Date.now(), coords.time);
     Game(coords, canvas);
     setGameResultModal(true);
+    clearInterval(pingInterval);
   };
 
   const countdownEventHandler = () => {
