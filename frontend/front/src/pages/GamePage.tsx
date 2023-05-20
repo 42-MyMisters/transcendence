@@ -4,14 +4,17 @@ import "../components/GamePage/PingPong";
 import PingPong from "../components/GamePage/PingPong";
 import TopBar from "../components/TopBar";
 
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import {
   isGameStartedAtom,
   isLoadingAtom,
   isMatchedAtom,
   isPrivateAtom,
+  isGameQuitAtom,
+  gameInviteInfoAtom,
 } from "../components/atom/GameAtom";
 
+import * as chatSocket from "../socket/chat.socket";
 import * as chatAtom from "../components/atom/ChatAtom";
 import { gameResultModalAtom } from "../components/atom/ModalAtom";
 import GameResultModal from "../components/GamePage/GameResultModal";
@@ -31,33 +34,41 @@ export default function GamePage() {
   const [isMatched, setIsMatched] = useAtom(isMatchedAtom);
   const [isPrivate, setIsPrivate] = useAtom(isPrivateAtom);
   const [isGameStart, setIsGameStart] = useAtom(isGameStartedAtom);
+  const setIsGameQuit = useSetAtom(isGameQuitAtom);
+  const [gameInviteInfo, setGameInviteInfo] = useAtom(gameInviteInfoAtom);
 
   const [adminConsole, setAdminConsole] = useAtom(chatAtom.adminConsoleAtom);
 
   const [userInfo, setUserInfo] = useAtom(UserAtom);
 
   const [socket, setSocket] = useState(io());
-  
+
   let isP1: boolean;
-  
+
   class socketAuth {
     token: string | null;
     type: GameType;
-    observ?: number;
     invite?: number;
+    observ?: number;
     constructor() {
       this.token = localStorage.getItem("refreshToken");
-      this.type = GameType.PUBLIC;
+      this.type = isPrivate ? GameType.PRIVATE : GameType.PUBLIC;
+      if (gameInviteInfo.gameType === 'invite') {
+        this.invite = gameInviteInfo.userId;
+      } else if (gameInviteInfo.gameType === 'observe') {
+        this.observ = gameInviteInfo.userId;
+      }
     }
   }
-  
-  const auth: socketAuth = new socketAuth();
+
 
   // const URL = process.env.REACT_APP_API_URL;
   const URL = "https://localhost";
   const NameSpace = "/game";
 
-  const gameSocket: Socket = io(`${URL}${NameSpace}`, {
+  const auth = new socketAuth();
+
+  const gameSocket = io(`${URL}${NameSpace}`, {
     auth: auth,
     autoConnect: false,
     transports: ["polling", "websocket"],
@@ -65,17 +76,30 @@ export default function GamePage() {
     upgrade: true,
   });
 
-  
+
+
   PressKey(["F4"], () => {
     setAdminConsole((prev) => !prev);
   });
-  
+
+  const clearState = () => {
+    setIsPrivate(false);
+    setIsGameStart(false);
+    setIsLoading(false);
+    setIsMatched(false);
+    setGameResultModal(false);
+    setIsGameQuit(true);
+  };
+
   useEffect(() => {
     AdminLogPrinter(adminConsole, `gameSocket connection`);
     gameSocket.connect();
     setSocket(gameSocket);
+    setGameInviteInfo({ gameType: 'queue', userId: -1 });
+    setIsGameQuit(false);
     setIsLoading(true);
     return () => {
+      clearState();
       gameSocket!.disconnect();
     };
   }, []);
@@ -96,9 +120,8 @@ export default function GamePage() {
   const disconnectionEventHandler = (reason: string) => {
     if (reason === "io server disconnect") {
     }
-    setIsPrivate(false);
-    setIsGameStart(false);
-    setGameResultModal(false);
+    console.log(`gameSocket end`, reason);
+    clearState();
     AdminLogPrinter(adminConsole, "gameSocket disconnected");
   };
 
@@ -147,7 +170,7 @@ export default function GamePage() {
       gameSocket.off("disconnect", disconnectionEventHandler);
     };
   }, [isPrivate, isGameStart]);
-  
+
   useEffect(() => {
     gameSocket.on("matched", matchEventHandler);
     return () => {
@@ -157,7 +180,7 @@ export default function GamePage() {
 
   // useEffect(() => {
   //   return () => {
-  //   }      
+  //   }
   // }, [isLoading, isMatched, isGameStart]);
 
   return (
@@ -197,7 +220,7 @@ export default function GamePage() {
         )
       ) : isGameStart ? (
         <PingPong gameSocket={socket} />
-        
+
       ) : (
         <Waiting />
       )}
