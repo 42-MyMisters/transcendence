@@ -73,6 +73,15 @@ export default function GamePage() {
     setAdminConsole((prev) => !prev);
   });
 
+  const clearState = () => {
+    setIsPrivate(false);
+    setIsGameStart(false);
+    setIsLoading(false);
+    setIsMatched(false);
+    setGameResultModal(false);
+    setIsGameQuit(true);
+  };
+
   useEffect(() => {
     AdminLogPrinter(adminConsole, `gameSocket connection`);
     gameSocket.connect();
@@ -80,12 +89,7 @@ export default function GamePage() {
     setIsGameQuit(false);
     setIsLoading(true);
     return () => {
-      setIsPrivate(false);
-      setIsGameStart(false);
-      setIsLoading(false);
-      setIsMatched(false);
-      setGameResultModal(false);
-      setIsGameQuit(true);
+      clearState();
       gameSocket!.disconnect();
     };
   }, []);
@@ -107,12 +111,7 @@ export default function GamePage() {
     if (reason === "io server disconnect") {
     }
     console.log(`gameSocket end`, reason);
-    setIsPrivate(false);
-    setIsGameStart(false);
-    setIsLoading(false);
-    setIsMatched(false);
-    setGameResultModal(false);
-    setIsGameQuit(true);
+    clearState();
     AdminLogPrinter(adminConsole, "gameSocket disconnected");
   };
 
