@@ -206,12 +206,12 @@ export class DatabaseService {
     }
 
     async findUserByELODESC(){
-        const result = await this.userRepository.find({
-            order: {
-                elo: 'DESC',
-            },
-            take: 10,
-        });
+        const result = this.userRepository.createQueryBuilder('user')
+        .leftJoinAndSelect('user.wonGames', 'wonGames')
+        .leftJoinAndSelect('user.lostGames', 'lostGames')
+        .orderBy('user.elo', 'DESC')
+        .take(10)
+        .getMany();
         return result;
     }
 }
