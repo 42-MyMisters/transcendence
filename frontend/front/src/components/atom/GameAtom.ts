@@ -40,3 +40,6 @@ export const isP1Atom = atom<boolean>(true);
 
 export const gameWinnerAtom = atom<number>(0);
 
+export const player1Atom = atom<number>(0);
+
+export const player2Atom = atom<number>(0);

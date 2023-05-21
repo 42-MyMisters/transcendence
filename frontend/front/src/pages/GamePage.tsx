@@ -92,6 +92,7 @@ export default function GamePage() {
     setGameInviteInfo({ gameType: 'queue', userId: -1 });
     setIsGameQuit(false);
     setIsLoading(true);
+    console.log("is Private : ", isPrivate);
     return () => {
       clearState();
       gameSocket.disconnect();
@@ -201,22 +202,19 @@ export default function GamePage() {
         ""
       )}
       <TopBar />
-      {isLoading ? (
-        isPrivate ? (
-          <Waiting />
-        ) : (
-          isMatched ? (
-            <Waiting />
-          ) : (
-            <LadderBoard />
+      {
+        isLoading
+          ? (isPrivate
+            ? (<Waiting p1={player1.uid} />)
+            : (isMatched
+              ? (<Waiting p1={player1.uid} p2={player2.uid} />)
+              : (<LadderBoard />)
+            )
           )
-        )
-      ) : isGameStart ? (
-        <PingPong />
-
-      ) : (
-        <Waiting />
-      )}
+          : isGameStart
+            ? (<PingPong />)
+            : (<LadderBoard />)
+      }
       {gameResultModal ? <GameResultModal leftScore={player1.score} rightScore={player2.score} /> : null}
     </BackGround>
   );

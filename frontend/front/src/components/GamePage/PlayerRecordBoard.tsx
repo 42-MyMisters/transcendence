@@ -1,5 +1,8 @@
 import { ReactElement } from "react";
 import "../../styles/GamePlayerInfo.css";
+import { GameRecordType } from '../atom/UserAtom';
+import { userListAtom } from '../atom/ChatAtom';
+import { useAtomValue } from 'jotai';
 
 export function PlayerRecordLine({
   LeftSideNickName,
@@ -25,29 +28,30 @@ export function PlayerRecordLine({
 
 export default function PlayerRecordBoard({
   records,
+  userId,
 }: {
-  records: {
-    LeftSideNickName: string;
-    LeftSideScore: number;
-    RightSideScore: number;
-    RightSideNickName: string;
-  }[];
+  records: GameRecordType[];
+  userId: number;
 }) {
-  const rec = records.map(
-    (record: {
-      LeftSideNickName: string;
-      LeftSideScore: number;
-      RightSideScore: number;
-      RightSideNickName: string;
-    }): ReactElement => (
-      <PlayerRecordLine
-        key={record.LeftSideNickName + record.RightSideNickName + record.LeftSideScore + record.RightSideScore}
-        LeftSideNickName={record.LeftSideNickName}
-        LeftSideScore={record.LeftSideScore}
-        RightSideScore={record.RightSideScore}
-        RightSideNickName={record.RightSideNickName}
+  const userList = useAtomValue(userListAtom);
+
+  const rec = records.reverse().map((record) => (
+    record.gm_winnerId === userId
+      ? <PlayerRecordLine
+        key={record.gm_gid + userId}
+        LeftSideNickName={userList[userId].userDisplayName}
+        LeftSideScore={record.gm_winnerScore}
+        RightSideScore={record.gm_loserScore}
+        RightSideNickName={userList[record.gm_loserId].userDisplayName}
       />
-    )
+      : <PlayerRecordLine
+        key={record.gm_gid + userId}
+        LeftSideNickName={userList[userId].userDisplayName}
+        LeftSideScore={record.gm_loserScore}
+        RightSideScore={record.gm_winnerScore}
+        RightSideNickName={userList[record.gm_winnerId].userDisplayName}
+      />
+  )
   );
 
   return (
