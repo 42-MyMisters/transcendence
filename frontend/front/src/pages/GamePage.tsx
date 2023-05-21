@@ -46,10 +46,10 @@ export default function GamePage() {
   const [adminConsole, setAdminConsole] = useAtom(chatAtom.adminConsoleAtom);
 
   const [userInfo, setUserInfo] = useAtom(UserAtom);
-  
+
   const [gameSocket, setGameSocket] = useAtom(gameSocketAtom);
   const [isP1, setIsP1] = useAtom(isP1Atom);
-  
+
   const userList = useAtomValue(chatAtom.userListAtom);
   const gameWinner = useAtomValue(gameWinnerAtom);
 
@@ -58,7 +58,7 @@ export default function GamePage() {
     type: GameType;
     invite?: number;
     observ?: number;
-    constructor(inviteInfo: {gameType: string, userId: number}) {
+    constructor(inviteInfo: { gameType: string, userId: number }) {
       this.token = localStorage.getItem("refreshToken");
       this.type = isPrivate ? GameType.PRIVATE : GameType.PUBLIC;
       if (inviteInfo.gameType === 'invite') {
@@ -126,7 +126,7 @@ export default function GamePage() {
     setIsGameStart(true);
   };
 
-  const matchEventHandler = ({p1, p2}: { p1: number, p2: number }) => {
+  const matchEventHandler = ({ p1, p2 }: { p1: number, p2: number }) => {
     AdminLogPrinter(adminConsole, "matched");
     if (p1 === userInfo.uid) {
       setIsP1(true);

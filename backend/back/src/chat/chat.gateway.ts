@@ -223,6 +223,7 @@ export class EventsGateway
 				if (userList[uid].disconnectedSocket !== socket.id) {
 					this.logger.debug(`${userList[uid].userDisplayName} is now online : ${socket.id}`);
 					userList[uid].status = 'online';
+					userList[uid].gameStatus = 'end';
 					userList[uid].socket = socket;
 					await this.handleBlockList(socket);
 					await this.handleFollowList(socket, uid);
@@ -267,6 +268,7 @@ export class EventsGateway
 				});
 			}
 			userList[socket.data.user.uid].isRefresh = false;
+			userList[socket.data.user.uid].gameStatus = 'end';
 		} else {
 			this.logger.warn(`${socket.id} invalid connection. disconnect socket.`);
 		}
