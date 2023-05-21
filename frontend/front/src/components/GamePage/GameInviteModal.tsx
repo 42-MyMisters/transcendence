@@ -1,12 +1,11 @@
 import { useAtomValue, useSetAtom } from "jotai";
-import { PressKey } from "../../event/event.util";
-import "../../styles/GameInviteModal.css";
-import { isPrivateAtom, gameInviteInfoAtom, gameinviteFromAtom } from "../atom/GameAtom";
-import { gameInviteModalAtom } from "../atom/ModalAtom";
-import * as chatAtom from "../../components/atom/ChatAtom";
-import * as socket from "../../socket/chat.socket";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from 'react';
+import * as chatAtom from "../../components/atom/ChatAtom";
+import { PressKey } from "../../event/event.util";
+import * as socket from "../../socket/chat.socket";
+import "../../styles/GameInviteModal.css";
+import { gameInviteInfoAtom, gameinviteFromAtom, isPrivateAtom } from "../atom/GameAtom";
+import { gameInviteModalAtom } from "../atom/ModalAtom";
 
 export default function GameInviteModal() {
   const setGameInviteModal = useSetAtom(gameInviteModalAtom);

@@ -1,5 +1,6 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useNavigate } from "react-router-dom";
+import { PressKey } from "../../event/event.util";
 import {
   isGameStartedAtom,
   isLoadingAtom,
@@ -26,10 +27,24 @@ export default function GameResultModal({
   const setIsGameStart = useSetAtom(isGameStartedAtom);
   const setIsGameQuit = useSetAtom(isGameQuitAtom);
   const setGameResultModal = useSetAtom(gameResultModalAtom);
-  const navigate = useNavigate();
-
   const userList = useAtomValue(userListAtom);
   const gameWinner = useAtomValue(gameWinnerAtom);
+
+  const navigate = useNavigate();
+
+  const handlerGameQuit = () => {
+    setIsPrivate(false);
+    setIsGameStart(false);
+    setIsLoading(false);
+    setIsMatched(false);
+    setIsGameQuit(true);
+    setGameResultModal(false);
+    navigate("/chat");
+  };
+
+  PressKey(["Escape"], () => {
+    handlerGameQuit();
+  });
 
   return (
     <>
@@ -37,18 +52,7 @@ export default function GameResultModal({
       <div className="GameResultModal">
         <div className="GameResultModalTxt">{`${userList[gameWinner].userDisplayName} Win!`}</div>
         <div className="GameResultModalScore">{`${leftScore} : ${rightScore}`}</div>
-        <button
-          className="GameResultModalBtn"
-          onClick={() => {
-            setIsPrivate(false);
-            setIsGameStart(false);
-            setIsLoading(false);
-            setIsMatched(false);
-            setIsGameQuit(true);
-            setGameResultModal(false);
-            navigate("/chat");
-          }}
-        >
+        <button className="GameResultModalBtn" onClick={handlerGameQuit}>
           OK
         </button>
       </div>
