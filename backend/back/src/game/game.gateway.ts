@@ -1,11 +1,17 @@
 import { Logger, UnauthorizedException } from '@nestjs/common';
-import { ConnectedSocket, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Namespace, Socket } from 'socket.io';
 import { AuthService } from 'src/auth/auth.service';
+import { DatabaseService } from 'src/database/database.service';
 import { UserService } from 'src/user/user.service';
 import { GameMode, GameStatus, GameType } from './game.enum';
-import { GameService } from './game.service';
+import { GameService, GameStartVar } from './game.service';
 
+export interface GameInfo {
+  gameMode: GameMode,
+  p1: number,
+  p2: number,
+}
 
 @WebSocketGateway({ namespace: 'game', cors: { origin: '*' } })
 export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
@@ -21,11 +27,12 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     private gameService: GameService,
 	) {
     this.gamePool = new Map<number, Socket[]>();
+    this.privatePool = new Map<number, Socket>();
     this.readyQueue = [];
     this.gameId = 0;
     this.userInGame = new Map<number, string>();
     // Queue loop
-    setInterval(this.gameMatchLogic.bind(this), 5000);
+    setInterval(this.gameMatchLogic.bind(this), 2000);
   }
   
   logger = new Logger('GameGateway');
@@ -38,83 +45,109 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   gameMatchLogic() {
-    const curTime = Date.now();
+    const curTime = Math.trunc(Date.now() / 1000);
     const putUserInGamePool = (curTime: number) => {
-      if (this.readyQueue.length !== 0) {
-        while (this.readyQueue.length && curTime - this.readyQueue[0].data.timestamp >= 5000) {
-          const sock = this.readyQueue.shift()!;
-          const eloAdj = Math.trunc(sock.data.elo / 5);
-          const eloList = this.gamePool.get(eloAdj);
-          if (eloList !== undefined) {
-            eloList.push(sock);
-          } else {
-            this.gamePool.set(eloAdj, [sock]);
-          }
+      while (this.readyQueue.length && curTime - this.readyQueue[0].data.timestamp >= 3) {
+        const sock = this.readyQueue.shift()!;
+        const eloAdj = Math.trunc(sock.data.elo / 5);
+        const eloList = this.gamePool.get(eloAdj);
+        if (eloList !== undefined) {
+          eloList.push(sock);
+        } else {
+          this.gamePool.set(eloAdj, [sock]);
         }
-        this.gamePool = new Map<number, Socket[]>(Array.from(this.gamePool).sort((a, b) => a[0] - b[0]));
       }
     }
-    // console.log(`readyQueue: ${this.readyQueue}`);
-    // const tmp: {elo:number, range:number}[] = [];
     for (const [elo, socketList] of this.gamePool) {
       // quick match from the same tier pool.
       while (socketList.length > 1) {
         const sockA = socketList.shift()!;
         const sockB = socketList.shift()!;
-        let p1: number, p2: number;
-        if (sockA.data.elo <= sockB.data.elo) {
-          p1 = sockA.data.uid;
-          p2 = sockB.data.uid;
-        } else {
-          p1 = sockB.data.uid;
-          p2 = sockA.data.uid;
-        }
-        const gameId = (this.gameId++).toString();
-        this.userInGame.set(p1, gameId).set(p2, gameId);
-        // this.joinRoom(sockB!, gameId);
-        // this.joinRoom(sockA!, gameId);
-        
-        const joinRoom = [
-          sockA.join(gameId),
-          sockB.join(gameId),
-        ];
-        Promise.all(joinRoom);
-        sockA.data.room = gameId;
-        sockB.data.room = gameId;
-        // console.log(`${sockA.data.uid} connected? ${sockA.connected}`);
-        // sockA.join(gameId);
-        // console.log(`${sockA.data.uid} connected? ${}`);
-        // sockA.join(gameId);
-        // sockB.join(gameId);
-        console.log(`${sockA.data.uid} joined room list `, sockA.rooms);
-        console.log(`${sockB.data.uid} joined room list `, sockB.rooms);
-        this.gameService.createGame(gameId, this.server, p1, p2, GameType.PUBLIC);
-      }
-
-      if (socketList.length) {
-        // tmp.push({elo:elo, range:Math.trunc(socketList[0].data.time / 5)});
-      } else {
+        this.createGameFromQueue(sockA, sockB);
+      }      
+      if (socketList.length === 0) {
         this.gamePool.delete(elo);
       }
     }
-    // if (tmp.length > 1) {
-    //   // match making from 
-    //   // tmp.sort((a, b) => a.time - b.time);
-    //   for(const p of tmp) {
-    //     for (let i = 1; i <= p.range; i++) {
-    //       const op = tmp.find((a)=> a.elo === p.elo + i || a.elo === p.elo - i);
-    //       if (op !== undefined) {
-            
-    //       }
-    //     } 
-        
-    //   }
-    // }
+    if (this.gamePool.size !== 0) {
+      const tmpArray = Array.from(this.gamePool).sort((a, b) => a[0] - b[0]);
+      let i = 0;
+      while (i < tmpArray.length - 1) {
+        const myElo = tmpArray[i][0];
+        const mySocket = tmpArray[i][1][0];
+        const range = Math.min(Math.trunc((curTime - mySocket.data.timestamp) / 3), 10);
+        console.log(i, tmpArray);
+        if (i === 0) {
+          const nextElo = tmpArray[i + 1][0];
+          if (myElo + range >= nextElo) {
+            this.createGameFromQueue(mySocket, tmpArray[i + 1][1][0]);
+            tmpArray.splice(i, 2);
+            continue;
+          }
+        } else if (i === tmpArray.length - 2) {
+          const prevElo = tmpArray[i - 1][0];
+          const nextElo = tmpArray[i + 1][0];
+          if (myElo - range <= prevElo) {
+            this.createGameFromQueue(mySocket, tmpArray[i - 1][1][0]);
+            tmpArray.splice(i - 1, 2);
+            i--;
+            continue;
+          } else if (myElo + range >= nextElo) {
+            this.createGameFromQueue(mySocket, tmpArray[i + 1][1][0]);
+            tmpArray.splice(i, 2);
+            continue;
+          }
+        } else {
+          const prevElo = tmpArray[i - 1][0];
+          if (myElo - range <= prevElo) {
+            this.createGameFromQueue(mySocket, tmpArray[i - 1][1][0]);
+            tmpArray.splice(i - 1, 2);
+            i--;
+            continue;
+          }
+        }
+        i++;
+      }
+      this.gamePool = new Map<number, Socket[]>(tmpArray);
+    }
+
     putUserInGamePool(curTime);
     this.logger.log('game queue loop');
   }
+
+  private createGameFromQueue(sockA: Socket, sockB: Socket) {
+    const gameId = (this.gameId++).toString();
+    const gv: GameStartVar = {
+      gameId,
+      server: this.server,
+      p1: 0,
+      p2: 0,
+      p1Elo: 0,
+      p2Elo: 0,
+      gameType: GameType.PUBLIC,
+    };
+    if (sockA.data.elo <= sockB.data.elo) {
+      gv.p1 = sockA.data.uid;
+      gv.p1Elo = sockA.data.elo;
+      gv.p2 = sockB.data.uid;
+      gv.p2Elo = sockB.data.elo;
+    } else {
+      gv.p1 = sockB.data.uid;
+      gv.p1Elo = sockB.data.elo;
+      gv.p2 = sockA.data.uid;
+      gv.p2Elo = sockA.data.elo;
+    }
+    this.userInGame.set(gv.p1, gameId).set(gv.p2, gameId);
+    this.joinRoom(sockB, gameId);
+    this.joinRoom(sockA, gameId);
+    sockA.data.room = gameId;
+    sockB.data.room = gameId;
+    // console.log(`${sockA.data.uid} joined room list `, sockA.rooms);
+    // console.log(`${sockB.data.uid} joined room list `, sockB.rooms);
+    this.gameService.createGame(gv);
+  }
   
-  joinRoom(socket: Socket, gameId: string) {
+  private joinRoom(socket: Socket, gameId: string) {
     console.log(`${socket.id} joined ${gameId}`);
     socket.join(gameId);
     socket.data.room = gameId;
@@ -130,23 +163,37 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         // socket disconnected before putting in gamePool.
         throw new UnauthorizedException("already disconnected.");
       }
-      console.log(`socket data uid: ${socket.data.uid}`)
-      if (socket.handshake.auth.invite !== undefined) {
-        const host = this.privatePool[socket.handshake.auth.invite];
-        if (host !== undefined) {
+      const invite:number = socket.handshake.auth.invite;
+      const observ:number = socket.handshake.auth.observ;
+      console.log(`socket data uid: ${socket.data.uid}`);
+      if (invite !== undefined) {
+        console.log(`private pool: ${{...this.privatePool}}`);
+        if (this.privatePool.has(invite)) {
+          console.log(`Invite client uid: ${socket.data.uid}`);
+          const host = this.privatePool.get(invite)!;
           const p1 = host.data.uid;
           const p2 = socket.data.uid;
           const gameId = p1.toString() + "+" + p2.toString();
+          const gv: GameStartVar = {
+            gameId,
+            server:this.server,
+            p1,
+            p1Elo: host.data.elo,
+            p2,
+            p2Elo: socket.data.elo,
+            gameType: GameType.PRIVATE,
+          }
           this.userInGame.set(p1, gameId).set(p2, gameId);
           this.joinRoom(host, gameId);
           this.joinRoom(socket, gameId);
           this.privatePool.delete(p1);
-          this.gameService.createGame(gameId, this.server, p1, p2, GameType.PRIVATE);
+          this.gameService.createGame(gv);
         } else {
+          console.log(`Invite host uid: ${socket.data.uid}`);
           this.privatePool.set(socket.data.uid, socket);
         }
-      } else if (socket.handshake.auth.observ !== undefined) {
-        const gameId = this.userInGame.get(socket.handshake.auth.data);
+      } else if (observ !== undefined) {
+        const gameId = this.userInGame.get(observ);
         if (gameId !== undefined && this.gameService.gameState(gameId) < GameStatus.FINISHED) {
           socket.emit("observer joined room");
           socket.join(gameId);
@@ -163,27 +210,13 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
           throw new UnauthorizedException("already disconnected or user not found.");
         }
         socket.data.elo = user.elo;
-        const userInGame = this.userInGame.get(uid);
-        if (userInGame === undefined) {
-          // socket.emit("isLoading", true);
-          if (socket.handshake.auth.type === GameType.PRIVATE) {
-            // socket.emit("isPrivate", true);
-          } else {
-            socket.data.timestamp = Date.now();
-            this.readyQueue.push(socket);
-            // const eloAdj = Math.trunc(socket.data.elo / 5);
-            // const eloList = this.gamePool.get(eloAdj);
-            // if (eloList !== undefined) {
-            //   eloList.push(socket);
-            // } else {
-            //   this.gamePool.set(eloAdj, [socket]);
-            // }
-            // this.gameQueue.push(socket.data.elo, socket);
-          }
+        const gameId = this.userInGame.get(uid);
+        if (gameId === undefined) {
+          socket.data.timestamp = Math.trunc(Date.now() / 1000);
+          this.readyQueue.push(socket);
         } else {
-          
           console.log("Reconnected.");
-          socket.join(this.userInGame.get(uid)!);
+          socket.join(gameId);
         }
       }
     } catch(e) {
@@ -237,13 +270,13 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   @SubscribeMessage('status')
-  async status(socket: Socket, payload: any) {
+  status(socket: Socket, payload: any) {
     console.log(socket.rooms);
     console.log(payload);
   }
 
   @SubscribeMessage('upPress')
-  async upPress(socket: Socket, payload: any) {
+  upPress(socket: Socket) {
     if (socket.data.room) {
       const curGame = this.gameService.getGame(socket.data.room);
       if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
@@ -253,7 +286,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
   
   @SubscribeMessage('downPress')
-  async downPress(socket: Socket, payload: any) {
+  downPress(socket: Socket) {
     if (socket.data.room) {
       const curGame = this.gameService.getGame(socket.data.room);
       if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
@@ -263,7 +296,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
   
   @SubscribeMessage('upRelease')
-  async upRelease(socket: Socket, payload: any) {
+  upRelease(socket: Socket) {
     if (socket.data.room) {
       const curGame = this.gameService.getGame(socket.data.room);
       if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
@@ -273,7 +306,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
   
   @SubscribeMessage('downRelease')
-  async downRelease(socket: Socket, payload: any) {
+  downRelease(socket: Socket) {
     if (socket.data.room) {
       const curGame = this.gameService.getGame(socket.data.room);
       if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
@@ -282,26 +315,19 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
   }
 
-  @SubscribeMessage('inviteGame')
-  async inviteGame(socket: Socket, payload: any) {
-    this.gameService.getGame(payload.id);
-  }
-
   @SubscribeMessage('modeSelect')
-  async modeSelect(socket: Socket, mode: GameMode) {
-    const curGame = this.gameService.getGame(socket.data.uid);
+  modeSelect(socket: Socket, mode: GameMode) {
+    const curGame = this.gameService.getGame(socket.data.room);
     if (curGame !== undefined) {
-      if (curGame.getStatus() === GameStatus.MODESELECT && curGame.isPlayer(socket.data.uid)) {
-        curGame.setMode(socket.data.uid, mode);
+      if (curGame.isP1(socket.data.uid)) {
+        curGame.setMode(mode);
       }
     }
   }
 
   @SubscribeMessage('ping')
-  async pong() {
-    console.log("pong");
+  pong() {
     return Date.now();
   }
-
 
 }

@@ -1,13 +1,38 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../../styles/GameInfo.css";
+import { gameModeAtom, gameSocketAtom } from '../atom/GameAtom';
+import { useAtom, useAtomValue } from 'jotai';
+
+const enum GameMode {
+  DEFAULT = 0,
+  SPEED = 1,
+}
 
 function Checkbox1() {
   const [isChecked, setIsChecked] = useState(false);
+  const [gameMode, setGameMode] = useAtom(gameModeAtom);
 
+  const gameSocket = useAtomValue(gameSocketAtom);
+  
   function handleCheckboxChange() {
-    setIsChecked(!isChecked);
+    if (isChecked) {
+      setGameMode('item');
+    } else {
+      setGameMode('normal');
+    }
+    setIsChecked((prev) => !prev);
   }
-
+  
+  useEffect(() => {
+    if (gameMode === 'normal') {
+      gameSocket.emit('modeSelect', GameMode.DEFAULT);
+      setIsChecked(true);
+    } else {
+      setIsChecked(false);
+    }
+  }, [gameMode]);
+  
+  
   return (
     <label className="GameMode1">
       <input
@@ -15,19 +40,37 @@ function Checkbox1() {
         type="checkbox"
         checked={isChecked}
         onChange={handleCheckboxChange}
-      />
-      GameMode1
+        />
+      Normal Mode
     </label>
   );
 }
 
 function Checkbox2() {
   const [isChecked, setIsChecked] = useState(false);
+  const [gameMode, setGameMode] = useAtom(gameModeAtom);
+  
+  const gameSocket = useAtomValue(gameSocketAtom);
 
   function handleCheckboxChange() {
-    setIsChecked(!isChecked);
+    if (isChecked) {
+      setGameMode('normal');
+    } else {
+      setGameMode('item');
+    }
+    setIsChecked((prev) => !prev);
   }
-
+  
+  useEffect(() => {
+    if (gameMode === 'item') {
+      gameSocket.emit('modeSelect', GameMode.SPEED);
+      console.log("game mode: speed");
+      setIsChecked(true);
+    } else {
+      setIsChecked(false);
+    }
+  }, [gameMode]);
+  
   return (
     <label className="GameMode2">
       <input
@@ -36,7 +79,7 @@ function Checkbox2() {
         checked={isChecked}
         onChange={handleCheckboxChange}
       />
-      GameMode2
+      Speed Mode
     </label>
   );
 }
