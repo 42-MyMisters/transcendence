@@ -1,4 +1,4 @@
-import { useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useNavigate } from "react-router-dom";
 import {
   isGameStartedAtom,
@@ -6,17 +6,17 @@ import {
   isMatchedAtom,
   isPrivateAtom,
   isGameQuitAtom,
+  gameWinnerAtom,
 } from "../../components/atom/GameAtom";
 import "../../styles/GameResultModal.css";
+import { userListAtom } from "../atom/ChatAtom";
 import { gameResultModalAtom } from "../atom/ModalAtom";
 
 
 export default function GameResultModal({
-  result = "",
   leftScore = 0,
   rightScore = 0,
 }: {
-  result: string;
   leftScore: number;
   rightScore: number;
 }) {
@@ -28,11 +28,14 @@ export default function GameResultModal({
   const setGameResultModal = useSetAtom(gameResultModalAtom);
   const navigate = useNavigate();
 
+  const userList = useAtomValue(userListAtom);
+  const gameWinner = useAtomValue(gameWinnerAtom);
+
   return (
     <>
       <div className="GameResultModalBG" />
       <div className="GameResultModal">
-        <div className="GameResultModalTxt">{result ? "You Win!" : "You Lose"}</div>
+        <div className="GameResultModalTxt">{`${userList[gameWinner].userDisplayName} Win!`}</div>
         <div className="GameResultModalScore">{`${leftScore} : ${rightScore}`}</div>
         <button
           className="GameResultModalBtn"
