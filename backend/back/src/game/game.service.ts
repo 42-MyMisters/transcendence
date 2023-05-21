@@ -115,11 +115,11 @@ class Game {
   private init() {
     switch (this.gameMode) {
       case GameMode.DEFAULT: {
-        this.ballSpeedMultiplier = 1.5;
+        this.ballSpeedMultiplier = 1.4;
         break;
       }
       case GameMode.SPEED: {
-        this.ballSpeedMultiplier = 2;
+        this.ballSpeedMultiplier = 1.6;
         break;
       }
     }
@@ -130,8 +130,8 @@ class Game {
     if (Math.random() >= 0.5) {
       this.ballSpeedX = -this.ballSpeedX;
     }
-    // +-35 degree range.
-    this.ballSpeedY = this.ballSpeedX * 0.7 * (Math.random() * 2 - 1);
+    // +-28 degree range.
+    this.ballSpeedY = this.ballSpeedX * 0.6 * (Math.random() * 2 - 1);
     // this.ballSpeedY = 0;
     for (let i = 0; i < 4; i++) {
       this.keyPress[i] = 0;
