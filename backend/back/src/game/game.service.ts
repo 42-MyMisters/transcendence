@@ -69,6 +69,8 @@ class Game {
   private ballY: number;
   private paddle1Y: number;
   private paddle2Y: number;
+  private paddleSpeed: number;
+  private paddleSpeedMax: number;
   private gameStatus: GameStatus;
   private round: number;
   
@@ -86,8 +88,9 @@ class Game {
   // key pressed time list [p1up, p1down, p2up, p2down]
   private keyPress: number[] = [0, 0, 0, 0];
 
-  private ballSpeedMultiplier: number = 1.4;
+  private ballSpeedMultiplier: number;
   private ballSpeedMax:number;
+  private ballSpeedLimit:number;
   
   constructor(
     private readonly gv: GameStartVar,
@@ -99,38 +102,40 @@ class Game {
     private readonly ballRadius = 15,
     private readonly paddleHeight = 150,
     private readonly paddleWidth = 30,
-    private readonly paddleSpeed = 0.8,
     private readonly maxScore = 5,
     ) {
-    // this.score[0] = this.score[1] = 0;
+      // this.score[0] = this.score[1] = 0;
+    this.paddleSpeed = 0.8,
     this.round = 0;
     this.gameMode = GameMode.DEFAULT;
+    this.ballSpeedMax = this.canvasWidth / 1000;
+    this.paddleSpeedMax = 1.1;
   }
 
   private init() {
     switch (this.gameMode) {
       case GameMode.DEFAULT: {
-        this.ballSpeedMultiplier = 1.4;
+        this.ballSpeedMultiplier = 1.2;
         break;
       }
       case GameMode.SPEED: {
-        this.ballSpeedMultiplier = 2;
+        this.ballSpeedMultiplier = 1.4;
         break;
       }
     }
-    this.ballSpeedMax = this.canvasWidth / 2000 * this.ballSpeedMultiplier;
+    this.ballSpeedLimit = this.canvasWidth / 2000 * this.ballSpeedMultiplier;
     this.ballX = this.canvasWidth / 2;
     this.ballY = this.canvasHeight / 2;
-    this.ballSpeedX = this.ballSpeedMax;
+    this.ballSpeedX = this.ballSpeedLimit;
     if (Math.random() >= 0.5) {
       this.ballSpeedX = -this.ballSpeedX;
     }
-    // +-26.5 degree range.
-    this.ballSpeedY = this.ballSpeedX * 0.7 * (Math.random() * 2 - 1);
-    this.ballSpeedY = 0;
+    // +-28 degree range.
+    this.ballSpeedY = this.ballSpeedX * 0.6 * (Math.random() * 2 - 1);
     for (let i = 0; i < 4; i++) {
       this.keyPress[i] = 0;
     }
+    this.paddleSpeed = 0.8;
     this.paddle1Y = this.paddle2Y = (this.canvasHeight - this.paddleHeight) / 2;
     this.roundStartTime = Date.now();
     this.lastUpdateCoords = this.curState(this.roundStartTime);
@@ -152,7 +157,6 @@ class Game {
       this.gameStatus = GameStatus.COUNTDOWN;
       this.roundStartTime = Date.now();
       this.lastUpdate = this.roundStartTime;
-      console.log(`gameStart emit. gameMode: ${this.gameMode}!!!!!!`);
       this.gv.server.to(this.gv.gameId).emit('gameStart');
       return 1;
     }
@@ -317,23 +321,26 @@ class Game {
         break;
       }
       case GameMode.SPEED: {
-        // 3% faster
-        if (this.ballSpeedMax < this.canvasWidth / 800) {
-          this.ballSpeedMax *= 1.08;
+        // 8% faster
+        if (this.ballSpeedLimit < this.canvasWidth / 800) {
+          this.ballSpeedLimit *= 1.08;
         }
-        this.ballSpeedX = this.ballSpeedMax;
+        if (this.paddleSpeed < this.paddleSpeedMax) {
+          this.paddleSpeed *= 1.08;
+        }
+        this.ballSpeedX = this.ballSpeedLimit;
         break;
       }
     }
     if (this.keyPress[0] !== 0 && this.keyPress[1] === 0) {
-      this.ballSpeedY -= this.ballSpeedMax / 2;
-      if (this.ballSpeedY < -this.ballSpeedMax) {
-        this.ballSpeedY = -this.ballSpeedMax;
+      this.ballSpeedY -= this.ballSpeedLimit / 2;
+      if (this.ballSpeedY < -this.ballSpeedLimit) {
+        this.ballSpeedY = -this.ballSpeedLimit;
       }
     } else if (this.keyPress[0] === 0 && this.keyPress[1] !== 0) {
-      this.ballSpeedY += this.ballSpeedMax / 2;
-      if (this.ballSpeedY > this.ballSpeedMax) {
-        this.ballSpeedY = this.ballSpeedMax;
+      this.ballSpeedY += this.ballSpeedLimit / 2;
+      if (this.ballSpeedY > this.ballSpeedLimit) {
+        this.ballSpeedY = this.ballSpeedLimit;
       }
     }
   }
@@ -346,23 +353,26 @@ class Game {
         break;
       }
       case GameMode.SPEED: {
-        // 3% faster
-        if (this.ballSpeedMax < this.canvasWidth / 800) {
-          this.ballSpeedMax *= 1.08;
+        // 8% faster
+        if (this.ballSpeedLimit < this.ballSpeedMax) {
+          this.ballSpeedLimit *= 1.08;
         }
-        this.ballSpeedX = -this.ballSpeedMax;
+        if (this.paddleSpeed < this.paddleSpeedMax) {
+          this.paddleSpeed *= 1.08;
+        }
+        this.ballSpeedX = -this.ballSpeedLimit;
         break;
       }
     }
     if (this.keyPress[2] !== 0 && this.keyPress[3] === 0) {
-      this.ballSpeedY -= this.ballSpeedMax / 2;
-      if (this.ballSpeedY < -this.ballSpeedMax) {
-        this.ballSpeedY = -this.ballSpeedMax;
+      this.ballSpeedY -= this.ballSpeedLimit / 2;
+      if (this.ballSpeedY < -this.ballSpeedLimit) {
+        this.ballSpeedY = -this.ballSpeedLimit;
       }
     } else if (this.keyPress[2] === 0 && this.keyPress[3] !== 0) {
-      this.ballSpeedY += this.ballSpeedMax / 2;
-      if (this.ballSpeedY > this.ballSpeedMax) {
-        this.ballSpeedY = this.ballSpeedMax;
+      this.ballSpeedY += this.ballSpeedLimit / 2;
+      if (this.ballSpeedY > this.ballSpeedLimit) {
+        this.ballSpeedY = this.ballSpeedLimit;
       }
     }
   }
@@ -372,12 +382,12 @@ class Game {
     this.score[i]++;
     this.round++;
     this.lastUpdateCoords = this.curState(time);
+    this.roundStartTime = Date.now();
     for(let i = 0; i < 4; i++) {
       this.lastUpdateCoords.keyPress[i] = 0;
     }
-    // this.gv.server.to(this.gv.gameId).emit("syncData", this.lastUpdateCoords);
     this.gv.server.to(this.gv.gameId).emit("scoreInfo", {gameCoord: this.lastUpdateCoords, scoreInfo: {p1Score: this.score[0], p2Score: this.score[1]}});
-    return 3000;
+    return 10;
   }
   
   private running(curTime: number): number {

@@ -16,7 +16,6 @@ import {
   gameModeAtom,
   isP1Atom,
   gameWinnerAtom,
-  playersAtom,
 } from "../components/atom/GameAtom";
 
 import * as chatSocket from "../socket/chat.socket";
@@ -30,7 +29,7 @@ import { AdminLogPrinter, PressKey } from "../event/event.util";
 import { io, Socket } from 'socket.io-client';
 import { UserAtom } from "../components/atom/UserAtom";
 import { GameType } from "../socket/game.dto";
-import { p1, p2 } from "../components/GamePage/GameInfo";
+import { player1, player2 } from "../components/GamePage/GameInfo";
 
 export default function GamePage() {
   const [showComponent, setShowComponent] = useState(true);
@@ -47,16 +46,12 @@ export default function GamePage() {
   const [adminConsole, setAdminConsole] = useAtom(chatAtom.adminConsoleAtom);
 
   const [userInfo, setUserInfo] = useAtom(UserAtom);
-
-  const userList = useAtomValue(chatAtom.userListAtom);
-
-  // const [socket, setSocket] = useState(io());
-
+  
   const [gameSocket, setGameSocket] = useAtom(gameSocketAtom);
   const [isP1, setIsP1] = useAtom(isP1Atom);
-
+  
+  const userList = useAtomValue(chatAtom.userListAtom);
   const gameWinner = useAtomValue(gameWinnerAtom);
-  const [players, setPlayers] = useAtom(playersAtom);
 
   class socketAuth {
     token: string | null;
@@ -135,10 +130,13 @@ export default function GamePage() {
     AdminLogPrinter(adminConsole, "matched");
     if (p1 === userInfo.uid) {
       setIsP1(true);
+      player1.uid = p1;
+      player2.uid = p2;
     } else {
       setIsP1(false);
+      player1.uid = p2;
+      player2.uid = p1;
     }
-    setPlayers([p1, p2]);
     setIsMatched(true);
   };
 
@@ -177,11 +175,6 @@ export default function GamePage() {
       gameSocket.off("matched", matchEventHandler);
     }
   }, [isMatched, gameSocket]);
-
-  // useEffect(() => {
-  //   return () => {
-  //   }
-  // }, [isLoading, isMatched, isGameStart]);
 
   return (
     <BackGround>
@@ -224,7 +217,7 @@ export default function GamePage() {
       ) : (
         <Waiting />
       )}
-      {gameResultModal ? <GameResultModal result={userList[gameWinner]?.userDisplayName} leftScore={isP1? p1.score : p2.score} rightScore={isP1? p2.score : p1.score} /> : null}
+      {gameResultModal ? <GameResultModal leftScore={player1.score} rightScore={player2.score} /> : null}
     </BackGround>
   );
 }
