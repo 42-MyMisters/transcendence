@@ -75,13 +75,13 @@ export default function PingPong() {
     const pingEventHandler = (serverTime: number) => {
       const now = Date.now();
       const pingRTT = now - curTime;
-      // AdminLogPrinter(adminConsole, `\npingRTT: ${pingRTT}ms`);
+      AdminLogPrinter(adminConsole, `\npingRTT: ${pingRTT}ms`);
       if (pingRTTmin > pingRTT) {
         pingRTTmin = pingRTT;
         const adjServerTime = serverTime + pingRTTmin / 2;
         serverClientTimeDiff = now - adjServerTime
       }
-      // AdminLogPrinter(adminConsole, `pingRTTmin: ${pingRTTmin}ms`);
+      AdminLogPrinter(adminConsole, `pingRTTmin: ${pingRTTmin}ms`);
     };
     gameSocket.emit("ping", pingEventHandler);
   };
@@ -121,9 +121,9 @@ export default function PingPong() {
     update(Date.now(), tmpCoords.time);
   };
 
-  const scoreEventHandler = ({gameCoord, scoreInfo}: {gameCoord: GameCoordinate, scoreInfo: scoreInfo}) => {
+  const scoreEventHandler = ({ gameCoord, scoreInfo }: { gameCoord: GameCoordinate, scoreInfo: scoreInfo }) => {
     console.log(gameCoord);
-    if  (isP1) {
+    if (isP1) {
       p1.score = scoreInfo.p1Score;
       p2.score = scoreInfo.p2Score;
     } else {

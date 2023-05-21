@@ -25,7 +25,7 @@ type gameMode = 'normal' | 'item';
 
 export const gameModeAtom = atom<gameMode>('normal');
 
-const URL = "https://localhost";
+const URL = "https://wchaeserver.mooo.com";
 const NameSpace = "/game";
 
 export const gameSocketAtom = atom<Socket>(io(`${URL}${NameSpace}`, {
@@ -39,4 +39,4 @@ export const gameSocketAtom = atom<Socket>(io(`${URL}${NameSpace}`, {
 export const isP1Atom = atom<boolean>(true);
 export const gameWinnerAtom = atom<number>(0);
 
-export const playersAtom = atom<[number, number]>([0,0]);
+export const playersAtom = atom<[number, number]>([0, 0]);
