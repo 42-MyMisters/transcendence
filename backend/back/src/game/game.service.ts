@@ -99,7 +99,7 @@ class Game {
     private readonly ballRadius = 15,
     private readonly paddleHeight = 150,
     private readonly paddleWidth = 30,
-    private readonly paddleSpeed = 0.6,
+    private readonly paddleSpeed = 0.8,
     private readonly maxScore = 5,
     ) {
     // this.score[0] = this.score[1] = 0;
@@ -114,7 +114,7 @@ class Game {
         break;
       }
       case GameMode.SPEED: {
-        this.ballSpeedMultiplier = 1.5;
+        this.ballSpeedMultiplier = 2;
         break;
       }
     }
@@ -125,7 +125,7 @@ class Game {
     if (Math.random() >= 0.5) {
       this.ballSpeedX = -this.ballSpeedX;
     }
-    // +-35 degree range.
+    // +-26.5 degree range.
     this.ballSpeedY = this.ballSpeedX * 0.7 * (Math.random() * 2 - 1);
     this.ballSpeedY = 0;
     for (let i = 0; i < 4; i++) {
@@ -152,7 +152,7 @@ class Game {
       this.gameStatus = GameStatus.COUNTDOWN;
       this.roundStartTime = Date.now();
       this.lastUpdate = this.roundStartTime;
-      console.log('gameStart emit!!!!!!');
+      console.log(`gameStart emit. gameMode: ${this.gameMode}!!!!!!`);
       this.gv.server.to(this.gv.gameId).emit('gameStart');
       return 1;
     }
@@ -162,18 +162,19 @@ class Game {
   isPlayer(uid: number): boolean {
     return this.gv.p1 === uid || this.gv.p2 === uid;
   }
-  
 
   isP1(uid: number): boolean {
     return this.gv.p1 === uid;
   }
   
   playerLeft(uid: number) {
-    this.gameStatus = GameStatus.FINISHED;
-    if (this.gv.p1 === uid) {
-      this.score[0] = -1;
-    } else {
-      this.score[1] = -1;
+    if (this.gameStatus <= GameStatus.RUNNING) {
+      if (this.gv.p1 === uid) {
+        this.score[0] = -1;
+      } else {
+        this.score[1] = -1;
+      }
+      this.gameStatus = GameStatus.FINISHED;
     }
   }
   
@@ -229,8 +230,13 @@ class Game {
     }
   }
 
-  setMode(uid: number, mode: GameMode) {
-    this.gameMode = mode;
+  setMode(mode: GameMode) {
+    console.log(`setMode!!!!!!!!!!!! mode: ${mode}`);
+    if (this.gameStatus === GameStatus.MODESELECT) {
+      console.log(`setMode!!!!!!!!!!!! mode: ${mode}`);
+      this.gameMode = mode;
+      console.log(`setMode!!!!!!!!!!!! gameMode: ${this.gameMode}`);
+    }
   }
 
   getStatus(): GameStatus {
@@ -246,10 +252,10 @@ class Game {
   }
 
   // Event driven update
-  private gameLoop() {
+  private async gameLoop() {
     // const timestamp = performance.now();
     const timestamp = Date.now();
-    const timeout = this.update();
+    const timeout = await this.update();
     console.log(`update time: ${Date.now() - timestamp}`);
     // console.log(`update time: ${performance.now() - timestamp}`);
     if (this.gameStatus === GameStatus.RUNNING) {
@@ -272,6 +278,7 @@ class Game {
       return 100;
     } else if (curTime - this.roundStartTime >= 3000) {
       this.gameStatus = GameStatus.RUNNING;
+      console.log(`game mode: ${this.gameMode}`);
       this.init();
       // this.gv.server.to(this.gv.gameId).emit('countdown', true);
       return 100;
@@ -311,20 +318,20 @@ class Game {
       }
       case GameMode.SPEED: {
         // 3% faster
-        if (this.ballSpeedMax < this.canvasWidth / 300) {
-          this.ballSpeedMax *= 1.03;
+        if (this.ballSpeedMax < this.canvasWidth / 800) {
+          this.ballSpeedMax *= 1.08;
         }
         this.ballSpeedX = this.ballSpeedMax;
         break;
       }
     }
     if (this.keyPress[0] !== 0 && this.keyPress[1] === 0) {
-      this.ballSpeedY -= this.paddleSpeed / 5;
+      this.ballSpeedY -= this.ballSpeedMax / 2;
       if (this.ballSpeedY < -this.ballSpeedMax) {
         this.ballSpeedY = -this.ballSpeedMax;
       }
     } else if (this.keyPress[0] === 0 && this.keyPress[1] !== 0) {
-      this.ballSpeedY += this.paddleSpeed / 5;
+      this.ballSpeedY += this.ballSpeedMax / 2;
       if (this.ballSpeedY > this.ballSpeedMax) {
         this.ballSpeedY = this.ballSpeedMax;
       }
@@ -340,20 +347,20 @@ class Game {
       }
       case GameMode.SPEED: {
         // 3% faster
-        if (this.ballSpeedMax < this.canvasWidth / 300) {
-          this.ballSpeedMax *= 1.03;
+        if (this.ballSpeedMax < this.canvasWidth / 800) {
+          this.ballSpeedMax *= 1.08;
         }
         this.ballSpeedX = -this.ballSpeedMax;
         break;
       }
     }
     if (this.keyPress[2] !== 0 && this.keyPress[3] === 0) {
-      this.ballSpeedY -= this.paddleSpeed / 5;
+      this.ballSpeedY -= this.ballSpeedMax / 2;
       if (this.ballSpeedY < -this.ballSpeedMax) {
         this.ballSpeedY = -this.ballSpeedMax;
       }
     } else if (this.keyPress[2] === 0 && this.keyPress[3] !== 0) {
-      this.ballSpeedY += this.paddleSpeed / 5;
+      this.ballSpeedY += this.ballSpeedMax / 2;
       if (this.ballSpeedY > this.ballSpeedMax) {
         this.ballSpeedY = this.ballSpeedMax;
       }
@@ -368,8 +375,8 @@ class Game {
     for(let i = 0; i < 4; i++) {
       this.lastUpdateCoords.keyPress[i] = 0;
     }
-    this.gv.server.to(this.gv.gameId).emit("syncData", this.lastUpdateCoords);
-    this.gv.server.to(this.gv.gameId).emit("scoreInfo", {p1Score: this.score[0], p2Score: this.score[1]});
+    // this.gv.server.to(this.gv.gameId).emit("syncData", this.lastUpdateCoords);
+    this.gv.server.to(this.gv.gameId).emit("scoreInfo", {gameCoord: this.lastUpdateCoords, scoreInfo: {p1Score: this.score[0], p2Score: this.score[1]}});
     return 3000;
   }
   
@@ -412,7 +419,7 @@ class Game {
     return timeout;
   }
 
-  private disconnect(): number {
+  private async disconnect(): Promise<number> {
     const result = new GameEntity();
     let winnerElo: number
     let loserElo: number;
@@ -432,19 +439,19 @@ class Game {
       loserElo = this.gv.p2Elo;
     }
     result.gameType = this.gv.gameType;
-    // const save = this.databaseService.saveGame(result);
-    // Promise.resolve(save);
-    if (this.gv.gameType === GameType.PUBLIC) {
+
+    if (this.gv.gameType === GameType.PRIVATE) {
+      await this.databaseService.saveGame(result, this.gv.gameType, 0, 0, 0, 0);
+    } else {
       const newElo = this.eloLogic(winnerElo, loserElo);
-      console.log(newElo);
-      // Promise.resolve(this.databaseService.updateUserElo(result.winnerId, newElo.winnerElo));
-      // Promise.resolve(this.databaseService.updateUserElo(result.loserId, newElo.loserElo));
+      await this.databaseService.saveGame(result, this.gv.gameType, result.winnerId, newElo.winnerElo, result.loserId, newElo.loserElo);
     }
+
     this.gv.server.in(this.gv.gameId).disconnectSockets();
     return -1;
   }
 
-  private update(): number {
+  private async update(): Promise<number> {
     const curTime = Date.now();
     let timeout:number
     switch(this.gameStatus) {
@@ -468,7 +475,7 @@ class Game {
         break;
       }
       case GameStatus.DISCONNECT: {
-        timeout = this.disconnect();
+        timeout = await this.disconnect();
         break;
       }
 

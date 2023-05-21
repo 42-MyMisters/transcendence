@@ -1,32 +1,38 @@
 import React, { useState, useEffect } from "react";
 import "../../styles/GameInfo.css";
-import { gameModeAtom } from '../atom/GameAtom';
-import { useAtom } from 'jotai';
+import { gameModeAtom, gameSocketAtom } from '../atom/GameAtom';
+import { useAtom, useAtomValue } from 'jotai';
+
+const enum GameMode {
+  DEFAULT = 0,
+  SPEED = 1,
+}
 
 function Checkbox1() {
   const [isChecked, setIsChecked] = useState(false);
   const [gameMode, setGameMode] = useAtom(gameModeAtom);
 
+  const gameSocket = useAtomValue(gameSocketAtom);
+  
   function handleCheckboxChange() {
     if (isChecked) {
       setGameMode('item');
     } else {
-      console.log('normal - 2');
       setGameMode('normal');
     }
     setIsChecked((prev) => !prev);
   }
-
+  
   useEffect(() => {
     if (gameMode === 'normal') {
-      console.log('normal - 1');
+      gameSocket.emit('modeSelect', GameMode.DEFAULT);
       setIsChecked(true);
     } else {
       setIsChecked(false);
     }
   }, [gameMode]);
-
-
+  
+  
   return (
     <label className="GameMode1">
       <input
@@ -34,7 +40,7 @@ function Checkbox1() {
         type="checkbox"
         checked={isChecked}
         onChange={handleCheckboxChange}
-      />
+        />
       Normal Mode
     </label>
   );
@@ -43,26 +49,28 @@ function Checkbox1() {
 function Checkbox2() {
   const [isChecked, setIsChecked] = useState(false);
   const [gameMode, setGameMode] = useAtom(gameModeAtom);
+  
+  const gameSocket = useAtomValue(gameSocketAtom);
 
   function handleCheckboxChange() {
     if (isChecked) {
       setGameMode('normal');
     } else {
       setGameMode('item');
-      console.log('item - 2');
     }
     setIsChecked((prev) => !prev);
   }
-
+  
   useEffect(() => {
     if (gameMode === 'item') {
-      console.log('item - 1');
+      gameSocket.emit('modeSelect', GameMode.SPEED);
+      console.log("game mode: speed");
       setIsChecked(true);
     } else {
       setIsChecked(false);
     }
   }, [gameMode]);
-
+  
   return (
     <label className="GameMode2">
       <input
@@ -71,7 +79,7 @@ function Checkbox2() {
         checked={isChecked}
         onChange={handleCheckboxChange}
       />
-      Item Mode
+      Speed Mode
     </label>
   );
 }

@@ -11,6 +11,7 @@ export const p1 = {
   height: 150,
   color: "WHITE",
   score: 0,
+  uid: 0,
 };
 
 export const p2 = {
@@ -20,6 +21,7 @@ export const p2 = {
   height: 150,
   color: "#CA6A71",
   score: 0,
+  uid: 0,
 };
 
 export const net = {
@@ -40,29 +42,4 @@ export const ball = {
 export const paddle = {
   width: 30,
   height: 150,
-}
-
-export const enum Direction {
-  NONE = 0,
-  UP = 1,
-  DOWN = 2,
-  LEFT = 3,
-  RIGHT = 4
-}
-
-export const enum Hit {
-  PADDLE = 1,
-  WALL = 0,
-}
-
-export interface paddleInfo {
-  paddle1Y: number,
-  paddle2Y: number,
-  keyPress: number[],
-  time: number,
-}
-
-export interface scoreInfo {
-  p1Score: number,
-  p2Score: number,
 }

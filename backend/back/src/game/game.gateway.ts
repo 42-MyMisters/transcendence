@@ -1,5 +1,5 @@
 import { Logger, UnauthorizedException } from '@nestjs/common';
-import { ConnectedSocket, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Namespace, Socket } from 'socket.io';
 import { AuthService } from 'src/auth/auth.service';
 import { DatabaseService } from 'src/database/database.service';
@@ -317,10 +317,10 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   @SubscribeMessage('modeSelect')
   modeSelect(socket: Socket, mode: GameMode) {
-    const curGame = this.gameService.getGame(socket.data.uid);
+    const curGame = this.gameService.getGame(socket.data.room);
     if (curGame !== undefined) {
-      if (curGame.getStatus() === GameStatus.MODESELECT && curGame.isP1(socket.data.uid)) {
-        curGame.setMode(socket.data.uid, mode);
+      if (curGame.isP1(socket.data.uid)) {
+        curGame.setMode(mode);
       }
     }
   }
