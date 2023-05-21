@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException, UnauthorizedException, UsePipes } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserFollow } from "src/database/entity/user-follow.entity";
 import { User } from "src/database/entity/user.entity";
@@ -203,5 +203,15 @@ export class DatabaseService {
         const loseGames = await this.gameRepository.createQueryBuilder('gm')
         .where('gm.loserId = :uid', {uid}).getRawMany();
         return {winGames, loseGames};
+    }
+
+    async findUserByELODESC(){
+        const result = await this.userRepository.find({
+            order: {
+                elo: 'DESC',
+            },
+            take: 10,
+        });
+        return result;
     }
 }
