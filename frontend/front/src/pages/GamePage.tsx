@@ -224,7 +224,7 @@ export default function GamePage() {
       ) : (
         <Waiting />
       )}
-      {gameResultModal ? <GameResultModal result={userList[gameWinner]?.userDisplayName} leftScore={isP1? p1.score : p2.score} rightScore={isP1? p2.score : p1.score} /> : null}
+      {gameResultModal ? <GameResultModal winner={userList[gameWinner]?.userDisplayName} leftScore={isP1? p1.score : p2.score} rightScore={isP1? p2.score : p1.score} /> : null}
     </BackGround>
   );
 }
