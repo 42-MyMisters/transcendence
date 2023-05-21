@@ -21,7 +21,7 @@ export default function UserInfoModal() {
   const [followingList, setFollowingList] = useAtom(chatAtom.followingListAtom);
   const [focusRoom] = useAtom(chatAtom.focusRoomAtom);
   const [blockList, setBlockList] = useAtom(chatAtom.blockListAtom);
-  const [, setIsPrivate] = useAtom(isPrivateAtom);
+  const setIsPrivate = useSetAtom(isPrivateAtom);
   const setGameInviteInfo = useSetAtom(gameInviteInfoAtom);
   const myInfo = useAtomValue(UserAtom);
 
@@ -115,6 +115,7 @@ export default function UserInfoModal() {
   const callbackObserv = () => {
     infoModalOff();
     setGameInviteInfo({ gameType: 'observe', userId: userInfo.uid });
+    setIsPrivate(false);
     navigate("/game");
   };
   const callbackError = () => {

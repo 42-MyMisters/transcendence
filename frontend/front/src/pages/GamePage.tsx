@@ -74,7 +74,6 @@ export default function GamePage() {
   });
 
   const clearState = () => {
-    setIsPrivate(false);
     // setIsGameStart(false);
     setIsLoading(false);
     setIsMatched(false);
@@ -94,8 +93,8 @@ export default function GamePage() {
     setIsLoading(true);
     console.log("is Private : ", isPrivate);
     return () => {
-      clearState();
       gameSocket.disconnect();
+      clearState();
     };
   }, []);
 
@@ -147,12 +146,12 @@ export default function GamePage() {
     setIsGameStart(true);
   };
 
-  useEffect(() => {
-    AdminLogPrinter(
-      adminConsole,
-      `useeffect: isLoading: ${isLoading}, isPrivate: ${isPrivate}, isMatched: ${isMatched}, isGameStart: ${isGameStart}`
-    );
-  }, [isLoading, isPrivate, isGameStart, isMatched, gameSocket]);
+  // useEffect(() => {
+  //   AdminLogPrinter(
+  //     adminConsole,
+  //     `useeffect: isLoading: ${isLoading}, isPrivate: ${isPrivate}, isMatched: ${isMatched}, isGameStart: ${isGameStart}`
+  //   );
+  // }, [isLoading, isPrivate, isGameStart, isMatched, gameSocket]);
 
   useEffect(() => {
     gameSocket.on("connect", connectionEventHandler);
@@ -196,6 +195,13 @@ export default function GamePage() {
             }}
           >
             GameOver
+          </button>
+          <button
+            onClick={() => {
+              console.log(`isPrivate: ${isPrivate}`);
+            }}
+          >
+            isPrivate
           </button>
         </div>
       ) : (
