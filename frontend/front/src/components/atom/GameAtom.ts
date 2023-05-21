@@ -21,6 +21,10 @@ export const gameInviteInfoAtom = atom<gameInviteInfo>({ gameType: 'queue', user
 
 export const gameinviteFromAtom = atom<number>(-1);
 
+type gameMode = 'normal' | 'item';
+
+export const gameModeAtom = atom<gameMode>('normal');
+
 const URL = "https://localhost";
 const NameSpace = "/game";
 
