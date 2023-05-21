@@ -39,8 +39,8 @@ export default function PingPong() {
   const gameSocket = useAtomValue(gameSocketAtom);
 
   const isP1 = useAtomValue(isP1Atom);
-  // const setGameWinner = useSetAtom(gameWinnerAtom);
-  const [gameWinner, setGameWinner] = useAtom(gameWinnerAtom);
+  const setGameWinner = useSetAtom(gameWinnerAtom);
+  // const [gameWinner, setGameWinner] = useAtom(gameWinnerAtom);
 
   // let cnt: number = 0
   const [cnt, setCnt] = useState(0);
@@ -86,10 +86,10 @@ export default function PingPong() {
   };
 
   useEffect(() => {
-    console.log("pingInterval");
+    AdminLogPrinter(adminConsole, "pingInterval");
     pingInterval = setInterval(pingEvent, 1000);
     return () => {
-      console.log("clear pingInterval");
+      AdminLogPrinter(adminConsole, "clear pingInterval");
       clearInterval(pingInterval);
     }
   }, []);
@@ -168,7 +168,7 @@ export default function PingPong() {
   };
 
   const finishEventHandler = (scoreInfo: scoreInfo) => {
-    console.log("finished!!!!!!");
+    AdminLogPrinter(adminConsole, "finished!!!!!!");
     if (isP1) {
       player1.score = scoreInfo.p1Score;
       player2.score = scoreInfo.p2Score;
@@ -188,7 +188,7 @@ export default function PingPong() {
   const countdownEventHandler = () => {
     AdminLogPrinter(adminConsole, "countdown!!!");
   }
-
+  
   useEffect(() => {
     gameSocket.on("syncData", syncDataHandler);
     gameSocket.on("scoreInfo", scoreEventHandler);
@@ -201,20 +201,17 @@ export default function PingPong() {
       gameSocket.off("countdown", countdownEventHandler);
     };
   }, []);
-
+  
   useEffect(() => {
-    console.log(`cnt: ${cnt}`);
+    AdminLogPrinter(adminConsole, `animation loop check cnt: ${cnt}`);
   }, [cnt]);
 
   useEffect(() => {
-    setCnt(cnt + 1);
     requestAnimationLoop(Date.now(), lastUpdateTime);
     return () => {
-      setCnt(cnt - 1);
       cancelAnimationFrame(requestAnimationId);
     }
   }, []);
-  //   console.log("coords updated!!!!");
 
   // // the connection is denied by the server in a middleware function
   // gameSocket.on("connect_error", (err) => {
