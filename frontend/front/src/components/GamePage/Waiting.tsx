@@ -9,7 +9,7 @@ import * as chatAtom from "../../components/atom/ChatAtom";
 import * as gameAtom from "../../components/atom/GameAtom";
 import { UserAtom } from '../atom/UserAtom';
 
-export default function Waiting({ p1, p2 = -42 }: { p1: number, p2: number }) {
+export default function Waiting({ p1, p2 }: { p1: number, p2: number }) {
   const userList = useAtomValue(userListAtom);
   const adminConsole = useAtomValue(chatAtom.adminConsoleAtom);
   const userInfo = useAtomValue(UserAtom);

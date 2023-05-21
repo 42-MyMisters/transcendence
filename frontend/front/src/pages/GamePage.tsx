@@ -205,7 +205,7 @@ export default function GamePage() {
       {
         isLoading
           ? (isPrivate
-            ? (<Waiting p1={player1.uid} />)
+            ? (<Waiting p1={player1.uid} p2={-42} />)
             : (isMatched
               ? (<Waiting p1={player1.uid} p2={player2.uid} />)
               : (<LadderBoard />)
