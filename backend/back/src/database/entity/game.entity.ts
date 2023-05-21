@@ -1,6 +1,5 @@
 import { IsNumber } from "class-validator";
-import { GameType } from "src/game/game.enum";
-import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
+import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "./user.entity";
 
 
@@ -22,7 +21,7 @@ export class Game extends BaseEntity {
 	@Column()
 	loserScore: number;
 
-	@Column()
+	@Column({default: 0})
 	gameType: number;
 	
 	@CreateDateColumn()
