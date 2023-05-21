@@ -102,13 +102,23 @@ class Game {
     private readonly paddleSpeed = 0.6,
     private readonly maxScore = 5,
     ) {
-    this.ballSpeedMax = canvasWidth / 2000 * this.ballSpeedMultiplier,
     // this.score[0] = this.score[1] = 0;
     this.round = 0;
     this.gameMode = GameMode.DEFAULT;
   }
 
   private init() {
+    switch (this.gameMode) {
+      case GameMode.DEFAULT: {
+        this.ballSpeedMultiplier = 1.4;
+        break;
+      }
+      case GameMode.SPEED: {
+        this.ballSpeedMultiplier = 1.5;
+        break;
+      }
+    }
+    this.ballSpeedMax = this.canvasWidth / 2000 * this.ballSpeedMultiplier;
     this.ballX = this.canvasWidth / 2;
     this.ballY = this.canvasHeight / 2;
     this.ballSpeedX = this.ballSpeedMax;
@@ -237,7 +247,11 @@ class Game {
 
   // Event driven update
   private gameLoop() {
+    // const timestamp = performance.now();
+    const timestamp = Date.now();
     const timeout = this.update();
+    console.log(`update time: ${Date.now() - timestamp}`);
+    // console.log(`update time: ${performance.now() - timestamp}`);
     if (this.gameStatus === GameStatus.RUNNING) {
       this.gv.server.to(this.gv.gameId).emit("syncData", this.lastUpdateCoords);
     }
@@ -288,7 +302,22 @@ class Game {
     return hitPredictTimeY + 1;
   }
 
-  private hitP1Paddle(): void {
+  private hitP1Paddle() {
+    this.ballX = 2 * (this.ballRadius + this.paddleWidth) - this.ballX;
+    switch (this.gameMode) {
+      case GameMode.DEFAULT: {
+        this.ballSpeedX = -this.ballSpeedX;
+        break;
+      }
+      case GameMode.SPEED: {
+        // 3% faster
+        if (this.ballSpeedMax < this.canvasWidth / 300) {
+          this.ballSpeedMax *= 1.03;
+        }
+        this.ballSpeedX = this.ballSpeedMax;
+        break;
+      }
+    }
     if (this.keyPress[0] !== 0 && this.keyPress[1] === 0) {
       this.ballSpeedY -= this.paddleSpeed / 5;
       if (this.ballSpeedY < -this.ballSpeedMax) {
@@ -300,11 +329,24 @@ class Game {
         this.ballSpeedY = this.ballSpeedMax;
       }
     }
-    this.ballX = 2 * (this.ballRadius + this.paddleWidth) - this.ballX;
-    this.ballSpeedX = -this.ballSpeedX;
   }
-
+  
   private hitP2Paddle() {
+    this.ballX = 2 * (this.canvasWidth - this.ballRadius - this.paddleWidth) - this.ballX;
+    switch (this.gameMode) {
+      case GameMode.DEFAULT: {
+        this.ballSpeedX = -this.ballSpeedX;
+        break;
+      }
+      case GameMode.SPEED: {
+        // 3% faster
+        if (this.ballSpeedMax < this.canvasWidth / 300) {
+          this.ballSpeedMax *= 1.03;
+        }
+        this.ballSpeedX = -this.ballSpeedMax;
+        break;
+      }
+    }
     if (this.keyPress[2] !== 0 && this.keyPress[3] === 0) {
       this.ballSpeedY -= this.paddleSpeed / 5;
       if (this.ballSpeedY < -this.ballSpeedMax) {
@@ -316,10 +358,8 @@ class Game {
         this.ballSpeedY = this.ballSpeedMax;
       }
     }
-    this.ballX = 2 * (this.canvasWidth - this.ballRadius - this.paddleWidth) - this.ballX;
-    this.ballSpeedX = -this.ballSpeedX;
   }
-
+  
   private updateScore(i: number, time: number): number {
     this.gameStatus = GameStatus.COUNTDOWN;
     this.score[i]++;
@@ -332,7 +372,7 @@ class Game {
     this.gv.server.to(this.gv.gameId).emit("scoreInfo", {p1Score: this.score[0], p2Score: this.score[1]});
     return 3000;
   }
-
+  
   private running(curTime: number): number {
     let timeout = 10;
     const dt = curTime - this.lastUpdate;

@@ -276,7 +276,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
 
   @SubscribeMessage('upPress')
-  upPress(socket: Socket, payload: any) {
+  upPress(socket: Socket) {
     if (socket.data.room) {
       const curGame = this.gameService.getGame(socket.data.room);
       if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
@@ -286,7 +286,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
   
   @SubscribeMessage('downPress')
-  downPress(socket: Socket, payload: any) {
+  downPress(socket: Socket) {
     if (socket.data.room) {
       const curGame = this.gameService.getGame(socket.data.room);
       if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
@@ -296,7 +296,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
   
   @SubscribeMessage('upRelease')
-  upRelease(socket: Socket, payload: any) {
+  upRelease(socket: Socket) {
     if (socket.data.room) {
       const curGame = this.gameService.getGame(socket.data.room);
       if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
@@ -306,18 +306,13 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   }
   
   @SubscribeMessage('downRelease')
-  downRelease(socket: Socket, payload: any) {
+  downRelease(socket: Socket) {
     if (socket.data.room) {
       const curGame = this.gameService.getGame(socket.data.room);
       if (curGame !== undefined && curGame.isPlayer(socket.data.uid)) {
         curGame.downRelease(socket.data.uid);
       }
     }
-  }
-
-  @SubscribeMessage('inviteGame')
-  inviteGame(socket: Socket, payload: any) {
-    this.gameService.getGame(payload.id);
   }
 
   @SubscribeMessage('modeSelect')
@@ -329,20 +324,10 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       }
     }
   }
-  
-  @SubscribeMessage('getGameInfo')
-  getGameInfo(socket: Socket): GameInfo | null {
-    const curGame = this.gameService.getGame(socket.data.uid);
-    if (curGame !== undefined) {
-      return curGame.gameInfo();
-    }
-    return null;
-  }
 
   @SubscribeMessage('ping')
   pong() {
     return Date.now();
   }
-
 
 }
