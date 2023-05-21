@@ -162,7 +162,6 @@ class Game {
   isPlayer(uid: number): boolean {
     return this.gv.p1 === uid || this.gv.p2 === uid;
   }
-  
 
   isP1(uid: number): boolean {
     return this.gv.p1 === uid;
@@ -440,13 +439,14 @@ class Game {
       loserElo = this.gv.p2Elo;
     }
     result.gameType = this.gv.gameType;
-    await this.databaseService.saveGame(result);
-    if (this.gv.gameType === GameType.PUBLIC) {
+
+    if (this.gv.gameType === GameType.PRIVATE) {
+      await this.databaseService.saveGame(result, this.gv.gameType, 0, 0, 0, 0);
+    } else {
       const newElo = this.eloLogic(winnerElo, loserElo);
-      console.log(newElo);
-      await this.databaseService.updateUserElo(result.winnerId, newElo.winnerElo);
-      await this.databaseService.updateUserElo(result.loserId, newElo.loserElo);
+      await this.databaseService.saveGame(result, this.gv.gameType, result.winnerId, newElo.winnerElo, result.loserId, newElo.loserElo);
     }
+
     this.gv.server.in(this.gv.gameId).disconnectSockets();
     return -1;
   }
