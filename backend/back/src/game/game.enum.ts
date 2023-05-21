@@ -21,6 +21,7 @@ export const enum GameStatus {
 
 export const enum GameMode {
   DEFAULT = 0,
+  SPEED = 1,
 }
 
 export enum GameType {

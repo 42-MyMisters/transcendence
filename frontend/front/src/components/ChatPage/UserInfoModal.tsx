@@ -107,7 +107,7 @@ export default function UserInfoModal() {
 
   const callbackInvite = () => {
     socket.emitGameInvite({ adminConsole, navigate }, userInfo.uid, userInfo.nickName);
-    setGameInviteInfo({ gameType: 'invite', userId: myInfo.uid });
+    setGameInviteInfo({ gameType: 'invite', userId: userInfo.uid });
     setIsPrivate(true);
     infoModalOff();
     navigate("/game");
