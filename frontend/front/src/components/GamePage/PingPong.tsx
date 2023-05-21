@@ -4,41 +4,26 @@ import "../../styles/PingPong.css";
 import React, { useEffect } from "react";
 
 import * as chatAtom from "../atom/ChatAtom";
-import { isGameStartedAtom, isPrivateAtom } from "../atom/GameAtom";
+import { gameSocketAtom, gameWinnerAtom, isGameStartedAtom, isP1Atom, isPrivateAtom } from "../atom/GameAtom";
 import { Game } from "./Pong";
 
 
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { useRef, useState } from "react";
 import { gameResultModalAtom, isLoadingAtom } from "../atom/ModalAtom";
 import {
   ball,
-  Direction,
   HEIGHT,
-  Hit,
   p1,
   p2,
   paddle,
-  paddleInfo,
-  scoreInfo,
   WIDTH,
 } from "./GameInfo";
 
 import { AdminLogPrinter } from "../../event/event.util";
-import { GameCoordinate } from "../../socket/game.dto";
-import { Socket } from "socket.io-client";
+import { GameCoordinate, scoreInfo, Direction, Hit, GameType } from "../../socket/game.dto";
 
-
-// interface GameSocketDto {
-//   gameSocket: Socket;
-// };
-
-export default function PingPong({
-  gameSocket,
-}: {
-  gameSocket: Socket,
-}) {
-  console.log("gameSocket connected? ", gameSocket.connected);
+export default function PingPong() {
 
   const [upArrow, setUpArrow] = useState(false);
   const [downArrow, setDownArrow] = useState(false);
@@ -51,11 +36,16 @@ export default function PingPong({
   // const [isQueue, setIsQueue] = useAtom(isQueueAtom);
   const [gameResultModal, setGameResultModal] = useAtom(gameResultModalAtom);
 
+  const gameSocket = useAtomValue(gameSocketAtom);
+
+  const isP1 = useAtomValue(isP1Atom);
+  const [gameWinner, setWinner] = useAtom(gameWinnerAtom);
+
   // const [serverClientTimeDiff, setServerClientTimeDiff] = useAtom(serverClientTimeDiffAtom);
 
   let serverClientTimeDiff: number = 1000;
 
-  let coords: GameCoordinate = {
+  const [coords, setCoords] = useState({
     paddle1Y: 225,
     ballX: 1150 / 2,
     ballY: 300,
@@ -65,7 +55,7 @@ export default function PingPong({
     paddleSpeed: 0.6,
     keyPress: [0, 0, 0, 0],
     time: Date.now(),
-  }
+  } as GameCoordinate);
 
   let lastUpdateTime: number = coords.time;
   let requestAnimationId: number = 0;
@@ -78,20 +68,20 @@ export default function PingPong({
     if (!isGameStart) {
       clearInterval(pingInterval);
     }
-    console.log(gameSocket.connected);
-    console.log(gameSocket.id);
-    console.log(gameSocket);
+    // console.log(gameSocket.connected);
+    // console.log(gameSocket.id);
+    // console.log(gameSocket);
     const curTime = Date.now();
     const pingEventHandler = (serverTime: number) => {
       const now = Date.now();
       const pingRTT = now - curTime;
-      AdminLogPrinter(adminConsole, `\npingRTT: ${pingRTT}ms`);
+      // AdminLogPrinter(adminConsole, `\npingRTT: ${pingRTT}ms`);
       if (pingRTTmin > pingRTT) {
         pingRTTmin = pingRTT;
         const adjServerTime = serverTime + pingRTTmin / 2;
         serverClientTimeDiff = now - adjServerTime
       }
-      AdminLogPrinter(adminConsole, `pingRTTmin: ${pingRTTmin}ms`);
+      // AdminLogPrinter(adminConsole, `pingRTTmin: ${pingRTTmin}ms`);
     };
     gameSocket.emit("ping", pingEventHandler);
   };
@@ -107,31 +97,77 @@ export default function PingPong({
 
 
   const syncDataHandler = (gameCoord: GameCoordinate) => {
-    coords = gameCoord;
+    const tmpCoords = gameCoord;
     for (let i = 0; i < 4; i++) {
-      if (coords.keyPress[i] !== 0) {
-        coords.keyPress[i] += serverClientTimeDiff;
+      if (tmpCoords.keyPress[i] !== 0) {
+        tmpCoords.keyPress[i] += serverClientTimeDiff;
       }
     }
-    coords.time += serverClientTimeDiff;
-    update(Date.now(), coords.time);
-    console.log("syncData update");
+    if (isP1 === false) {
+      tmpCoords.ballX = WIDTH - tmpCoords.ballX;
+      tmpCoords.ballSpeedX = -tmpCoords.ballSpeedX;
+      const tmpPaddle1Y = tmpCoords.paddle1Y;
+      tmpCoords.paddle1Y = tmpCoords.paddle2Y;
+      tmpCoords.paddle2Y = tmpPaddle1Y;
+      const tmpUp = tmpCoords.keyPress[0];
+      const tmpDown = tmpCoords.keyPress[1];
+      tmpCoords.keyPress[0] = tmpCoords.keyPress[2];
+      tmpCoords.keyPress[1] = tmpCoords.keyPress[3];
+      tmpCoords.keyPress[2] = tmpUp;
+      tmpCoords.keyPress[3] = tmpDown;
+    }
+    tmpCoords.time += serverClientTimeDiff;
+    setCoords(tmpCoords);
+    update(Date.now(), tmpCoords.time);
   };
 
-  const scoreEventHandler = (scoreInfo: scoreInfo) => {
-    p1.score = scoreInfo.p1Score;
-    p2.score = scoreInfo.p2Score;
-    coords.ballSpeedX = 0;
-    coords.ballSpeedY = 0;
-    coords.paddleSpeed = 0;
-    update(Date.now(), coords.time);
-    Game(coords, canvas);
+  const scoreEventHandler = ({gameCoord, scoreInfo}: {gameCoord: GameCoordinate, scoreInfo: scoreInfo}) => {
+    console.log(gameCoord);
+    if  (isP1) {
+      p1.score = scoreInfo.p1Score;
+      p2.score = scoreInfo.p2Score;
+    } else {
+      p1.score = scoreInfo.p2Score;
+      p2.score = scoreInfo.p1Score;
+    }
+    for (let i = 0; i < 4; i++) {
+      if (gameCoord.keyPress[i] !== 0) {
+        gameCoord.keyPress[i] += serverClientTimeDiff;
+      }
+    }
+    const tmpCoords = gameCoord;
+    if (isP1 === false) {
+      tmpCoords.ballX = WIDTH - tmpCoords.ballX;
+      tmpCoords.ballSpeedX = -tmpCoords.ballSpeedX;
+      const tmpPaddle1Y = tmpCoords.paddle1Y;
+      tmpCoords.paddle1Y = tmpCoords.paddle2Y;
+      tmpCoords.paddle2Y = tmpPaddle1Y;
+      const tmpUp = tmpCoords.keyPress[0];
+      const tmpDown = tmpCoords.keyPress[1];
+      tmpCoords.keyPress[0] = tmpCoords.keyPress[2];
+      tmpCoords.keyPress[1] = tmpCoords.keyPress[3];
+      tmpCoords.keyPress[2] = tmpUp;
+      tmpCoords.keyPress[3] = tmpDown;
+    }
+    tmpCoords.time += serverClientTimeDiff;
+    tmpCoords.ballSpeedX = 0;
+    tmpCoords.ballSpeedY = 0;
+    tmpCoords.paddleSpeed = 0;
+    tmpCoords.time += serverClientTimeDiff;
+    setCoords(tmpCoords);
+    update(Date.now(), tmpCoords.time);
+    // Game(coords, canvas);
   };
 
   const finishEventHandler = (scoreInfo: scoreInfo) => {
     console.log("finished!!!!!!");
     p1.score = scoreInfo.p1Score;
     p2.score = scoreInfo.p2Score;
+    if (p1.score > p2.score) {
+      setWinner(p1.uid);
+    } else {
+      setWinner(p2.uid);
+    }
     coords.ballSpeedX = 0;
     coords.ballSpeedY = 0;
     coords.paddleSpeed = 0;
@@ -163,7 +199,7 @@ export default function PingPong({
     return () => {
       cancelAnimationFrame(requestAnimationId);
     }
-  }, []);
+  }, [coords]);
 
   // // the connection is denied by the server in a middleware function
   // gameSocket.on("connect_error", (err) => {

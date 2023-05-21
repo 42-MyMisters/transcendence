@@ -35,3 +35,8 @@ export const gameSocketAtom = atom<Socket>(io(`${URL}${NameSpace}`, {
 	secure: true,
 	upgrade: true,
 }));
+
+export const isP1Atom = atom<boolean>(true);
+export const gameWinnerAtom = atom<number>(0);
+
+export const playersAtom = atom<[number, number]>([0,0]);

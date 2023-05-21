@@ -12,11 +12,11 @@ import { gameResultModalAtom } from "../atom/ModalAtom";
 
 
 export default function GameResultModal({
-  result,
-  leftScore,
-  rightScore,
+  result = "",
+  leftScore = 0,
+  rightScore = 0,
 }: {
-  result: boolean;
+  result: string;
   leftScore: number;
   rightScore: number;
 }) {
