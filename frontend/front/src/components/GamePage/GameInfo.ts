@@ -4,7 +4,7 @@ export const HEIGHT = 600;
 export const START_X = 100;
 export const START_Y = 225;
 
-export const p1 = {
+export const player1 = {
   x: 10,
   y: START_Y,
   width: 20,
@@ -14,7 +14,7 @@ export const p1 = {
   uid: 0,
 };
 
-export const p2 = {
+export const player2 = {
   x: WIDTH - 30,
   y: START_Y,
   width: 20,

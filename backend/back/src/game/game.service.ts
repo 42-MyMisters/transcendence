@@ -88,7 +88,7 @@ class Game {
   // key pressed time list [p1up, p1down, p2up, p2down]
   private keyPress: number[] = [0, 0, 0, 0];
 
-  private ballSpeedMultiplier: number = 1.4;
+  private ballSpeedMultiplier: number;
   private ballSpeedMax:number;
   private ballSpeedLimit:number;
   
@@ -108,18 +108,18 @@ class Game {
     this.paddleSpeed = 0.8,
     this.round = 0;
     this.gameMode = GameMode.DEFAULT;
-    this.ballSpeedMax = this.canvasWidth / 700;
-    this.paddleSpeedMax = 1.2
+    this.ballSpeedMax = this.canvasWidth / 1000;
+    this.paddleSpeedMax = 1.1;
   }
 
   private init() {
     switch (this.gameMode) {
       case GameMode.DEFAULT: {
-        this.ballSpeedMultiplier = 1.4;
+        this.ballSpeedMultiplier = 1.2;
         break;
       }
       case GameMode.SPEED: {
-        this.ballSpeedMultiplier = 1.6;
+        this.ballSpeedMultiplier = 1.4;
         break;
       }
     }
@@ -132,7 +132,6 @@ class Game {
     }
     // +-28 degree range.
     this.ballSpeedY = this.ballSpeedX * 0.6 * (Math.random() * 2 - 1);
-    // this.ballSpeedY = 0;
     for (let i = 0; i < 4; i++) {
       this.keyPress[i] = 0;
     }
@@ -158,7 +157,6 @@ class Game {
       this.gameStatus = GameStatus.COUNTDOWN;
       this.roundStartTime = Date.now();
       this.lastUpdate = this.roundStartTime;
-      console.log(`gameStart emit. gameMode: ${this.gameMode}!!!!!!`);
       this.gv.server.to(this.gv.gameId).emit('gameStart');
       return 1;
     }
@@ -384,11 +382,12 @@ class Game {
     this.score[i]++;
     this.round++;
     this.lastUpdateCoords = this.curState(time);
+    this.roundStartTime = Date.now();
     for(let i = 0; i < 4; i++) {
       this.lastUpdateCoords.keyPress[i] = 0;
     }
     this.gv.server.to(this.gv.gameId).emit("scoreInfo", {gameCoord: this.lastUpdateCoords, scoreInfo: {p1Score: this.score[0], p2Score: this.score[1]}});
-    return 3000;
+    return 10;
   }
   
   private running(curTime: number): number {
