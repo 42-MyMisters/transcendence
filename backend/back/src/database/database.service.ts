@@ -2,6 +2,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException,
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserFollow } from "src/database/entity/user-follow.entity";
 import { User } from "src/database/entity/user.entity";
+import { GameType } from "src/game/game.enum";
 import { DataSource, Repository } from "typeorm";
 import { DirectMessage } from "./entity/direct-message.entity";
 import { Game } from "./entity/game.entity";
@@ -56,6 +57,7 @@ export class DatabaseService {
         });
         return user;
     }
+
 
 
     // USER UPDATE
@@ -192,10 +194,31 @@ export class DatabaseService {
     }
 
     //player 1 uid, player 2 uid, score 1, score 2, gametype 
-    async saveGame(gameResult : Game){
-        return await this.gameRepository.save(gameResult);
+    // async saveGame(gameResult : Game){
+    //     return await this.gameRepository.save(gameResult);
+    // }
+
+    async saveGame(result: Game, gameType: GameType, winnerId: number, winnerElo: number, loserId: number, loserElo: number) {
+        const queryRunner = this.dataSource.createQueryRunner();
+
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            await queryRunner.manager.save(Game, result);
+            if (gameType === GameType.PUBLIC) {
+                await queryRunner.manager.update(User, {uid: winnerId}, {elo: winnerElo});
+                await queryRunner.manager.update(User, {uid: loserId}, {elo: loserElo});
+            }
+            await queryRunner.commitTransaction();
+        } catch (e) {
+            await queryRunner.rollbackTransaction();
+        } finally {
+            await queryRunner.release();
+        }
     }
 
+    
     //GAME
     async findAllGameByUserid(uid: number){
         const winGames  = await this.gameRepository.createQueryBuilder('gm')

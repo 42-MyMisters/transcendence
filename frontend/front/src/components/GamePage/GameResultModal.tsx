@@ -12,11 +12,11 @@ import { gameResultModalAtom } from "../atom/ModalAtom";
 
 
 export default function GameResultModal({
-  result = "",
+  winner = "",
   leftScore = 0,
   rightScore = 0,
 }: {
-  result: string;
+  winner: string;
   leftScore: number;
   rightScore: number;
 }) {
@@ -32,7 +32,7 @@ export default function GameResultModal({
     <>
       <div className="GameResultModalBG" />
       <div className="GameResultModal">
-        <div className="GameResultModalTxt">{result ? "You Win!" : "You Lose"}</div>
+        <div className="GameResultModalTxt">{`${winner} Win!`}</div>
         <div className="GameResultModalScore">{`${leftScore} : ${rightScore}`}</div>
         <button
           className="GameResultModalBtn"
