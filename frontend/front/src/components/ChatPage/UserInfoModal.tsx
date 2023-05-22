@@ -10,7 +10,7 @@ import { refreshTokenAtom } from "../../components/atom/LoginAtom";
 import { ProfileAtom, isMyProfileAtom } from "../../components/atom/UserAtom";
 import * as socket from "../../socket/chat.socket";
 import "../../styles/UserInfoModal.css";
-import { gameInviteInfoAtom, isPrivateAtom } from "../atom/GameAtom";
+import { gameInviteInfoAtom, isGameStartedAtom, isPrivateAtom } from "../atom/GameAtom";
 import { UserInfoModalInfo } from "../atom/UserInfoModalAtom";
 
 export default function UserInfoModal() {
@@ -23,6 +23,7 @@ export default function UserInfoModal() {
   const [blockList, setBlockList] = useAtom(chatAtom.blockListAtom);
   const setIsPrivate = useSetAtom(isPrivateAtom);
   const setGameInviteInfo = useSetAtom(gameInviteInfoAtom);
+  const setIsGameStart = useSetAtom(isGameStartedAtom);
   const setRefreshToken = useSetAtom(refreshTokenAtom);
   const adminConsole = useAtomValue(chatAtom.adminConsoleAtom);
   const setIsMyProfile = useSetAtom(isMyProfileAtom);
@@ -113,6 +114,7 @@ export default function UserInfoModal() {
   const callbackObserv = () => {
     infoModalOff();
     setGameInviteInfo({ gameType: 'observe', userId: userInfo.uid });
+    setIsGameStart(true);
     setIsPrivate(false);
     navigate("/game");
   };

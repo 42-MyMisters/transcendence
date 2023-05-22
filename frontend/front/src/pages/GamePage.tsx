@@ -16,6 +16,8 @@ import {
   gameModeAtom,
   isP1Atom,
   gameWinnerAtom,
+  p1IdAtom,
+  p2IdAtom,
 } from "../components/atom/GameAtom";
 
 import * as chatSocket from "../socket/chat.socket";
@@ -49,6 +51,9 @@ export default function GamePage() {
 
   const [gameSocket, setGameSocket] = useAtom(gameSocketAtom);
   const [isP1, setIsP1] = useAtom(isP1Atom);
+
+  const [p1Id, setP1Id] = useAtom(p1IdAtom);
+  const [p2Id, setP2Id] = useAtom(p2IdAtom);
 
   const userList = useAtomValue(chatAtom.userListAtom);
   const gameWinner = useAtomValue(gameWinnerAtom);
@@ -91,7 +96,11 @@ export default function GamePage() {
     setGameInviteInfo({ gameType: 'queue', userId: -1 });
     setIsGameQuit(false);
     setIsLoading(true);
-    console.log("is Private : ", isPrivate);
+    if (isPrivate) {
+      // player1.uid = userInfo.uid;
+      // player2.uid = userInfo.uid;
+      setP1Id(userInfo.uid);
+    }
     return () => {
       gameSocket.disconnect();
       clearState();
@@ -130,10 +139,14 @@ export default function GamePage() {
     AdminLogPrinter(adminConsole, "matched");
     if (p1 === userInfo.uid) {
       setIsP1(true);
+      setP1Id(p1);
+      setP2Id(p2);
       player1.uid = p1;
       player2.uid = p2;
     } else {
       setIsP1(false);
+      setP1Id(p2);
+      setP2Id(p1);
       player1.uid = p2;
       player2.uid = p1;
     }
@@ -211,9 +224,9 @@ export default function GamePage() {
       {
         isLoading
           ? (isPrivate
-            ? (<Waiting p1={player1.uid} p2={-42} />)
+            ? (<Waiting />)
             : (isMatched
-              ? (<Waiting p1={player1.uid} p2={player2.uid} />)
+              ? (<Waiting />)
               : (<LadderBoard />)
             )
           )

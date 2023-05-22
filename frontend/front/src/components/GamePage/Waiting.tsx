@@ -7,20 +7,23 @@ import * as api from "../../event/api.request";
 import "../../styles/BackGround.css";
 import "../../styles/GamePlayerInfo.css";
 import { userListAtom } from '../atom/ChatAtom';
-import { UserType } from '../atom/UserAtom';
+import { UserType, GameRecordType } from '../atom/UserAtom';
 import CheckBox from "./CheckBox";
 import PlayerRecordBoard from "./PlayerRecordBoard";
-import { isP1Atom } from '../atom/GameAtom';
+import { isMatchedAtom, isP1Atom, p1IdAtom, p2IdAtom } from '../atom/GameAtom';
 
-export default function Waiting({ p1, p2 }: { p1: number, p2: number }) {
+export default function Waiting() {
   const userList = useAtomValue(userListAtom);
   const adminConsole = useAtomValue(chatAtom.adminConsoleAtom);
   const [player1Info, setPlayer1Info] = useState({} as UserType);
   const [player2Info, setPlayer2Info] = useState({} as UserType);
   const setRefreshToken = useSetAtom(refreshTokenAtom);
   const isP1 = useAtomValue(isP1Atom);
-  const navigate = useNavigate();
+  const p1Id = useAtomValue(p1IdAtom);
+  const p2Id = useAtomValue(p2IdAtom);
+  const isMatched = useAtomValue(isMatchedAtom);
 
+  const navigate = useNavigate();
 
   const logOutHandler = () => {
     api.LogOut(adminConsole, setRefreshToken, navigate, "/");
@@ -41,36 +44,41 @@ export default function Waiting({ p1, p2 }: { p1: number, p2: number }) {
         if (getProfileResponse === 401) {
           logOutHandler();
         } else {
-          navigate("/profile");
+          navigate("/game");
         }
       }
     } else {
-      navigate("/profile");
+      navigate("/game");
     }
   }
 
   useEffect(() => {
-    getProfileHandler(setPlayer1Info, p1);
-    if (p2 !== -42) {
-      getProfileHandler(setPlayer2Info, p2);
+    if (isMatched) {
+      getProfileHandler(setPlayer2Info, p2Id);
+    } else {
+      getProfileHandler(setPlayer1Info, p1Id);
     }
-  }, []);
+  }, [isMatched]);
 
   return (
     <div className="QueueBackGround">
       <div className="LeftWrap">
         <div className="PlayerWrap">
-          <div className="PlayerNickName">{userList[p1].userDisplayName}</div>
-          <PlayerRecordBoard records={player1Info.games} userId={player1Info.uid} />
+          <div className="PlayerNickName">{player1Info.nickname}</div>
+          <PlayerRecordBoard records={player1Info.games} userId={p1Id} />
         </div>
       </div>
       <div className="RightWrap">
         <div className="PlayerWrap">
-          <div className="PlayerNickName">{p2 !== -42 ? userList[p2].userDisplayName : 'Waiting...'}</div>
           {
-            p2 !== -42
-              ? <PlayerRecordBoard records={player2Info.games} userId={player2Info.uid} />
-              : ''
+            isMatched
+              ? <div className="PlayerNickName">{player2Info.nickname}</div>
+              : <div className="PlayerNickName">{'Waiting...'}</div>
+          }
+          {
+            isMatched
+              ? <PlayerRecordBoard records={player2Info.games} userId={p2Id} />
+              : <PlayerRecordBoard records={{}} userId={-42} />
           }
         </div>
       </div>
