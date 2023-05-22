@@ -9,11 +9,7 @@ import { User } from "./entity/user.entity";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
-    TypeOrmModule.forFeature([UserFollow]),
-    TypeOrmModule.forFeature([UserBlock]),
-    TypeOrmModule.forFeature([Game]),
-    TypeOrmModule.forFeature([DirectMessage]),
+    TypeOrmModule.forFeature([User, UserFollow, UserBlock, Game, DirectMessage]),
   ],
   controllers: [],
   providers: [DatabaseService],
