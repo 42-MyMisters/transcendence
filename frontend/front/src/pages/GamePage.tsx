@@ -95,7 +95,9 @@ export default function GamePage() {
     setGameSocket(socket);
     setGameInviteInfo({ gameType: 'queue', userId: -1 });
     setIsGameQuit(false);
-    setIsLoading(true);
+    if (!isGameStart) {
+      setIsLoading(true);
+    }
     if (isPrivate) {
       // player1.uid = userInfo.uid;
       // player2.uid = userInfo.uid;

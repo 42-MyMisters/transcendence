@@ -114,8 +114,8 @@ export default function UserInfoModal() {
   const callbackObserv = () => {
     infoModalOff();
     setGameInviteInfo({ gameType: 'observe', userId: userInfo.uid });
-    setIsGameStart(true);
     setIsPrivate(false);
+    setIsGameStart(true);
     navigate("/game");
   };
   const callbackError = () => {
