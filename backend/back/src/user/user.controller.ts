@@ -1,26 +1,21 @@
 import {
   Body,
   ConflictException,
-  Controller,
-  ForbiddenException,
-  Get,
+  Controller, Get,
   InternalServerErrorException,
   Logger,
   NotFoundException,
   Param,
   Patch,
-  Post,
-  Query,
-  Req,
+  Post, Req,
   Res,
   UnauthorizedException,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
-  ValidationPipe,
+  ValidationPipe
 } from "@nestjs/common";
 import { AnyFilesInterceptor } from "@nestjs/platform-express";
-import { Response } from "express";
 import * as swagger from "@nestjs/swagger";
 import {
   ApiBadRequestResponse,
@@ -30,20 +25,21 @@ import {
   ApiInternalServerErrorResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiUnauthorizedResponse,
+  ApiUnauthorizedResponse
 } from "@nestjs/swagger";
+import { Response } from "express";
 import path from "path";
 import sharp from "sharp";
 import { AuthService } from "src/auth/auth.service";
 import { Jwt2faAuthGuard } from "src/auth/jwt-2fa/jwt-2fa-auth.guard";
+import { JwtInitialAuthGuard } from "src/auth/jwt-Initial/jwt-Initial.auth.guard";
 import { JwtAuthGuard } from "src/auth/jwt/jwt-auth.guard";
 import { UserService } from "src/user/user.service";
-import { changeNicknameDto } from "./dto/ChangeNickname.dto";
+import { ChangeNicknameDto } from "./dto/ChangeNickname.dto";
 import { FollowingUserDto } from "./dto/FollowingUser.dto";
 import { PasswordDto } from "./dto/Password.dto";
 import { TwoFactorConfirmDto } from "./dto/TwoFactorConfirm.dto";
 import { UserProfileDto } from "./dto/UserProfile.dto";
-import { JwtInitialAuthGuard } from "src/auth/jwt-Initial/jwt-Initial.auth.guard";
 
 @swagger.ApiTags("유저")
 @Controller("user")
@@ -210,7 +206,7 @@ export class UserController {
   @UseGuards(JwtInitialAuthGuard)
   async updateNickname(
     @Req() request,
-    @Body() changeNicknameDto: changeNicknameDto,
+    @Body() changeNicknameDto: ChangeNicknameDto,
   ) {
     const user = request.user;
     await this.userService.setUserNickname(user, changeNicknameDto.nickname);

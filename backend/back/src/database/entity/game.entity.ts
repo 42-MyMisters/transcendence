@@ -1,5 +1,5 @@
 import { IsNumber } from "class-validator";
-import { BaseEntity, Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "./user.entity";
 
 
@@ -20,10 +20,24 @@ export class Game extends BaseEntity {
 	
 	@CreateDateColumn()
 	createdAt: Date;
+
+	@Column({ type: 'integer' })
+	winnerUid: number;
+  
+	@Column({ type: 'integer' })
+	loserUid: number;
 	
-	@ManyToOne(type => User, winner => winner.wonGames, { eager: true })
+	@ManyToOne(type => User, winner => winner.wonGames)
+	@JoinColumn({
+		name: 'winnerUid',
+		referencedColumnName: 'uid',
+	  })
 	winner: User;
 	
-	@ManyToOne(type => User, loser => loser.lostGames, { eager: true })
+	@ManyToOne(type => User, loser => loser.lostGames)
+	@JoinColumn({
+		name: 'loserUid',
+		referencedColumnName: 'uid',
+	  })
 	loser: User;
 }

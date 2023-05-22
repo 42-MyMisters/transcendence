@@ -9,10 +9,9 @@ export class GameController{
     constructor(private readonly databaseService: DatabaseService){}
 
     @Get("/leaderboard")
-    // @UseGuards(Jwt2faAuthGuard)
+    @UseGuards(Jwt2faAuthGuard)
     async loadLeaderboard(){
-        const result= await this.databaseService.findUserByELODESC();
+        const result = await this.databaseService.getLeaderboard();
         return result;
     }
-
 }

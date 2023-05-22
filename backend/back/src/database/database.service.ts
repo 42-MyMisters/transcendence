@@ -2,13 +2,11 @@ import { BadRequestException, Injectable, NotFoundException } from "@nestjs/comm
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserFollow } from "src/database/entity/user-follow.entity";
 import { User } from "src/database/entity/user.entity";
-import { LeaderboardDto } from "src/game/dto/Leaderboard.dto";
 import { GameType } from "src/game/game.enum";
 import { DataSource, Repository } from "typeorm";
 import { DirectMessage } from "./entity/direct-message.entity";
 import { Game } from "./entity/game.entity";
 import { UserBlock } from "./entity/user-block.entity";
-
 
 
 @Injectable()
@@ -229,20 +227,29 @@ export class DatabaseService {
         return {winGames, loseGames};
     }
 
-    async findUserByEloDesc(){
-        const foundUsers = await this.userRepository.createQueryBuilder('user')
-        .leftJoinAndSelect('user.wonGames', 'wonGames')
-        .leftJoinAndSelect('user.lostGames', 'lostGames')
-        .orderBy('user.elo', 'DESC')
-        .take(10)
-        .getMany();
-        console.log("finduser=");
-        console.log("asdfff " + JSON.stringify(foundUsers[0].wonGames[0]));
-        console.log("list " + JSON.stringify(foundUsers[0]));
-        console.log("list in " + JSON.stringify(foundUsers[0].wonGames));
-        const result = await Promise.all(foundUsers.map(async (user) => {
-            return await LeaderboardDto.userToLeaderboardDto(user);
-        }))
-        return result;
-    }
+     
+    async getLeaderboard() {
+        const foundUsers = await this.userRepository.find({
+            relations: {
+                wonGames: true,
+                lostGames: true,
+            },
+            order: {
+                elo: 'DESC',
+              },
+              take: 10,
+        });
+
+        const leaderboardDto = foundUsers.map((user) => ({
+          nickname: user.nickname,
+          elo: user.elo,
+          winGameCount: user.wonGames.length,
+          lostGameCount: user.lostGames.length,
+          totalGameCount: user.wonGames.length + user.lostGames.length
+        }));
+      
+        return leaderboardDto;
+      }
+      
+
 }

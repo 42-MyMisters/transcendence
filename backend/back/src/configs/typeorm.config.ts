@@ -4,6 +4,8 @@ import config from 'config';
 const dbConfig : any = config.get('db');
 
 export const typeORMConfig : TypeOrmModuleOptions = {
+	// logging: true,
+	// logger: 'advanced-console', //query check
 	type: dbConfig.type,
 	host: process.env.RDS_HOSTNAME || dbConfig.host,
 	port: process.env.RDS_PORT || dbConfig.port,
