@@ -61,8 +61,13 @@ export function Game(gameInfo: GameCoordinate, canvas: React.RefObject<HTMLCanva
     //net
     drawNet(context);
     //bar
-    drawRect(player1.x, gameInfo.paddle1Y, player1.width, player1.height, player1.color, context);
-    drawRect(player2.x, gameInfo.paddle2Y, player2.width, player2.height, player2.color, context);
+    drawCircle(player1.x + player1.width / 2, gameInfo.paddle1Y + player1.width / 2, player1.width / 2, player1.color, context);
+    drawRect(player1.x, gameInfo.paddle1Y + player1.width / 2, player1.width, player1.height - player1.width, player1.color, context);
+    drawCircle(player1.x + player1.width / 2, gameInfo.paddle1Y + player1.height - player1.width / 2, player1.width / 2, player1.color, context);
+    
+    drawCircle(player2.x + player2.width / 2, gameInfo.paddle2Y + player2.width / 2, player2.width / 2, player2.color, context);
+    drawRect(player2.x, gameInfo.paddle2Y + player2.width / 2, player2.width, player2.height - player2.width, player2.color, context);
+    drawCircle(player2.x + player2.width / 2, gameInfo.paddle2Y + player2.height - player2.width / 2, player2.width / 2, player2.color, context);
     //ball
     drawCircle(gameInfo.ballX, gameInfo.ballY, ball.radius, ball.color, context);
     //score
