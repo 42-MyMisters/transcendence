@@ -1,16 +1,15 @@
+import { useAtomValue, useSetAtom } from 'jotai';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import * as chatAtom from "../../components/atom/ChatAtom";
+import { refreshTokenAtom } from "../../components/atom/LoginAtom";
+import * as api from "../../event/api.request";
 import "../../styles/BackGround.css";
 import "../../styles/GamePlayerInfo.css";
-import PlayerRecordBoard from "./PlayerRecordBoard";
-import CheckBox from "./CheckBox";
-import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { userListAtom } from '../atom/ChatAtom';
-import * as api from "../../event/api.request";
-import * as chatAtom from "../../components/atom/ChatAtom";
-import * as gameAtom from "../../components/atom/GameAtom";
 import { UserType } from '../atom/UserAtom';
-import { useEffect, useState } from 'react';
-import { refreshTokenAtom } from "../../components/atom/LoginAtom";
-import { useNavigate } from 'react-router-dom';
+import CheckBox from "./CheckBox";
+import PlayerRecordBoard from "./PlayerRecordBoard";
 
 export default function Waiting({ p1, p2 }: { p1: number, p2: number }) {
   const userList = useAtomValue(userListAtom);

@@ -1,22 +1,21 @@
-import { useAtom } from "jotai";
-import { UserAtom } from "../atom/UserAtom";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useRef, useState } from "react";
-import { changeImageModalAtom } from "../../components/atom/ModalAtom";
-import { PressKey, AdminLogPrinter } from "../../event/event.util";
-import { keyboardKey } from '@testing-library/user-event';
-import * as chatAtom from "../../components/atom/ChatAtom";
-import * as api from '../../event/api.request';
 import { useNavigate } from 'react-router-dom';
+import * as chatAtom from "../../components/atom/ChatAtom";
 import { refreshTokenAtom } from "../../components/atom/LoginAtom";
+import { changeImageModalAtom } from "../../components/atom/ModalAtom";
+import * as api from '../../event/api.request';
+import { AdminLogPrinter, PressKey } from "../../event/event.util";
+import { UserAtom } from "../atom/UserAtom";
 
 import "../../styles/ChangeImageModal.css";
 
 export default function ChangeImageModal() {
-  const [changeImageModal, setchangeImageModal] = useAtom(changeImageModalAtom);
-  const [userInfo, setUserInfo] = useAtom(UserAtom);
+  const setchangeImageModal = useSetAtom(changeImageModalAtom);
+  const setUserInfo = useSetAtom(UserAtom);
   const [newImage, setnewImage] = useState("");
-  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
-  const [, setRefreshToken] = useAtom(refreshTokenAtom);
+  const adminConsole = useAtomValue(chatAtom.adminConsoleAtom);
+  const setRefreshToken = useSetAtom(refreshTokenAtom);
   const profileRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 

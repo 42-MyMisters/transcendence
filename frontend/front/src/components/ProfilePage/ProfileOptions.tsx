@@ -1,28 +1,26 @@
-import { useAtom } from "jotai";
-import { changeNameModalAtom } from "../atom/ModalAtom";
-import { changeImageModalAtom } from "../atom/ModalAtom";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { changeImageModalAtom, changeNameModalAtom } from "../atom/ModalAtom";
 import { isMyProfileAtom, TFAAtom } from "../atom/UserAtom";
 
 import * as chatAtom from "../../components/atom/ChatAtom";
 import * as api from '../../event/api.request';
 
 import { useNavigate } from 'react-router-dom';
-import "../../styles/ProfilePage.css";
-import { useEffect } from 'react';
 import { refreshTokenAtom } from "../../components/atom/LoginAtom";
-import { AdminLogPrinter } from '../../event/event.util';
 import { TFAModalAtom, TFAQRURL } from "../../components/atom/ModalAtom";
+import { AdminLogPrinter } from '../../event/event.util';
+import "../../styles/ProfilePage.css";
 
 export default function ProfileOptions() {
-  const [changeNameModal, setchangeNameModal] = useAtom(changeNameModalAtom);
-  const [changeImageModal, setChangeImageModal] = useAtom(changeImageModalAtom);
-  const [isMyProfile] = useAtom(isMyProfileAtom);
-  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
+  const setchangeNameModal = useSetAtom(changeNameModalAtom);
+  const setChangeImageModal = useSetAtom(changeImageModalAtom);
+  const isMyProfile = useAtomValue(isMyProfileAtom);
+  const adminConsole = useAtomValue(chatAtom.adminConsoleAtom);
   const [tfa, setTfa] = useAtom(TFAAtom);
-  const [, setRefreshToken] = useAtom(refreshTokenAtom);
+  const setRefreshToken = useSetAtom(refreshTokenAtom);
   const navigate = useNavigate();
-  const [qrcodeURL, setQRcodeURL] = useAtom(TFAQRURL);
-  const [TFAModal, setTFAModal] = useAtom(TFAModalAtom);
+  const setQRcodeURL = useSetAtom(TFAQRURL);
+  const setTFAModal = useSetAtom(TFAModalAtom);
 
   const logOutHandler = () => {
     api.LogOut(adminConsole, setRefreshToken, navigate, "/");

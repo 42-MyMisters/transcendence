@@ -1,21 +1,18 @@
 import "../../styles/ChatList.css";
 import UserObj from "../objects/UserObj";
 
-import { useAtom } from "jotai";
-import * as chatAtom from '../atom/ChatAtom';
-import { UserAtom } from "../atom/UserAtom";
-import * as socket from "../../socket/chat.socket";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import type * as chatType from "../../socket/chat.dto";
+import * as socket from "../../socket/chat.socket";
+import * as chatAtom from '../atom/ChatAtom';
 
 // 채팅페이지 왼쪽 아래 total User list
 export default function ChatUserList() {
   const [userList, setUserList] = useAtom(chatAtom.userListAtom);
-  const [userInfo] = useAtom(UserAtom);
-  const [blockList] = useAtom(chatAtom.blockListAtom);
   const [dmHistoryList] = useAtom(chatAtom.dmHistoryListAtom);
   const [followingList] = useAtom(chatAtom.followingListAtom);
-  const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
-  const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
+  const roomList = useAtomValue(chatAtom.roomListAtom);
+  const setFocusRoom = useSetAtom(chatAtom.focusRoomAtom);
   const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
 
   const DM = (targetId: number) => {

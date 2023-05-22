@@ -1,17 +1,17 @@
-import { useAtom, useSetAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { userInfoModalAtom } from "../../components/atom/ModalAtom";
-import { AdminLogPrinter, PressKey } from "../../event/event.util";
 import * as api from "../../event/api.request";
+import { PressKey } from "../../event/event.util";
 
 import { IoCloseOutline } from "react-icons/io5";
-import "../../styles/UserInfoModal.css";
-import { UserInfoModalInfo } from "../atom/UserInfoModalAtom";
+import { useNavigate } from "react-router-dom";
 import * as chatAtom from "../../components/atom/ChatAtom";
 import { refreshTokenAtom } from "../../components/atom/LoginAtom";
+import { ProfileAtom, isMyProfileAtom } from "../../components/atom/UserAtom";
 import * as socket from "../../socket/chat.socket";
-import { useNavigate } from "react-router-dom";
-import { UserAtom, isMyProfileAtom, ProfileAtom } from "../../components/atom/UserAtom";
-import { isPrivateAtom, gameInviteInfoAtom } from "../atom/GameAtom";
+import "../../styles/UserInfoModal.css";
+import { gameInviteInfoAtom, isPrivateAtom } from "../atom/GameAtom";
+import { UserInfoModalInfo } from "../atom/UserInfoModalAtom";
 
 export default function UserInfoModal() {
   const setUserInfoModal = useSetAtom(userInfoModalAtom);

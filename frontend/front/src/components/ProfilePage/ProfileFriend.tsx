@@ -1,9 +1,8 @@
 import "../../styles/ProfilePage.css";
 import UserObj from "../objects/UserObj";
-
-import { useAtom, useAtomValue } from "jotai";
-import { UserAtom, isMyProfileAtom, ProfileAtom } from "../atom/UserAtom";
+import { useAtomValue } from "jotai";
 import * as chatAtom from "../atom/ChatAtom";
+import { ProfileAtom, isMyProfileAtom } from "../atom/UserAtom";
 
 export default function ProfileFriend() {
   const userList = useAtomValue(chatAtom.userListAtom);

@@ -1,8 +1,6 @@
-import { ReactElement } from "react";
-import "../../styles/GamePlayerInfo.css";
-import { GameRecordType } from '../atom/UserAtom';
-import { userListAtom } from '../atom/ChatAtom';
 import { useAtomValue } from 'jotai';
+import "../../styles/GamePlayerInfo.css";
+import { userListAtom } from '../atom/ChatAtom';
 
 export function PlayerRecordLine({
   LeftSideNickName,

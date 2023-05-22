@@ -29,7 +29,6 @@ export default function GameResultModal({
   const setGameResultModal = useSetAtom(gameResultModalAtom);
   const userList = useAtomValue(userListAtom);
   const gameWinner = useAtomValue(gameWinnerAtom);
-
   const navigate = useNavigate();
 
   const handlerGameQuit = () => {

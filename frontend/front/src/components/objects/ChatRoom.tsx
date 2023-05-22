@@ -1,5 +1,5 @@
+import { useAtomValue } from "jotai";
 import "../../styles/ChatRoom.css";
-import { useAtom } from "jotai";
 import * as chatAtom from "../atom/ChatAtom";
 
 export default function ChatRoom({
@@ -15,7 +15,7 @@ export default function ChatRoom({
   isJoin: boolean;
   callBack: (roomId: number) => void;
 }) {
-  const [focusRoom] = useAtom(chatAtom.focusRoomAtom);
+  const focusRoom = useAtomValue(chatAtom.focusRoomAtom);
 
   return (
     <div className="ChatRoomObj" >
