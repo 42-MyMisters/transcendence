@@ -2,7 +2,7 @@ import { Cookies } from "react-cookie";
 import "../styles/TopBar.css";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { refreshTokenAtom } from "./atom/LoginAtom";
 import { LogOut } from "../event/api.request";
 import * as socket from "../socket/chat.socket";
@@ -68,10 +68,12 @@ function QueueBtn() {
 }
 
 function ProfileBtn() {
-  const [, setIsMyProfile] = useAtom(isMyProfileAtom);
+  const setIsMyProfile = useSetAtom(isMyProfileAtom);
+  const setIsPrivate = useSetAtom(isPrivateAtom)
 
   const profileHandler = () => {
     setIsMyProfile(true);
+    setIsPrivate(false);
   };
 
   return (

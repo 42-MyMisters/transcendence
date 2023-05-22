@@ -1,5 +1,15 @@
 import { atom, useAtom } from "jotai";
 
+export type GameRecordType = {
+  gm_gid: number;
+  gm_winnerId: number;
+  gm_loserId: number;
+  gm_winnerScore: number;
+  gm_loserScore: number;
+  gm_gameType: number;
+  gm_createdAt: string;
+}
+
 interface UserType {
   uid: number;
   nickname: string;

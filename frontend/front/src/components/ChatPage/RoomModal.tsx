@@ -1,24 +1,23 @@
-import { useAtom } from "jotai";
-import { roomModalAtom } from "../atom/ModalAtom";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { PressKey } from "../../event/event.util";
+import { roomModalAtom } from "../atom/ModalAtom";
 
 import "../../styles/RoomModal.css";
 
-import { useState } from 'react';
-import * as chatAtom from '../atom/ChatAtom';
-import * as socket from "../../socket/chat.socket";
 import { keyboardKey } from '@testing-library/user-event';
+import { useState } from 'react';
 import { useAutoFocus } from '../../event/event.util';
+import * as socket from "../../socket/chat.socket";
+import * as chatAtom from '../atom/ChatAtom';
 
-import type * as chatType from '../../socket/chat.dto';
 export default function RoomModal() {
-  const [, setRoomModal] = useAtom(roomModalAtom);
+  const setRoomModal = useSetAtom(roomModalAtom);
   const [roomName, setRoomName] = useState("");
   const [roomPass, setRoomPass] = useState("");
   const [roomCheck, setRoomCheck] = useState(false);
-  const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
-  const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
-  const [roomSetting, setRoomSetting] = useAtom(chatAtom.roomSettingAtom);
+  const roomList = useAtomValue(chatAtom.roomListAtom);
+  const focusRoom = useAtomValue(chatAtom.focusRoomAtom);
+  const roomSetting = useAtomValue(chatAtom.roomSettingAtom);
   const [roomSettingIsPrivate, setRoomSettingIsPrivate] = useAtom(chatAtom.roomSettingIsPrivateAtom);
   const [roomSettingCurrentRoomName, setRoomSettingCurrentRoomName] = useAtom(chatAtom.roomSettingCurrentRoomNameAtom);
   const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);

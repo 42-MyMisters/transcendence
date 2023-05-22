@@ -1,6 +1,6 @@
 import jwt_decode from "jwt-decode";
 
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect } from "react";
 import { useCookies } from "react-cookie";
 
@@ -23,17 +23,15 @@ export default function LoginPage() {
   /* localstorage에 없는데 cookie에 있으면 로그인이 된거다 */
   /* localstorage에 있으면 로그인 된거다 */
   const [refreshToken, setRefreshToken] = useAtom(refreshTokenAtom);
-  const [cookie, setCookie] = useAtom(cookieAtom);
+  const setCookie = useSetAtom(cookieAtom);
   const [TFAEnabled, setTFAEnabled] = useAtom(TFAEnabledAtom);
   const [hasLogin, setHasLogin] = useAtom(hasLoginAtom);
   const [isFirstLogin, setIsFirstLogin] = useAtom(isFirstLoginAtom);
-  const [userInfo, setUserInfo] = useAtom(UserAtom);
+  const setUserInfo = useSetAtom(UserAtom);
   const [loginModalJudge, setLoginModalJudge] = useAtom(loginModalJudgeAtom);
-
-  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
-
+  const adminConsole = useAtomValue(chatAtom.adminConsoleAtom);
   const refreshTokenKey = "refreshToken";
-  const [cookies, setCookies, removeCookie] = useCookies([refreshTokenKey]);
+  const [cookies, , removeCookie] = useCookies([refreshTokenKey]);
   const navigate = useNavigate();
 
   const logOutHandler = () => {
@@ -86,12 +84,6 @@ export default function LoginPage() {
 
   return (
     <BackGround>
-      {/* refresh Token이 있으면 SigninModal이 꺼짐 */}
-      {/* refresh Token이 없으면 SigninModal이 켜짐 */}
-      {/* {!refreshToken && <SignInModal />} */}
-      {/* refresh Token이 있고 cookie가 없으면 TFAModal실행 */}
-      {/* {refreshToken && !cookie && TFAEnabled && <TFAModal />} */}
-      {/* {refreshToken && isFirstLogin ? <InitialSettingModal /> : null} */}
       {
         refreshToken
           ? isFirstLogin

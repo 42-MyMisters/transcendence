@@ -1,20 +1,19 @@
-import { useAtom } from "jotai";
+import { keyboardKey } from '@testing-library/user-event';
+import { useAtomValue, useSetAtom } from "jotai";
+import { useState } from 'react';
 import { inviteModalAtom } from "../../components/atom/ModalAtom";
 import { PressKey } from "../../event/event.util";
-import { useState } from 'react';
-import { keyboardKey } from '@testing-library/user-event';
 import "../../styles/RoomInviteModal.css";
 
-import * as chatAtom from '../atom/ChatAtom';
-import * as socket from "../../socket/chat.socket";
 import { useAutoFocus } from '../../event/event.util';
+import * as socket from "../../socket/chat.socket";
+import * as chatAtom from '../atom/ChatAtom';
 
 export default function RoomInviteModal() {
-  const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);
+  const setInviteModal = useSetAtom(inviteModalAtom);
   const [nickName, setNickName] = useState("");
-  const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
-  const [focusRoom,] = useAtom(chatAtom.focusRoomAtom);
-  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
+  const focusRoom = useAtomValue(chatAtom.focusRoomAtom);
+  const adminConsole = useAtomValue(chatAtom.adminConsoleAtom);
   const inviteInputRef = useAutoFocus();
 
   PressKey(["Escape"], () => { setInviteModal(false); });
