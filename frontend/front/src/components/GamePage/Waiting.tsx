@@ -10,6 +10,7 @@ import { userListAtom } from '../atom/ChatAtom';
 import { UserType } from '../atom/UserAtom';
 import CheckBox from "./CheckBox";
 import PlayerRecordBoard from "./PlayerRecordBoard";
+import { isP1Atom } from '../atom/GameAtom';
 
 export default function Waiting({ p1, p2 }: { p1: number, p2: number }) {
   const userList = useAtomValue(userListAtom);
@@ -17,6 +18,7 @@ export default function Waiting({ p1, p2 }: { p1: number, p2: number }) {
   const [player1Info, setPlayer1Info] = useState({} as UserType);
   const [player2Info, setPlayer2Info] = useState({} as UserType);
   const setRefreshToken = useSetAtom(refreshTokenAtom);
+  const isP1 = useAtomValue(isP1Atom);
   const navigate = useNavigate();
 
 
@@ -72,7 +74,11 @@ export default function Waiting({ p1, p2 }: { p1: number, p2: number }) {
           }
         </div>
       </div>
-      <CheckBox />
+      {
+        isP1
+          ? <CheckBox />
+          : ""
+      }
     </div>
   );
 }
