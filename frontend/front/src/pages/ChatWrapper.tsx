@@ -8,22 +8,21 @@ import {
 } from "../components/atom/ModalAtom";
 
 import {
-	isGameStartedAtom,
-	isLoadingAtom,
-	isGameQuitAtom,
-	gameInviteInfoAtom,
 	gameinviteFromAtom,
+	isGameQuitAtom,
+	isGameStartedAtom,
+	isLoadingAtom
 } from "../components/atom/GameAtom";
 
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import * as chatAtom from "../components/atom/ChatAtom";
 import { refreshTokenAtom } from "../components/atom/LoginAtom";
 import { TFAAtom, UserAtom } from "../components/atom/UserAtom";
-import { useNavigate } from "react-router-dom";
 import { GetMyInfo, LogOut, RefreshToken } from "../event/api.request";
+import { AdminLogPrinter, PressKey } from "../event/event.util";
 import type * as chatType from "../socket/chat.dto";
 import * as socket from "../socket/chat.socket";
-import * as chatAtom from "../components/atom/ChatAtom";
-import { AdminLogPrinter, PressKey } from "../event/event.util";
 
 export default function ChatWrapper({ children }: { children: JSX.Element }) {
 	const setUserInfoModal = useSetAtom(userInfoModalAtom);
@@ -63,9 +62,7 @@ export default function ChatWrapper({ children }: { children: JSX.Element }) {
 	const quitRoomRelativeModal = () => {
 		setUserInfoModal(false);
 		setInviteModal(false);
-		// setRoomModal(false);
-	}	// setPwInputModal(false);
-
+	}
 
 	async function getMyinfoHandler() {
 		const getMeResponse = await GetMyInfo(adminConsole, setUserInfo, setTfa, true);
@@ -159,7 +156,7 @@ export default function ChatWrapper({ children }: { children: JSX.Element }) {
 	}, []);
 
 	useEffect(() => {
-		socket.socket.on("dm-list", (resDmUserList, mergeDmList) => {
+		socket.socket.on("dm-list", (resDmUserList, allDmList) => {
 			const tempDmRoomList: chatType.roomListDto = {};
 
 			setDmHistoryList({ ...resDmUserList });
@@ -187,7 +184,7 @@ export default function ChatWrapper({ children }: { children: JSX.Element }) {
 				};
 			});
 
-			Object.entries(mergeDmList).forEach((atom: any[]) => {
+			Object.entries(allDmList).forEach((atom: any[]) => {
 				if (Number(atom[1].senderId!) === userInfo.uid) { // from me
 					const tempMessageList: chatType.roomMessageDto[] = tempDmRoomList[Number(atom[1]?.receiverId!)].detail?.messageList!;
 					tempMessageList?.unshift({
