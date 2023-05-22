@@ -1,6 +1,6 @@
 import React from "react";
 import { GameCoordinate } from "../../socket/game.dto";
-import { ball, HEIGHT, net, p1, p2, WIDTH } from "./GameInfo";
+import { ball, HEIGHT, net, player1, player2, WIDTH } from "./GameInfo";
 
 function drawRect(
   x: number,
@@ -61,12 +61,17 @@ export function Game(gameInfo: GameCoordinate, canvas: React.RefObject<HTMLCanva
     //net
     drawNet(context);
     //bar
-    drawRect(p1.x, gameInfo.paddle1Y, p1.width, p1.height, p1.color, context);
-    drawRect(p2.x, gameInfo.paddle2Y, p2.width, p2.height, p2.color, context);
+    drawCircle(player1.x + player1.width / 2, gameInfo.paddle1Y + player1.width / 2, player1.width / 2, player1.color, context);
+    drawRect(player1.x, gameInfo.paddle1Y + player1.width / 2, player1.width, player1.height - player1.width, player1.color, context);
+    drawCircle(player1.x + player1.width / 2, gameInfo.paddle1Y + player1.height - player1.width / 2, player1.width / 2, player1.color, context);
+    
+    drawCircle(player2.x + player2.width / 2, gameInfo.paddle2Y + player2.width / 2, player2.width / 2, player2.color, context);
+    drawRect(player2.x, gameInfo.paddle2Y + player2.width / 2, player2.width, player2.height - player2.width, player2.color, context);
+    drawCircle(player2.x + player2.width / 2, gameInfo.paddle2Y + player2.height - player2.width / 2, player2.width / 2, player2.color, context);
     //ball
     drawCircle(gameInfo.ballX, gameInfo.ballY, ball.radius, ball.color, context);
     //score
-    drawText(p1.score, WIDTH / 4, 50, "WHITE", context);
-    drawText(p2.score, 3 * (WIDTH / 4), 50, "WHITE", context);
+    drawText(player1.score, WIDTH / 4, 50, "WHITE", context);
+    drawText(player2.score, 3 * (WIDTH / 4), 50, "WHITE", context);
   }
 }

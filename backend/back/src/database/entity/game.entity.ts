@@ -10,12 +10,6 @@ export class Game extends BaseEntity {
 	gid: number;
 
 	@Column()
-	winnerId: number;
-	
-	@Column()
-	loserId: number;
-
-	@Column()
 	winnerScore: number;
 	
 	@Column()

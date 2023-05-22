@@ -150,8 +150,7 @@ export class AuthService {
 
   async jwtVerify(token: string): Promise<number> {
     try {
-      const payload = await this.jwtService.verify(token);
-      return payload.uid;
+      return await this.jwtService.verify(token).uid;
     } catch (e) {
       console.log(e);
       throw new UnauthorizedException("user not found");
