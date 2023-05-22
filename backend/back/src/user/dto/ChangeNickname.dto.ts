@@ -1,9 +1,9 @@
+import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsString, Length, Validate } from "class-validator";
 import { ForbiddenCharacter } from "../validator/forbidden-character.validator";
-import { ApiProperty } from "@nestjs/swagger";
 
 
-export class changeNicknameDto {
+export class ChangeNicknameDto {
 	@ApiProperty({
 		description: 'New nickname for the user. Must be between 6 and 16 characters and cannot contain the "#" character.',
 		example: 'newNickname123',

@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException, UnauthorizedException, UsePipes } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserFollow } from "src/database/entity/user-follow.entity";
 import { User } from "src/database/entity/user.entity";
@@ -7,7 +7,6 @@ import { DataSource, Repository } from "typeorm";
 import { DirectMessage } from "./entity/direct-message.entity";
 import { Game } from "./entity/game.entity";
 import { UserBlock } from "./entity/user-block.entity";
-
 
 
 @Injectable()
@@ -235,4 +234,30 @@ export class DatabaseService {
             .where('gm.loser.uid = :uid', { uid }).getRawMany();
         return { winGames, loseGames };
     }
+
+     
+    async getLeaderboard() {
+        const foundUsers = await this.userRepository.find({
+            relations: {
+                wonGames: true,
+                lostGames: true,
+            },
+            order: {
+                elo: 'DESC',
+              },
+              take: 10,
+        });
+
+        const leaderboardDto = foundUsers.map((user) => ({
+          nickname: user.nickname,
+          elo: user.elo,
+          winGameCount: user.wonGames.length,
+          lostGameCount: user.lostGames.length,
+          totalGameCount: user.wonGames.length + user.lostGames.length
+        }));
+      
+        return leaderboardDto;
+      }
+      
+
 }
