@@ -65,7 +65,7 @@ export class DatabaseService {
         await this.userRepository.save(user);
     }
 
-    async updateUserElo(uid: number, elo: number):Promise<void> {
+    async updateUserElo(uid: number, elo: number): Promise<void> {
         try {
             await this.userRepository.update({ uid }, { elo });
         } catch (error) {
@@ -73,7 +73,7 @@ export class DatabaseService {
         }
     }
 
-    async updateUserNickname(uid: number, nickname: string):Promise<void> {
+    async updateUserNickname(uid: number, nickname: string): Promise<void> {
         try {
             await this.userRepository.update({ uid }, { nickname });
         } catch (error) {
@@ -190,10 +190,18 @@ export class DatabaseService {
             .createQueryBuilder('dm')
             .where('dm.senderId = :senderId', { senderId })
             .andWhere('dm.receiverId = :receiverId', { receiverId })
-            .getRawMany();
+            .getMany();
     }
 
-    //player 1 uid, player 2 uid, score 1, score 2, gametype 
+    async findAllDM(uid: number): Promise<DirectMessage[] | null> {
+        return await this.directMessageRepository
+            .createQueryBuilder('dm')
+            .where('dm.senderId = :senderId', { senderId: uid })
+            .orWhere('dm.receiverId = :receiverId', { receiverId: uid })
+            .getMany();
+    }
+
+    //player 1 uid, player 2 uid, score 1, score 2, gametype
     // async saveGame(gameResult : Game){
     //     return await this.gameRepository.save(gameResult);
     // }
@@ -207,8 +215,8 @@ export class DatabaseService {
         try {
             await queryRunner.manager.save(Game, result);
             if (gameType === GameType.PUBLIC) {
-                await queryRunner.manager.update(User, {uid: result.winner.uid}, {elo: winnerElo});
-                await queryRunner.manager.update(User, {uid: result.loser.uid}, {elo: loserElo});
+                await queryRunner.manager.update(User, { uid: result.winner.uid }, { elo: winnerElo });
+                await queryRunner.manager.update(User, { uid: result.loser.uid }, { elo: loserElo });
             }
             await queryRunner.commitTransaction();
         } catch (e) {
@@ -218,13 +226,13 @@ export class DatabaseService {
         }
     }
 
-    
+
     //GAME
-    async findAllGameByUserid(uid: number){
-        const winGames  = await this.gameRepository.createQueryBuilder('gm')
-        .where('gm.winner.uid = :uid', {uid}).getRawMany();
+    async findAllGameByUserid(uid: number) {
+        const winGames = await this.gameRepository.createQueryBuilder('gm')
+            .where('gm.winner.uid = :uid', { uid }).getRawMany();
         const loseGames = await this.gameRepository.createQueryBuilder('gm')
-        .where('gm.loser.uid = :uid', {uid}).getRawMany();
-        return {winGames, loseGames};
+            .where('gm.loser.uid = :uid', { uid }).getRawMany();
+        return { winGames, loseGames };
     }
 }
