@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from "@nestjs/comm
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserFollow } from "src/database/entity/user-follow.entity";
 import { User } from "src/database/entity/user.entity";
+import { LeaderboardDto } from "src/game/dto/Leaderboard.dto";
 import { GameType } from "src/game/game.enum";
 import { DataSource, Repository } from "typeorm";
 import { DirectMessage } from "./entity/direct-message.entity";
@@ -222,19 +223,26 @@ export class DatabaseService {
     //GAME
     async findAllGameByUserid(uid: number){
         const winGames  = await this.gameRepository.createQueryBuilder('gm')
-        .where('gm.winnerId = :uid', {uid}).getRawMany();
+        .where('gm.w = :uid', {uid}).getRawMany();
         const loseGames = await this.gameRepository.createQueryBuilder('gm')
         .where('gm.loserId = :uid', {uid}).getRawMany();
         return {winGames, loseGames};
     }
 
-    async findUserByELODESC(){
-        const result = this.userRepository.createQueryBuilder('user')
+    async findUserByEloDesc(){
+        const foundUsers = await this.userRepository.createQueryBuilder('user')
         .leftJoinAndSelect('user.wonGames', 'wonGames')
         .leftJoinAndSelect('user.lostGames', 'lostGames')
         .orderBy('user.elo', 'DESC')
         .take(10)
         .getMany();
+        console.log("finduser=");
+        console.log("asdfff " + JSON.stringify(foundUsers[0].wonGames[0]));
+        console.log("list " + JSON.stringify(foundUsers[0]));
+        console.log("list in " + JSON.stringify(foundUsers[0].wonGames));
+        const result = await Promise.all(foundUsers.map(async (user) => {
+            return await LeaderboardDto.userToLeaderboardDto(user);
+        }))
         return result;
     }
 }
