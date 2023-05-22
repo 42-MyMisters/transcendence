@@ -1,4 +1,4 @@
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { passwordInputModalAtom } from "../../components/atom/ModalAtom";
 import { PressKey } from "../../event/event.util";
 import { keyboardKey } from '@testing-library/user-event';
@@ -11,12 +11,12 @@ import * as chatAtom from "../atom/ChatAtom";
 import { useAutoFocus } from '../../event/event.util';
 
 export default function PasswordModal() {
-  const [pwInputModal, setPwInputModal] = useAtom(passwordInputModalAtom);
+  const setPwInputModal = useSetAtom(passwordInputModalAtom);
   const [password, setPassword] = useState('');
   const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
   const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
-  const [clickRoom,] = useAtom(chatAtom.clickRoomAtom);
-  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
+  const clickRoom = useAtomValue(chatAtom.clickRoomAtom);
+  const adminConsole = useAtomValue(chatAtom.adminConsoleAtom);
   const passwordInputRef = useAutoFocus();
 
   PressKey(["Escape"], () => {

@@ -1,21 +1,17 @@
-import { StrictMode, useState, useEffect } from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-
+import { StrictMode } from "react";
+import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import ChatPage from "./pages/ChatPage";
 import ChatWrapper from "./pages/ChatWrapper";
 import GamePage from "./pages/GamePage";
-import ProfilePage from "./pages/ProfilePage";
 import LoginPage from "./pages/LoginPage";
 import NotFoundPage from "./pages/NotFoundPage";
-
+import ProfilePage from "./pages/ProfilePage";
 import "./App.css";
-
-import { Provider, atom, useAtom, useAtomValue, useSetAtom } from "jotai";
-
+import { Provider, useAtomValue } from "jotai";
 import { hasLoginAtom } from "./components/atom/ChatAtom";
 
 function CheckLogin({ children }: { children: JSX.Element }) {
-  const [hasLogin] = useAtom(hasLoginAtom);
+  const hasLogin = useAtomValue(hasLoginAtom);
 
   if (!hasLogin) {
     return (

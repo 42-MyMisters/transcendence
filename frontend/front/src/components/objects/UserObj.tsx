@@ -1,9 +1,8 @@
-import { useAtom } from "jotai";
-import { UserInfoModalInfo } from "../atom/UserInfoModalAtom";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import "../../styles/UserObj.css";
-import { UserAtom } from '../atom/UserAtom';
 import * as chatAtom from '../atom/ChatAtom';
-import { useEffect } from 'react';
+import { UserAtom } from '../atom/UserAtom';
+import { UserInfoModalInfo } from "../atom/UserInfoModalAtom";
 
 
 export default function UserObj({
@@ -29,12 +28,10 @@ export default function UserObj({
   dm?: boolean;
   focusList?: "userList" | "roomUserList" | "followingList"
 }) {
-  const [userInfo, setUserInfo] = useAtom(UserInfoModalInfo);
-  const [userDefaultInfo, setUserDefaultInfo] = useAtom(UserAtom);
-  const [followingList, setFollowingList] = useAtom(chatAtom.followingListAtom);
-  const [blockList, setBlockList] = useAtom(chatAtom.blockListAtom);
-  const [dmHistoryList] = useAtom(chatAtom.dmHistoryListAtom);
-
+  const setUserInfo = useSetAtom(UserInfoModalInfo);
+  const userDefaultInfo = useAtomValue(UserAtom);
+  const followingList = useAtomValue(chatAtom.followingListAtom);
+  const blockList = useAtomValue(chatAtom.blockListAtom);
 
   return (
     <div

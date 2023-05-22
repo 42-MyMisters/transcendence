@@ -1,5 +1,3 @@
-import { useEffect } from "react";
-
 import "../../styles/LoginModals.css";
 
 export default function SignInModal() {

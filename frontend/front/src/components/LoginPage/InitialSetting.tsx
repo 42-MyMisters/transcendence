@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { AdminLogPrinter } from "../../event/event.util";
 import * as chatAtom from "../../components/atom/ChatAtom";
 import { isFirstLoginAtom, refreshTokenAtom } from "../../components/atom/LoginAtom";
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { UserAtom } from "../atom/UserAtom";
 
 import { hasLoginAtom } from "../../components/atom/ChatAtom";
@@ -13,15 +13,13 @@ import * as api from '../../event/api.request';
 
 export default function InitialSettingModal() {
   const [profileImage, setProfileImage] = useState("");
-  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
+  const adminConsole = useAtomValue(chatAtom.adminConsoleAtom);
   const profileRef = useRef<HTMLInputElement>(null);
-  const [userInfo] = useAtom(UserAtom);
-  const [isFirstLogin, setIsFirstLogin] = useAtom(isFirstLoginAtom);
-  const [hasLogin, setHasLogin] = useAtom(hasLoginAtom);
-  const [, setRefreshToken] = useAtom(refreshTokenAtom);
+  const userInfo = useAtomValue(UserAtom);
+  const setIsFirstLogin = useSetAtom(isFirstLoginAtom);
+  const setHasLogin = useSetAtom(hasLoginAtom);
+  const setRefreshToken = useSetAtom(refreshTokenAtom);
   const [checkError, setCheckError] = useState(false);
-
-
   const [newName, setNewName] = useState("");
   const navigate = useNavigate();
 
