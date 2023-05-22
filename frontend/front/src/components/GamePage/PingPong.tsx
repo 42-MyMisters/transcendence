@@ -4,7 +4,7 @@ import "../../styles/PingPong.css";
 import React, { useEffect } from "react";
 
 import * as chatAtom from "../atom/ChatAtom";
-import { gameSocketAtom, gameWinnerAtom, isGameStartedAtom, isP1Atom, isPrivateAtom } from "../atom/GameAtom";
+import { GamePlayer, gamePlayerAtom, gameSocketAtom, gameWinnerAtom, isGameStartedAtom, isPrivateAtom } from "../atom/GameAtom";
 import { Game } from "./Pong";
 
 
@@ -38,7 +38,8 @@ export default function PingPong() {
 
   const gameSocket = useAtomValue(gameSocketAtom);
 
-  const isP1 = useAtomValue(isP1Atom);
+  // const isP1 = useAtomValue(isP1Atom);
+  const gamePlayer = useAtomValue(gamePlayerAtom);
   const setGameWinner = useSetAtom(gameWinnerAtom);
   // const [gameWinner, setGameWinner] = useAtom(gameWinnerAtom);
 
@@ -115,7 +116,7 @@ export default function PingPong() {
         gameCoord.keyPress[i] += serverClientTimeDiff;
       }
     }
-    if (isP1 === false) {
+    if (gamePlayer === GamePlayer.player2) {
       gameCoord.ballX = WIDTH - gameCoord.ballX;
       gameCoord.ballSpeedX = -gameCoord.ballSpeedX;
       const tmpPaddle1Y = gameCoord.paddle1Y;
@@ -134,19 +135,19 @@ export default function PingPong() {
   };
 
   const scoreEventHandler = ({ gameCoord, scoreInfo }: { gameCoord: GameCoordinate, scoreInfo: scoreInfo }) => {
-    if (isP1) {
-      player1.score = scoreInfo.p1Score;
-      player2.score = scoreInfo.p2Score;
-    } else {
+    if (gamePlayer === GamePlayer.player2) {
       player1.score = scoreInfo.p2Score;
       player2.score = scoreInfo.p1Score;
+    } else {
+      player1.score = scoreInfo.p1Score;
+      player2.score = scoreInfo.p2Score;
     }
     for (let i = 0; i < 4; i++) {
       if (gameCoord.keyPress[i] !== 0) {
         gameCoord.keyPress[i] += serverClientTimeDiff;
       }
     }
-    if (isP1 === false) {
+    if (gamePlayer === GamePlayer.player2) {
       gameCoord.ballX = WIDTH - gameCoord.ballX;
       gameCoord.ballSpeedX = -gameCoord.ballSpeedX;
       const tmpPaddle1Y = gameCoord.paddle1Y;
@@ -169,12 +170,12 @@ export default function PingPong() {
 
   const finishEventHandler = (scoreInfo: scoreInfo) => {
     AdminLogPrinter(adminConsole, "finished!!!!!!");
-    if (isP1) {
-      player1.score = scoreInfo.p1Score;
-      player2.score = scoreInfo.p2Score;
-    } else {
+    if (gamePlayer === GamePlayer.player2) {
       player1.score = scoreInfo.p2Score;
       player2.score = scoreInfo.p1Score;
+    } else {
+      player1.score = scoreInfo.p1Score;
+      player2.score = scoreInfo.p2Score;
     }
     if (player1.score > player2.score) {
       setGameWinner(player1.uid);
@@ -185,8 +186,10 @@ export default function PingPong() {
     clearInterval(pingInterval);
   };
 
-  const countdownEventHandler = () => {
-    AdminLogPrinter(adminConsole, "countdown!!!");
+  const countdownEventHandler = ({ curTime, time }: { curTime: number, time: number }) => {
+    const localTime = curTime + serverClientTimeDiff;
+    AdminLogPrinter(adminConsole, "countdown time: ", time - (Date.now() - localTime), "\nserver curTime: ", localTime);
+    // setCountDownTime(curTime + serverClientTimeDiff);
   }
 
   useEffect(() => {
