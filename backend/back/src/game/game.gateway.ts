@@ -94,7 +94,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         const mySocket = matchQueue[i][1][0];
         // range will be increased.
         const range = this.getMatchRange(curTime, mySocket);
-        this.logger.log('Queue state', matchQueue);
+        // this.logger.log('Queue state', matchQueue);
         if (i === 0) {
           const nextElo = matchQueue[i + 1][0];
           if (myElo + range >= nextElo) {
@@ -208,8 +208,9 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       } else if (observ !== undefined) {
         const gameId = this.userInGame.get(observ);
         if (gameId !== undefined && this.gameService.gameState(gameId) < GameStatus.FINISHED) {
-          socket.emit("observer joined room");
+          const curGame = this.gameService.getGame(gameId);
           socket.data.room = gameId;
+          socket.emit("observer", curGame!.gameInfo());
           socket.join(gameId);
         } else {
           console.log("Already finished. Disconnect socket.");
@@ -227,6 +228,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
           socket.data.timestamp = this.getTimeInSec();
           this.readyQueue.push(socket);
         } else {
+          // not working
           console.log("Reconnected.");
           socket.join(gameId);
         }
@@ -244,6 +246,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       const curGame = this.gameService.getGame(socket.data.room);
       if (curGame === undefined) {
         this.logger.log(`${user.uid} invalid socket connection disconnected.`);
+        this.userInGame.delete(user.uid);
       } else if (curGame.isPlayer(user.uid)) {
         curGame.playerLeft(user.uid);
         this.userInGame.delete(user.uid);

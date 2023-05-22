@@ -14,10 +14,14 @@ import {
   gameInviteInfoAtom,
   gameSocketAtom,
   gameModeAtom,
-  isP1Atom,
+  // isP1Atom,
   gameWinnerAtom,
   p1IdAtom,
   p2IdAtom,
+  gamePlayerAtom,
+  GamePlayer,
+  GameMode,
+  gameModeForDisplayAtom,
 } from "../components/atom/GameAtom";
 
 import * as chatSocket from "../socket/chat.socket";
@@ -50,7 +54,12 @@ export default function GamePage() {
   const [userInfo, setUserInfo] = useAtom(UserAtom);
 
   const [gameSocket, setGameSocket] = useAtom(gameSocketAtom);
-  const [isP1, setIsP1] = useAtom(isP1Atom);
+
+  const [gamePlayer, setGamePlayer] = useAtom(gamePlayerAtom);
+
+  const [gameModeForDisplay, setGameModeForDisplay] = useAtom(gameModeForDisplayAtom);
+  // const [isP1, setIsP1] = useAtom(isP1Atom);
+
 
   const [p1Id, setP1Id] = useAtom(p1IdAtom);
   const [p2Id, setP2Id] = useAtom(p2IdAtom);
@@ -83,6 +92,7 @@ export default function GamePage() {
     setIsLoading(false);
     setIsMatched(false);
     setIsGameQuit(true);
+    setGamePlayer(GamePlayer.undefined);
     setGameMode('normal');
   };
 
@@ -97,10 +107,10 @@ export default function GamePage() {
     setIsGameQuit(false);
     if (!isGameStart) {
       setIsLoading(true);
+    } else {
+      setGamePlayer(GamePlayer.observer);
     }
     if (isPrivate) {
-      // player1.uid = userInfo.uid;
-      // player2.uid = userInfo.uid;
       setP1Id(userInfo.uid);
     }
     return () => {
@@ -130,8 +140,9 @@ export default function GamePage() {
     AdminLogPrinter(adminConsole, "gameSocket disconnected");
   };
 
-  const gameStartEventHandler = () => {
+  const gameStartEventHandler = ({gameMode, p1, p2}: {gameMode: GameMode, p1: number, p2: number}) => {
     AdminLogPrinter(adminConsole, "game start");
+    setGameModeForDisplay(gameMode);
     setIsLoading(false);
     setIsMatched(false);
     setIsGameStart(true);
@@ -140,33 +151,43 @@ export default function GamePage() {
   const matchEventHandler = ({ p1, p2 }: { p1: number, p2: number }) => {
     AdminLogPrinter(adminConsole, "matched");
     if (p1 === userInfo.uid) {
-      setIsP1(true);
+      // setIsP1(true);
+      setGamePlayer(GamePlayer.player1);
       setP1Id(p1);
       setP2Id(p2);
       player1.uid = p1;
       player2.uid = p2;
-    } else {
-      setIsP1(false);
+    } else if (p2 === userInfo.uid) {
+      setGamePlayer(GamePlayer.player2);
       setP1Id(p2);
       setP2Id(p1);
       player1.uid = p2;
       player2.uid = p1;
+    } else {
+      setGamePlayer(GamePlayer.observer);
+      setP1Id(p1);
+      setP2Id(p2);
+      player1.uid = p1;
+      player2.uid = p2;
     }
     setIsMatched(true);
   };
 
-  const observerHandler = () => {
+  const observerEventHandler = ({gameMode, p1, p2}: {gameMode: GameMode, p1: number, p2: number}) => {
     AdminLogPrinter(adminConsole, "observer");
-    setIsLoading(false);
-    setIsGameStart(true);
+    setGameModeForDisplay(gameMode);
+    setP1Id(p1);
+    setP2Id(p2);
+    player1.uid = p1;
+    player2.uid = p2;
   };
 
-  // useEffect(() => {
-  //   AdminLogPrinter(
-  //     adminConsole,
-  //     `useeffect: isLoading: ${isLoading}, isPrivate: ${isPrivate}, isMatched: ${isMatched}, isGameStart: ${isGameStart}`
-  //   );
-  // }, [isLoading, isPrivate, isGameStart, isMatched, gameSocket]);
+  useEffect(() => {
+    gameSocket.on("observer", observerEventHandler);
+    return () => {
+      gameSocket.off("observer", observerEventHandler);
+    }
+  }, [gameSocket]);
 
   useEffect(() => {
     gameSocket.on("connect", connectionEventHandler);
