@@ -4,6 +4,7 @@ import { DatabaseService } from "src/database/database.service";
 import { Direction, GameMode, GameStatus, GameType, Hit } from "./game.enum";
 import { Game as GameEntity } from "../database/entity/game.entity";
 import { GameInfo } from "./game.gateway";
+import { User } from "src/database/entity/user.entity";
 
 interface GameCoords {
   paddle1Y: number,
@@ -20,10 +21,8 @@ interface GameCoords {
 export interface GameStartVar {
   gameId: string,
   server: Namespace,
-  p1: number,
-  p2: number,
-  p1Elo: number,
-  p2Elo: number,
+  p1: User,
+  p2: User,
   gameType: GameType,
 }
 
@@ -148,7 +147,7 @@ class Game {
   gameStart() {
     this.gameStatus = GameStatus.MODESELECT;
     this.roundStartTime = Date.now();
-    this.gv.server.to(this.gv.gameId).emit('matched', { p1: this.gv.p1, p2: this.gv.p2 });
+    this.gv.server.to(this.gv.gameId).emit('matched', { p1: this.gv.p1.uid, p2: this.gv.p2.uid });
     this.gameLoop();
   }
   
@@ -164,16 +163,16 @@ class Game {
   }
 
   isPlayer(uid: number): boolean {
-    return this.gv.p1 === uid || this.gv.p2 === uid;
+    return this.gv.p1.uid === uid || this.gv.p2.uid === uid;
   }
 
   isP1(uid: number): boolean {
-    return this.gv.p1 === uid;
+    return this.gv.p1.uid === uid;
   }
   
   playerLeft(uid: number) {
     if (this.gameStatus <= GameStatus.RUNNING) {
-      if (this.gv.p1 === uid) {
+      if (this.gv.p1.uid === uid) {
         this.score[0] = -1;
       } else {
         this.score[1] = -1;
@@ -185,7 +184,7 @@ class Game {
   upPress(uid: number) {
     if (this.gameStatus === GameStatus.RUNNING) {
       this.update();
-      if (this.gv.p1 === uid) {
+      if (this.gv.p1.uid === uid) {
         this.keyPress[0] = Date.now();
       } else {
         this.keyPress[2] = Date.now();
@@ -198,7 +197,7 @@ class Game {
   upRelease(uid: number) {
     if (this.gameStatus === GameStatus.RUNNING) {
       this.update();
-      if (this.gv.p1 === uid) {
+      if (this.gv.p1.uid === uid) {
         this.keyPress[0] = 0;
       } else {
         this.keyPress[2] = 0;
@@ -211,7 +210,7 @@ class Game {
   downPress(uid: number) {
     if (this.gameStatus === GameStatus.RUNNING) {
       this.update();
-      if (this.gv.p1 === uid) {
+      if (this.gv.p1.uid === uid) {
         this.keyPress[1] = Date.now();
       } else {
         this.keyPress[3] = Date.now();
@@ -224,7 +223,7 @@ class Game {
   downRelease(uid: number) {
     if (this.gameStatus === GameStatus.RUNNING) {
       this.update();
-      if (this.gv.p1 === uid) {
+      if (this.gv.p1.uid === uid) {
         this.keyPress[1] = 0;
       } else {
         this.keyPress[3] = 0;
@@ -250,8 +249,8 @@ class Game {
   gameInfo(): GameInfo {
     return {
       gameMode: this.gameMode,
-      p1: this.gv.p1,
-      p2: this.gv.p2,
+      p1: this.gv.p1.uid,
+      p2: this.gv.p2.uid,
     }
   }
 
@@ -431,30 +430,24 @@ class Game {
 
   private async disconnect(): Promise<number> {
     const result = new GameEntity();
-    let winnerElo: number
-    let loserElo: number;
-    if (this.score[0] < this.score[1]){
-      result.winnerId = this.gv.p2;
-      result.loserId = this.gv.p1;
-      result.winnerScore = this.score[1];
-      result.loserScore = this.score[0];
-      winnerElo = this.gv.p2Elo;
-      loserElo = this.gv.p1Elo;
-    } else {
-      result.winnerId = this.gv.p1;
-      result.loserId = this.gv.p2;
+    result.gameType = this.gv.gameType;
+    if (this.score[0] > this.score[1]){
+      result.winner = this.gv.p1;
+      result.loser = this.gv.p2;
       result.winnerScore = this.score[0];
       result.loserScore = this.score[1];
-      winnerElo = this.gv.p1Elo;
-      loserElo = this.gv.p2Elo;
+    } else {
+      result.winner = this.gv.p2;
+      result.loser = this.gv.p1;
+      result.winnerScore = this.score[1];
+      result.loserScore = this.score[0];
     }
-    result.gameType = this.gv.gameType;
 
     if (this.gv.gameType === GameType.PRIVATE) {
-      await this.databaseService.saveGame(result, this.gv.gameType, 0, 0, 0, 0);
+      await this.databaseService.saveGame(result, this.gv.gameType, 0, 0);
     } else {
-      const newElo = this.eloLogic(winnerElo, loserElo);
-      await this.databaseService.saveGame(result, this.gv.gameType, result.winnerId, newElo.winnerElo, result.loserId, newElo.loserElo);
+      const newElo = this.eloLogic(result.winner.elo, result.loser.elo);
+      await this.databaseService.saveGame(result, this.gv.gameType, newElo.winnerElo, newElo.loserElo);
     }
 
     this.gv.server.in(this.gv.gameId).disconnectSockets();

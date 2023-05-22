@@ -1,4 +1,4 @@
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { roomModalAtom } from "../../components/atom/ModalAtom";
 import { passwordInputModalAtom } from "../../components/atom/ModalAtom";
 
@@ -9,13 +9,13 @@ import * as chatAtom from "../atom/ChatAtom";
 import * as socket from "../../socket/chat.socket";
 
 export default function ChatRoomList() {
-  const [, setRoomModal] = useAtom(roomModalAtom);
-  const [, setPasswordModal] = useAtom(passwordInputModalAtom);
+  const setRoomModal = useSetAtom(roomModalAtom);
+  const setPasswordModal = useSetAtom(passwordInputModalAtom);
   const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
   const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
-  const [, setClickRoom] = useAtom(chatAtom.clickRoomAtom);
-  const [, setRoomSetting] = useAtom(chatAtom.roomSettingAtom);
-  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
+  const setClickRoom = useSetAtom(chatAtom.clickRoomAtom);
+  const setRoomSetting = useSetAtom(chatAtom.roomSettingAtom);
+  const adminConsole = useAtomValue(chatAtom.adminConsoleAtom);
 
   const roomClickHandler = (roomId: number) => {
 

@@ -1,25 +1,25 @@
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { changeNameModalAtom } from "../atom/ModalAtom";
 import { UserAtom } from "../atom/UserAtom";
 
 import { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 
-import { PressKey, AdminLogPrinter } from "../../event/event.util";
-import * as chatAtom from "../../components/atom/ChatAtom";
 import { keyboardKey } from '@testing-library/user-event';
+import * as chatAtom from "../../components/atom/ChatAtom";
+import { AdminLogPrinter, PressKey } from "../../event/event.util";
 import "../../styles/ProfileModal.css";
 
-import { useAutoFocus } from '../../event/event.util';
-import * as api from '../../event/api.request';
 import { refreshTokenAtom } from "../../components/atom/LoginAtom";
+import * as api from '../../event/api.request';
+import { useAutoFocus } from '../../event/event.util';
 
 export default function ChangeNameModal() {
-  const [changeNameModal, setchangeNameModal] = useAtom(changeNameModalAtom);
+  const setchangeNameModal = useSetAtom(changeNameModalAtom);
   const [userInfo, setUserInfo] = useAtom(UserAtom);
   const [newName, setNewName] = useState("");
-  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
-  const [, setRefreshToken] = useAtom(refreshTokenAtom);
+  const adminConsole = useAtomValue(chatAtom.adminConsoleAtom);
+  const setRefreshToken = useSetAtom(refreshTokenAtom);
   const navigate = useNavigate();
 
   const nameInputRef = useAutoFocus();

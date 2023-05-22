@@ -8,33 +8,28 @@ import {
 } from "../components/atom/ModalAtom";
 
 import {
-	isGameStartedAtom,
-	isLoadingAtom,
-	isGameQuitAtom,
-	gameInviteInfoAtom,
 	gameinviteFromAtom,
+	isGameQuitAtom,
+	isGameStartedAtom,
+	isLoadingAtom
 } from "../components/atom/GameAtom";
 
 import { useEffect } from "react";
-import { refreshTokenAtom } from "../components/atom/LoginAtom";
-import { TFAAtom, UserAtom } from "../components/atom/UserAtom";
-
 import { useNavigate } from "react-router-dom";
 import * as chatAtom from "../components/atom/ChatAtom";
+import { refreshTokenAtom } from "../components/atom/LoginAtom";
+import { TFAAtom, UserAtom } from "../components/atom/UserAtom";
 import { GetMyInfo, LogOut, RefreshToken } from "../event/api.request";
+import { AdminLogPrinter, PressKey } from "../event/event.util";
 import type * as chatType from "../socket/chat.dto";
 import * as socket from "../socket/chat.socket";
-
-import { AdminLogPrinter, PressKey } from "../event/event.util";
 
 export default function ChatWrapper({ children }: { children: JSX.Element }) {
 	const setUserInfoModal = useSetAtom(userInfoModalAtom);
 	const setInviteModal = useSetAtom(inviteModalAtom);
-
 	const [userInfo, setUserInfo] = useAtom(UserAtom);
 	const [isFirstLogin, setIsFirstLogin] = useAtom(chatAtom.isFirstLoginAtom);
 	const setHasLogin = useSetAtom(chatAtom.hasLoginAtom);
-
 	const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
 	const [userList, setUserList] = useAtom(chatAtom.userListAtom);
 	const [dmHistoryList, setDmHistoryList] = useAtom(chatAtom.dmHistoryListAtom);
@@ -42,22 +37,17 @@ export default function ChatWrapper({ children }: { children: JSX.Element }) {
 	const [blockList, setBlockList] = useAtom(chatAtom.blockListAtom);
 	const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
 	const setSocketState = useSetAtom(chatAtom.socketStateAtom);
-
-	const navigate = useNavigate();
 	const setRefreshToken = useSetAtom(refreshTokenAtom);
-
 	const setGameInviteModal = useSetAtom(gameInviteModalAtom);
 	const [adminConsole, setAdminConsole] = useAtom(chatAtom.adminConsoleAtom);
 	const [passwordModal, setPasswordModal] = useAtom(passwordInputModalAtom);
-	const [clickRoom] = useAtom(chatAtom.clickRoomAtom);
+	const clickRoom = useAtomValue(chatAtom.clickRoomAtom);
 	const setTfa = useSetAtom(TFAAtom);
-
-
 	const isLoading = useAtomValue(isLoadingAtom);
 	const isGameStart = useAtomValue(isGameStartedAtom);
 	const isGameQuit = useAtomValue(isGameQuitAtom);
-	const [gameInviteInfo, setGameInviteInfo] = useAtom(gameInviteInfoAtom);
 	const setGameInviteFrom = useSetAtom(gameinviteFromAtom);
+	const navigate = useNavigate();
 
 	PressKey(["F4"], () => {
 		setAdminConsole((prev) => !prev);
@@ -72,9 +62,7 @@ export default function ChatWrapper({ children }: { children: JSX.Element }) {
 	const quitRoomRelativeModal = () => {
 		setUserInfoModal(false);
 		setInviteModal(false);
-		// setRoomModal(false);
-	}	// setPwInputModal(false);
-
+	}
 
 	async function getMyinfoHandler() {
 		const getMeResponse = await GetMyInfo(adminConsole, setUserInfo, setTfa, true);
@@ -168,7 +156,7 @@ export default function ChatWrapper({ children }: { children: JSX.Element }) {
 	}, []);
 
 	useEffect(() => {
-		socket.socket.on("dm-list", (resDmUserList, mergeDmList) => {
+		socket.socket.on("dm-list", (resDmUserList, allDmList) => {
 			const tempDmRoomList: chatType.roomListDto = {};
 
 			setDmHistoryList({ ...resDmUserList });
@@ -196,7 +184,7 @@ export default function ChatWrapper({ children }: { children: JSX.Element }) {
 				};
 			});
 
-			Object.entries(mergeDmList).forEach((atom: any[]) => {
+			Object.entries(allDmList).forEach((atom: any[]) => {
 				if (Number(atom[1].senderId!) === userInfo.uid) { // from me
 					const tempMessageList: chatType.roomMessageDto[] = tempDmRoomList[Number(atom[1]?.receiverId!)].detail?.messageList!;
 					tempMessageList?.unshift({

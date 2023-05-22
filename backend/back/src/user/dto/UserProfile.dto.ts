@@ -9,7 +9,6 @@ export class UserProfileDto {
 	profileUrl: string;
 	ELO: number;
 	followings: FollowingUserDto[];
-	games: Game;
 	winGames: Game[];
 	loseGames: Game[];
 	tfaEnabled: boolean;

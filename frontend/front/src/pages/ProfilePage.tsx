@@ -1,28 +1,26 @@
 import BackGround from "../components/BackGround";
-import ProfilePageBG from "../components/ProfilePage/ProfilePageBG";
+import ChangeImageModal from "../components/ProfilePage/ChangeImageModal";
+import ChangeNameModal from "../components/ProfilePage/ChangeNameModal";
+import ProfileFriend from "../components/ProfilePage/ProfileFriend";
+import ProfileImage from "../components/ProfilePage/ProfileImage";
+import ProfileMatchHistory from "../components/ProfilePage/ProfileMatchHistory";
 import ProfileNick from "../components/ProfilePage/ProfileNick";
 import ProfileOptions from "../components/ProfilePage/ProfileOptions";
-import TopBar from "../components/TopBar";
-import ProfileImage from "../components/ProfilePage/ProfileImage";
-import ProfileFriend from "../components/ProfilePage/ProfileFriend";
-import ProfileMatchHistory from "../components/ProfilePage/ProfileMatchHistory";
-import ChangeNameModal from "../components/ProfilePage/ChangeNameModal";
-import ChangeImageModal from "../components/ProfilePage/ChangeImageModal";
+import ProfilePageBG from "../components/ProfilePage/ProfilePageBG";
 import TFAQRModal from "../components/TFAQRModal";
+import TopBar from "../components/TopBar";
 
-import { useAtom } from "jotai";
-import { changeNameModalAtom } from "../components/atom/ModalAtom";
-import { changeImageModalAtom } from "../components/atom/ModalAtom";
-import { UserAtom, isMyProfileAtom, ProfileAtom } from "../components/atom/UserAtom";
-import { TFAModalAtom, TFAQRURL } from "../components/atom/ModalAtom";
+import { useAtomValue } from "jotai";
+import { TFAModalAtom, changeImageModalAtom, changeNameModalAtom } from "../components/atom/ModalAtom";
+import { ProfileAtom, UserAtom, isMyProfileAtom } from "../components/atom/UserAtom";
 
 export default function ProfilePage() {
-  const [changeNameModal, setchangeNameModal] = useAtom(changeNameModalAtom);
-  const [changeImageModal, setchangeImageModal] = useAtom(changeImageModalAtom);
-  const [userInfo, setUserInfo] = useAtom(UserAtom);
-  const [isMyProfile, setIsMyProfile] = useAtom(isMyProfileAtom);
-  const [profile, setProfile] = useAtom(ProfileAtom);
-  const [TFAModal, setTFAModal] = useAtom(TFAModalAtom);
+  const changeNameModal = useAtomValue(changeNameModalAtom);
+  const changeImageModal = useAtomValue(changeImageModalAtom);
+  const userInfo = useAtomValue(UserAtom);
+  const isMyProfile = useAtomValue(isMyProfileAtom);
+  const profile = useAtomValue(ProfileAtom);
+  const TFAModal = useAtomValue(TFAModalAtom);
 
   return (
     <BackGround>

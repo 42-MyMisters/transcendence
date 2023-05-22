@@ -5,7 +5,7 @@ import ChatRoomUserList from "../components/ChatPage/ChatRoomUserList";
 import ChatUserList from "../components/ChatPage/ChatUserList";
 import TopBar from "../components/TopBar";
 
-import { useAtom, useSetAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
 	gameInviteModalAtom,
 	inviteModalAtom,
@@ -18,16 +18,13 @@ import PasswordModal from "../components/ChatPage/PasswordModal";
 import RoomInviteModal from "../components/ChatPage/RoomInviteModal";
 import RoomModal from "../components/ChatPage/RoomModal";
 import UserInfoModal from "../components/ChatPage/UserInfoModal";
-
 import { refreshTokenAtom } from "../components/atom/LoginAtom";
 import { TFAAtom, UserAtom } from "../components/atom/UserAtom";
-
 import { useNavigate } from "react-router-dom";
 import GameInviteModal from "../components/GamePage/GameInviteModal";
 import * as chatAtom from "../components/atom/ChatAtom";
 import { GetMyInfo, LogOut, RefreshToken } from "../event/api.request";
 import * as socket from "../socket/chat.socket";
-
 import { AdminLogPrinter, PressKey } from "../event/event.util";
 
 export default function ChatPage() {
@@ -35,25 +32,20 @@ export default function ChatPage() {
 	const roomModal = useAtomValue(roomModalAtom);
 	const inviteModal = useAtomValue(inviteModalAtom);
 	const pwInputModal = useAtomValue(passwordInputModalAtom);
-
 	const [userInfo, setUserInfo] = useAtom(UserAtom);
 	const setIsFirstLogin = useSetAtom(chatAtom.isFirstLoginAtom);
 	const setHasLogin = useSetAtom(chatAtom.hasLoginAtom);
-
 	const roomList = useAtomValue(chatAtom.roomListAtom);
 	const userList = useAtomValue(chatAtom.userListAtom);
 	const dmHistoryList = useAtomValue(chatAtom.dmHistoryListAtom);
 	const followingList = useAtomValue(chatAtom.followingListAtom);
 	const blockList = useAtomValue(chatAtom.blockListAtom);
 	const socketState = useAtomValue(chatAtom.socketStateAtom);
-
-	const navigate = useNavigate();
 	const setRefreshToken = useSetAtom(refreshTokenAtom);
-
 	const gameInviteModal = useAtomValue(gameInviteModalAtom);
 	const [adminConsole, setAdminConsole] = useAtom(chatAtom.adminConsoleAtom);
 	const setTfa = useSetAtom(TFAAtom);
-
+	const navigate = useNavigate();
 
 	PressKey(["F4"], () => {
 		setAdminConsole((prev) => !prev);

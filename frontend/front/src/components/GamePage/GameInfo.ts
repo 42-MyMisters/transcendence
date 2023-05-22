@@ -9,7 +9,7 @@ export const player1 = {
   y: START_Y,
   width: 20,
   height: 150,
-  color: "WHITE",
+  color: "#79E0EE",
   score: 0,
   uid: 0,
 };

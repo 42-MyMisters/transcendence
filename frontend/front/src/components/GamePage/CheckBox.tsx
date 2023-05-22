@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useAtom, useAtomValue } from 'jotai';
+import { useEffect, useState } from "react";
 import "../../styles/GameInfo.css";
 import { gameModeAtom, gameSocketAtom } from '../atom/GameAtom';
-import { useAtom, useAtomValue } from 'jotai';
 
 const enum GameMode {
   DEFAULT = 0,
@@ -11,9 +11,8 @@ const enum GameMode {
 function Checkbox1() {
   const [isChecked, setIsChecked] = useState(false);
   const [gameMode, setGameMode] = useAtom(gameModeAtom);
-
   const gameSocket = useAtomValue(gameSocketAtom);
-  
+
   function handleCheckboxChange() {
     if (isChecked) {
       setGameMode('item');
@@ -22,7 +21,7 @@ function Checkbox1() {
     }
     setIsChecked((prev) => !prev);
   }
-  
+
   useEffect(() => {
     if (gameMode === 'normal') {
       gameSocket.emit('modeSelect', GameMode.DEFAULT);
@@ -31,8 +30,8 @@ function Checkbox1() {
       setIsChecked(false);
     }
   }, [gameMode]);
-  
-  
+
+
   return (
     <label className="GameMode1">
       <input
@@ -40,7 +39,7 @@ function Checkbox1() {
         type="checkbox"
         checked={isChecked}
         onChange={handleCheckboxChange}
-        />
+      />
       Normal Mode
     </label>
   );
@@ -49,7 +48,7 @@ function Checkbox1() {
 function Checkbox2() {
   const [isChecked, setIsChecked] = useState(false);
   const [gameMode, setGameMode] = useAtom(gameModeAtom);
-  
+
   const gameSocket = useAtomValue(gameSocketAtom);
 
   function handleCheckboxChange() {
@@ -60,7 +59,7 @@ function Checkbox2() {
     }
     setIsChecked((prev) => !prev);
   }
-  
+
   useEffect(() => {
     if (gameMode === 'item') {
       gameSocket.emit('modeSelect', GameMode.SPEED);
@@ -70,7 +69,7 @@ function Checkbox2() {
       setIsChecked(false);
     }
   }, [gameMode]);
-  
+
   return (
     <label className="GameMode2">
       <input

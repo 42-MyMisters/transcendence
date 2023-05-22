@@ -183,7 +183,6 @@ export class EventsGateway
 		try {
 			this.logger.warn(`${socket.id} socket connected.`);
 			const uid = await this.authService.jwtVerify(socket.handshake.auth.token);
-			socket.data.tempUid = uid;
 			const user = await this.userService.getUserByUid(uid);
 
 			if (!socket.connected) {
@@ -223,6 +222,7 @@ export class EventsGateway
 				if (userList[uid].disconnectedSocket !== socket.id) {
 					this.logger.debug(`${userList[uid].userDisplayName} is now online : ${socket.id}`);
 					userList[uid].status = 'online';
+					userList[uid].gameStatus = 'end';
 					userList[uid].socket = socket;
 					await this.handleBlockList(socket);
 					await this.handleFollowList(socket, uid);
@@ -267,6 +267,7 @@ export class EventsGateway
 				});
 			}
 			userList[socket.data.user.uid].isRefresh = false;
+			userList[socket.data.user.uid].gameStatus = 'end';
 		} else {
 			this.logger.warn(`${socket.id} invalid connection. disconnect socket.`);
 		}
@@ -1073,33 +1074,19 @@ export class EventsGateway
 	async handleDmList(socket: Socket, uid: number) {
 
 		try {
-			const dmListFromMe = await this.databaseService.findDMByUserId(uid);
-			const dmListToMe = await this.databaseService.findDMByUserIdReceive(uid);
+			const allDmList = await this.databaseService.findAllDM(uid);
 			const dmListQueue = new Set<number>();
-			const mergeDmList = dmListFromMe?.concat(dmListToMe!);
-
-			dmListFromMe?.forEach((dm) => {
-				if (dmListQueue.has(dm.receiverId) === false) {
-					dmListQueue.add(dm.receiverId);
-				}
+			allDmList?.forEach((dm) => {
+				dmListQueue.add(dm.senderId);
+				dmListQueue.add(dm.receiverId);
 			});
-
-			dmListToMe?.forEach((dm) => {
-				if (dmListQueue.has(dm.senderId) === false) {
-					dmListQueue.add(dm.senderId);
-				}
-			});
-
-			mergeDmList?.sort((a, b) => {
-				return a.did - b.did;
-			});
+			delete dmListQueue[uid];
 
 			const resDmUserList: Record<number, ClientUserDto> = {};
-
 			for (const uid of dmListQueue) {
 				if (userList[uid] === undefined) {
 					const targetUser = await this.userService.getUserByUid(uid);
-					if (targetUser == undefined) return;
+					if (targetUser === null) continue;
 					resDmUserList[uid] = {
 						userDisplayName: targetUser.nickname,
 						userProfileUrl: targetUser.profileUrl,
@@ -1113,7 +1100,7 @@ export class EventsGateway
 					};
 				}
 			};
-			this.nsp.to(socket.id).emit("dm-list", resDmUserList, mergeDmList);
+			this.nsp.to(socket.id).emit("dm-list", resDmUserList, allDmList);
 		} catch (error) {
 			this.logger.error(`handleDmList - ${error} `);
 		}

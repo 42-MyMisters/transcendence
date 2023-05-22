@@ -1,19 +1,17 @@
-import "../../styles/ChatArea.css";
-import SpeechBubble from "../objects/SpeechBubble";
-import * as chatAtom from '../atom/ChatAtom';
-import { UserAtom } from "../atom/UserAtom";
-import { useAtom } from 'jotai';
 import { keyboardKey } from '@testing-library/user-event';
-import { useState, useRef, useEffect } from 'react';
+import { useAtomValue } from 'jotai';
+import { useEffect, useRef, useState } from 'react';
 import * as socket from "../../socket/chat.socket";
+import "../../styles/ChatArea.css";
+import * as chatAtom from '../atom/ChatAtom';
+import SpeechBubble from "../objects/SpeechBubble";
 
 export default function ChatArea() {
-  const [focusRoom,] = useAtom(chatAtom.focusRoomAtom);
-  const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
-  const [userList,] = useAtom(chatAtom.userListAtom);
+  const focusRoom = useAtomValue(chatAtom.focusRoomAtom);
+  const roomList = useAtomValue(chatAtom.roomListAtom);
+  const userList = useAtomValue(chatAtom.userListAtom);
   const [message, setMessage] = useState('');
-  const [userInfo,] = useAtom(UserAtom);
-  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
+  const adminConsole = useAtomValue(chatAtom.adminConsoleAtom);
   const defaultText: string = "채팅방을 선택해주세요. 방을 만들거나, 참여하면 채팅을 할 수 있습니다.";
 
   const useAutoFocus = () => {

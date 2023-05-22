@@ -42,10 +42,10 @@ export class User extends BaseEntity {
 	@OneToMany(type => UserBlock, userBlock => userBlock.targetToBlockId, { lazy: true })
 	blockedUsers: UserBlock[];
 
-	@OneToMany(type => Game, games => games.winner, { lazy: true })
+	@OneToMany(type => Game, games => games.winner, { eager: true })
 	wonGames: Game[];
-
-	@OneToMany(type => Game, games => games.loser, { lazy: true })
+	
+	@OneToMany(type => Game, games => games.loser, { eager: true })
 	lostGames: Game[];
 
 	@CreateDateColumn()

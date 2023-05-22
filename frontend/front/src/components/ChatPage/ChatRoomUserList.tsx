@@ -1,4 +1,4 @@
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
   userInfoModalAtom,
   inviteModalAtom
@@ -14,18 +14,17 @@ import * as socket from "../../socket/chat.socket";
 import { roomModalAtom } from "../../components/atom/ModalAtom";
 
 export default function ChatRoomUserList() {
-  const [inviteModal, setInviteModal] = useAtom(inviteModalAtom);
-  const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
-
-  const [userInfo, setUserInfo] = useAtom(UserAtom);
-  const [userList,] = useAtom(chatAtom.userListAtom);
+  const setInviteModal = useSetAtom(inviteModalAtom);
+  const setUserInfoModal = useSetAtom(userInfoModalAtom);
+  const userInfo = useAtomValue(UserAtom);
+  const userList = useAtomValue(chatAtom.userListAtom);
   const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
   const [focusRoom, setFocusRoom] = useAtom(chatAtom.focusRoomAtom);
-  const [, setRoomSetting] = useAtom(chatAtom.roomSettingAtom);
-  const [, setRoomModal] = useAtom(roomModalAtom);
-  const [, setRoomSettingIsPrivate] = useAtom(chatAtom.roomSettingIsPrivateAtom);
-  const [, setRoomSettingCurrentRoomName] = useAtom(chatAtom.roomSettingCurrentRoomNameAtom);
-  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
+  const setRoomSetting = useSetAtom(chatAtom.roomSettingAtom);
+  const setRoomModal = useSetAtom(roomModalAtom);
+  const setRoomSettingIsPrivate = useSetAtom(chatAtom.roomSettingIsPrivateAtom);
+  const setRoomSettingCurrentRoomName = useSetAtom(chatAtom.roomSettingCurrentRoomNameAtom);
+  const adminConsole = useAtomValue(chatAtom.adminConsoleAtom);
 
   const onClickInfo = useCallback(() => {
     const handleSetRoomModal = () => {

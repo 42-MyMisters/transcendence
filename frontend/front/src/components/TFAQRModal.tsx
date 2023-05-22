@@ -1,5 +1,5 @@
 import { keyboardKey } from '@testing-library/user-event';
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import * as chatAtom from "../components/atom/ChatAtom";
@@ -15,11 +15,9 @@ export default function TFAQRModal() {
   const [authCode, setAuthCode] = useState("");
   const [qrcodeURL, setQRcodeURL] = useAtom(TFAQRURL);
   const [TFAModal, setTFAModal] = useAtom(TFAModalAtom);
-  const [tfa, setTfa] = useAtom(TFAAtom);
+  const setTfa = useSetAtom(TFAAtom);
   const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
-  const [, setRefreshToken] = useAtom(refreshTokenAtom);
 
-  const navigate = useNavigate();
 
   const useAutoFocus = () => {
     const inputRef = useRef<HTMLInputElement>(null);
