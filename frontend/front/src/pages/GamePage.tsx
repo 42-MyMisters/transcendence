@@ -219,7 +219,7 @@ export default function GamePage() {
           )
           : isGameStart
             ? (<PingPong />)
-            : (<LadderBoard />)
+            : ''
       }
       {gameResultModal ? <GameResultModal leftScore={player1.score} rightScore={player2.score} /> : null}
     </BackGround>

@@ -14,22 +14,20 @@ import { UserAtom, isMyProfileAtom, ProfileAtom } from "../../components/atom/Us
 import { isPrivateAtom, gameInviteInfoAtom } from "../atom/GameAtom";
 
 export default function UserInfoModal() {
-  const [userInfoModal, setUserInfoModal] = useAtom(userInfoModalAtom);
-  const [userInfo, setUserInfo] = useAtom(UserInfoModalInfo);
+  const setUserInfoModal = useSetAtom(userInfoModalAtom);
+  const userInfo = useAtomValue(UserInfoModalInfo);
   const [roomList, setRoomList] = useAtom(chatAtom.roomListAtom);
-  const [userList, setUserList] = useAtom(chatAtom.userListAtom);
+  const userList = useAtomValue(chatAtom.userListAtom);
   const [followingList, setFollowingList] = useAtom(chatAtom.followingListAtom);
-  const [focusRoom] = useAtom(chatAtom.focusRoomAtom);
+  const focusRoom = useAtomValue(chatAtom.focusRoomAtom);
   const [blockList, setBlockList] = useAtom(chatAtom.blockListAtom);
   const setIsPrivate = useSetAtom(isPrivateAtom);
   const setGameInviteInfo = useSetAtom(gameInviteInfoAtom);
-  const myInfo = useAtomValue(UserAtom);
-
+  const setRefreshToken = useSetAtom(refreshTokenAtom);
+  const adminConsole = useAtomValue(chatAtom.adminConsoleAtom);
+  const setIsMyProfile = useSetAtom(isMyProfileAtom);
+  const setProfile = useSetAtom(ProfileAtom);
   const navigate = useNavigate();
-  const [, setRefreshToken] = useAtom(refreshTokenAtom);
-  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
-  const [, setIsMyProfile] = useAtom(isMyProfileAtom);
-  const [, setProfile] = useAtom(ProfileAtom);
 
   const logOutHandler = () => {
     api.LogOut(adminConsole, setRefreshToken, navigate, "/");

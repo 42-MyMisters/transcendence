@@ -30,7 +30,8 @@ export default function PlayerRecordBoard({
   records,
   userId,
 }: {
-  records: GameRecordType[];
+  // records: GameRecordType[];
+  records: any;
   userId: number;
 }) {
   const userList = useAtomValue(userListAtom);
