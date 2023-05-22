@@ -198,7 +198,7 @@ export class DatabaseService {
     //     return await this.gameRepository.save(gameResult);
     // }
 
-    async saveGame(result: Game, gameType: GameType, winnerId: number, winnerElo: number, loserId: number, loserElo: number) {
+    async saveGame(result: Game, gameType: GameType, winnerElo: number, loserElo: number) {
         const queryRunner = this.dataSource.createQueryRunner();
 
         await queryRunner.connect();
@@ -207,8 +207,8 @@ export class DatabaseService {
         try {
             await queryRunner.manager.save(Game, result);
             if (gameType === GameType.PUBLIC) {
-                await queryRunner.manager.update(User, {uid: winnerId}, {elo: winnerElo});
-                await queryRunner.manager.update(User, {uid: loserId}, {elo: loserElo});
+                await queryRunner.manager.update(User, {uid: result.winner.uid}, {elo: winnerElo});
+                await queryRunner.manager.update(User, {uid: result.loser.uid}, {elo: loserElo});
             }
             await queryRunner.commitTransaction();
         } catch (e) {
@@ -222,9 +222,9 @@ export class DatabaseService {
     //GAME
     async findAllGameByUserid(uid: number){
         const winGames  = await this.gameRepository.createQueryBuilder('gm')
-        .where('gm.winnerId = :uid', {uid}).getRawMany();
+        .where('gm.winner.uid = :uid', {uid}).getRawMany();
         const loseGames = await this.gameRepository.createQueryBuilder('gm')
-        .where('gm.loserId = :uid', {uid}).getRawMany();
+        .where('gm.loser.uid = :uid', {uid}).getRawMany();
         return {winGames, loseGames};
     }
 }

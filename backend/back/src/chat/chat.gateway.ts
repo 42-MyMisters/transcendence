@@ -183,7 +183,6 @@ export class EventsGateway
 		try {
 			this.logger.warn(`${socket.id} socket connected.`);
 			const uid = await this.authService.jwtVerify(socket.handshake.auth.token);
-			socket.data.tempUid = uid;
 			const user = await this.userService.getUserByUid(uid);
 
 			if (!socket.connected) {
