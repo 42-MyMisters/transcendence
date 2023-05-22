@@ -34,24 +34,26 @@ export default function PlayerRecordBoard({
 }) {
   const userList = useAtomValue(userListAtom);
 
-  const rec = records.reverse().map((record) => (
-    record.gm_winnerId === userId
-      ? <PlayerRecordLine
-        key={record.gm_gid + userId}
-        LeftSideNickName={userList[userId].userDisplayName}
-        LeftSideScore={record.gm_winnerScore}
-        RightSideScore={record.gm_loserScore}
-        RightSideNickName={userList[record.gm_loserId].userDisplayName}
-      />
-      : <PlayerRecordLine
-        key={record.gm_gid + userId}
-        LeftSideNickName={userList[userId].userDisplayName}
-        LeftSideScore={record.gm_loserScore}
-        RightSideScore={record.gm_winnerScore}
-        RightSideNickName={userList[record.gm_winnerId].userDisplayName}
-      />
-  )
-  );
+  const rec = '';
+
+  // const rec = records.reverse().map((record) => (
+  //   record.gm_winnerId === userId
+  //     ? <PlayerRecordLine
+  //       key={record.gm_gid + userId}
+  //       LeftSideNickName={userList[userId].userDisplayName}
+  //       LeftSideScore={record.gm_winnerScore}
+  //       RightSideScore={record.gm_loserScore}
+  //       RightSideNickName={userList[record.gm_loserId].userDisplayName}
+  //     />
+  //     : <PlayerRecordLine
+  //       key={record.gm_gid + userId}
+  //       LeftSideNickName={userList[userId].userDisplayName}
+  //       LeftSideScore={record.gm_loserScore}
+  //       RightSideScore={record.gm_winnerScore}
+  //       RightSideNickName={userList[record.gm_winnerId].userDisplayName}
+  //     />
+  // )
+  // );
 
   return (
     <div className="PlayerRecordBoard">

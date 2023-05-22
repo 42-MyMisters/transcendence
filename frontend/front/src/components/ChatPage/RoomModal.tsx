@@ -1,4 +1,4 @@
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { PressKey } from "../../event/event.util";
 import { roomModalAtom } from "../atom/ModalAtom";
 

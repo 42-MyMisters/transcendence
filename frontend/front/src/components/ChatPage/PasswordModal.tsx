@@ -1,4 +1,4 @@
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { passwordInputModalAtom } from "../../components/atom/ModalAtom";
 import { PressKey } from "../../event/event.util";
 import { keyboardKey } from '@testing-library/user-event';
