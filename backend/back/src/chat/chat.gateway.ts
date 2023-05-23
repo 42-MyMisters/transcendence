@@ -384,7 +384,11 @@ export class EventsGateway
 		}
 	) {
 		if (userList[targetId]) {
+			if (userList[targetId].status === 'inGame') {
 			return { status: userList[targetId].gameStatus };
+			} else {
+				return { status: 'end' };
+			}
 		}
 	}
 
