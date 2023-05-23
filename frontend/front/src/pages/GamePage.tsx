@@ -134,13 +134,15 @@ export default function GamePage() {
   //https://socket.io/docs/v4/client-socket-instance/#disconnect
   const disconnectionEventHandler = (reason: string) => {
     if (reason === "io server disconnect") {
+    } else if (reason === "io client disconnect") {
+      setIsGameStart(false);
     }
     console.log(`gameSocket end`, reason);
     clearState();
     AdminLogPrinter(adminConsole, "gameSocket disconnected");
   };
 
-  const gameStartEventHandler = ({gameMode, p1, p2}: {gameMode: GameMode, p1: number, p2: number}) => {
+  const gameStartEventHandler = ({ gameMode, p1, p2 }: { gameMode: GameMode, p1: number, p2: number }) => {
     AdminLogPrinter(adminConsole, "game start");
     setGameModeForDisplay(gameMode);
     setIsLoading(false);
@@ -173,7 +175,7 @@ export default function GamePage() {
     setIsMatched(true);
   };
 
-  const observerEventHandler = ({gameMode, p1, p2}: {gameMode: GameMode, p1: number, p2: number}) => {
+  const observerEventHandler = ({ gameMode, p1, p2 }: { gameMode: GameMode, p1: number, p2: number }) => {
     AdminLogPrinter(adminConsole, "observer");
     setGameModeForDisplay(gameMode);
     setP1Id(p1);
