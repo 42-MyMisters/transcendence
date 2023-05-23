@@ -10,7 +10,7 @@ import { userListAtom } from '../atom/ChatAtom';
 import { UserType, GameRecordType } from '../atom/UserAtom';
 import CheckBox from "./CheckBox";
 import PlayerRecordBoard from "./PlayerRecordBoard";
-import { isMatchedAtom, isP1Atom, p1IdAtom, p2IdAtom } from '../atom/GameAtom';
+import { GamePlayer, gamePlayerAtom, isMatchedAtom, p1IdAtom, p2IdAtom } from '../atom/GameAtom';
 
 export default function Waiting() {
   const userList = useAtomValue(userListAtom);
@@ -18,7 +18,8 @@ export default function Waiting() {
   const [player1Info, setPlayer1Info] = useState({} as UserType);
   const [player2Info, setPlayer2Info] = useState({} as UserType);
   const setRefreshToken = useSetAtom(refreshTokenAtom);
-  const isP1 = useAtomValue(isP1Atom);
+  // const isP1 = useAtomValue(isP1Atom);
+  const gamePlayer = useAtomValue(gamePlayerAtom);
   const p1Id = useAtomValue(p1IdAtom);
   const p2Id = useAtomValue(p2IdAtom);
   const isMatched = useAtomValue(isMatchedAtom);
@@ -83,7 +84,7 @@ export default function Waiting() {
         </div>
       </div>
       {
-        isP1
+        gamePlayer === GamePlayer.player1
           ? <CheckBox />
           : ""
       }
