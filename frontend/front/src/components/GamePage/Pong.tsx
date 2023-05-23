@@ -57,7 +57,7 @@ function drawCounter(
 ) {
   if (context) {
     context.fillStyle = color;
-    context.font = "100px Arial";
+    context.font = "200px Arial";
     context.fillText(text.toString(), x, y);
   }
 }
@@ -104,7 +104,7 @@ export function Game(gameInfo: GameCoordinate, canvas: React.RefObject<HTMLCanva
     drawText(player1.score, WIDTH / 4, 50, "WHITE", context);
     drawText(player2.score, 3 * (WIDTH / 4), 50, "WHITE", context);
 
-    drawCounter(3, (WIDTH / 2) - 25, (HEIGHT / 2), "WHITE", context);
+    drawCounter(3, (WIDTH / 2) - 50, (HEIGHT / 2) + 75, "WHITE", context);
 
     drawName(player1.name, 75, 50, "WHITE", context);
     drawName(player2.name, (WIDTH / 4) * 3 + 50, 50, "WHITE", context);
