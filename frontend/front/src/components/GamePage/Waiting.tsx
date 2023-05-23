@@ -10,13 +10,14 @@ import { userListAtom } from '../atom/ChatAtom';
 import { UserType, GameRecordType } from '../atom/UserAtom';
 import CheckBox from "./CheckBox";
 import PlayerRecordBoard from "./PlayerRecordBoard";
-import { GamePlayer, gamePlayerAtom, isMatchedAtom, p1IdAtom, p2IdAtom } from '../atom/GameAtom';
+import { GamePlayer, gamePlayerAtom, isMatchedAtom, isPrivateAtom, p1IdAtom, p2IdAtom } from '../atom/GameAtom';
 
 export default function Waiting() {
   const userList = useAtomValue(userListAtom);
   const adminConsole = useAtomValue(chatAtom.adminConsoleAtom);
   const [player1Info, setPlayer1Info] = useState({} as UserType);
   const [player2Info, setPlayer2Info] = useState({} as UserType);
+  const isPrivate = useAtomValue(isPrivateAtom);
   const setRefreshToken = useSetAtom(refreshTokenAtom);
   // const isP1 = useAtomValue(isP1Atom);
   const gamePlayer = useAtomValue(gamePlayerAtom);
@@ -54,7 +55,10 @@ export default function Waiting() {
   }
 
   useEffect(() => {
-    if (isMatched) {
+    if (isPrivate) {
+      getProfileHandler(setPlayer1Info, p1Id);
+      getProfileHandler(setPlayer2Info, p2Id);
+    } else if (isMatched) {
       getProfileHandler(setPlayer2Info, p2Id);
     } else {
       getProfileHandler(setPlayer1Info, p1Id);
@@ -71,16 +75,8 @@ export default function Waiting() {
       </div>
       <div className="RightWrap">
         <div className="PlayerWrap">
-          {
-            isMatched
-              ? <div className="PlayerNickName">{player2Info.nickname}</div>
-              : <div className="PlayerNickName">{'Waiting...'}</div>
-          }
-          {
-            isMatched
-              ? <PlayerRecordBoard records={player2Info.games} userId={p2Id} />
-              : <PlayerRecordBoard records={{}} userId={-42} />
-          }
+          <div className="PlayerNickName">{player2Info.nickname}</div>
+          <PlayerRecordBoard records={player2Info.games} userId={p2Id} />
         </div>
       </div>
       {

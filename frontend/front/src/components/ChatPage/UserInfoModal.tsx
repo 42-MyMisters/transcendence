@@ -10,7 +10,7 @@ import { refreshTokenAtom } from "../../components/atom/LoginAtom";
 import { ProfileAtom, isMyProfileAtom } from "../../components/atom/UserAtom";
 import * as socket from "../../socket/chat.socket";
 import "../../styles/UserInfoModal.css";
-import { gameInviteInfoAtom, isGameStartedAtom, isPrivateAtom } from "../atom/GameAtom";
+import { gameInviteInfoAtom, isGameStartedAtom, isPrivateAtom, p2IdAtom } from "../atom/GameAtom";
 import { UserInfoModalInfo } from "../atom/UserInfoModalAtom";
 
 export default function UserInfoModal() {
@@ -29,6 +29,7 @@ export default function UserInfoModal() {
   const setIsMyProfile = useSetAtom(isMyProfileAtom);
   const setProfile = useSetAtom(ProfileAtom);
   const navigate = useNavigate();
+  const setP2Id = useSetAtom(p2IdAtom);
 
   const logOutHandler = () => {
     api.LogOut(adminConsole, setRefreshToken, navigate, "/");
@@ -108,6 +109,8 @@ export default function UserInfoModal() {
     socket.emitGameInvite({ adminConsole, navigate }, userInfo.uid, userInfo.nickName);
     setGameInviteInfo({ gameType: 'invite', userId: userInfo.uid });
     setIsPrivate(true);
+    setP2Id(userInfo.uid);
+    setIsGameStart(false);
     infoModalOff();
     navigate("/game");
   };
