@@ -622,10 +622,10 @@ export default function ChatWrapper({ children }: { children: JSX.Element }) {
 	}, [isLoading]);
 
 	useEffect(() => {
-		if (isGameStart) {
+		if (isGameStart && userList[userInfo?.uid]?.userStatus === 'inGame') {
 			socket.emitGameUpdate(adminConsole, 'playing');
 		}
-	}, [isGameStart]);
+	}, [isGameStart, userList, userInfo]);
 
 	useEffect(() => {
 		if (isGameQuit) {

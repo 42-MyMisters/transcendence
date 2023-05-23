@@ -364,11 +364,7 @@ export class EventsGateway
 		}
 	) {
 		if (userList[targetId]) {
-			if (userList[targetId].status === 'online') {
-				return { status: 'end' };
-			} else {
-				return { status: userList[targetId].gameStatus };
-			}
+			return { status: userList[targetId].gameStatus };
 		}
 	}
 
