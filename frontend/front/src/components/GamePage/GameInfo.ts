@@ -12,6 +12,7 @@ export const player1 = {
   color: "#79E0EE",
   score: 0,
   uid: 0,
+  name: '',
 };
 
 export const player2 = {
@@ -22,6 +23,7 @@ export const player2 = {
   color: "#CA6A71",
   score: 0,
   uid: 0,
+  name: '',
 };
 
 export const net = {
