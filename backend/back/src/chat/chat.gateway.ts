@@ -195,7 +195,7 @@ export class EventsGateway
 			this.logger.verbose(`leaderboard update`);
 			leaderBoard = await this.databaseService.getLeaderboard()
 			this.nsp.emit("leaderboard-update", leaderBoard);
-		}, 300000);
+		}, 60000);
 	}
 
 	async handleConnection(@ConnectedSocket() socket: Socket) {
