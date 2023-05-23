@@ -58,4 +58,13 @@ type roomListDto = {
 	}
 }
 
-export type { userDto, userSimpleDto, roomDetailDto, roomMessageDto, roomListDto, userInRoomListDto, userStatus, userRoomStatus, userRoomPower, dmDto, gameStatus };
+interface leaderboardDto {
+	nickname: string;
+	elo: number;
+	winRate: number;
+	winGameCount: number;
+	lostGameCount: number;
+	totalGameCount: number;
+}
+
+export type { userDto, userSimpleDto, roomDetailDto, roomMessageDto, roomListDto, userInRoomListDto, userStatus, userRoomStatus, userRoomPower, dmDto, gameStatus, leaderboardDto };
