@@ -49,7 +49,7 @@ export default function GameResultModal({
     <>
       <div className="GameResultModalBG" />
       <div className="GameResultModal">
-        <div className="GameResultModalTxt">{`${userList[gameWinner].userDisplayName} Win!`}</div>
+        <div className="GameResultModalTxt">{`${userList[gameWinner]?.userDisplayName} Win!`}</div>
         <div className="GameResultModalScore">{`${leftScore} : ${rightScore}`}</div>
         <button className="GameResultModalBtn" onClick={handlerGameQuit}>
           OK

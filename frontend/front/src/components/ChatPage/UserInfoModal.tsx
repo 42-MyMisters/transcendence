@@ -1,7 +1,7 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { userInfoModalAtom } from "../../components/atom/ModalAtom";
 import * as api from "../../event/api.request";
-import { PressKey } from "../../event/event.util";
+import { AdminLogPrinter, PressKey } from "../../event/event.util";
 
 import { IoCloseOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
@@ -106,6 +106,7 @@ export default function UserInfoModal() {
   };
 
   const callbackInvite = () => {
+    AdminLogPrinter(adminConsole, `invite ${userInfo.uid}`);
     socket.emitGameInvite({ adminConsole, navigate }, userInfo.uid, userInfo.nickName);
     setGameInviteInfo({ gameType: 'invite', userId: userInfo.uid });
     setIsPrivate(true);
@@ -115,6 +116,7 @@ export default function UserInfoModal() {
     navigate("/game");
   };
   const callbackObserv = () => {
+    AdminLogPrinter(adminConsole, `observ ${userInfo.uid}`);
     infoModalOff();
     setGameInviteInfo({ gameType: 'observe', userId: userInfo.uid });
     setIsPrivate(false);
