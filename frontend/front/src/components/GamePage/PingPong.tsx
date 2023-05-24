@@ -190,11 +190,7 @@ export default function PingPong() {
     clearInterval(pingInterval);
   };
 
-<<<<<<< HEAD
   const countdownEventHandler = ({ curTime, time }: { curTime: number, time: number }) => {
-=======
-  const countdownEventHandler = ({ curTime, time }: { curTime: number; time: number }) => {
->>>>>>> fd6a78b49a8c56a93723a5f56f54838de807610f
     const localTime = curTime + serverClientTimeDiff;
     AdminLogPrinter(
       adminConsole,
@@ -204,11 +200,7 @@ export default function PingPong() {
       localTime
     );
     // setCountDownTime(curTime + serverClientTimeDiff);
-<<<<<<< HEAD
   }
-=======
-  };
->>>>>>> fd6a78b49a8c56a93723a5f56f54838de807610f
 
   useEffect(() => {
     gameSocket.on("syncData", syncDataHandler);
