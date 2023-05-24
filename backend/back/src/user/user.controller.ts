@@ -29,6 +29,7 @@ import {
 } from "@nestjs/swagger";
 import config from "config";
 import { Response } from "express";
+import { request } from "http";
 import path from "path";
 import sharp from "sharp";
 import { AuthService } from "src/auth/auth.service";
@@ -281,8 +282,14 @@ export class UserController {
   })
   @Get("/following")
   @UseGuards(Jwt2faAuthGuard)
-  async getUserFollowing(@Req() request): Promise<FollowingUserDto[] | null> {
+  async getMyUserFollowing(@Req() request): Promise<FollowingUserDto[] | null> {
     return await this.userService.getFollowingUserInfo(request.user.uid);
+  }
+
+  @Get("/following/:uid")
+  @UseGuards(Jwt2faAuthGuard)
+  async getUserFollowing(@Param("uid") uid: number): Promise<FollowingUserDto[] | null> {
+    return await this.userService.getFollowingUserInfo(uid);
   }
 
   @Get("/game/:uid")
@@ -309,6 +316,8 @@ export class UserController {
   showUsers() {
     return this.userService.showUsers();
   }
+
+
   @Get("/follow/:uid")
   @UseGuards(Jwt2faAuthGuard)
   async followGET(@Req() request, @Param("uid") uid: number) {
