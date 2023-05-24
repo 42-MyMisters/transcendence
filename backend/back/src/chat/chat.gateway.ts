@@ -327,16 +327,18 @@ export class EventsGateway
 	async UserUpdateInfo(
 		@ConnectedSocket() socket: Socket,
 	) {
-		const changedUser: User | null = await this.userService.getUserByUid(socket.data.user.uid);
-		if (changedUser) {
-			userList[socket.data.user.uid].userDisplayName = changedUser.nickname;
-			userList[socket.data.user.uid].userUrl = changedUser.profileUrl;
-			this.nsp.emit("user-update", {
-				userId: changedUser.uid,
-				userDisplayName: changedUser.nickname,
-				userProfileUrl: changedUser.profileUrl,
-				userStatus: userList[changedUser.uid].status,
-			});
+		if (typeof socket?.data?.user?.uid === 'number') {
+			const changedUser: User | null = await this.userService.getUserByUid(socket.data.user.uid);
+			if (changedUser) {
+				userList[socket.data.user.uid].userDisplayName = changedUser.nickname;
+				userList[socket.data.user.uid].userUrl = changedUser.profileUrl;
+				this.nsp.emit("user-update", {
+					userId: changedUser.uid,
+					userDisplayName: changedUser.nickname,
+					userProfileUrl: changedUser.profileUrl,
+					userStatus: userList[changedUser.uid].status,
+				});
+			}
 		}
 	}
 
@@ -349,7 +351,7 @@ export class EventsGateway
 			status: userStatus;
 		}
 	) {
-		if (socket.data?.user?.uid && userList[socket.data.user.uid]) {
+		if (typeof socket?.data?.user?.uid === 'number' && userList[socket.data.user.uid]) {
 			userList[socket.data.user.uid].status = status;
 			this.nsp.emit("user-update", {
 				userId: userList[socket.data.user.uid].userId,
@@ -384,7 +386,11 @@ export class EventsGateway
 		}
 	) {
 		if (userList[targetId]) {
-			return { status: userList[targetId].gameStatus };
+			if (userList[targetId].status === 'inGame') {
+				return { status: userList[targetId].gameStatus };
+			} else {
+				return { status: 'end' };
+			}
 		}
 	}
 
