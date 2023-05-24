@@ -2,7 +2,7 @@ import "../../styles/ProfilePage.css";
 
 import { PlayerRecordLine } from "../GamePage/PlayerRecordBoard";
 
-import { ReactElement } from "react";
+import { ReactElement, useEffect } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { ProfileAtom, UserAtom, isMyProfileAtom } from "../atom/UserAtom";
 import { Game } from "../GamePage/Pong";
@@ -12,12 +12,28 @@ export default function ProfileMatchHistory() {
   const userInfo = useAtomValue(UserAtom);
   const profile = useAtomValue(ProfileAtom);
 
+  useEffect(() => {
+    if (isMyProfile) {
+
+    } else {
+
+    }
+  }, [isMyProfile]);
+
   return (
     <div className="ProfileMatchFrame">
-      <div className="ProfileMatchScore">{`${userInfo?.games?.length ?? 0}games ${userInfo?.games?.filter((game) => game.winner.nickname === userInfo.nickname)?.length ?? 0
-        }win ${userInfo?.games?.filter((game) => game.winner.nickname !== userInfo.nickname)?.length ?? 0
-        }lose`}</div>
-      <div className="ProfileMatchELO">{`ELO ${userInfo?.ELO ?? 1000}`}</div>
+      {
+        isMyProfile
+          ? <div className="ProfileMatchScore">{`${userInfo?.games?.length ?? 0}games ${userInfo?.games?.filter((game) => game.winner.nickname === userInfo.nickname)?.length ?? 0
+            }win ${userInfo?.games?.filter((game) => game.winner.nickname !== userInfo.nickname)?.length ?? 0
+            }lose`}</div>
+          : ''
+      }
+      {
+        isMyProfile
+          ? <div className="ProfileMatchELO">{`ELO ${userInfo?.ELO ?? 1000}`}</div>
+          : ''
+      }
       <div className="ProfileMatchHistoryBG">
         <div className="ProfileMatchHistoryList">
           {

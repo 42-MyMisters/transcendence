@@ -63,7 +63,7 @@ export default function Waiting() {
     } else {
       getProfileHandler(setPlayer1Info, p1Id);
     }
-  }, [isMatched]);
+  }, [isMatched, p1Id, p2Id]);
 
   return (
     <div className="QueueBackGround">
