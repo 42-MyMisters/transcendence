@@ -36,7 +36,9 @@ export default function PingPong() {
   const gamePlayer = useAtomValue(gamePlayerAtom);
   const setGameWinner = useSetAtom(gameWinnerAtom);
 
-  let serverClientTimeDiff: number = 1000;
+  const [count, setCount] = useState(0);
+
+  let serverClientTimeDiff: number = 400;
 
   const coords: GameCoordinate = {
     paddle1Y: 225,
@@ -53,8 +55,8 @@ export default function PingPong() {
   let lastUpdateTime: number = coords.time;
   let requestAnimationId: number = 0;
 
-  // 1 sec delay for init value
-  let pingRTTmin: number = 2000;
+  // 400ms delay for init value
+  let pingRTTmin: number = 800;
   let pingInterval: NodeJS.Timer;
 
   const pingEvent = () => {
@@ -178,8 +180,17 @@ export default function PingPong() {
     clearInterval(pingInterval);
   };
 
+  const setCountdown = (countdownTime: number) => {
+    console.log(`set counter ${countdownTime}`)
+    setCount(countdownTime);
+    if (countdownTime >= 1) {
+      setTimeout(setCountdown, 1000, countdownTime - 1)
+    }
+  }
+
   const countdownEventHandler = ({ curTime, time }: { curTime: number; time: number }) => {
     const localTime = curTime + serverClientTimeDiff;
+    console.log(serverClientTimeDiff);
     AdminLogPrinter(
       adminConsole,
       "countdown time: ",
@@ -187,6 +198,7 @@ export default function PingPong() {
       "\nserver curTime: ",
       localTime
     );
+    setCountdown(Math.round((time - (Date.now() - localTime)) / 1000));
     // setCountDownTime(curTime + serverClientTimeDiff);
   };
 
@@ -400,7 +412,9 @@ export default function PingPong() {
   return (
     <div className="QueueBackGround">
       <canvas ref={canvas} id="pong" width={1150} height={600}></canvas>
-      <div className="countDown">1</div>
+      {
+        count !== 0 ? <div className="countDown">{count}</div> : ""
+      }
     </div>
   );
 }
