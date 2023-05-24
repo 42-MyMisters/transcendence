@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from "@nestjs/comm
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserFollow } from "src/database/entity/user-follow.entity";
 import { User } from "src/database/entity/user.entity";
+import { GameStatusDto } from "src/game/dto/GameStatus.dto";
 import { GameType } from "src/game/game.enum";
 import { DataSource, Repository } from "typeorm";
 import { DirectMessage } from "./entity/direct-message.entity";
@@ -245,7 +246,7 @@ export class DatabaseService {
     }
 
      
-    async getLeaderboard() {
+    async findLeaderboard() {
         const foundUsers = await this.userRepository.find({
             relations: {
                 wonGames: true,
@@ -269,6 +270,32 @@ export class DatabaseService {
       
         return leaderboardDto;
       }
-      
 
+      async findGameStatusByUid(uid: number): Promise<GameStatusDto[]>{
+        try{
+         const games = await this.gameRepository
+         .createQueryBuilder('game')
+         .leftJoinAndSelect('game.winner', 'winner')
+         .leftJoinAndSelect('game.loser', 'loser')
+         .where('game.winnerUid = :uid OR game.loserUid = :uid', { uid })
+         .select([
+           'game.gid',
+           'winner.nickname',
+           'loser.nickname',
+           'game.winnerScore',
+           'game.loserScore',
+           'game.winnerUid',
+           'game.loserUid'
+         ])
+         .getMany();
+        
+         const gameStatusResult = games.map((game) => {
+             return GameStatusDto.fromGameEntity(game);
+           });
+         return gameStatusResult;
+      }
+      catch(e){
+        throw new BadRequestException('Invalid Input data');
+        }
+    }
 }

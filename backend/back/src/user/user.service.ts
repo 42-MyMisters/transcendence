@@ -214,11 +214,12 @@ export class UserService {
 	}
 
 	async getUserProfile(uid: number, isMe: boolean = false): Promise<UserProfileDto> {	
-		const findUser = await this.databaseService.findUserData(uid);
-		const findFollwing = await this.getUserFollowing(uid);
+		// const findUser = await this.databaseService.findUserData(uid);
+		// const findFollwing = await this.getUserFollowing(uid);
+		const findUser = await this.databaseService.findUserByUid(uid);
 		if (!this.isUserExist(findUser))
 			throw new NotFoundException(`${uid} user not found`);
-		const userDto = await UserProfileDto.fromUserEntity(findUser, findFollwing);
+		const userDto = await UserProfileDto.fromUserEntity(findUser);
 		if (!isMe) {
 			userDto.tfaEnabled = false;
 		}
