@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from "@nestjs/comm
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserFollow } from "src/database/entity/user-follow.entity";
 import { User } from "src/database/entity/user.entity";
+import { GameStatusDto } from "src/game/dto/GameStatus.dto";
 import { GameType } from "src/game/game.enum";
 import { DataSource, Repository } from "typeorm";
 import { DirectMessage } from "./entity/direct-message.entity";
@@ -270,7 +271,7 @@ export class DatabaseService {
         return leaderboardDto;
       }
 
-      async findGameStatusByUid(uid: number){
+      async findGameStatusByUid(uid: number): Promise<GameStatusDto[]>{
         const games = await this.gameRepository
         .createQueryBuilder('game')
         .leftJoinAndSelect('game.winner', 'winner')
@@ -286,15 +287,10 @@ export class DatabaseService {
           'game.loserUid'
         ])
         .getMany();
-        return games.map((game) => ({
-            gid: game.gid,
-            winnerNickname: game.winner.nickname,
-            loserNickname: game.loser.nickname,
-            winnerScore: game.winnerScore,
-            loserScore: game.loserScore,
-            winnerUid: game.winnerUid,
-            loserUid: game.loserUid
-          }));
+        const gameStatusResult = games.map((game) => {
+            return GameStatusDto.fromGameEntity(game);
+          });
+        return gameStatusResult;
       }
       
 
