@@ -245,7 +245,7 @@ export class DatabaseService {
     }
 
      
-    async getLeaderboard() {
+    async findLeaderboard() {
         const foundUsers = await this.userRepository.find({
             relations: {
                 wonGames: true,
@@ -268,6 +268,33 @@ export class DatabaseService {
         ));
       
         return leaderboardDto;
+      }
+
+      async findGameStatusByUid(uid: number){
+        const games = await this.gameRepository
+        .createQueryBuilder('game')
+        .leftJoinAndSelect('game.winner', 'winner')
+        .leftJoinAndSelect('game.loser', 'loser')
+        .where('game.winnerUid = :uid OR game.loserUid = :uid', { uid })
+        .select([
+          'game.gid',
+          'winner.nickname',
+          'loser.nickname',
+          'game.winnerScore',
+          'game.loserScore',
+          'game.winnerUid',
+          'game.loserUid'
+        ])
+        .getMany();
+        return games.map((game) => ({
+            gid: game.gid,
+            winnerNickname: game.winner.nickname,
+            loserNickname: game.loser.nickname,
+            winnerScore: game.winnerScore,
+            loserScore: game.loserScore,
+            winnerUid: game.winnerUid,
+            loserUid: game.loserUid
+          }));
       }
       
 
