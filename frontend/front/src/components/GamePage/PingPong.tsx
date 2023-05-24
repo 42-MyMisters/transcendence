@@ -28,22 +28,13 @@ export default function PingPong() {
   const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
   const canvas = useRef<HTMLCanvasElement>(null);
 
-  const [isLoading, setIsLoading] = useAtom(isLoadingAtom);
-  const [isPrivate, setIsPrivate] = useAtom(isPrivateAtom);
-  const [isGameStart, setIsGameStart] = useAtom(isGameStartedAtom);
-  // const [isQueue, setIsQueue] = useAtom(isQueueAtom);
-  const [gameResultModal, setGameResultModal] = useAtom(gameResultModalAtom);
+  const setGameResultModal = useSetAtom(gameResultModalAtom);
 
   const gameSocket = useAtomValue(gameSocketAtom);
 
   // const isP1 = useAtomValue(isP1Atom);
   const gamePlayer = useAtomValue(gamePlayerAtom);
   const setGameWinner = useSetAtom(gameWinnerAtom);
-  // const [gameWinner, setGameWinner] = useAtom(gameWinnerAtom);
-
-  // let cnt: number = 0
-  const [cnt, setCnt] = useState(0);
-  // const [serverClientTimeDiff, setServerClientTimeDiff] = useAtom(serverClientTimeDiffAtom);
 
   let serverClientTimeDiff: number = 1000;
 
@@ -67,9 +58,6 @@ export default function PingPong() {
   let pingInterval: NodeJS.Timer;
 
   const pingEvent = () => {
-    if (!isGameStart) {
-      clearInterval(pingInterval);
-    }
     const curTime = Date.now();
     const pingEventHandler = (serverTime: number) => {
       const now = Date.now();
@@ -214,10 +202,6 @@ export default function PingPong() {
       gameSocket.off("countdown", countdownEventHandler);
     };
   }, []);
-
-  useEffect(() => {
-    AdminLogPrinter(adminConsole, `animation loop check cnt: ${cnt}`);
-  }, [cnt]);
 
   useEffect(() => {
     requestAnimationLoop(Date.now(), lastUpdateTime);

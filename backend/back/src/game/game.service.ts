@@ -79,9 +79,6 @@ class Game {
   private lastUpdate: number;
   private lastUpdateCoords: GameCoords;
 
-  private p1Score: number;
-  private p2Score: number;
-
   private score: number[] = [0, 0];
 
   // key pressed time list [p1up, p1down, p2up, p2down]
@@ -142,20 +139,9 @@ class Game {
 
   gameStart() {
     this.gameStatus = GameStatus.MODESELECT;
-    this.roundStartTime = Date.now();
     this.gv.server.to(this.gv.gameId).emit('matched', { p1: this.gv.p1.uid, p2: this.gv.p2.uid });
+    this.roundStartTime = Date.now();
     this.gameLoop();
-  }
-  
-  modeSelect(curTime: number) {
-    if (curTime - this.roundStartTime >= 5000) {
-      this.gameStatus = GameStatus.COUNTDOWN;
-      this.lastUpdate = this.roundStartTime;
-      // this.gv.server.to(this.gv.gameId).emit('gameStart', this.gameInfo());
-      this.roundStartTime = Date.now();
-      return 10;
-    }
-    return 5000 - curTime + this.roundStartTime;
   }
 
   isPlayer(uid: number): boolean {
@@ -261,29 +247,9 @@ class Game {
     console.log(`update time: ${timestamp2 - timestamp}`);
     if (timeout !== -1) {
       setTimeout(this.gameLoop.bind(this), timeout);
-      switch(this.gameStatus) {
-        case GameStatus.MODESELECT: {
-          this.gv.server.to(this.gv.gameId).emit('gameStart', this.gameInfo());
-          break;
-        }
-        case GameStatus.COUNTDOWN: {
-          const objectInfo = {...this.lastUpdateCoords};
-          objectInfo.ballSpeedX = 0;
-          objectInfo.ballSpeedY = 0;
-          this.gv.server.to(this.gv.gameId).emit('syncData', objectInfo);
-          this.gv.server.to(this.gv.gameId).emit('countdown', {curTime: curTime, time: curTime - this.roundStartTime + 3000});
-          break;
-        }
-        case GameStatus.RUNNING: {
-          this.gv.server.to(this.gv.gameId).emit("syncData", this.lastUpdateCoords);
-          break;
-        }
-        case GameStatus.FINISHED: {
-          this.gv.server.to(this.gv.gameId).emit("finished", {p1Score: this.score[0], p2Score: this.score[1]});
-          break;
-        }
+      if (this.gameStatus === GameStatus.RUNNING) {
+        this.gv.server.to(this.gv.gameId).emit("syncData", this.lastUpdateCoords);
       }
-
     } else {
       this.games.delete(this.gv.gameId);
     }
@@ -292,19 +258,35 @@ class Game {
   private isFinished(): boolean{
     return this.score[0] >= this.maxScore || this.score[1] >= this.maxScore;
   }
+  
+  private modeSelect(curTime: number) {
+    console.log("mode select: ", curTime - this.roundStartTime);
+    if (curTime - this.roundStartTime >= 5000) {
+      this.gameStatus = GameStatus.COUNTDOWN;
+      this.gv.server.to(this.gv.gameId).emit('gameStart', this.gameInfo());
+      this.init();
+      return 10;
+    }
+    return 5000 - Date.now() + this.roundStartTime;
+  }
 
   private countdown(curTime: number): number {
     if (this.isFinished() === true) {
       this.gameStatus = GameStatus.FINISHED;
-      return 100;
+      this.gv.server.to(this.gv.gameId).emit("finished", {p1Score: this.score[0], p2Score: this.score[1]});
+      return 10;
     } else if (curTime - this.roundStartTime >= 3000) {
       this.gameStatus = GameStatus.RUNNING;
-      console.log(`game mode: ${this.gameMode}`);
       this.init();
-      // this.gv.server.to(this.gv.gameId).emit('countdown', true);
-      return 100;
+      return 10;
     }
-    return curTime - this.roundStartTime + 3000;
+    const objectInfo = {...this.lastUpdateCoords};
+    objectInfo.ballSpeedX = 0;
+    objectInfo.ballSpeedY = 0;
+    this.gv.server.to(this.gv.gameId).emit('syncData', objectInfo);
+    const time = Date.now();
+    this.gv.server.to(this.gv.gameId).emit('countdown', {curTime: time, time: 3000 - time + this.roundStartTime});
+    return 3000 - time + this.roundStartTime;
   }
 
   private getHitTime(): number {
