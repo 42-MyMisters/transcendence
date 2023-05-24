@@ -1,6 +1,6 @@
 import "../../styles/ProfilePage.css";
 
-import { PlayerRecordLine } from "../GamePage/PlayerRecordBoard";
+import { PlayerRecordLine, PlayerRecordLineLose } from "../GamePage/PlayerRecordBoard";
 
 import { ReactElement, useEffect, useState } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
@@ -19,9 +19,6 @@ export default function ProfileMatchHistory() {
   const adminConsole = useAtomValue(chatAtom.adminConsoleAtom);
   const setRefreshToken = useSetAtom(refreshTokenAtom);
   const navigate = useNavigate();
-  const [totalGameCount, setTotalGameCount] = useState(0);
-  const [winGameCount, setWinGameCount] = useState(0);
-  const [loseGameCount, setLoseGameCount] = useState(0);
 
   const logOutHandler = () => {
     api.LogOut(adminConsole, setRefreshToken, navigate, "/");
@@ -41,49 +38,27 @@ export default function ProfileMatchHistory() {
         );
         if (getProfileResponse === 401) {
           logOutHandler();
-        } else {
-          gameRecordCounterHandler(userInfo.uid);
         }
       }
-    } else {
-      gameRecordCounterHandler(userInfo.uid);
     }
   }
-
-  const gameRecordCounterHandler = (uid: number) => {
-    let _totalGameCount = 0;
-    let _winGameCount = 0;
-    let _loseGameCount = 0;
-    console.log(gameRecord);
-    gameRecord.forEach((game) => {
-      _totalGameCount++;
-      console.log(game.winnerUid, game.loserUid, uid);
-      if (game.winnerUid === uid) {
-        _winGameCount++;
-      } else {
-        _loseGameCount++;
-      }
-    });
-    setTotalGameCount(_totalGameCount);
-    setWinGameCount(_winGameCount);
-    setLoseGameCount(_loseGameCount);
-  };
 
   useEffect(() => {
     if (isMyProfile) {
       getGameRecordHandler(setGameRecord, userInfo.uid);
-    } else {
-      gameRecordCounterHandler(profile.uid);
     }
   }, []);
 
   return (
     <div className="ProfileMatchFrame">
       {
-        // <div className="ProfileMatchScore">{`${gameRecord?.length ?? 0}games ${gameRecord?.filter((game) => game.winnerNickname === userInfo.nickname)?.length ?? 0
-        //   }win ${gameRecord?.filter((game) => game.winnerNickname !== userInfo.nickname)?.length ?? 0
-        //   }lose`}</div>
-        <div className="ProfileMatchScore">{`${totalGameCount}games ${winGameCount}win ${loseGameCount}lose`}</div>
+        isMyProfile
+          ? <div className="ProfileMatchScore">{`${gameRecord?.length ?? 0}games ${gameRecord?.filter((game) => game.winnerNickname === userInfo.nickname)?.length ?? 0
+            }win ${gameRecord?.filter((game) => game.winnerNickname !== userInfo.nickname)?.length ?? 0
+            }lose`}</div>
+          : <div className="ProfileMatchScore">{`${gameRecord?.length ?? 0}games ${gameRecord?.filter((game) => game.winnerNickname === profile.nickname)?.length ?? 0
+            }win ${gameRecord?.filter((game) => game.winnerNickname !== profile.nickname)?.length ?? 0
+            }lose`}</div>
       }
       {
         isMyProfile
@@ -93,20 +68,44 @@ export default function ProfileMatchHistory() {
       <div className="ProfileMatchHistoryBG">
         <div className="ProfileMatchHistoryList">
           {
-            gameRecord.length === 0
+            gameRecord?.length === 0
               ? ''
-              : ''
-            // : gameRecord?.map((game) => {
-            //   return (
-            //     <PlayerRecordLine
-            //       key={game.gid + game.winnerNickname + game.loserNickname}
-            //       LeftSideNickName={game.winnerNickname}
-            //       LeftSideScore={game.winnerScore}
-            //       RightSideScore={game.loserScore}
-            //       RightSideNickName={game.loserNickname}
-            //     />
-            //   );
-            // })
+              // : ''
+              : gameRecord?.map((game) => {
+                return (
+                  isMyProfile
+                    ? game.winnerUid === userInfo.uid
+                      ? <PlayerRecordLine
+                        key={game.gid + game.winnerNickname + game.loserNickname}
+                        LeftSideNickName={game.winnerNickname}
+                        LeftSideScore={game.winnerScore}
+                        RightSideScore={game.loserScore}
+                        RightSideNickName={game.loserNickname}
+                      />
+                      : <PlayerRecordLineLose
+                        key={game.gid + game.winnerNickname + game.loserNickname}
+                        LeftSideNickName={game.winnerNickname}
+                        LeftSideScore={game.winnerScore}
+                        RightSideScore={game.loserScore}
+                        RightSideNickName={game.loserNickname}
+                      />
+                    : game.winnerUid === profile.uid
+                      ? <PlayerRecordLine
+                        key={game.gid + game.winnerNickname + game.loserNickname}
+                        LeftSideNickName={game.winnerNickname}
+                        LeftSideScore={game.winnerScore}
+                        RightSideScore={game.loserScore}
+                        RightSideNickName={game.loserNickname}
+                      />
+                      : <PlayerRecordLineLose
+                        key={game.gid + game.winnerNickname + game.loserNickname}
+                        LeftSideNickName={game.winnerNickname}
+                        LeftSideScore={game.winnerScore}
+                        RightSideScore={game.loserScore}
+                        RightSideNickName={game.loserNickname}
+                      />
+                );
+              })
           }
         </div>
       </div>

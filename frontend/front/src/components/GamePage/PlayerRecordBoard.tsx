@@ -24,6 +24,29 @@ export function PlayerRecordLine({
   );
 }
 
+export function PlayerRecordLineLose({
+  LeftSideNickName,
+  LeftSideScore,
+  RightSideScore,
+  RightSideNickName,
+}: {
+  LeftSideNickName: string;
+  LeftSideScore: number;
+  RightSideScore: number;
+  RightSideNickName: string;
+}) {
+  return (
+    <div className="PlayerRecordWrapLose">
+      <div className="LeftSideNickName">{LeftSideNickName}</div>
+      <div className="LeftSideScore">{LeftSideScore}</div>
+      <div className="VSText">VS</div>
+      <div className="RightSideScore">{RightSideScore}</div>
+      <div className="RightSideNickName">{RightSideNickName}</div>
+    </div>
+  );
+}
+
+
 export default function PlayerRecordBoard({
   records,
   userId,

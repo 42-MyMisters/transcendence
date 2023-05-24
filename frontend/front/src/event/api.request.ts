@@ -387,7 +387,11 @@ export async function GetOtherGameRecord(
     })
     .then((response) => {
       AdminLogPrinter(adminConsole, `\nGetOtherGameRecord: ${JSON.stringify(response)}`);
-      setGameRecord(response);
+      const temp: GameRecordType[] = response;
+      temp.sort((a, b) => {
+        return b.gid - a.gid;
+      });
+      setGameRecord(temp);
     })
     .catch((error) => {
       AdminLogPrinter(adminConsole, `\nGetOtherGameRecord catch_error: ${error} `);
