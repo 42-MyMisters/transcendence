@@ -27,6 +27,14 @@ type gameStatus = 'ready' | 'playing' | 'end';
 type userRoomStatus = 'normal' | 'mute';
 type userRoomPower = 'owner' | 'admin' | 'member';
 
+interface leaderboardDto {
+	nickname: string;
+	elo: number;
+	winGameCount: number;
+	lostGameCount: number;
+	totalGameCount: number;
+}
+
 interface ClientUserDto {
 	userDisplayName: string;
 	userProfileUrl: string;
@@ -160,6 +168,7 @@ const roomList: Record<number, RoomInfo> = {
 let ROOM_NUMBER = 3;
 let ROOM_COUNT = 3;
 const MAX_ROOM_COUNT = 200;
+let leaderBoard = [] as leaderboardDto[];
 
 @WebSocketGateway({ namespace: "sock", cors: { origin: "*" } })
 export class EventsGateway
@@ -175,8 +184,18 @@ export class EventsGateway
 	@WebSocketServer()
 	nsp: Namespace;
 
-	afterInit() {
-		this.logger.log("socket initialized");
+	async afterInit() {
+		this.logger.debug("Chat socket initialized");
+		leaderBoard = await this.databaseService.getLeaderboard()
+		this.leaderBoardTimer();
+	}
+
+	leaderBoardTimer() {
+		setInterval(async () => {
+			this.logger.verbose(`leaderboard update`);
+			leaderBoard = await this.databaseService.getLeaderboard()
+			this.nsp.emit("leaderboard-update", leaderBoard);
+		}, 60000);
 	}
 
 	async handleConnection(@ConnectedSocket() socket: Socket) {
@@ -229,6 +248,7 @@ export class EventsGateway
 					this.handleRoomList(socket)
 					this.handleUserList(socket);
 					await this.handleDmList(socket, uid);
+					this.nsp.emit("leaderboard-update", leaderBoard);
 					this.nsp.emit("user-update", {
 						userId: uid,
 						userDisplayName: user.nickname,
@@ -349,7 +369,7 @@ export class EventsGateway
 			status: gameStatus
 		}
 	) {
-		if (socket.data.user.uid !== undefined && userList[socket.data.user.uid]) {
+		if (socket?.data?.user?.uid !== undefined && userList[socket?.data?.user?.uid]) {
 			userList[socket.data.user.uid].gameStatus = status;
 		}
 	}

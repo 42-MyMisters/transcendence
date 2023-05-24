@@ -47,6 +47,7 @@ export default function ChatWrapper({ children }: { children: JSX.Element }) {
 	const isGameStart = useAtomValue(isGameStartedAtom);
 	const isGameQuit = useAtomValue(isGameQuitAtom);
 	const setGameInviteFrom = useSetAtom(gameinviteFromAtom);
+	const setLeaderBoard = useSetAtom(chatAtom.leaderBoardAtom);
 	const navigate = useNavigate();
 
 	PressKey(["F4"], () => {
@@ -150,8 +151,20 @@ export default function ChatWrapper({ children }: { children: JSX.Element }) {
 			setHasLogin(false);
 			setIsFirstLogin(true);
 		});
+		socket.socket.on("leaderboard-update", (leaderBoard: chatType.leaderboardDto[]) => {
+			leaderBoard.map((key, value) => {
+				if (key.totalGameCount === 0) {
+					key.winRate = 0;
+				} else {
+					key.winRate = Number((key.winGameCount / key.totalGameCount * 100).toFixed(2));
+				}
+				key.elo = 1000 + key.elo;
+			});
+			setLeaderBoard(leaderBoard);
+		});
 		return () => {
 			socket.socket.off("logout");
+			socket.socket.off("leaderboard-update");
 		};
 	}, []);
 
@@ -622,10 +635,10 @@ export default function ChatWrapper({ children }: { children: JSX.Element }) {
 	}, [isLoading]);
 
 	useEffect(() => {
-		if (isGameStart) {
+		if (isGameStart && userList[userInfo?.uid]?.userStatus === 'inGame') {
 			socket.emitGameUpdate(adminConsole, 'playing');
 		}
-	}, [isGameStart]);
+	}, [isGameStart, userList, userInfo]);
 
 	useEffect(() => {
 		if (isGameQuit) {
