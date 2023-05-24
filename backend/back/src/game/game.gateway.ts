@@ -86,15 +86,15 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.gamePool.delete(elo);
       }
     }
-    if (this.gamePool.size !== 0) {
+    if (this.gamePool.size > 1) {
       const matchQueue = Array.from(this.gamePool).sort((a, b) => a[0] - b[0]);
       let i = 0;
-      while (i < matchQueue.length - 1) {
+      while (i < matchQueue.length) {
         const myElo = matchQueue[i][0];
         const mySocket = matchQueue[i][1][0];
         // range will be increased.
         const range = this.getMatchRange(curTime, mySocket);
-        // this.logger.log('Queue state', matchQueue);
+        this.logger.log('Queue state', [...matchQueue]);
         if (i === 0) {
           const nextElo = matchQueue[i + 1][0];
           if (myElo + range >= nextElo) {
@@ -102,7 +102,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
             matchQueue.splice(i, 2);
             continue;
           }
-        } else if (i === matchQueue.length - 2) {
+        } else if (i === matchQueue.length - 1) {
           const prevElo = matchQueue[i - 1][0];
           if (myElo - range <= prevElo) {
             this.createGameFromQueue(mySocket, matchQueue[i - 1][1][0]);
@@ -214,7 +214,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
           socket.join(gameId);
         } else {
           console.log("Already finished. Disconnect socket.");
-          throw new UnauthorizedException("already finished");
+          socket.disconnect();
         }
       } else {
         // queue match
@@ -252,8 +252,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.logger.log(`${user.uid} player left.`);
       } else {
         this.logger.log(`${user.uid} observer left.`);
-        this.userInGame.delete(user.uid);
       }
+      this.userInGame.delete(user.uid);
     } else {
       if (socket.handshake.auth.observ !== undefined) {
         // game is already finished. disconnect observer socket.
@@ -263,25 +263,28 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         // remove from the privatePool.
         this.privatePool.delete(user.uid);
       } else {
-        const queueLen = this.readyQueue.length;
-        this.readyQueue = this.readyQueue.filter((sock) => { return sock !== socket });
-        if (this.readyQueue.length !== queueLen) {
-          // Not moved to gamePool. remove from the readyQueue.
-          // Nothing to handle.
-        } else {
+        console.log("disconnect ", socket.data.user.nickname)
+        const idx = this.readyQueue.indexOf(socket);
+        console.log("idx: ", idx);
+        if (idx === -1 || idx === undefined) {
           // Cancel game queue. Not matched.
-          const eloAdj = this.adjElo(socket.data.elo);
+          const eloAdj = this.adjElo(user.elo);
           const eloList = this.gamePool.get(eloAdj);
           if (eloList !== undefined) {
             if (eloList.length > 1) {
-              this.gamePool.set(eloAdj, eloList.filter((sock) => { return sock !== socket }));
+              const eloIdx = eloList.indexOf(socket);
+              eloList.splice(eloIdx, 1);
             } else {
               this.gamePool.delete(eloAdj);
             }
           }
+        } else {
+          this.readyQueue.splice(idx, 1);
         }
+        console.log("readyQueue: ", this.readyQueue)
       }
     }
+    console.log(this.gamePool);
     this.logger.log(`${user?.uid} disconnected.`);
   }
 
