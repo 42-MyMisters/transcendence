@@ -1,4 +1,4 @@
-import { Controller, Get, Req, UseGuards } from "@nestjs/common";
+import { Controller, Get, Param, Req, UseGuards } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { request } from "express";
 import { Jwt2faAuthGuard } from "src/auth/jwt-2fa/jwt-2fa-auth.guard";
@@ -18,8 +18,15 @@ export class GameController{
 
     @Get("/status")
     @UseGuards(Jwt2faAuthGuard)
-    async loadGameStatus(@Req() request){
+    async loadMyGameStatus(@Req() request){
         const result = await this.databaseService.findGameStatusByUid(request.user.uid);
+        return result;
+    }
+
+    @Get("/status/:uid")
+    @UseGuards(Jwt2faAuthGuard)
+    async loadGameStatus(@Param() uid: number){
+        const result = await this.databaseService.findGameStatusByUid(uid);
         return result;
     }
 }

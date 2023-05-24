@@ -272,26 +272,30 @@ export class DatabaseService {
       }
 
       async findGameStatusByUid(uid: number): Promise<GameStatusDto[]>{
-        const games = await this.gameRepository
-        .createQueryBuilder('game')
-        .leftJoinAndSelect('game.winner', 'winner')
-        .leftJoinAndSelect('game.loser', 'loser')
-        .where('game.winnerUid = :uid OR game.loserUid = :uid', { uid })
-        .select([
-          'game.gid',
-          'winner.nickname',
-          'loser.nickname',
-          'game.winnerScore',
-          'game.loserScore',
-          'game.winnerUid',
-          'game.loserUid'
-        ])
-        .getMany();
-        const gameStatusResult = games.map((game) => {
-            return GameStatusDto.fromGameEntity(game);
-          });
-        return gameStatusResult;
+        try{
+         const games = await this.gameRepository
+         .createQueryBuilder('game')
+         .leftJoinAndSelect('game.winner', 'winner')
+         .leftJoinAndSelect('game.loser', 'loser')
+         .where('game.winnerUid = :uid OR game.loserUid = :uid', { uid })
+         .select([
+           'game.gid',
+           'winner.nickname',
+           'loser.nickname',
+           'game.winnerScore',
+           'game.loserScore',
+           'game.winnerUid',
+           'game.loserUid'
+         ])
+         .getMany();
+        
+         const gameStatusResult = games.map((game) => {
+             return GameStatusDto.fromGameEntity(game);
+           });
+         return gameStatusResult;
       }
-      
-
+      catch(e){
+        throw new BadRequestException('Invalid Input data');
+        }
+    }
 }
