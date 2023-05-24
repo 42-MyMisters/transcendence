@@ -27,14 +27,14 @@ export class Game extends BaseEntity {
 	@Column({ type: 'integer' })
 	loserUid: number;
 	
-	@ManyToOne(type => User, winner => winner.wonGames)
+	@ManyToOne(() => User, (winner) => winner.wonGames)
 	@JoinColumn({
 		name: 'winnerUid',
 		referencedColumnName: 'uid',
 	  })
 	winner: User;
 	
-	@ManyToOne(type => User, loser => loser.lostGames)
+	@ManyToOne(() => User, (loser) => loser.lostGames)
 	@JoinColumn({
 		name: 'loserUid',
 		referencedColumnName: 'uid',

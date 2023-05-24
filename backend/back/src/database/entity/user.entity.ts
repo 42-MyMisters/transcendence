@@ -33,19 +33,19 @@ export class User extends BaseEntity {
 	@Column({type: 'integer', default: 0})
 	elo: number;
 
-	@OneToMany(type => UserFollow, follower => follower.fromUser,)
+	@OneToMany(() => UserFollow, (follower) => follower.fromUser)
 	followers: UserFollow[];
 
-	@OneToMany(type => UserFollow, following => following.targetToFollow)
+	@OneToMany(() => UserFollow, (following) => following.targetToFollow)
 	followings: UserFollow[];
 
-	@OneToMany(type => UserBlock, userBlock => userBlock.targetToBlockId, { lazy: true })
+	@OneToMany(type => UserBlock, userBlock => userBlock.targetToBlockId)
 	blockedUsers: UserBlock[];
 
-	@OneToMany(type => Game, games => games.winner, { eager: true })
+	@OneToMany(type => Game, games => games.winner)
 	wonGames: Game[];
 	
-	@OneToMany(type => Game, games => games.loser, { eager: true })
+	@OneToMany(type => Game, games => games.loser)
 	lostGames: Game[];
 
 	@CreateDateColumn()
