@@ -252,8 +252,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.logger.log(`${user.uid} player left.`);
       } else {
         this.logger.log(`${user.uid} observer left.`);
-        this.userInGame.delete(user.uid);
       }
+      this.userInGame.delete(user.uid);
     } else {
       if (socket.handshake.auth.observ !== undefined) {
         // game is already finished. disconnect observer socket.
@@ -263,22 +263,21 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         // remove from the privatePool.
         this.privatePool.delete(user.uid);
       } else {
-        const queueLen = this.readyQueue.length;
-        this.readyQueue = this.readyQueue.filter((sock) => { return sock !== socket });
-        if (this.readyQueue.length !== queueLen) {
-          // Not moved to gamePool. remove from the readyQueue.
-          // Nothing to handle.
-        } else {
+        const idx = this.readyQueue.indexOf(socket);
+        if (idx === undefined) {
           // Cancel game queue. Not matched.
           const eloAdj = this.adjElo(socket.data.elo);
           const eloList = this.gamePool.get(eloAdj);
           if (eloList !== undefined) {
             if (eloList.length > 1) {
-              this.gamePool.set(eloAdj, eloList.filter((sock) => { return sock !== socket }));
+              const eloIdx = eloList.indexOf(socket);
+              eloList.splice(eloIdx, 1);
             } else {
               this.gamePool.delete(eloAdj);
             }
           }
+        } else {
+          this.readyQueue.splice(idx, 1);
         }
       }
     }
