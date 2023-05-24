@@ -28,6 +28,7 @@ import {
   ApiUnauthorizedResponse
 } from "@nestjs/swagger";
 import { Response } from "express";
+import { request } from "http";
 import path from "path";
 import sharp from "sharp";
 import { AuthService } from "src/auth/auth.service";
@@ -308,6 +309,13 @@ export class UserController {
   showUsers() {
     return this.userService.showUsers();
   }
+
+  @Get("/following")
+  @UseGuards(Jwt2faAuthGuard)
+  async getFollowing(@Req() request){
+   return await this.userService.getUserFollowing(request.user.uid);
+  }
+
   @Get("/follow/:uid")
   @UseGuards(Jwt2faAuthGuard)
   async followGET(@Req() request, @Param("uid") uid: number) {
