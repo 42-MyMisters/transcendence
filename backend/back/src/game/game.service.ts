@@ -79,9 +79,6 @@ class Game {
   private lastUpdate: number;
   private lastUpdateCoords: GameCoords;
 
-  private p1Score: number;
-  private p2Score: number;
-
   private score: number[] = [0, 0];
 
   // key pressed time list [p1up, p1down, p2up, p2down]
@@ -142,20 +139,9 @@ class Game {
 
   gameStart() {
     this.gameStatus = GameStatus.MODESELECT;
-    this.roundStartTime = Date.now();
     this.gv.server.to(this.gv.gameId).emit('matched', { p1: this.gv.p1.uid, p2: this.gv.p2.uid });
+    this.roundStartTime = Date.now();
     this.gameLoop();
-  }
-  
-  modeSelect(curTime: number) {
-    if (curTime - this.roundStartTime >= 5000) {
-      this.gameStatus = GameStatus.COUNTDOWN;
-      this.lastUpdate = this.roundStartTime;
-      // this.gv.server.to(this.gv.gameId).emit('gameStart', this.gameInfo());
-      this.roundStartTime = Date.now();
-      return 10;
-    }
-    return 5000 - curTime + this.roundStartTime;
   }
 
   isPlayer(uid: number): boolean {
@@ -254,36 +240,16 @@ class Game {
   // Event driven update
   private async gameLoop() {
     // const timestamp = Date.now();
-    const timestamp = performance.now();
-    const curTime = Date.now();
-    const timeout = this.update(curTime);
-    const timestamp2 = performance.now();
-    console.log(`update time: ${timestamp2 - timestamp}`);
+    // const timestamp = performance.now();
+    // const curTime = Date.now();
+    const timeout = await this.update(Date.now());
+    // const timestamp2 = performance.now();
+    // console.log(`update time: ${timestamp2 - timestamp}`);
     if (timeout !== -1) {
       setTimeout(this.gameLoop.bind(this), timeout);
-      switch(this.gameStatus) {
-        case GameStatus.MODESELECT: {
-          this.gv.server.to(this.gv.gameId).emit('gameStart', this.gameInfo());
-          break;
-        }
-        case GameStatus.COUNTDOWN: {
-          const objectInfo = {...this.lastUpdateCoords};
-          objectInfo.ballSpeedX = 0;
-          objectInfo.ballSpeedY = 0;
-          this.gv.server.to(this.gv.gameId).emit('syncData', objectInfo);
-          this.gv.server.to(this.gv.gameId).emit('countdown', {curTime: curTime, time: curTime - this.roundStartTime + 3000});
-          break;
-        }
-        case GameStatus.RUNNING: {
-          this.gv.server.to(this.gv.gameId).emit("syncData", this.lastUpdateCoords);
-          break;
-        }
-        case GameStatus.FINISHED: {
-          this.gv.server.to(this.gv.gameId).emit("finished", {p1Score: this.score[0], p2Score: this.score[1]});
-          break;
-        }
+      if (this.gameStatus === GameStatus.RUNNING) {
+        this.gv.server.to(this.gv.gameId).emit("syncData", this.lastUpdateCoords);
       }
-
     } else {
       this.games.delete(this.gv.gameId);
     }
@@ -292,19 +258,38 @@ class Game {
   private isFinished(): boolean{
     return this.score[0] >= this.maxScore || this.score[1] >= this.maxScore;
   }
+  
+  private modeSelect(curTime: number) {
+    console.log("mode select: ", curTime - this.roundStartTime);
+    if (curTime - this.roundStartTime >= 5000) {
+      this.gameStatus = GameStatus.COUNTDOWN;
+      this.gv.server.to(this.gv.gameId).emit('gameStart', this.gameInfo());
+      this.init();
+      return 1;
+    }
+    return 5000 - (curTime - this.roundStartTime);
+  }
 
   private countdown(curTime: number): number {
     if (this.isFinished() === true) {
       this.gameStatus = GameStatus.FINISHED;
-      return 100;
+      this.gv.server.to(this.gv.gameId).emit("finished", {p1Score: this.score[0], p2Score: this.score[1]});
+      return 1;
     } else if (curTime - this.roundStartTime >= 3000) {
       this.gameStatus = GameStatus.RUNNING;
-      console.log(`game mode: ${this.gameMode}`);
       this.init();
-      // this.gv.server.to(this.gv.gameId).emit('countdown', true);
-      return 100;
+      return 1;
     }
-    return curTime - this.roundStartTime + 3000;
+    const objectInfo = {...this.lastUpdateCoords};
+    objectInfo.ballSpeedX = 0;
+    objectInfo.ballSpeedY = 0;
+    this.gv.server.to(this.gv.gameId).emit('syncData', objectInfo);
+    console.log(`curtime - roundStartTime: ${curTime - this.roundStartTime}`)
+    const timeout = 3000 - (curTime - this.roundStartTime);
+    console.log(`timeout: ${timeout}`)
+    this.gv.server.to(this.gv.gameId).emit('countdown', {curTime: curTime, time: timeout});
+    console.log(timeout);
+    return timeout;
   }
 
   private getHitTime(): number {
@@ -403,7 +388,7 @@ class Game {
       this.lastUpdateCoords.keyPress[i] = 0;
     }
     this.gv.server.to(this.gv.gameId).emit("scoreInfo", {gameCoord: this.lastUpdateCoords, scoreInfo: {p1Score: this.score[0], p2Score: this.score[1]}});
-    return 10;
+    return 1;
   }
   
   private running(curTime: number): number {
@@ -470,7 +455,7 @@ class Game {
     this.gv.server.in(this.gv.gameId).disconnectSockets();
   }
 
-  private update(curTime: number): number {
+  private async update(curTime: number): Promise<number> {
     let timeout:number
     switch(this.gameStatus) {
       case GameStatus.MODESELECT: {
@@ -479,6 +464,7 @@ class Game {
       }
       case GameStatus.COUNTDOWN: {
         timeout = this.countdown(curTime);
+        console.log(timeout);
         break;
       }
       case GameStatus.RUNNING: {
@@ -487,19 +473,13 @@ class Game {
       }
       case GameStatus.FINISHED: {
         console.log("finished!!!!!");
-        // this.gv.server.to(this.gv.gameId).emit("finished", {p1Score: this.score[0], p2Score: this.score[1]});
+        this.gv.server.to(this.gv.gameId).emit("finished", {p1Score: this.score[0], p2Score: this.score[1]});
         this.gameStatus = GameStatus.DISCONNECT;
         timeout = 1000;
         break;
       }
       case GameStatus.DISCONNECT: {
-        Promise.resolve(async (resolve, reject) => {
-          try {
-            await this.disconnect();
-          } catch (e) {
-            reject(e);
-          }
-        })
+        await this.disconnect(); 
         timeout = -1;
         break;
       }

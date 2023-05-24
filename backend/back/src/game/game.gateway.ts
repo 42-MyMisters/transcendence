@@ -241,18 +241,18 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   handleDisconnect(@ConnectedSocket() socket: Socket) {
     const user = socket.data.user;
-    if (socket.data.room !== undefined) {
+    const joinedRoom = socket.data.room;
+    if (joinedRoom !== undefined) {
       // Game finished or socket disconnected while game playing(Maybe refreshed).
-      const curGame = this.gameService.getGame(socket.data.room);
+      const curGame = this.gameService.getGame(joinedRoom);
       if (curGame === undefined) {
-        this.logger.log(`${user.uid} invalid socket connection disconnected.`);
-        this.userInGame.delete(user.uid);
+        this.logger.log(`${user.uid} is already disconnected by the server.`);
       } else if (curGame.isPlayer(user.uid)) {
         curGame.playerLeft(user.uid);
-        this.userInGame.delete(user.uid);
         this.logger.log(`${user.uid} player left.`);
       } else {
         this.logger.log(`${user.uid} observer left.`);
+        this.userInGame.delete(user.uid);
       }
     } else {
       if (socket.handshake.auth.observ !== undefined) {
