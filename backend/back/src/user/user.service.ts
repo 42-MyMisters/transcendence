@@ -213,24 +213,15 @@ export class UserService {
 		return followingUserDtos;
 	}
 
-	async getUserProfile(uid: number, isMe: boolean = false): Promise<UserProfileDto> {
-		// const findUser = await this.databaseService.findUserByUid(uid);
-		// if (!this.isUserExist(findUser))
-		// 	throw new NotFoundException(`${uid} user not found`);
-		// const findFollwing = await this.getUserFollowing(uid);
-		// const userDto = await UserProfileDto.fromUserEntity(findUser, findFollwing);
-		// userDto.Games = await this.databaseService.findAllGameByUserid(uid);
-
+	async getUserProfile(uid: number, isMe: boolean = false): Promise<UserProfileDto> {	
 		const findUser = await this.databaseService.findUserData(uid);
-		console.log('@@@' + findUser?.followings + "@@@");
+		const findFollwing = await this.getUserFollowing(uid);
 		if (!this.isUserExist(findUser))
 			throw new NotFoundException(`${uid} user not found`);
-		const userDto = await UserProfileDto.ffromUserEntity(findUser);
+		const userDto = await UserProfileDto.fromUserEntity(findUser, findFollwing);
 		if (!isMe) {
 			userDto.tfaEnabled = false;
 		}
-		
-		console.log(JSON.stringify(userDto));
 		return userDto;
 	}
 

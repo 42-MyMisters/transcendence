@@ -9,23 +9,10 @@ export class UserProfileDto {
 	profileUrl: string;
 	ELO: number;
 	followings: FollowingUserDto[];
-	Games: Game[];
+	games: Game[];
 	tfaEnabled: boolean;
 
-	static async ffromUserEntity(user: User): Promise<UserProfileDto> {
-		const userProfileDto = new UserProfileDto();
-		userProfileDto.uid = user.uid;
-		userProfileDto.nickname = user.nickname;
-		userProfileDto.profileUrl = user.profileUrl;
-		userProfileDto.tfaEnabled = user.twoFactorEnabled;
-		userProfileDto.ELO = user.elo;
-		const followingUserDtos = await Promise.all(user.followings.map(async (userFollow) => {
-			return await FollowingUserDto.mapUserFollowToFollowingUserDto(userFollow);
-		}));
-		userProfileDto.followings = followingUserDtos;
-		userProfileDto.Games = user.wonGames.concat(user.lostGames);
-		return userProfileDto;
-	}
+
 	static async fromUserEntity(user: User, userFollowList: UserFollow[]): Promise<UserProfileDto> {
 		const userProfileDto = new UserProfileDto();
 		userProfileDto.uid = user.uid;
@@ -37,6 +24,24 @@ export class UserProfileDto {
 			return await FollowingUserDto.mapUserFollowToFollowingUserDto(userFollow);
 		}));
 		userProfileDto.followings = followingUserDtos;
+		userProfileDto.games = this.mergeGames(user.wonGames, user.lostGames);
 		return userProfileDto;
 	}
+
+	static mergeGames(wonGames: Game[] = [], lostGames: Game[] = []): Game[] {
+		// 예외처리: 두 배열이 모두 비어있을 경우
+		if (wonGames.length === 0 && lostGames.length === 0) {
+		  return [];
+		}
+			  
+		if (wonGames.length > 0 && lostGames.length > 0) {
+		  return [...wonGames, ...lostGames];
+		}
+	  
+		if (wonGames.length > 0) {
+		  return wonGames;
+		}
+	  
+		return lostGames;
+	  }
 }

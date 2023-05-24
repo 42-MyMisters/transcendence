@@ -60,7 +60,7 @@ export class DatabaseService {
     async findUserData(uid: number): Promise<User | null> {
         const findUser = await this.userRepository.findOne({
             relations: {
-                followings: true,
+                // followings: true,
                 wonGames: true,
                 lostGames: true,
             },
