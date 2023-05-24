@@ -57,6 +57,17 @@ export class DatabaseService {
         return user;
     }
 
+    // USER , Games JOIN READ
+    async findUserData(uid: number): Promise<User | null> {
+        const findUser = await this.userRepository.findOne({
+            relations: {
+                wonGames: true,
+                lostGames: true,
+            },
+            where: {uid}
+        });
+        return findUser;
+    }
 
 
     // USER UPDATE
@@ -228,11 +239,9 @@ export class DatabaseService {
 
     //GAME
     async findAllGameByUserid(uid: number) {
-        const winGames = await this.gameRepository.createQueryBuilder('gm')
-            .where('gm.winner.uid = :uid', { uid }).getRawMany();
-        const loseGames = await this.gameRepository.createQueryBuilder('gm')
-            .where('gm.loser.uid = :uid', { uid }).getRawMany();
-        return { winGames, loseGames };
+        const games = await this.gameRepository.createQueryBuilder('gm')
+            .where('gm.winner.uid = :uid', { uid }).orWhere('gm.loser.uid = :uid', { uid }).getMany();
+        return games;
     }
 
      
@@ -248,13 +257,15 @@ export class DatabaseService {
               take: 10,
         });
 
-        const leaderboardDto = foundUsers.map((user) => ({
+        const leaderboardDto = foundUsers.map((user) => (
+        {
           nickname: user.nickname,
           elo: user.elo,
           winGameCount: user.wonGames.length,
           lostGameCount: user.lostGames.length,
           totalGameCount: user.wonGames.length + user.lostGames.length
-        }));
+        }
+        ));
       
         return leaderboardDto;
       }

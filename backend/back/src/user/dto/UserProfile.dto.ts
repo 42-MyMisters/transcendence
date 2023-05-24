@@ -9,8 +9,10 @@ export class UserProfileDto {
 	profileUrl: string;
 	ELO: number;
 	followings: FollowingUserDto[];
-	winGames: Game[];
-	loseGames: Game[];
+	games: Game[];
+	wonGames: number;
+	lostGames: number;
+	totalGames: number;
 	tfaEnabled: boolean;
 
 
@@ -25,6 +27,26 @@ export class UserProfileDto {
 			return await FollowingUserDto.mapUserFollowToFollowingUserDto(userFollow);
 		}));
 		userProfileDto.followings = followingUserDtos;
+		userProfileDto.wonGames = user.wonGames.length;
+		userProfileDto.lostGames = user.lostGames.length;
+		userProfileDto.totalGames = userProfileDto.wonGames + userProfileDto.lostGames;
+		userProfileDto.games = this.mergeGames(user.wonGames, user.lostGames);
 		return userProfileDto;
 	}
+
+	static mergeGames(wonGames: Game[] = [], lostGames: Game[] = []): Game[] {
+		if (wonGames.length === 0 && lostGames.length === 0) {
+		  return [];
+		}
+
+		if (wonGames.length > 0 && lostGames.length > 0) {
+		  return [...wonGames, ...lostGames];
+		}
+	  
+		if (wonGames.length > 0) {
+		  return wonGames;
+		}
+	  
+		return lostGames;
+	  }
 }

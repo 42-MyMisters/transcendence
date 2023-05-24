@@ -1,20 +1,23 @@
-import { BaseEntity, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { BaseEntity, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "./user.entity";
 
 @Entity()
 export class UserFollow extends BaseEntity {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column()
   fromUserId: number;
 
-  @PrimaryColumn()
+  @Column()
   targetToFollowId: number;
 
-  @ManyToOne(type => User, fromUser => fromUser.followers, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
-  @JoinColumn({ name: 'fromUserId' })
+  @ManyToOne(type => User, fromUser => fromUser.followers)
+  @JoinColumn({ name: 'fromUserId', referencedColumnName: 'uid' })
   fromUser: User;
   
-  @ManyToOne(type => User, targetToFollow => targetToFollow.followings, { onDelete: 'CASCADE', onUpdate: 'CASCADE'})
-  @JoinColumn({ name: 'targetToFollowId' })
+  @ManyToOne(type => User, targetToFollow => targetToFollow.followings)
+  @JoinColumn({ name: 'targetToFollowId', referencedColumnName: 'uid' })
   targetToFollow: User;
 
   @CreateDateColumn()

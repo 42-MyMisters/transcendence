@@ -3,6 +3,7 @@ import * as bcrypt from 'bcrypt';
 import config from "config";
 import { authenticator } from "otplib";
 import { toDataURL } from 'qrcode';
+import { find } from "rxjs";
 import { DatabaseService } from "src/database/database.service";
 import { UserFollow } from "src/database/entity/user-follow.entity";
 import { User } from "src/database/entity/user.entity";
@@ -212,20 +213,15 @@ export class UserService {
 		return followingUserDtos;
 	}
 
-	async getUserProfile(uid: number, isMe: boolean = false): Promise<UserProfileDto> {
-		const findUser = await this.databaseService.findUserByUid(uid);
+	async getUserProfile(uid: number, isMe: boolean = false): Promise<UserProfileDto> {	
+		const findUser = await this.databaseService.findUserData(uid);
+		const findFollwing = await this.getUserFollowing(uid);
 		if (!this.isUserExist(findUser))
 			throw new NotFoundException(`${uid} user not found`);
-		const findFollwing = await this.getUserFollowing(uid);
 		const userDto = await UserProfileDto.fromUserEntity(findUser, findFollwing);
-
-		const gameStatus = await this.databaseService.findAllGameByUserid(uid);
-		userDto.winGames = gameStatus.winGames;
-		userDto.loseGames = gameStatus.loseGames;
 		if (!isMe) {
 			userDto.tfaEnabled = false;
 		}
-
 		return userDto;
 	}
 
