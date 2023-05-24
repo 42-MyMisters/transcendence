@@ -159,18 +159,24 @@ export default function GamePage() {
       setP2Id(p2);
       player1.uid = p1;
       player2.uid = p2;
+      player1.name = userList[p1]?.userDisplayName || 'Norminette';
+      player2.name = userList[p2]?.userDisplayName || 'LoremIpsum';
     } else if (p2 === userInfo.uid) {
       setGamePlayer(GamePlayer.player2);
       setP1Id(p2);
       setP2Id(p1);
       player1.uid = p2;
       player2.uid = p1;
+      player1.name = userList[p2]?.userDisplayName || 'Norminette';
+      player2.name = userList[p1]?.userDisplayName || 'LoremIpsum';
     } else {
       setGamePlayer(GamePlayer.observer);
       setP1Id(p1);
       setP2Id(p2);
       player1.uid = p1;
       player2.uid = p2;
+      player1.name = userList[p1]?.userDisplayName || 'Norminette';
+      player2.name = userList[p2]?.userDisplayName || 'LoremIpsum';
     }
     setIsMatched(true);
   };
@@ -182,6 +188,8 @@ export default function GamePage() {
     setP2Id(p2);
     player1.uid = p1;
     player2.uid = p2;
+    player1.name = userList[p1]?.userDisplayName || 'Norminette';
+    player2.name = userList[p2]?.userDisplayName || 'LoremIpsum';
   };
 
   useEffect(() => {
@@ -222,6 +230,7 @@ export default function GamePage() {
             onClick={() => {
               const loading = !isLoading;
               setIsLoading(loading);
+              setIsGameStart(!loading);
             }}
           >
             LadderRanking

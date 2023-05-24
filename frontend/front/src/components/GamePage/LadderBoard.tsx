@@ -38,7 +38,7 @@ export default function LadderBoard() {
               return (
                 <LadderLog
                   key={key.nickname}
-                  rank={String(value)}
+                  rank={String(value + 1)}
                   nickName={key.nickname}
                   record={key.winRate + '% - ' + key.winGameCount + "win " + key.lostGameCount + "lose"}
                   elo={String(key.elo)}
