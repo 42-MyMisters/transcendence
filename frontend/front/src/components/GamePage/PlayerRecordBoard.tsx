@@ -1,6 +1,7 @@
 import { useAtomValue } from 'jotai';
 import "../../styles/GamePlayerInfo.css";
 import { userListAtom } from '../atom/ChatAtom';
+import { GameRecordType } from '../atom/UserAtom';
 
 export function PlayerRecordLine({
   LeftSideNickName,
@@ -51,36 +52,33 @@ export default function PlayerRecordBoard({
   records,
   userId,
 }: {
-  // records: GameRecordType[];
-  records: any;
+  records: GameRecordType[];
   userId: number;
 }) {
-  const userList = useAtomValue(userListAtom);
-
-  const rec = '';
-
-  // const rec = records.reverse().map((record) => (
-  //   record.gm_winnerId === userId
-  //     ? <PlayerRecordLine
-  //       key={record.gm_gid + userId}
-  //       LeftSideNickName={userList[userId].userDisplayName}
-  //       LeftSideScore={record.gm_winnerScore}
-  //       RightSideScore={record.gm_loserScore}
-  //       RightSideNickName={userList[record.gm_loserId].userDisplayName}
-  //     />
-  //     : <PlayerRecordLine
-  //       key={record.gm_gid + userId}
-  //       LeftSideNickName={userList[userId].userDisplayName}
-  //       LeftSideScore={record.gm_loserScore}
-  //       RightSideScore={record.gm_winnerScore}
-  //       RightSideNickName={userList[record.gm_winnerId].userDisplayName}
-  //     />
-  // )
-  // );
-
   return (
     <div className="PlayerRecordBoard">
-      <div className="PlayerRecoreList">{rec}</div>
+      {/* <div className="PlayerRecoreList">{rec}</div> */}
+      {
+        records?.map((game) => {
+          return (
+            game.winnerUid === userId
+              ? <PlayerRecordLine
+                key={game.gid + game.winnerNickname + game.loserNickname}
+                LeftSideNickName={game.winnerNickname}
+                LeftSideScore={game.winnerScore}
+                RightSideScore={game.loserScore}
+                RightSideNickName={game.loserNickname}
+              />
+              : <PlayerRecordLineLose
+                key={game.gid + game.winnerNickname + game.loserNickname}
+                LeftSideNickName={game.winnerNickname}
+                LeftSideScore={game.winnerScore}
+                RightSideScore={game.loserScore}
+                RightSideNickName={game.loserNickname}
+              />
+          );
+        })
+      }
     </div>
   );
 }
