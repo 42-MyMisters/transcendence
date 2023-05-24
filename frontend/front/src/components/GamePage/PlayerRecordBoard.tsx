@@ -59,25 +59,28 @@ export default function PlayerRecordBoard({
     <div className="PlayerRecordBoard">
       {/* <div className="PlayerRecoreList">{rec}</div> */}
       {
-        records?.map((game) => {
-          return (
-            game.winnerUid === userId
-              ? <PlayerRecordLine
-                key={game.gid + game.winnerNickname + game.loserNickname}
-                LeftSideNickName={game.winnerNickname}
-                LeftSideScore={game.winnerScore}
-                RightSideScore={game.loserScore}
-                RightSideNickName={game.loserNickname}
-              />
-              : <PlayerRecordLineLose
-                key={game.gid + game.winnerNickname + game.loserNickname}
-                LeftSideNickName={game.winnerNickname}
-                LeftSideScore={game.winnerScore}
-                RightSideScore={game.loserScore}
-                RightSideNickName={game.loserNickname}
-              />
-          );
-        })
+
+        records?.length === 0
+          ? ''
+          : records?.map((game) => {
+            return (
+              game.winnerUid === userId
+                ? <PlayerRecordLine
+                  key={game.gid + game.winnerNickname + game.loserNickname}
+                  LeftSideNickName={game.winnerNickname}
+                  LeftSideScore={game.winnerScore}
+                  RightSideScore={game.loserScore}
+                  RightSideNickName={game.loserNickname}
+                />
+                : <PlayerRecordLineLose
+                  key={game.gid + game.winnerNickname + game.loserNickname}
+                  LeftSideNickName={game.winnerNickname}
+                  LeftSideScore={game.winnerScore}
+                  RightSideScore={game.loserScore}
+                  RightSideNickName={game.loserNickname}
+                />
+            );
+          })
       }
     </div>
   );
