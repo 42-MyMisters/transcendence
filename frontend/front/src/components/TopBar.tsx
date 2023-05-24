@@ -2,14 +2,14 @@ import { Cookies } from "react-cookie";
 import "../styles/TopBar.css";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { refreshTokenAtom } from "./atom/LoginAtom";
 import { LogOut } from "../event/api.request";
 import * as socket from "../socket/chat.socket";
 import * as chatAtom from "../components/atom/ChatAtom";
 import { AdminLogPrinter } from "../event/event.util";
 import { isMyProfileAtom } from "../components/atom/UserAtom";
-import { isPrivateAtom } from "./atom/GameAtom";
+import { isGameStartedAtom, isPrivateAtom } from "./atom/GameAtom";
 
 export default function TopBar() {
   return (
@@ -42,8 +42,14 @@ function LogoBtn() {
 }
 
 function ChatBtn() {
+  const setIsGameStart = useSetAtom(isGameStartedAtom);
+
+  const clickHandler = () => {
+    setIsGameStart(false);
+  };
+
   return (
-    <div className="TopBarBtn">
+    <div className="TopBarBtn" onClick={clickHandler}>
       <NavLink to="/chat" className="AStyle" style={getNavLinkStyle}>
         Chat
       </NavLink>
@@ -52,14 +58,16 @@ function ChatBtn() {
 }
 
 function QueueBtn() {
-  const [, setIsPrivate] = useAtom(isPrivateAtom);
+  const setIsPrivate = useSetAtom(isPrivateAtom);
+  const setIsGameStart = useSetAtom(isGameStartedAtom);
 
-  const queueHandler = () => {
+  const clickHandler = () => {
     setIsPrivate(false);
+    setIsGameStart(false);
   };
 
   return (
-    <div className="TopBarBtn" onClick={queueHandler}>
+    <div className="TopBarBtn" onClick={clickHandler}>
       <NavLink to="/game" className="AStyle" style={getNavLinkStyle}>
         Queue
       </NavLink>
@@ -69,15 +77,15 @@ function QueueBtn() {
 
 function ProfileBtn() {
   const setIsMyProfile = useSetAtom(isMyProfileAtom);
-  const setIsPrivate = useSetAtom(isPrivateAtom)
+  const setIsGameStart = useSetAtom(isGameStartedAtom);
 
-  const profileHandler = () => {
+  const clickHandler = () => {
     setIsMyProfile(true);
-    setIsPrivate(false);
+    setIsGameStart(false);
   };
 
   return (
-    <div className="TopBarBtn" onClick={profileHandler}>
+    <div className="TopBarBtn" onClick={clickHandler}>
       <NavLink to="/profile" className="AStyle" style={getNavLinkStyle}>
         Profile
       </NavLink>
@@ -86,10 +94,10 @@ function ProfileBtn() {
 }
 
 function LogoutBtn() {
-  const [, setRefreshToken] = useAtom(refreshTokenAtom);
-  const [isFirstLogin, setIsFirstLogin] = useAtom(chatAtom.isFirstLoginAtom);
-  const [hasLogin, setHasLogin] = useAtom(chatAtom.hasLoginAtom);
-  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
+  const setRefreshToken = useSetAtom(refreshTokenAtom);
+  const setIsFirstLogin = useSetAtom(chatAtom.isFirstLoginAtom);
+  const setHasLogin = useSetAtom(chatAtom.hasLoginAtom);
+  const adminConsole = useAtomValue(chatAtom.adminConsoleAtom);
 
   const navigate = useNavigate();
 

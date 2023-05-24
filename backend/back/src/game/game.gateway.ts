@@ -18,7 +18,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   private readyQueue: Socket[]; // for 3 sec delay befor match.
   private gamePool: Map<number, Socket[]>; // for matchQueue.
   private privatePool: Map<number, Socket>; // for private game.
-  private userInGame: Map<number, string>; // user - room name 
+  private userInGame: Map<number, string>; // user - room name
   private gameId: number; // game room name
   private readonly matchMakingLoopInterval: number = 2000;
   private readonly initialQueueDelay: number = 3;
@@ -26,9 +26,9 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   private readonly maxRange: number = 20; // maxRange +-200
   constructor(
     private readonly userService: UserService,
-		private readonly authService: AuthService,
+    private readonly authService: AuthService,
     private readonly gameService: GameService,
-	) {
+  ) {
     this.readyQueue = [];
     this.gamePool = new Map<number, Socket[]>();
     this.privatePool = new Map<number, Socket>();
@@ -37,12 +37,12 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     // Match making loop
     setInterval(this.gameMatchLogic.bind(this), this.matchMakingLoopInterval);
   }
-  
+
   logger = new Logger('GameGateway');
-  
+
   @WebSocketServer()
   server: Namespace;
-  
+
   afterInit(server: any) {
     // WebSocket 서버 초기화 작업
   }
@@ -73,7 +73,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         }
       }
     }
-    
+
     const curTime = this.getTimeInSec();
     for (const [elo, socketList] of this.gamePool) {
       // quick match from the same tier pool.
@@ -81,7 +81,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         const sockA = socketList.shift()!;
         const sockB = socketList.shift()!;
         this.createGameFromQueue(sockA, sockB);
-      }      
+      }
       if (socketList.length === 0) {
         this.gamePool.delete(elo);
       }
@@ -94,7 +94,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         const mySocket = matchQueue[i][1][0];
         // range will be increased.
         const range = this.getMatchRange(curTime, mySocket);
-        this.logger.log('Queue state', matchQueue);
+        // this.logger.log('Queue state', matchQueue);
         if (i === 0) {
           const nextElo = matchQueue[i + 1][0];
           if (myElo + range >= nextElo) {
@@ -154,13 +154,13 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     sockB.data.room = gameId;
     this.gameService.createGame(gv);
   }
-  
+
   private joinRoom(socket: Socket, gameId: string) {
     this.logger.log(`${socket.id} joined ${gameId}`);
     socket.join(gameId);
     socket.data.room = gameId;
   }
-  
+
   private adjElo(elo: number) {
     return Math.trunc(elo / 10);
   }
@@ -180,8 +180,8 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         // socket disconnected before putting in gamePool.
         throw new UnauthorizedException("already disconnected.");
       }
-      const invite:number = socket.handshake.auth.invite;
-      const observ:number = socket.handshake.auth.observ;
+      const invite: number = socket.handshake.auth.invite;
+      const observ: number = socket.handshake.auth.observ;
       this.logger.log(`client connected uid: ${socket.data.user.uid}`);
       if (invite !== undefined) {
         this.logger.log(`private pool: ${this.privatePool}`);
@@ -192,7 +192,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
           const gameId = p1.uid.toString() + "+" + p2.uid.toString();
           const gv: GameStartVar = {
             gameId,
-            server:this.server,
+            server: this.server,
             p1,
             p2,
             gameType: GameType.PRIVATE,
@@ -208,8 +208,9 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       } else if (observ !== undefined) {
         const gameId = this.userInGame.get(observ);
         if (gameId !== undefined && this.gameService.gameState(gameId) < GameStatus.FINISHED) {
-          socket.emit("observer joined room");
+          const curGame = this.gameService.getGame(gameId);
           socket.data.room = gameId;
+          socket.emit("observer", curGame!.gameInfo());
           socket.join(gameId);
         } else {
           console.log("Already finished. Disconnect socket.");
@@ -227,11 +228,12 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
           socket.data.timestamp = this.getTimeInSec();
           this.readyQueue.push(socket);
         } else {
+          // not working
           console.log("Reconnected.");
           socket.join(gameId);
         }
       }
-    } catch(e) {
+    } catch (e) {
       this.logger.log(`${socket.data.user.uid} invalid connection. reason: ${e}. disconnect socket.`);
       socket.disconnect();
     }
@@ -244,6 +246,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       const curGame = this.gameService.getGame(socket.data.room);
       if (curGame === undefined) {
         this.logger.log(`${user.uid} invalid socket connection disconnected.`);
+        this.userInGame.delete(user.uid);
       } else if (curGame.isPlayer(user.uid)) {
         curGame.playerLeft(user.uid);
         this.userInGame.delete(user.uid);
@@ -261,7 +264,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         this.privatePool.delete(user.uid);
       } else {
         const queueLen = this.readyQueue.length;
-        this.readyQueue = this.readyQueue.filter((sock) => {return sock !== socket});
+        this.readyQueue = this.readyQueue.filter((sock) => { return sock !== socket });
         if (this.readyQueue.length !== queueLen) {
           // Not moved to gamePool. remove from the readyQueue.
           // Nothing to handle.
@@ -271,7 +274,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
           const eloList = this.gamePool.get(eloAdj);
           if (eloList !== undefined) {
             if (eloList.length > 1) {
-              this.gamePool.set(eloAdj, eloList.filter((sock) => {return sock !== socket}));
+              this.gamePool.set(eloAdj, eloList.filter((sock) => { return sock !== socket }));
             } else {
               this.gamePool.delete(eloAdj);
             }
@@ -279,7 +282,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         }
       }
     }
-    this.logger.log(`${user.uid} disconnected.`);
+    this.logger.log(`${user?.uid} disconnected.`);
   }
 
   @SubscribeMessage('status')
@@ -297,7 +300,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       }
     }
   }
-  
+
   @SubscribeMessage('downPress')
   downPress(socket: Socket) {
     if (socket.data.room) {
@@ -307,7 +310,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       }
     }
   }
-  
+
   @SubscribeMessage('upRelease')
   upRelease(socket: Socket) {
     if (socket.data.room) {
@@ -317,7 +320,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       }
     }
   }
-  
+
   @SubscribeMessage('downRelease')
   downRelease(socket: Socket) {
     if (socket.data.room) {

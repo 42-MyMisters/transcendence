@@ -36,9 +36,23 @@ export const gameSocketAtom = atom<Socket>(io(`${URL}${NameSpace}`, {
 	upgrade: true,
 }));
 
-export const isP1Atom = atom<boolean>(true);
+export const enum GamePlayer {
+	undefined = 0,
+  player1 = 1,
+  player2 = 2,
+  observer = 3,
+}
+
+export const enum GameMode {
+  DEFAULT = 0,
+  SPEED = 1,
+}
+
+export const gamePlayerAtom = atom<GamePlayer>(GamePlayer.player1);
 
 export const gameWinnerAtom = atom<number>(0);
+
+export const gameModeForDisplayAtom = atom<GameMode>(GameMode.DEFAULT);
 
 export const p1IdAtom = atom<number>(-1);
 

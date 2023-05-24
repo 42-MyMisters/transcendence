@@ -129,8 +129,8 @@ class Game {
     if (Math.random() >= 0.5) {
       this.ballSpeedX = -this.ballSpeedX;
     }
-    // +-28 degree range.
-    this.ballSpeedY = this.ballSpeedX * 0.6 * (Math.random() * 2 - 1);
+    // +-22.7 degree range.
+    this.ballSpeedY = this.ballSpeedX * 0.42 * (Math.random() * 2 - 1);
     for (let i = 0; i < 4; i++) {
       this.keyPress[i] = 0;
     }
@@ -138,10 +138,6 @@ class Game {
     this.paddle1Y = this.paddle2Y = (this.canvasHeight - this.paddleHeight) / 2;
     this.roundStartTime = Date.now();
     this.lastUpdateCoords = this.curState(this.roundStartTime);
-    const objectInfo = {...this.lastUpdateCoords};
-    objectInfo.ballSpeedX = 0;
-    objectInfo.ballSpeedY = 0;
-    this.gv.server.to(this.gv.gameId).emit('syncData', objectInfo);
   }
 
   gameStart() {
@@ -154,10 +150,10 @@ class Game {
   modeSelect(curTime: number) {
     if (curTime - this.roundStartTime >= 5000) {
       this.gameStatus = GameStatus.COUNTDOWN;
-      this.roundStartTime = Date.now();
       this.lastUpdate = this.roundStartTime;
-      this.gv.server.to(this.gv.gameId).emit('gameStart');
-      return 1;
+      // this.gv.server.to(this.gv.gameId).emit('gameStart', this.gameInfo());
+      this.roundStartTime = Date.now();
+      return 10;
     }
     return 5000 - curTime + this.roundStartTime;
   }
@@ -183,7 +179,8 @@ class Game {
   
   upPress(uid: number) {
     if (this.gameStatus === GameStatus.RUNNING) {
-      this.update();
+      const curTime = Date.now();
+      this.update(curTime);
       if (this.gv.p1.uid === uid) {
         this.keyPress[0] = Date.now();
       } else {
@@ -196,7 +193,8 @@ class Game {
   
   upRelease(uid: number) {
     if (this.gameStatus === GameStatus.RUNNING) {
-      this.update();
+      const curTime = Date.now();
+      this.update(curTime);
       if (this.gv.p1.uid === uid) {
         this.keyPress[0] = 0;
       } else {
@@ -209,7 +207,8 @@ class Game {
 
   downPress(uid: number) {
     if (this.gameStatus === GameStatus.RUNNING) {
-      this.update();
+      const curTime = Date.now();
+      this.update(curTime);
       if (this.gv.p1.uid === uid) {
         this.keyPress[1] = Date.now();
       } else {
@@ -222,7 +221,8 @@ class Game {
   
   downRelease(uid: number) {
     if (this.gameStatus === GameStatus.RUNNING) {
-      this.update();
+      const curTime = Date.now();
+      this.update(curTime);
       if (this.gv.p1.uid === uid) {
         this.keyPress[1] = 0;
       } else {
@@ -234,11 +234,8 @@ class Game {
   }
 
   setMode(mode: GameMode) {
-    console.log(`setMode!!!!!!!!!!!! mode: ${mode}`);
     if (this.gameStatus === GameStatus.MODESELECT) {
-      console.log(`setMode!!!!!!!!!!!! mode: ${mode}`);
       this.gameMode = mode;
-      console.log(`setMode!!!!!!!!!!!! gameMode: ${this.gameMode}`);
     }
   }
 
@@ -256,16 +253,37 @@ class Game {
 
   // Event driven update
   private async gameLoop() {
-    // const timestamp = performance.now();
-    const timestamp = Date.now();
-    const timeout = await this.update();
-    console.log(`update time: ${Date.now() - timestamp}`);
-    // console.log(`update time: ${performance.now() - timestamp}`);
-    if (this.gameStatus === GameStatus.RUNNING) {
-      this.gv.server.to(this.gv.gameId).emit("syncData", this.lastUpdateCoords);
-    }
+    // const timestamp = Date.now();
+    const timestamp = performance.now();
+    const curTime = Date.now();
+    const timeout = this.update(curTime);
+    const timestamp2 = performance.now();
+    console.log(`update time: ${timestamp2 - timestamp}`);
     if (timeout !== -1) {
       setTimeout(this.gameLoop.bind(this), timeout);
+      switch(this.gameStatus) {
+        case GameStatus.MODESELECT: {
+          this.gv.server.to(this.gv.gameId).emit('gameStart', this.gameInfo());
+          break;
+        }
+        case GameStatus.COUNTDOWN: {
+          const objectInfo = {...this.lastUpdateCoords};
+          objectInfo.ballSpeedX = 0;
+          objectInfo.ballSpeedY = 0;
+          this.gv.server.to(this.gv.gameId).emit('syncData', objectInfo);
+          this.gv.server.to(this.gv.gameId).emit('countdown', {curTime: curTime, time: curTime - this.roundStartTime + 3000});
+          break;
+        }
+        case GameStatus.RUNNING: {
+          this.gv.server.to(this.gv.gameId).emit("syncData", this.lastUpdateCoords);
+          break;
+        }
+        case GameStatus.FINISHED: {
+          this.gv.server.to(this.gv.gameId).emit("finished", {p1Score: this.score[0], p2Score: this.score[1]});
+          break;
+        }
+      }
+
     } else {
       this.games.delete(this.gv.gameId);
     }
@@ -286,7 +304,6 @@ class Game {
       // this.gv.server.to(this.gv.gameId).emit('countdown', true);
       return 100;
     }
-    this.gv.server.to(this.gv.gameId).emit('countdown', true);
     return curTime - this.roundStartTime + 3000;
   }
 
@@ -428,7 +445,7 @@ class Game {
     return timeout;
   }
 
-  private async disconnect(): Promise<number> {
+  private async disconnect(): Promise<void> {
     const result = new GameEntity();
     result.gameType = this.gv.gameType;
     if (this.score[0] > this.score[1]){
@@ -451,11 +468,9 @@ class Game {
     }
 
     this.gv.server.in(this.gv.gameId).disconnectSockets();
-    return -1;
   }
 
-  private async update(): Promise<number> {
-    const curTime = Date.now();
+  private update(curTime: number): number {
     let timeout:number
     switch(this.gameStatus) {
       case GameStatus.MODESELECT: {
@@ -472,13 +487,20 @@ class Game {
       }
       case GameStatus.FINISHED: {
         console.log("finished!!!!!");
-        this.gv.server.to(this.gv.gameId).emit("finished", {p1Score: this.score[0], p2Score: this.score[1]});
+        // this.gv.server.to(this.gv.gameId).emit("finished", {p1Score: this.score[0], p2Score: this.score[1]});
         this.gameStatus = GameStatus.DISCONNECT;
         timeout = 1000;
         break;
       }
       case GameStatus.DISCONNECT: {
-        timeout = await this.disconnect();
+        Promise.resolve(async (resolve, reject) => {
+          try {
+            await this.disconnect();
+          } catch (e) {
+            reject(e);
+          }
+        })
+        timeout = -1;
         break;
       }
 

@@ -1,7 +1,7 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { userInfoModalAtom } from "../../components/atom/ModalAtom";
 import * as api from "../../event/api.request";
-import { PressKey } from "../../event/event.util";
+import { AdminLogPrinter, PressKey } from "../../event/event.util";
 
 import { IoCloseOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
@@ -10,7 +10,7 @@ import { refreshTokenAtom } from "../../components/atom/LoginAtom";
 import { ProfileAtom, isMyProfileAtom } from "../../components/atom/UserAtom";
 import * as socket from "../../socket/chat.socket";
 import "../../styles/UserInfoModal.css";
-import { gameInviteInfoAtom, isGameStartedAtom, isPrivateAtom } from "../atom/GameAtom";
+import { gameInviteInfoAtom, isGameStartedAtom, isPrivateAtom, p2IdAtom } from "../atom/GameAtom";
 import { UserInfoModalInfo } from "../atom/UserInfoModalAtom";
 
 export default function UserInfoModal() {
@@ -29,6 +29,7 @@ export default function UserInfoModal() {
   const setIsMyProfile = useSetAtom(isMyProfileAtom);
   const setProfile = useSetAtom(ProfileAtom);
   const navigate = useNavigate();
+  const setP2Id = useSetAtom(p2IdAtom);
 
   const logOutHandler = () => {
     api.LogOut(adminConsole, setRefreshToken, navigate, "/");
@@ -105,13 +106,17 @@ export default function UserInfoModal() {
   };
 
   const callbackInvite = () => {
+    AdminLogPrinter(adminConsole, `invite ${userInfo.uid}`);
     socket.emitGameInvite({ adminConsole, navigate }, userInfo.uid, userInfo.nickName);
     setGameInviteInfo({ gameType: 'invite', userId: userInfo.uid });
     setIsPrivate(true);
+    setP2Id(userInfo.uid);
+    setIsGameStart(false);
     infoModalOff();
     navigate("/game");
   };
   const callbackObserv = () => {
+    AdminLogPrinter(adminConsole, `observ ${userInfo.uid}`);
     infoModalOff();
     setGameInviteInfo({ gameType: 'observe', userId: userInfo.uid });
     setIsPrivate(false);

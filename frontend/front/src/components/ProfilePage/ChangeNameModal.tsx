@@ -104,7 +104,7 @@ export default function ChangeNameModal() {
             // pattern=".{1, 8}"
             // required
             // title="1 to 8 characters"
-            maxLength={12}
+            maxLength={8}
             value={newName}
             onChange={(e) => {
               setNewName(e.target.value);
