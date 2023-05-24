@@ -1,6 +1,8 @@
 import React from "react";
 import { GameCoordinate } from "../../socket/game.dto";
 import { ball, HEIGHT, net, player1, player2, WIDTH } from "./GameInfo";
+import { useAtomValue } from 'jotai';
+import PlayerRecordBoard from './PlayerRecordBoard';
 
 function drawRect(
   x: number,
@@ -29,6 +31,34 @@ function drawCircle(
     context.arc(x, y, r, 0, Math.PI * 2, false);
     context.closePath();
     context.fill();
+  }
+}
+
+function drawName(
+  text: string,
+  x: number,
+  y: number,
+  color: string,
+  context: CanvasRenderingContext2D
+) {
+  if (context) {
+    context.fillStyle = color;
+    context.font = "30px Arial";
+    context.fillText(text, x, y);
+  }
+}
+
+function drawCounter(
+  text: number,
+  x: number,
+  y: number,
+  color: string,
+  context: CanvasRenderingContext2D
+) {
+  if (context) {
+    context.fillStyle = color;
+    context.font = "200px Arial";
+    context.fillText(text.toString(), x, y);
   }
 }
 
@@ -64,7 +94,7 @@ export function Game(gameInfo: GameCoordinate, canvas: React.RefObject<HTMLCanva
     drawCircle(player1.x + player1.width / 2, gameInfo.paddle1Y + player1.width / 2, player1.width / 2, player1.color, context);
     drawRect(player1.x, gameInfo.paddle1Y + player1.width / 2, player1.width, player1.height - player1.width, player1.color, context);
     drawCircle(player1.x + player1.width / 2, gameInfo.paddle1Y + player1.height - player1.width / 2, player1.width / 2, player1.color, context);
-    
+
     drawCircle(player2.x + player2.width / 2, gameInfo.paddle2Y + player2.width / 2, player2.width / 2, player2.color, context);
     drawRect(player2.x, gameInfo.paddle2Y + player2.width / 2, player2.width, player2.height - player2.width, player2.color, context);
     drawCircle(player2.x + player2.width / 2, gameInfo.paddle2Y + player2.height - player2.width / 2, player2.width / 2, player2.color, context);
@@ -73,5 +103,10 @@ export function Game(gameInfo: GameCoordinate, canvas: React.RefObject<HTMLCanva
     //score
     drawText(player1.score, WIDTH / 4, 50, "WHITE", context);
     drawText(player2.score, 3 * (WIDTH / 4), 50, "WHITE", context);
+
+    drawCounter(1, (WIDTH / 2) - 66, (HEIGHT / 2) + 75, "WHITE", context);
+
+    drawName(player1.name, 75, 50, "WHITE", context);
+    drawName(player2.name, (WIDTH / 4) * 3 + 50, 50, "WHITE", context);
   }
 }

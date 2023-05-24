@@ -134,13 +134,15 @@ export default function GamePage() {
   //https://socket.io/docs/v4/client-socket-instance/#disconnect
   const disconnectionEventHandler = (reason: string) => {
     if (reason === "io server disconnect") {
+    } else if (reason === "io client disconnect") {
+      setIsGameStart(false);
     }
     console.log(`gameSocket end`, reason);
     clearState();
     AdminLogPrinter(adminConsole, "gameSocket disconnected");
   };
 
-  const gameStartEventHandler = ({gameMode, p1, p2}: {gameMode: GameMode, p1: number, p2: number}) => {
+  const gameStartEventHandler = ({ gameMode, p1, p2 }: { gameMode: GameMode, p1: number, p2: number }) => {
     AdminLogPrinter(adminConsole, "game start");
     setGameModeForDisplay(gameMode);
     setIsLoading(false);
@@ -157,29 +159,37 @@ export default function GamePage() {
       setP2Id(p2);
       player1.uid = p1;
       player2.uid = p2;
+      player1.name = userList[p1]?.userDisplayName || 'Norminette';
+      player2.name = userList[p2]?.userDisplayName || 'LoremIpsum';
     } else if (p2 === userInfo.uid) {
       setGamePlayer(GamePlayer.player2);
       setP1Id(p2);
       setP2Id(p1);
       player1.uid = p2;
       player2.uid = p1;
+      player1.name = userList[p2]?.userDisplayName || 'Norminette';
+      player2.name = userList[p1]?.userDisplayName || 'LoremIpsum';
     } else {
       setGamePlayer(GamePlayer.observer);
       setP1Id(p1);
       setP2Id(p2);
       player1.uid = p1;
       player2.uid = p2;
+      player1.name = userList[p1]?.userDisplayName || 'Norminette';
+      player2.name = userList[p2]?.userDisplayName || 'LoremIpsum';
     }
     setIsMatched(true);
   };
 
-  const observerEventHandler = ({gameMode, p1, p2}: {gameMode: GameMode, p1: number, p2: number}) => {
+  const observerEventHandler = ({ gameMode, p1, p2 }: { gameMode: GameMode, p1: number, p2: number }) => {
     AdminLogPrinter(adminConsole, "observer");
     setGameModeForDisplay(gameMode);
     setP1Id(p1);
     setP2Id(p2);
     player1.uid = p1;
     player2.uid = p2;
+    player1.name = userList[p1]?.userDisplayName || 'Norminette';
+    player2.name = userList[p2]?.userDisplayName || 'LoremIpsum';
   };
 
   useEffect(() => {
@@ -220,6 +230,7 @@ export default function GamePage() {
             onClick={() => {
               const loading = !isLoading;
               setIsLoading(loading);
+              setIsGameStart(!loading);
             }}
           >
             LadderRanking

@@ -4,27 +4,25 @@ import "../../styles/PingPong.css";
 import React, { useEffect } from "react";
 
 import * as chatAtom from "../atom/ChatAtom";
-import { GamePlayer, gamePlayerAtom, gameSocketAtom, gameWinnerAtom, isGameStartedAtom, isPrivateAtom } from "../atom/GameAtom";
+import {
+  GamePlayer,
+  gamePlayerAtom,
+  gameSocketAtom,
+  gameWinnerAtom,
+  isGameStartedAtom,
+  isPrivateAtom,
+} from "../atom/GameAtom";
 import { Game } from "./Pong";
-
 
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useRef, useState } from "react";
 import { gameResultModalAtom, isLoadingAtom } from "../atom/ModalAtom";
-import {
-  ball,
-  HEIGHT,
-  paddle,
-  player1,
-  player2,
-  WIDTH,
-} from "./GameInfo";
+import { ball, HEIGHT, paddle, player1, player2, WIDTH } from "./GameInfo";
 
 import { AdminLogPrinter } from "../../event/event.util";
 import { GameCoordinate, scoreInfo, Direction, Hit, GameType } from "../../socket/game.dto";
 
 export default function PingPong() {
-
   const [upArrow, setUpArrow] = useState(false);
   const [downArrow, setDownArrow] = useState(false);
   const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
@@ -80,7 +78,7 @@ export default function PingPong() {
       if (pingRTTmin > pingRTT) {
         pingRTTmin = pingRTT;
         const adjServerTime = serverTime + pingRTTmin / 2;
-        serverClientTimeDiff = now - adjServerTime
+        serverClientTimeDiff = now - adjServerTime;
       }
     };
     gameSocket.emit("ping", pingEventHandler);
@@ -92,7 +90,7 @@ export default function PingPong() {
     return () => {
       AdminLogPrinter(adminConsole, "clear pingInterval");
       clearInterval(pingInterval);
-    }
+    };
   }, []);
 
   const setCoords = (gameCoord: GameCoordinate) => {
@@ -108,7 +106,7 @@ export default function PingPong() {
     for (let i = 0; i < 4; i++) {
       coords.keyPress[i] = gameCoord.keyPress[i];
     }
-  }
+  };
 
   const syncDataHandler = (gameCoord: GameCoordinate) => {
     for (let i = 0; i < 4; i++) {
@@ -134,7 +132,13 @@ export default function PingPong() {
     update(Date.now(), gameCoord.time);
   };
 
-  const scoreEventHandler = ({ gameCoord, scoreInfo }: { gameCoord: GameCoordinate, scoreInfo: scoreInfo }) => {
+  const scoreEventHandler = ({
+    gameCoord,
+    scoreInfo,
+  }: {
+    gameCoord: GameCoordinate;
+    scoreInfo: scoreInfo;
+  }) => {
     if (gamePlayer === GamePlayer.player2) {
       player1.score = scoreInfo.p2Score;
       player2.score = scoreInfo.p1Score;
@@ -186,11 +190,25 @@ export default function PingPong() {
     clearInterval(pingInterval);
   };
 
+<<<<<<< HEAD
   const countdownEventHandler = ({ curTime, time }: { curTime: number, time: number }) => {
+=======
+  const countdownEventHandler = ({ curTime, time }: { curTime: number; time: number }) => {
+>>>>>>> fd6a78b49a8c56a93723a5f56f54838de807610f
     const localTime = curTime + serverClientTimeDiff;
-    AdminLogPrinter(adminConsole, "countdown time: ", time - (Date.now() - localTime), "\nserver curTime: ", localTime);
+    AdminLogPrinter(
+      adminConsole,
+      "countdown time: ",
+      time - (Date.now() - localTime),
+      "\nserver curTime: ",
+      localTime
+    );
     // setCountDownTime(curTime + serverClientTimeDiff);
+<<<<<<< HEAD
   }
+=======
+  };
+>>>>>>> fd6a78b49a8c56a93723a5f56f54838de807610f
 
   useEffect(() => {
     gameSocket.on("syncData", syncDataHandler);
@@ -213,7 +231,7 @@ export default function PingPong() {
     requestAnimationLoop(Date.now(), lastUpdateTime);
     return () => {
       cancelAnimationFrame(requestAnimationId);
-    }
+    };
   }, []);
 
   // // the connection is denied by the server in a middleware function
@@ -228,7 +246,9 @@ export default function PingPong() {
     if (coords.keyPress !== null) {
       update(curTime, lastUpdate);
     }
-    requestAnimationId = requestAnimationFrame(() => requestAnimationLoop(Date.now(), lastUpdateTime));
+    requestAnimationId = requestAnimationFrame(() =>
+      requestAnimationLoop(Date.now(), lastUpdateTime)
+    );
   }
 
   // paddle update first, and then ball position update.
@@ -404,6 +424,7 @@ export default function PingPong() {
   return (
     <div className="QueueBackGround">
       <canvas ref={canvas} id="pong" width={1150} height={600}></canvas>
+      <div className="countDown">1</div>
     </div>
   );
 }

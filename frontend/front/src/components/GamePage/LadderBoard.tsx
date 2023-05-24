@@ -1,4 +1,6 @@
+import { useAtomValue } from 'jotai';
 import "../../styles/LadderBoard.css";
+import { leaderBoardAtom } from '../atom/ChatAtom';
 
 function LadderLog({
   rank,
@@ -22,6 +24,8 @@ function LadderLog({
 }
 
 export default function LadderBoard() {
+  const leaderBoard = useAtomValue(leaderBoardAtom);
+
   return (
     <div className="LadderBoardWrap">
       <div className="LadderBoardBG">
@@ -29,9 +33,19 @@ export default function LadderBoard() {
           <LadderLog rank="RANK" nickName="Nickname" record="Record" elo="ELO" />
         </div>
         <div className="LadderLogList">
-          <LadderLog rank="1" nickName="Nickname" record="Record" elo="1020" />
-          <LadderLog rank="2" nickName="Nickname" record="Record" elo="1000" />
-          <LadderLog rank="3" nickName="Nickname" record="Record" elo="980" />
+          {
+            leaderBoard.map((key, value) => {
+              return (
+                <LadderLog
+                  key={key.nickname}
+                  rank={String(value + 1)}
+                  nickName={key.nickname}
+                  record={key.winRate + '% - ' + key.winGameCount + "win " + key.lostGameCount + "lose"}
+                  elo={String(key.elo)}
+                />
+              )
+            })
+          }
         </div>
       </div>
     </div>
