@@ -22,10 +22,10 @@ export class GameController{
         const result = await this.databaseService.findGameStatusByUid(request.user.uid);
         return result;
     }
-
+    // @Param("uid") uid: number
     @Get("/status/:uid")
     @UseGuards(Jwt2faAuthGuard)
-    async loadGameStatus(@Param() uid: number){
+    async loadGameStatus(@Param("uid") uid: number){
         const result = await this.databaseService.findGameStatusByUid(uid);
         return result;
     }
