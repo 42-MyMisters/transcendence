@@ -281,8 +281,14 @@ export class UserController {
   })
   @Get("/following")
   @UseGuards(Jwt2faAuthGuard)
-  async getUserFollowing(@Req() request): Promise<FollowingUserDto[] | null> {
+  async getMyUserFollowing(@Req() request): Promise<FollowingUserDto[] | null> {
     return await this.userService.getFollowingUserInfo(request.user.uid);
+  }
+
+  @Get("/following/:uid")
+  @UseGuards(Jwt2faAuthGuard)
+  async getUserFollowing(@Param("uid") uid: number): Promise<FollowingUserDto[] | null> {
+    return await this.userService.getFollowingUserInfo(uid);
   }
 
   @Get("/game/:uid")
@@ -310,11 +316,6 @@ export class UserController {
     return this.userService.showUsers();
   }
 
-  @Get("/following")
-  @UseGuards(Jwt2faAuthGuard)
-  async getFollowing(@Req() request){
-   return await this.userService.getUserFollowing(request.user.uid);
-  }
 
   @Get("/follow/:uid")
   @UseGuards(Jwt2faAuthGuard)
