@@ -186,14 +186,14 @@ export class EventsGateway
 
 	async afterInit() {
 		this.logger.debug("Chat socket initialized");
-		leaderBoard = await this.databaseService.getLeaderboard()
+		leaderBoard = await this.databaseService.findLeaderboard()
 		this.leaderBoardTimer();
 	}
 
 	leaderBoardTimer() {
 		setInterval(async () => {
 			this.logger.verbose(`leaderboard update`);
-			leaderBoard = await this.databaseService.getLeaderboard()
+			leaderBoard = await this.databaseService.findLeaderboard()
 			this.nsp.emit("leaderboard-update", leaderBoard);
 		}, 60000);
 	}
