@@ -57,16 +57,15 @@ export class DatabaseService {
         return user;
     }
 
+    // USER , Games JOIN READ
     async findUserData(uid: number): Promise<User | null> {
         const findUser = await this.userRepository.findOne({
             relations: {
-                // followings: true,
                 wonGames: true,
                 lostGames: true,
             },
             where: {uid}
         });
-        console.error('!' + findUser?.followings + '!');
         return findUser;
     }
 
