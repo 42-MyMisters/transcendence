@@ -27,6 +27,7 @@ import {
   ApiOperation,
   ApiUnauthorizedResponse
 } from "@nestjs/swagger";
+import config from "config";
 import { Response } from "express";
 import path from "path";
 import sharp from "sharp";
@@ -40,8 +41,6 @@ import { FollowingUserDto } from "./dto/FollowingUser.dto";
 import { PasswordDto } from "./dto/Password.dto";
 import { TwoFactorConfirmDto } from "./dto/TwoFactorConfirm.dto";
 import { UserProfileDto } from "./dto/UserProfile.dto";
-import { JwtInitialAuthGuard } from "src/auth/jwt-Initial/jwt-Initial.auth.guard";
-import config from "config";
 
 @swagger.ApiTags("유저")
 @Controller("user")
