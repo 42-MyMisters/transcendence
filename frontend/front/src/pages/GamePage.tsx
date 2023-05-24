@@ -131,7 +131,7 @@ export default function GamePage() {
     }
   };
 
-  //https://socket.io/docs/v4/client-socket-instance/#disconnect
+  // https://socket.io/docs/v4/client-socket-instance/#disconnect
   const disconnectionEventHandler = (reason: string) => {
     if (reason === "io server disconnect") {
     } else if (reason === "io client disconnect") {
@@ -143,7 +143,7 @@ export default function GamePage() {
   };
 
   const gameStartEventHandler = ({ gameMode, p1, p2 }: { gameMode: GameMode, p1: number, p2: number }) => {
-    AdminLogPrinter(adminConsole, "game start");
+    AdminLogPrinter(adminConsole, "game start time: ", Date.now());
     setGameModeForDisplay(gameMode);
     setIsLoading(false);
     setIsMatched(false);
@@ -151,7 +151,7 @@ export default function GamePage() {
   };
 
   const matchEventHandler = ({ p1, p2 }: { p1: number, p2: number }) => {
-    AdminLogPrinter(adminConsole, "matched");
+    AdminLogPrinter(adminConsole, "matched time: ", Date.now());
     if (p1 === userInfo.uid) {
       // setIsP1(true);
       setGamePlayer(GamePlayer.player1);
@@ -197,7 +197,7 @@ export default function GamePage() {
     return () => {
       gameSocket.off("observer", observerEventHandler);
     }
-  }, [gameSocket]);
+  }, [gameSocket, p1Id, p2Id, gameModeForDisplay]);
 
   useEffect(() => {
     gameSocket.on("connect", connectionEventHandler);
@@ -220,7 +220,7 @@ export default function GamePage() {
     return () => {
       gameSocket.off("matched", matchEventHandler);
     }
-  }, [isMatched, gameSocket]);
+  }, [isMatched, gameSocket, p1Id, p2Id, gameModeForDisplay]);
 
   return (
     <BackGround>
