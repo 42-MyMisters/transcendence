@@ -18,7 +18,7 @@ export default function Waiting() {
   const [player2Info, setPlayer2Info] = useState([] as GameRecordType[]);
 
   const setRefreshToken = useSetAtom(refreshTokenAtom);
-  
+
   const gamePlayer = useAtomValue(gamePlayerAtom);
   const p1Id = useAtomValue(p1IdAtom);
   const p2Id = useAtomValue(p2IdAtom);
@@ -68,7 +68,7 @@ export default function Waiting() {
       </div>
       <div className="RightWrap">
         <div className="PlayerWrap">
-          <div className="PlayerNickName">{userList[p2Id]?.userDisplayName ?? 'RightName'}</div>
+          <div className="PlayerNickName">{userList[p2Id]?.userDisplayName ?? 'Invitee Left...'}</div>
           <PlayerRecordBoard records={player2Info} userId={p2Id} />
         </div>
       </div>
