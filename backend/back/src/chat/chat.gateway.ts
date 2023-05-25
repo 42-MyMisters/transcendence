@@ -699,26 +699,25 @@ export class EventsGateway
 			} else if (roomList[roomId].bannedUsers.includes(targetUser.uid)) {
 				return ({ status: 'ko', payload: `\n${targetName} banned for 1 min` });
 			} else {
+				const targetSocket: Socket | undefined = userList[targetUser.uid]?.socket;
 				const newMember: RoomMember = {
 					userRoomStatus: 'normal',
 					userRoomPower: 'member',
 				}
 				roomList[roomId].roomMembers[targetUser.uid] = newMember;
-				const targetSocket: Socket | undefined = userList[targetUser.uid].socket;
-				if (targetSocket === undefined) {
-					throw new Error('target socket not found');
+				if (targetSocket !== undefined) {
+					targetSocket.join(roomId.toString());
+					targetSocket.data.roomList.push(roomId);
+					this.nsp.to(targetSocket.id).emit("room-join", {
+						roomId,
+						roomName: roomList[roomId].roomName,
+						roomType: roomList[roomId].roomType,
+						roomUserList: roomList[roomId].roomMembers,
+						myPower: 'member',
+						status: 'ok',
+						method: 'invite',
+					});
 				}
-				targetSocket.join(roomId.toString());
-				targetSocket.data.roomList.push(roomId);
-				this.nsp.to(targetSocket.id).emit("room-join", {
-					roomId,
-					roomName: roomList[roomId].roomName,
-					roomType: roomList[roomId].roomType,
-					roomUserList: roomList[roomId].roomMembers,
-					myPower: 'member',
-					status: 'ok',
-					method: 'invite',
-				});
 				this.nsp.to(roomId.toString()).emit('room-in-action', {
 					roomId,
 					action: 'newMember',
