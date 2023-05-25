@@ -15,9 +15,12 @@ import { UserProfileDto } from "./dto/UserProfile.dto";
 
 @Injectable()
 export class UserService {
+	private readonly salt = Number(process.env.HASH_PASSWORD_SALT);
 	constructor(
-		private readonly databaseService: DatabaseService
-	) { }
+		private readonly databaseService: DatabaseService,
+	) {
+		console.log('salt: ', this.salt);
+	}
 
 
 	isUserExist = (user: User | null): user is User => {
@@ -69,7 +72,7 @@ export class UserService {
 
 	async setUserRefreshToken(user: User, refresh_token: string) {
 		const refreshTokenPayload = refresh_token.split('.')[2];
-		const updatedRefreshToken = await bcrypt.hash(refreshTokenPayload, config.get<number>('hash.password.saltOrRounds'));
+		const updatedRefreshToken = await bcrypt.hash(refreshTokenPayload, this.salt);
 		await this.databaseService.updateUserRefreshToken(user.uid, updatedRefreshToken);
 	}
 
@@ -77,13 +80,12 @@ export class UserService {
 		await this.databaseService.updateUserTwoFactorEnabled(user.uid, isEnabled);
 	}
 
-	//TODO :: THIS COULD BE setUserRefreshToken(user, null)?
 	async deleteRefreshToken(uid: number) {
 		await this.databaseService.updateUserRefreshToken(uid, null);
 	}
 
 	async setUserPw(user: User, pw: PasswordDto) {
-		const cryptedPassword = await bcrypt.hash(pw.password, config.get<number>('hash.password.saltOrRounds'));
+		const cryptedPassword = await bcrypt.hash(pw.password, this.salt);
 		await this.databaseService.updateUserPassword(user.uid, cryptedPassword);
 	}
 

@@ -17,6 +17,10 @@ export class TesterController {
         // secure: true //only https option
       });
     res.cookie('refreshToken', tokenSet.refresh_token);
+<<<<<<< HEAD
     return res.redirect(config.get<string>('public-url.frontend'));
+=======
+    return res.redirect(process.env.FRONTEND_URL!);
+>>>>>>> 9e630b5be567f65ad1493b8992e2a1a490c4bc42
   }
 }

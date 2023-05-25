@@ -23,7 +23,7 @@ export class Jwt2faStrategy extends PassportStrategy(Strategy, "jwt-2fa") {
           return null;
         },
       ]),
-      secretOrKey: config.get<string>("jwt.secret"),
+      secretOrKey: process.env.JWT_SECRET,
     });
   }
 
