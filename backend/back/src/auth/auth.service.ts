@@ -44,10 +44,10 @@ export class AuthService {
   }
 
   async getTokenFromIntra(code: string): Promise<IntraTokenDto> {
-    const clientId = config.get<string>("intra.client_id");
-    const clientSecret = config.get<string>("intra.client_secret");
-    const redirect_uri = config.get<string>("intra.redirect_uri");
-    const url = config.get<string>("intra.url");
+    const clientId = process.env.INTRA_CLIENT_ID!;
+    const clientSecret = process.env.INTRA_CLIENT_SECRET!;
+    const redirect_uri = process.env.INTRA_REDIRECT_URI!;
+    const url = process.env.INTRA_URL!;
 
     const params = new URLSearchParams();
     params.set("grant_type", "authorization_code");
@@ -126,7 +126,7 @@ export class AuthService {
       twoFactorAuthenticated: twoFactor,
     };
     const refreshToken = await this.jwtService.sign(payload, {
-      expiresIn: config.get<string>("jwt-refresh.exp"),
+      expiresIn: process.env.JWT_REFRESH_EXP,
     });
     return refreshToken;
   }

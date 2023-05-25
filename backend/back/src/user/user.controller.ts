@@ -189,7 +189,7 @@ export class UserController {
         .flatten({ background: "#fff" })
         .toFormat("jpeg", { mozjpeg: true })
         .toFile(`img/${filename}`);
-      const profileUrl = `https://localhost/images/${filename}`;
+      const profileUrl = `${process.env.REACT_APP_API_URL}/images/${filename}`;
       await this.userService.setUserProfileUrl(user, profileUrl);
     } catch (e) {
       Logger.error(e);

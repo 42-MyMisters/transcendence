@@ -3,15 +3,15 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: wchae <wchae@student.42.fr>                +#+  +:+       +#+         #
+#    By: seseo <seseo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/01/25 16:48:49 by seseo             #+#    #+#              #
-#    Updated: 2023/05/08 21:22:50 by wchae            ###   ########.fr        #
+#    Updated: 2023/05/25 22:28:20 by seseo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 # for docker compose
-DC		:= docker-compose --env-file ./config/.env --env-file ./config/.postgres.env
+DC		:= docker compose
 DC_SRC	:= ./docker-compose.yml
 
 DI		:= docker image
@@ -30,10 +30,8 @@ all:	up
 
 .PHONY:	up
 up:
-		git submodule init && git submodule update
 		mkdir -p ./db
-		cp ./config/development.yml ./backend/back/config/development.yml
-		cp ./config/.front.env ./frontend/front/.env
+		cp .env ./nginx/front/.env
 		$(DC) -f $(DC_SRC) -p $(TARGET) up --build -d
 
 .PHONY:	down

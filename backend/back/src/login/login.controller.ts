@@ -47,9 +47,9 @@ export class LoginController {
   @Get("/oauth")
   @Redirect(
     "https://api.intra.42.fr/oauth/authorize?client_id=" +
-    config.get<string>("intra.client_id") +
+    process.env.INTRA_CLIENT_ID +
     "&redirect_uri=" +
-    config.get<string>("intra.redirect_uri") +
+    process.env.INTRA_REDIRECT_URI +
     "&response_type=code",
     302,
   )
@@ -112,7 +112,7 @@ export class LoginController {
       // secure: true //only https option
     });
     res.cookie("refreshToken", tokenSet.refresh_token);
-    return res.redirect("http://localhost:3000/");
+    return res.redirect(process.env.FRONTEND_URL!);
   }
 
   @swagger.ApiQuery({
