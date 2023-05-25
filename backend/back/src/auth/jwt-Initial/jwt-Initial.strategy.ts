@@ -14,7 +14,7 @@ export class JwtInitialStrategy extends PassportStrategy(
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (request) => {
-          Logger.log(JSON.stringify(request.cookies));
+          // Logger.log(JSON.stringify(request.cookies));
           if (request?.cookies?.accessToken) {
             return request.cookies.accessToken;
           }

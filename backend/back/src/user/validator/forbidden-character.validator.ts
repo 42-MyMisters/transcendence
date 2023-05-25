@@ -4,6 +4,8 @@ import { ValidatorConstraint, ValidatorConstraintInterface, ValidationArguments 
 export class ForbiddenCharacter implements ValidatorConstraintInterface {
 
   validate(value: string, args: ValidationArguments) {
+    if (value === undefined)
+      return false;
     const [forbiddenChar] = args.constraints;
     return !value.includes(forbiddenChar);
   }

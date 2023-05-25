@@ -1,11 +1,11 @@
 import {
+  BadRequestException,
   Body,
   ConflictException,
-  Controller, Get,
-  InternalServerErrorException,
-  Logger,
+  Controller, Get, Logger,
   NotFoundException,
   Param,
+  ParseIntPipe,
   Patch,
   Post, Req,
   Res,
@@ -21,14 +21,11 @@ import {
   ApiBadRequestResponse,
   ApiBody,
   ApiConsumes,
-  ApiForbiddenResponse,
-  ApiInternalServerErrorResponse,
-  ApiOkResponse,
+  ApiForbiddenResponse, ApiOkResponse,
   ApiOperation,
   ApiUnauthorizedResponse
 } from "@nestjs/swagger";
 import { Response } from "express";
-import { request } from "http";
 import path from "path";
 import sharp from "sharp";
 import { AuthService } from "src/auth/auth.service";
@@ -91,7 +88,7 @@ export class UserController {
   async authConfirm(
     @Req() request,
     @Res() res: Response,
-    @Body() twoFactorConfirmDto: TwoFactorConfirmDto,
+    @Body(ValidationPipe) twoFactorConfirmDto: TwoFactorConfirmDto,
   ) {
     Logger.log("2fa toggle confirm");
     const isCodeValid = await this.userService.isTwoFactorCodeValid(
@@ -131,7 +128,7 @@ export class UserController {
   @swagger.ApiUnauthorizedResponse({ description: "권한 없음" })
   @Post("/follow/:uid")
   @UseGuards(Jwt2faAuthGuard)
-  async follow(@Req() request, @Param("uid") uid: number) {
+  async follow(@Req() request, @Param("uid", ParseIntPipe) uid: number) {
     const curUser = request.user;
     if (curUser.uid === uid) {
       throw new ConflictException("Can't follow");
@@ -158,7 +155,7 @@ export class UserController {
   })
   @Post("/unfollow/:uid")
   @UseGuards(Jwt2faAuthGuard)
-  async unfollow(@Req() request, @Param("uid") uid: number) {
+  async unfollow(@Req() request, @Param("uid", ParseIntPipe) uid: number) {
     const user = await this.userService.getUserByUid(uid);
     if (this.userService.isUserExist(user)) {
       await this.userService.unfollow(request.user, user);
@@ -176,7 +173,7 @@ export class UserController {
     description: "이미지 파일 (jpg, jpeg, png)",
   })
   @ApiUnauthorizedResponse({ description: "로그인이 필요합니다." })
-  @ApiInternalServerErrorResponse({ description: "이미지 에러" })
+  @ApiBadRequestResponse({ description: "이미지 에러" })
   @Post("/profile-img-change")
   @UseGuards(JwtInitialAuthGuard)
   @UseInterceptors(AnyFilesInterceptor())
@@ -196,7 +193,7 @@ export class UserController {
       await this.userService.setUserProfileUrl(user, profileUrl);
     } catch (e) {
       Logger.error(e);
-      throw new InternalServerErrorException("img error!");
+      throw new BadRequestException("img error!");
     }
   }
 
@@ -209,6 +206,8 @@ export class UserController {
     @Req() request,
     @Body() changeNicknameDto: ChangeNicknameDto,
   ) {
+    if (changeNicknameDto === undefined)
+      throw new BadRequestException();
     const user = request.user;
     await this.userService.setUserNickname(user, changeNicknameDto.nickname);
   }
@@ -254,7 +253,7 @@ export class UserController {
 
   @Get("/profile/:uid")
   @UseGuards(Jwt2faAuthGuard)
-  async findUserProfile(@Param("uid") uid: number) {
+  async findUserProfile(@Param("uid", ParseIntPipe) uid: number) {
     return await this.userService.getUserProfile(uid);
   }
 
@@ -287,13 +286,13 @@ export class UserController {
 
   @Get("/following/:uid")
   @UseGuards(Jwt2faAuthGuard)
-  async getUserFollowing(@Param("uid") uid: number): Promise<FollowingUserDto[] | null> {
+  async getUserFollowing(@Param("uid", ParseIntPipe) uid: number): Promise<FollowingUserDto[] | null> {
     return await this.userService.getFollowingUserInfo(uid);
   }
 
   @Get("/game/:uid")
   @UseGuards(Jwt2faAuthGuard)
-  async findGameStatus(@Req() request, @Param("uid") uid: number) {
+  async findGameStatus(@Req() request, @Param("uid", ParseIntPipe) uid: number) {
     return await this.userService.getUserGameStatusById(request.user.uid);
   }
 
@@ -319,13 +318,13 @@ export class UserController {
 
   @Get("/follow/:uid")
   @UseGuards(Jwt2faAuthGuard)
-  async followGET(@Req() request, @Param("uid") uid: number) {
+  async followGET(@Req() request, @Param("uid", ParseIntPipe) uid: number) {
     await this.follow(request, uid);
   }
 
   @Get("/unfollow/:uid")
   @UseGuards(Jwt2faAuthGuard)
-  async unfollowGET(@Req() request, @Param("uid") uid: number) {
+  async unfollowGET(@Req() request, @Param("uid", ParseIntPipe) uid: number) {
     await this.unfollow(request, uid);
   }
 }
