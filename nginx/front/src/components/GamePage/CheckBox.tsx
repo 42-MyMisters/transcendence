@@ -63,7 +63,7 @@ function Checkbox2() {
   useEffect(() => {
     if (gameMode === 'item') {
       gameSocket.emit('modeSelect', GameMode.SPEED);
-      console.log("game mode: speed");
+      // console.log("game mode: speed");
       setIsChecked(true);
     } else {
       setIsChecked(false);

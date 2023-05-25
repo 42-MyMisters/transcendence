@@ -6,12 +6,12 @@
 #    By: seseo <seseo@student.42.fr>                +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/01/25 16:48:49 by seseo             #+#    #+#              #
-#    Updated: 2023/05/25 23:37:59 by seseo            ###   ########.fr        #
+#    Updated: 2023/05/25 23:44:25 by seseo            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 # for docker compose
-DC		:= docker-compose --env-file .env
+DC		:= docker-compose
 DC_SRC	:= ./docker-compose.yml
 
 DI		:= docker image

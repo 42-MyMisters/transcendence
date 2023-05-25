@@ -445,7 +445,7 @@ export function LogOut(
   if (action === 'logout') {
     socket.socket.emit("chat-logout");
   } else {
-    console.log("Login other device : ", socket.socket.id);
+    AdminLogPrinter(adminConsole, "Login other device : ", socket.socket.id);
   }
   socket.socket.emit("server-log", msg);
   socket.socket.disconnect();
