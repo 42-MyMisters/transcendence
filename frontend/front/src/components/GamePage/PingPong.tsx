@@ -162,7 +162,7 @@ export default function PingPong() {
   };
 
   const finishEventHandler = (scoreInfo: scoreInfo) => {
-    AdminLogPrinter(adminConsole, "finished!!!!!!");
+    AdminLogPrinter(adminConsole, "finishEventHandler");
     if (gamePlayer === GamePlayer.player2) {
       player1.score = scoreInfo.p2Score;
       player2.score = scoreInfo.p1Score;
@@ -182,7 +182,6 @@ export default function PingPong() {
   };
 
   const setCountdownSec = (countdownTime: number) => {
-    console.log(`set counter ${countdownTime}`)
     setCountdown(countdownTime);
     if (countdownTime >= 1) {
       setTimeout(setCountdownSec, 1000, countdownTime - 1)
@@ -191,14 +190,6 @@ export default function PingPong() {
 
   const countdownEventHandler = ({ curTime, time }: { curTime: number; time: number }) => {
     const localTime = curTime + serverClientTimeDiff;
-    console.log(serverClientTimeDiff);
-    AdminLogPrinter(
-      adminConsole,
-      "countdown time: ",
-      time - (Date.now() - localTime),
-      "\nserver curTime: ",
-      localTime
-    );
     setCountdownSec(Math.round((time - (Date.now() - localTime)) / 1000));
   };
 
