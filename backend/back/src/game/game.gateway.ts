@@ -181,9 +181,9 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
       }
       const invite: number = socket.handshake.auth.invite;
       const observ: number = socket.handshake.auth.observ;
-      this.logger.log(`client connected uid: ${socket.data.user.uid}`);
+      // this.logger.log(`client connected uid: ${socket.data.user.uid}`);
       if (invite !== undefined) {
-        this.logger.log(`private pool: ${this.privatePool}`);
+        // this.logger.log(`private pool: ${this.privatePool}`);
         if (this.privatePool.has(invite)) {
           const host = this.privatePool.get(invite)!;
           const p1 = host.data.user;
@@ -212,7 +212,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
           socket.emit("observer", curGame!.gameInfo());
           socket.join(gameId);
         } else {
-          console.log("Already finished. Disconnect socket.");
+          // console.log("Already finished. Disconnect socket.");
           socket.disconnect();
         }
       } else {
@@ -228,7 +228,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
           this.readyQueue.push(socket);
         } else {
           // not working
-          console.log("Reconnected.");
+          // console.log("Reconnected.");
           socket.join(gameId);
         }
       }
@@ -266,9 +266,9 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         // remove from the privatePool.
         this.privatePool.delete(user.uid);
       } else {
-        console.log("disconnect ", socket.data.user.nickname)
+        // console.log("disconnect ", socket.data.user.nickname)
         const idx = this.readyQueue.indexOf(socket);
-        console.log("idx: ", idx);
+        // console.log("idx: ", idx);
         if (idx === -1 || idx === undefined) {
           // Cancel game queue. Not matched.
           const eloAdj = this.adjElo(user.elo);
@@ -284,17 +284,11 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         } else {
           this.readyQueue.splice(idx, 1);
         }
-        console.log("readyQueue: ", this.readyQueue)
+        // console.log("readyQueue: ", this.readyQueue)
       }
     }
-    console.log(this.gamePool);
+    // console.log(this.gamePool);
     this.logger.log(`${user?.uid} disconnected.`);
-  }
-
-  @SubscribeMessage('status')
-  status(socket: Socket, payload: any) {
-    console.log(socket.rooms);
-    console.log(payload);
   }
 
   @SubscribeMessage('upPress')

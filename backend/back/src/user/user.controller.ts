@@ -189,7 +189,7 @@ export class UserController {
         .flatten({ background: "#fff" })
         .toFormat("jpeg", { mozjpeg: true })
         .toFile(`img/${filename}`);
-      const profileUrl = `https://localhost/images/${filename}`;
+      const profileUrl = `${process.env.REACT_APP_API_URL}/images/${filename}`;
       await this.userService.setUserProfileUrl(user, profileUrl);
     } catch (e) {
       Logger.error(e);
@@ -240,15 +240,16 @@ export class UserController {
   })
   @Post("/me")
   @UseGuards(JwtInitialAuthGuard)
-  async getUserProfie(@Req() reqeust): Promise<UserProfileDto> {
+  async getUserProfiePost(@Req() reqeust): Promise<UserProfileDto> {
     const user = reqeust.user;
     return await this.userService.getUserProfile(user.uid, true);
   }
 
   @Get("/me")
   @UseGuards(JwtInitialAuthGuard)
-  async GETgetUserProfie(@Req() reqeust): Promise<UserProfileDto> {
-    return await this.getUserProfie(reqeust);
+  async getUserProfile(@Req() reqeust): Promise<UserProfileDto> {
+    const user = reqeust.user;
+    return await this.userService.getUserProfile(user.uid, true);
   }
 
   @Get("/profile/:uid")

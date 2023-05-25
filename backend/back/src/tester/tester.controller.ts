@@ -16,6 +16,6 @@ export class TesterController {
       // secure: true //only https option
     });
     res.cookie('refreshToken', tokenSet.refresh_token);
-    return res.redirect('http://localhost:3000/');
+    return res.redirect(process.env.FRONTEND_URL!);
   }
 }

@@ -38,7 +38,7 @@ export class GameService {
       const curGame = new Game(gv, this.databaseService, this.games);
       this.games.set(gv.gameId, curGame);
       curGame.gameStart();
-      console.log(`game started!!!!`);
+      console.log(`${gv.gameId} game started!!!!`);
     } catch (e) {
       Logger.error("Fail to create game.");
     }
@@ -81,7 +81,6 @@ class Game {
 
   private score: number[] = [0, 0];
 
-  // key pressed time list [p1up, p1down, p2up, p2down]
   private keyPress: number[] = [0, 0, 0, 0];
 
   private ballSpeedMultiplier: number;
@@ -100,7 +99,6 @@ class Game {
     private readonly paddleWidth = 30,
     private readonly maxScore = 5,
     ) {
-      // this.score[0] = this.score[1] = 0;
     this.paddleSpeed = 0.8,
     this.round = 0;
     this.gameMode = GameMode.DEFAULT;
@@ -222,6 +220,7 @@ class Game {
   setMode(mode: GameMode) {
     if (this.gameStatus === GameStatus.MODESELECT) {
       this.gameMode = mode;
+      console.log(`${this.gv.gameId} mode: ${this.gameMode}`);
     }
   }
 
@@ -239,12 +238,7 @@ class Game {
 
   // Event driven update
   private async gameLoop() {
-    // const timestamp = Date.now();
-    // const timestamp = performance.now();
-    // const curTime = Date.now();
     const timeout = await this.update(Date.now());
-    // const timestamp2 = performance.now();
-    // console.log(`update time: ${timestamp2 - timestamp}`);
     if (timeout !== -1) {
       setTimeout(this.gameLoop.bind(this), timeout);
       if (this.gameStatus === GameStatus.RUNNING) {
@@ -284,11 +278,8 @@ class Game {
     objectInfo.ballSpeedX = 0;
     objectInfo.ballSpeedY = 0;
     this.gv.server.to(this.gv.gameId).emit('syncData', objectInfo);
-    console.log(`curtime - roundStartTime: ${curTime - this.roundStartTime}`)
     const timeout = 3000 - (curTime - this.roundStartTime);
-    console.log(`timeout: ${timeout}`)
     this.gv.server.to(this.gv.gameId).emit('countdown', {curTime: curTime, time: timeout});
-    console.log(timeout);
     return timeout;
   }
 
@@ -583,7 +574,6 @@ class Game {
       time: time,
     };
   }
-
 
   private expectRating(myElo: number, opElo: number) {
     // 예상승률 =  1 /  ( 1 +  10 ^ ((상대레이팅점수 - 나의 현재 레이팅점수 ) / 400) )

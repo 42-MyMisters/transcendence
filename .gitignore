@@ -2,3 +2,5 @@
 /db
 .vscode/settings.json
 .trunk/
+
+.env

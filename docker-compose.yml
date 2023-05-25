@@ -23,26 +23,10 @@ services:
       nw-db: {}
       nw-nginx: {}
     env_file:
-      - ./config/.env
-      - ./config/.postgres.env
+      - .env
     depends_on:
       postgres:
         condition: service_healthy
-
-  frontend:
-    container_name: frontend
-    build:
-      context: ./frontend
-      dockerfile: ./Dockerfile
-    restart: always
-    volumes:
-      - type: bind
-        source: ./frontend
-        target: /data
-    ports:
-      - "3000:3000"
-    env_file:
-      - ./config/.env
 
   postgres:
     container_name: postgres
@@ -52,34 +36,32 @@ services:
         source: ./db
         target: /var/lib/postgresql/data/pgdata
     restart: always
-    ports:
-      - "5444:5432"
     networks:
       nw-db:
         aliases:
           - postgres
     env_file:
-      - ./config/.postgres.env
+      - .env
     healthcheck:
-      test: pg_isready -d $POSTGRES_DB -h $POSTGRES_HOST -p $POSTGRES_CHECK_PORT -U $POSTGRES_USER
+      test: pg_isready -d $POSTGRES_DB -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER
       interval: 10s
       timeout: 30s
-      retries: 5
+      retries: 20
       start_period: 10s
 
-  pgadmin:
-    container_name: pgadmin
-    image: dpage/pgadmin4:latest
-    restart: always
-    ports:
-      - "8000:80"
-    env_file:
-      - ./config/.pgadmin.env
-    networks:
-      nw-db: {}
-    depends_on:
-      postgres:
-        condition: service_healthy
+  # pgadmin:
+  #   container_name: pgadmin
+  #   image: dpage/pgadmin4:latest
+  #   restart: always
+  #   ports:
+  #     - "8000:80"
+  #   env_file:
+  #     - ./config/.pgadmin.env
+  #   networks:
+  #     nw-db: {}
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
 
   nginx:
     container_name: nginx
@@ -96,16 +78,11 @@ services:
         aliases:
           - nginx
     ports:
+      - "8443:8443"
       - "443:443"
       - "80:80"
     env_file:
-      - ./config/.env
-
-  
-# volumes:
-#   v_react:
-#     driver: local
-#     driver_opts:
-#       type: none
-#       o: bind
-#       device: $PWD/srcs/react/
+      - .env
+    depends_on:
+      backend:
+        condition: service_healthy
