@@ -18,6 +18,6 @@ export const socketStateAtom = atom<boolean>(false);
 export const roomSettingAtom = atom<boolean>(false);
 export const roomSettingIsPrivateAtom = atom<boolean>(false);
 export const roomSettingCurrentRoomNameAtom = atom<string>('');
-export const adminConsoleAtom = atom<boolean>(true);
+export const adminConsoleAtom = atom<boolean>(false);
 
 export const leaderBoardAtom = atom<DTO.leaderboardDto[]>([]);
