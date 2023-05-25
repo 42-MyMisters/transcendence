@@ -23,10 +23,11 @@ import { player1, player2 } from "../components/GamePage/GameInfo";
 import Waiting from "../components/GamePage/Waiting";
 import { AdminLogPrinter, PressKey } from "../event/event.util";
 import { GameType } from "../socket/game.dto";
+import Navigate from '../components/GamePage/Navigate';
 
 export default function GamePage() {
   const [adminConsole, setAdminConsole] = useAtom(chatAtom.adminConsoleAtom);
-  
+
   const isPrivate = useAtomValue(isPrivateAtom);
   const [isLoading, setIsLoading] = useAtom(isLoadingAtom);
   const [isMatched, setIsMatched] = useAtom(isMatchedAtom);
@@ -34,19 +35,19 @@ export default function GamePage() {
   const [gameInviteInfo, setGameInviteInfo] = useAtom(gameInviteInfoAtom);
   const [gameResultModal, setGameResultModal] = useAtom(gameResultModalAtom);
   const [gameModeForDisplay, setGameModeForDisplay] = useAtom(gameModeForDisplayAtom);
-  
+
   const [gameSocket, setGameSocket] = useAtom(gameSocketAtom);
-  
+
   const [p1Id, setP1Id] = useAtom(p1IdAtom);
   const [p2Id, setP2Id] = useAtom(p2IdAtom);
-  
+
   const setGameMode = useSetAtom(gameModeAtom);
   const setGamePlayer = useSetAtom(gamePlayerAtom);
   const setIsGameQuit = useSetAtom(isGameQuitAtom);
-  
+
   const userInfo = useAtomValue(UserAtom);
   const userList = useAtomValue(chatAtom.userListAtom);
-  
+
   class socketAuth {
     token: string | null;
     type: GameType;
@@ -246,7 +247,7 @@ export default function GamePage() {
           )
           : isGameStart
             ? (<PingPong />)
-            : ''
+            : (<Navigate />)
       }
       {gameResultModal ? <GameResultModal leftScore={player1.score} rightScore={player2.score} /> : null}
     </BackGround>

@@ -44,18 +44,18 @@ export default function PlayerRecordBoard({
               return (
                 game.winnerUid === userId
                   ? <PlayerRecordLine
-                    key={game.gid + game.winnerNickname + game.loserNickname}
+                    key={game.gid + game.winnerNickname}
                     LeftSideNickName={game.winnerNickname}
                     LeftSideScore={game.winnerScore}
                     RightSideScore={game.loserScore}
                     RightSideNickName={game.loserNickname}
                   />
                   : <PlayerRecordLine
-                    key={game.gid + game.winnerNickname + game.loserNickname}
-                    LeftSideNickName={game.winnerNickname}
-                    LeftSideScore={game.winnerScore}
-                    RightSideScore={game.loserScore}
-                    RightSideNickName={game.loserNickname}
+                    key={game.gid + game.loserNickname}
+                    LeftSideNickName={game.loserNickname}
+                    LeftSideScore={game.loserScore}
+                    RightSideScore={game.winnerScore}
+                    RightSideNickName={game.winnerNickname}
                     color={"#E2979C"}
                   />
               );
