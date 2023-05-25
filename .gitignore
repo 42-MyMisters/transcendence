@@ -2,10 +2,8 @@
 /db
 .vscode/settings.json
 .trunk/
-=======
 back/img
 Dockerfile_prod
 back/config/production.yml
-=======
-
+/nginx/front/.env
 .env
