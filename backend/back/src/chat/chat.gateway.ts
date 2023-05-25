@@ -14,8 +14,6 @@ import { Namespace, Socket } from "socket.io";
 import { AuthService } from "src/auth/auth.service";
 import { User } from "src/database/entity/user.entity";
 import { DirectMessage } from 'src/database/entity/direct-message.entity';
-import { UserFollow } from "src/database/entity/user-follow.entity";
-import { UserBlock } from "src/database/entity/user-block.entity";
 import { UserService } from "src/user/user.service";
 import { DatabaseService } from "src/database/database.service";
 import * as bcrypt from 'bcrypt';
