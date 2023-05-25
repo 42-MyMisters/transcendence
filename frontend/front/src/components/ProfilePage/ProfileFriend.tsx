@@ -2,12 +2,13 @@ import "../../styles/ProfilePage.css";
 import UserObj from "../objects/UserObj";
 import { useAtomValue } from "jotai";
 import * as chatAtom from "../atom/ChatAtom";
-import { ProfileAtom, isMyProfileAtom } from "../atom/UserAtom";
+import { ProfileAtom, isMyProfileAtom, FollowingAtom } from "../atom/UserAtom";
 
 export default function ProfileFriend() {
   const userList = useAtomValue(chatAtom.userListAtom);
   const followingList = useAtomValue(chatAtom.followingListAtom);
   const isMyProfile = useAtomValue(isMyProfileAtom);
+  const following = useAtomValue(FollowingAtom);
   const profile = useAtomValue(ProfileAtom);
 
   return (
@@ -32,7 +33,7 @@ export default function ProfileFriend() {
                   />
                 );
               })
-              : profile.followings?.map((key) => {
+              : following.map((key) => {
                 return (
                   <UserObj
                     key={key.uid}

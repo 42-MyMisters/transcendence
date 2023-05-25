@@ -7,7 +7,7 @@ import { IoCloseOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import * as chatAtom from "../../components/atom/ChatAtom";
 import { refreshTokenAtom } from "../../components/atom/LoginAtom";
-import { ProfileAtom, isMyProfileAtom } from "../../components/atom/UserAtom";
+import { ProfileAtom, isMyProfileAtom, FollowingAtom, GameRecordAtom } from "../../components/atom/UserAtom";
 import * as socket from "../../socket/chat.socket";
 import "../../styles/UserInfoModal.css";
 import { gameInviteInfoAtom, isGameStartedAtom, isPrivateAtom, p2IdAtom } from "../atom/GameAtom";
@@ -30,6 +30,8 @@ export default function UserInfoModal() {
   const setProfile = useSetAtom(ProfileAtom);
   const navigate = useNavigate();
   const setP2Id = useSetAtom(p2IdAtom);
+  const setFollowing = useSetAtom(FollowingAtom);
+  const setGameRecord = useSetAtom(GameRecordAtom);
 
   const logOutHandler = () => {
     api.LogOut(adminConsole, setRefreshToken, navigate, "/");
@@ -66,6 +68,52 @@ export default function UserInfoModal() {
     }
   }
 
+  async function getGameRecordHandler() {
+    const getProfileResponse = await api.GetOtherGameRecord(adminConsole, setGameRecord, userInfo.uid);
+    if (getProfileResponse === 401) {
+      const refreshResponse = await api.RefreshToken(adminConsole);
+      if (refreshResponse !== 201) {
+        logOutHandler();
+      } else {
+        const getProfileResponse = await api.GetOtherGameRecord(
+          adminConsole,
+          setGameRecord,
+          userInfo.uid
+        );
+        if (getProfileResponse === 401) {
+          logOutHandler();
+        } else {
+          navigate("/profile");
+        }
+      }
+    } else {
+      navigate("/profile");
+    }
+  }
+
+  async function getFollowingHandler() {
+    const getProfileResponse = await api.GetOtherFollowing(adminConsole, setFollowing, userInfo.uid);
+    if (getProfileResponse === 401) {
+      const refreshResponse = await api.RefreshToken(adminConsole);
+      if (refreshResponse !== 201) {
+        logOutHandler();
+      } else {
+        const getProfileResponse = await api.GetOtherFollowing(
+          adminConsole,
+          setFollowing,
+          userInfo.uid
+        );
+        if (getProfileResponse === 401) {
+          logOutHandler();
+        } else {
+          await getGameRecordHandler();
+        }
+      }
+    } else {
+      await getGameRecordHandler();
+    }
+  }
+
   async function getProfileHandler() {
     const getProfileResponse = await api.GetOtherProfile(adminConsole, setProfile, userInfo.uid);
     if (getProfileResponse === 401) {
@@ -81,11 +129,11 @@ export default function UserInfoModal() {
         if (getProfileResponse === 401) {
           logOutHandler();
         } else {
-          navigate("/profile");
+          await getFollowingHandler();
         }
       }
     } else {
-      navigate("/profile");
+      await getFollowingHandler();
     }
   }
 
@@ -99,9 +147,9 @@ export default function UserInfoModal() {
     setUserInfoModal(false);
   });
 
-  const Follow = () => {
+  const Follow = async () => {
     if (isDefaultUser) return;
-    followHandler();
+    await followHandler();
     infoModalOff();
   };
 

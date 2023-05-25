@@ -1,10 +1,12 @@
 import { NavigateFunction } from "react-router-dom";
-import type { UserType } from "../components/atom/UserAtom";
+import type { UserType, FollowingsType, GameRecordType } from "../components/atom/UserAtom";
 import type * as chatType from "../socket/chat.dto";
 import * as socket from "../socket/chat.socket";
 import { AdminLogPrinter } from "../event/event.util";
 
 type setUserInfo = React.Dispatch<React.SetStateAction<UserType>>;
+type setFollowing = React.Dispatch<React.SetStateAction<FollowingsType[]>>;
+type setGameRecord = React.Dispatch<React.SetStateAction<GameRecordType[]>>;
 
 export async function DoFollow(
   adminConsole: boolean,
@@ -324,6 +326,74 @@ export async function GetOtherProfile(
     })
     .catch((error) => {
       AdminLogPrinter(adminConsole, `\nGetOtherProfile catch_error: ${error} `);
+    });
+
+  return status;
+}
+
+export async function GetOtherFollowing(
+  adminConsole: boolean,
+  setFollowing: setFollowing,
+  uid: number): Promise<number> {
+  let status = -1;
+
+  await fetch(`${process.env.REACT_APP_API_URL}/user/following/` + `${uid}`, {
+    credentials: "include",
+    method: "GET",
+  })
+    .then((response) => {
+      status = response.status;
+      switch (response.status) {
+        case 200: {
+          return response.json();
+        }
+        default: {
+          throw new Error(`${response.status}`);
+        }
+      }
+    })
+    .then((response) => {
+      AdminLogPrinter(adminConsole, `\nGetOtherFollowing: ${JSON.stringify(response)}`);
+      setFollowing(response);
+    })
+    .catch((error) => {
+      AdminLogPrinter(adminConsole, `\nGetOtherFollowing catch_error: ${error} `);
+    });
+
+  return status;
+}
+
+export async function GetOtherGameRecord(
+  adminConsole: boolean,
+  setGameRecord: setGameRecord,
+  uid: number): Promise<number> {
+  let status = -1;
+
+  await fetch(`${process.env.REACT_APP_API_URL}/game/status/` + `${uid}`, {
+    credentials: "include",
+    method: "GET",
+  })
+    .then((response) => {
+      status = response.status;
+      switch (response.status) {
+        case 200: {
+          return response.json();
+        }
+        default: {
+          throw new Error(`${response.status}`);
+        }
+      }
+    })
+    .then((response) => {
+      AdminLogPrinter(adminConsole, `\nGetOtherGameRecord: ${JSON.stringify(response)}`);
+      const temp: GameRecordType[] = response;
+      temp.sort((a, b) => {
+        return b.gid - a.gid;
+      });
+      setGameRecord(temp);
+    })
+    .catch((error) => {
+      AdminLogPrinter(adminConsole, `\nGetOtherGameRecord catch_error: ${error} `);
     });
 
   return status;

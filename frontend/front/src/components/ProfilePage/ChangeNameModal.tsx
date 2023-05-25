@@ -74,11 +74,15 @@ export default function ChangeNameModal() {
         const changeNickNameRes = await api.changeNickName(adminConsole, format, getMyinfoHandler);
         if (changeNickNameRes === 401) {
           logOutHandler();
+        } else if (changeNickNameRes === 400) {
+          setNewName("");
         } else {
           setchangeNameModal(false);
           setNewName("");
         }
       }
+    } else if (changeNickNameRes === 400) {
+      setNewName("");
     } else {
       setchangeNameModal(false);
       setNewName("");

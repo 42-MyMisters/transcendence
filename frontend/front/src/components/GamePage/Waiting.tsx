@@ -11,12 +11,13 @@ import { UserType, GameRecordType } from '../atom/UserAtom';
 import CheckBox from "./CheckBox";
 import PlayerRecordBoard from "./PlayerRecordBoard";
 import { GamePlayer, gamePlayerAtom, isMatchedAtom, isPrivateAtom, p1IdAtom, p2IdAtom } from '../atom/GameAtom';
+import { AdminLogPrinter } from '../../event/event.util';
 
 export default function Waiting() {
   const userList = useAtomValue(userListAtom);
   const adminConsole = useAtomValue(chatAtom.adminConsoleAtom);
-  const [player1Info, setPlayer1Info] = useState({} as UserType);
-  const [player2Info, setPlayer2Info] = useState({} as UserType);
+  const [player1Info, setPlayer1Info] = useState([] as GameRecordType[]);
+  const [player2Info, setPlayer2Info] = useState([] as GameRecordType[]);
   const isPrivate = useAtomValue(isPrivateAtom);
   const setRefreshToken = useSetAtom(refreshTokenAtom);
   // const isP1 = useAtomValue(isP1Atom);
@@ -31,52 +32,44 @@ export default function Waiting() {
     api.LogOut(adminConsole, setRefreshToken, navigate, "/");
   };
 
-  async function getProfileHandler(setter: React.Dispatch<React.SetStateAction<UserType>>, userId: number) {
-    const getProfileResponse = await api.GetOtherProfile(adminConsole, setter, userId);
+  async function getGameRecordHandler(setter: React.Dispatch<React.SetStateAction<GameRecordType[]>>, userId: number) {
+    const getProfileResponse = await api.GetOtherGameRecord(adminConsole, setter, userId);
     if (getProfileResponse === 401) {
       const refreshResponse = await api.RefreshToken(adminConsole);
       if (refreshResponse !== 201) {
         logOutHandler();
       } else {
-        const getProfileResponse = await api.GetOtherProfile(
+        const getProfileResponse = await api.GetOtherGameRecord(
           adminConsole,
           setter,
           userId
         );
         if (getProfileResponse === 401) {
           logOutHandler();
-        } else {
-          navigate("/game");
         }
       }
-    } else {
-      navigate("/game");
     }
   }
 
   useEffect(() => {
-    if (isPrivate) {
-      getProfileHandler(setPlayer1Info, p1Id);
-      getProfileHandler(setPlayer2Info, p2Id);
-    } else if (isMatched) {
-      getProfileHandler(setPlayer2Info, p2Id);
-    } else {
-      getProfileHandler(setPlayer1Info, p1Id);
-    }
-  }, [isMatched]);
+    getGameRecordHandler(setPlayer1Info, p1Id)
+      .catch((e) => { AdminLogPrinter(adminConsole, e) });
+    getGameRecordHandler(setPlayer2Info, p2Id)
+      .catch((e) => { AdminLogPrinter(adminConsole, e) });
+  }, [p1Id, p2Id]);
 
   return (
     <div className="QueueBackGround">
       <div className="LeftWrap">
         <div className="PlayerWrap">
-          <div className="PlayerNickName">{player1Info.nickname}</div>
-          <PlayerRecordBoard records={player1Info.games} userId={p1Id} />
+          <div className="PlayerNickName">{userList[p1Id]?.userDisplayName ?? 'LeftName'}</div>
+          <PlayerRecordBoard records={player1Info} userId={p1Id} />
         </div>
       </div>
       <div className="RightWrap">
         <div className="PlayerWrap">
-          <div className="PlayerNickName">{player2Info.nickname}</div>
-          <PlayerRecordBoard records={player2Info.games} userId={p2Id} />
+          <div className="PlayerNickName">{userList[p2Id]?.userDisplayName ?? 'RightName'}</div>
+          <PlayerRecordBoard records={player2Info} userId={p2Id} />
         </div>
       </div>
       {

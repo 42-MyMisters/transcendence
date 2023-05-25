@@ -94,7 +94,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         const mySocket = matchQueue[i][1][0];
         // range will be increased.
         const range = this.getMatchRange(curTime, mySocket);
-        this.logger.log('Queue state', [...matchQueue]);
+        // this.logger.log('Queue state', [...matchQueue]);
         if (i === 0) {
           const nextElo = matchQueue[i + 1][0];
           if (myElo + range >= nextElo) {
@@ -234,7 +234,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         }
       }
     } catch (e) {
-      this.logger.log(`${socket.data.user.uid} invalid connection. reason: ${e}. disconnect socket.`);
+      this.logger.log(`${socket?.data?.user?.uid} invalid connection. reason: ${e}. disconnect socket.`);
       socket.disconnect();
     }
   }

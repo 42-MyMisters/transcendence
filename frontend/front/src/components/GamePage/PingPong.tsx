@@ -5,7 +5,9 @@ import React, { useEffect } from "react";
 
 import * as chatAtom from "../atom/ChatAtom";
 import {
+  GameMode,
   GamePlayer,
+  gameModeForDisplayAtom,
   gamePlayerAtom,
   gameSocketAtom,
   gameWinnerAtom,
@@ -37,6 +39,7 @@ export default function PingPong() {
   const setGameWinner = useSetAtom(gameWinnerAtom);
 
   const [count, setCount] = useState(0);
+  const gameModeForDisplay = useAtomValue(gameModeForDisplayAtom);
 
   let serverClientTimeDiff: number = 400;
 
@@ -414,6 +417,11 @@ export default function PingPong() {
       <canvas ref={canvas} id="pong" width={1150} height={600}></canvas>
       {
         count !== 0 ? <div className="countDown">{count}</div> : ""
+      }
+      {
+        gameModeForDisplay === GameMode.DEFAULT
+          ? <div className="gameMode"> N </div>
+          : <div className="gameMode"> S </div>
       }
     </div>
   );
