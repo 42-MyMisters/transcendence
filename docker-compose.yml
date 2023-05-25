@@ -46,7 +46,7 @@ services:
       test: pg_isready -d $POSTGRES_DB -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER
       interval: 10s
       timeout: 30s
-      retries: 5
+      retries: 20
       start_period: 10s
 
   # pgadmin:
