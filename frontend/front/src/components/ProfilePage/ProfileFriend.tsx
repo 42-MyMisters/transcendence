@@ -1,7 +1,7 @@
 import { useAtomValue } from "jotai";
 import "../../styles/ProfilePage.css";
 import * as chatAtom from "../atom/ChatAtom";
-import { FollowingAtom, isMyProfileAtom, ProfileAtom } from "../atom/UserAtom";
+import { FollowingAtom, isMyProfileAtom } from "../atom/UserAtom";
 import UserObj from "../objects/UserObj";
 
 export default function ProfileFriend() {
@@ -9,7 +9,6 @@ export default function ProfileFriend() {
   const followingList = useAtomValue(chatAtom.followingListAtom);
   const isMyProfile = useAtomValue(isMyProfileAtom);
   const following = useAtomValue(FollowingAtom);
-  const profile = useAtomValue(ProfileAtom);
 
   return (
     <div className="ProfileFriendFrame">

@@ -33,7 +33,7 @@ export default function GamePage() {
   const [isMatched, setIsMatched] = useAtom(isMatchedAtom);
   const [isGameStart, setIsGameStart] = useAtom(isGameStartedAtom);
   const [gameInviteInfo, setGameInviteInfo] = useAtom(gameInviteInfoAtom);
-  const [gameResultModal, setGameResultModal] = useAtom(gameResultModalAtom);
+  const gameResultModal = useAtomValue(gameResultModalAtom);
   const [gameModeForDisplay, setGameModeForDisplay] = useAtom(gameModeForDisplayAtom);
 
   const [gameSocket, setGameSocket] = useAtom(gameSocketAtom);
@@ -69,7 +69,6 @@ export default function GamePage() {
   });
 
   const clearState = () => {
-    // setIsGameStart(false);
     setIsLoading(false);
     setIsMatched(false);
     setIsGameQuit(true);
@@ -134,7 +133,6 @@ export default function GamePage() {
   const matchEventHandler = ({ p1, p2 }: { p1: number, p2: number }) => {
     AdminLogPrinter(adminConsole, "matched time: ", Date.now());
     if (p1 === userInfo.uid) {
-      // setIsP1(true);
       setGamePlayer(GamePlayer.player1);
       setP1Id(p1);
       setP2Id(p2);
@@ -205,36 +203,6 @@ export default function GamePage() {
 
   return (
     <BackGround>
-      {adminConsole ? (
-        <div>
-          <button
-            onClick={() => {
-              const loading = !isLoading;
-              setIsLoading(loading);
-              setIsGameStart(!loading);
-            }}
-          >
-            LadderRanking
-          </button>
-          <button
-            onClick={() => {
-              const gameOverModal = !gameResultModal;
-              setGameResultModal(gameOverModal);
-            }}
-          >
-            GameOver
-          </button>
-          <button
-            onClick={() => {
-              console.log(`isPrivate: ${isPrivate}`);
-            }}
-          >
-            isPrivate
-          </button>
-        </div>
-      ) : (
-        ""
-      )}
       <TopBar />
       {
         isLoading

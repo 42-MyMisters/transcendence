@@ -8,7 +8,7 @@ import { AdminLogPrinter } from '../../event/event.util';
 import "../../styles/BackGround.css";
 import "../../styles/GamePlayerInfo.css";
 import { userListAtom } from '../atom/ChatAtom';
-import { GamePlayer, gamePlayerAtom, isMatchedAtom, isPrivateAtom, p1IdAtom, p2IdAtom } from '../atom/GameAtom';
+import { GamePlayer, gamePlayerAtom, p1IdAtom, p2IdAtom } from '../atom/GameAtom';
 import { GameRecordType } from '../atom/UserAtom';
 import CheckBox from "./CheckBox";
 import PlayerRecordBoard from "./PlayerRecordBoard";
