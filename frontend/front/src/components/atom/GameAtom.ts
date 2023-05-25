@@ -31,21 +31,21 @@ export const gameSocketAtom = atom<Socket>(io(`${URL}${NameSpace}`, {
 	auth: {},
 	autoConnect: false,
 	transports: ["polling", "websocket"],
-	secure: true,
+	// secure: true,
 	upgrade: true,
 	path: "/socket.io/game"
 }));
 
 export const enum GamePlayer {
 	undefined = 0,
-  player1 = 1,
-  player2 = 2,
-  observer = 3,
+	player1 = 1,
+	player2 = 2,
+	observer = 3,
 }
 
 export const enum GameMode {
-  DEFAULT = 0,
-  SPEED = 1,
+	DEFAULT = 0,
+	SPEED = 1,
 }
 
 export const gamePlayerAtom = atom<GamePlayer>(GamePlayer.player1);

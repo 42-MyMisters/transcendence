@@ -12,10 +12,10 @@ export const socket = io(`${URL}${NameSpace}`, {
   auth: (cb) => {
     cb({ token: localStorage.getItem("refreshToken") });
   },
-	autoConnect: false,
-	transports: ["polling", "websocket"],
-	secure: true,
-	upgrade: true,
+  autoConnect: false,
+  transports: ["polling", "websocket"],
+  // secure: true,
+  upgrade: true,
   path: "/socket.io/chat",
 });
 

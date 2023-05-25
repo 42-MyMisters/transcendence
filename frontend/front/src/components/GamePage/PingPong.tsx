@@ -24,14 +24,14 @@ export default function PingPong() {
   const canvas = useRef<HTMLCanvasElement>(null);
 
   const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
-  
+
   const [upArrow, setUpArrow] = useState(false);
   const [downArrow, setDownArrow] = useState(false);
   const [countdown, setCountdown] = useState(0);
-    
+
   const gameSocket = useAtomValue(gameSocketAtom);
   const gamePlayer = useAtomValue(gamePlayerAtom);
-  
+
   const setGameWinner = useSetAtom(gameWinnerAtom);
   const setGameResultModal = useSetAtom(gameResultModalAtom);
 
@@ -190,22 +190,8 @@ export default function PingPong() {
 
   const countdownEventHandler = ({ curTime, time }: { curTime: number; time: number }) => {
     const localTime = curTime + serverClientTimeDiff;
-<<<<<<< HEAD
-    console.log(serverClientTimeDiff);
-    AdminLogPrinter(
-      adminConsole,
-      "countdown time: ",
-      time - (Date.now() - localTime),
-      "\nserver curTime: ",
-      localTime
-    );
-    setCountdown(Math.round((time - (Date.now() - localTime)) / 1000));
-    // setCountDownTime(curTime + serverClientTimeDiff);
-  }
-=======
     setCountdownSec(Math.round((time - (Date.now() - localTime)) / 1000));
   };
->>>>>>> 1b1508e521918bd96d8886762e169d19845270f0
 
   useEffect(() => {
     gameSocket.on("syncData", syncDataHandler);
