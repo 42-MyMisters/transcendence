@@ -1,8 +1,7 @@
 import { Logger, UnauthorizedException } from '@nestjs/common';
-import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { ConnectedSocket, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Namespace, Socket } from 'socket.io';
 import { AuthService } from 'src/auth/auth.service';
-import { DatabaseService } from 'src/database/database.service';
 import { UserService } from 'src/user/user.service';
 import { GameMode, GameStatus, GameType } from './game.enum';
 import { GameService, GameStartVar } from './game.service';

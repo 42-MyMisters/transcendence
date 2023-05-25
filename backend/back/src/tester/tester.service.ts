@@ -74,25 +74,5 @@ export class TesterService {
     await this.userService.setUserRefreshToken(user, refresh_token);
     return {access_token, refresh_token};
   }
-
-  expectRating(myScore: number, opponentScore: number){
-    // 예상승률 =  1 /  ( 1 +  10 ^ ((상대레이팅점수 - 나의 현재 레이팅점수 ) / 400) )
-    const rate = 400;
-    const exponent = (opponentScore - myScore) / rate;
-    const probability = 1 / (1 + Math.pow(10, exponent));
-    return probability;
-  }
-
-  async eloLogic(winnerUid: number, loserUid: number, winnerScore: number, loserScore: number, winnerElo: number, loserElo: number){
-    // Rn =  Ro +  K  (  W      -    We    )
-    // 레이팅점수   =  현재레이팅점수  +   상수  ( 경기결과  -    예상승률 )
-    // we =  1  / ( 1 +  10^  (( Rb - Ra  ) / 400) )
-    const K = 32;
   
-    const winResult = winnerElo + K  * (1 - this.expectRating(winnerScore, loserScore));
-    const loseResult = loserElo + K  * (1 - this.expectRating(loserScore, winnerScore));
-    console.log("win = " + winResult);
-    console.log("lose = " + loseResult);
-  }
-
 }

@@ -30,7 +30,7 @@ export class User extends BaseEntity {
 	@Column({ nullable: true, type: 'varchar' })
 	twoFactorSecret: string | null;
 	
-	@Column({type: 'integer', default: 0})
+	@Column({type: 'integer', default: 1000})
 	elo: number;
 
 	@OneToMany(() => UserFollow, (follower) => follower.fromUser)
@@ -57,7 +57,7 @@ export class User extends BaseEntity {
 		user.email = intraUserDto.email;
 		user.nickname = intraUserDto.login + "#" + intraUserDto.id;
 		user.profileUrl = intraUserDto.image.link;
-		user.elo = 0;
+		user.elo = 1000;
 		user.twoFactorEnabled = false;
 		return user;
 	}

@@ -1,5 +1,5 @@
 export const enum Direction {
-  NONE = 0, // => hmm...
+  NONE = 0,
   UP = 1,
   DOWN = 2,
   LEFT = 3,

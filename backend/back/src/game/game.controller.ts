@@ -1,6 +1,5 @@
 import { Controller, Get, Param, Req, UseGuards } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
-import { request } from "express";
 import { Jwt2faAuthGuard } from "src/auth/jwt-2fa/jwt-2fa-auth.guard";
 import { DatabaseService } from "src/database/database.service";
 
