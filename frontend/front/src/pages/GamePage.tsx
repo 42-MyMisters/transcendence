@@ -23,7 +23,7 @@ import { player1, player2 } from "../components/GamePage/GameInfo";
 import Waiting from "../components/GamePage/Waiting";
 import { AdminLogPrinter, PressKey } from "../event/event.util";
 import { GameType } from "../socket/game.dto";
-import Navigate from '../components/GamePage/Navigate';
+import GameLeftModal from '../components/GamePage/GameLeftModal';
 
 export default function GamePage() {
   const [adminConsole, setAdminConsole] = useAtom(chatAtom.adminConsoleAtom);
@@ -247,7 +247,7 @@ export default function GamePage() {
           )
           : isGameStart
             ? (<PingPong />)
-            : (<Navigate />)
+            : <GameLeftModal userName={player2.name} />
       }
       {gameResultModal ? <GameResultModal leftScore={player1.score} rightScore={player2.score} /> : null}
     </BackGround>
