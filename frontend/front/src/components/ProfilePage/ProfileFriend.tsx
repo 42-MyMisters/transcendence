@@ -23,9 +23,9 @@ export default function ProfileFriend() {
                   <UserObj
                     key={key}
                     uid={Number(key)}
-                    nickName={userList[Number(key)].userDisplayName}
+                    nickName={userList[Number(key)]?.userDisplayName ?? ''}
                     profileImage={userList[Number(key)].userProfileUrl}
-                    status={userList[Number(key)].userStatus ?? 'offline'}
+                    status={userList[Number(key)]?.userStatus ?? 'offline'}
                     chat={'normal'}
                     power="member"
                     callBack={() => { }}
@@ -40,7 +40,7 @@ export default function ProfileFriend() {
                     uid={Number(key.uid)}
                     nickName={key.nickname}
                     profileImage={key.profileUrl}
-                    status={userList[Number(key.uid)].userStatus ?? 'offline'}
+                    status={userList[Number(key.uid)]?.userStatus ?? 'offline'}
                     chat={'normal'}
                     power="member"
                     callBack={() => { }}

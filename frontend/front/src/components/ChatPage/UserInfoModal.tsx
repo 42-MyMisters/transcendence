@@ -196,6 +196,8 @@ export default function UserInfoModal() {
     if (isDefaultUser) return;
     infoModalOff();
     setIsMyProfile(false);
+    setFollowing([]);
+    setGameRecord([]);
     await getProfileHandler();
   };
 
