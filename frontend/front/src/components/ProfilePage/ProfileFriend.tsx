@@ -1,14 +1,14 @@
-import "../../styles/ProfilePage.css";
-import UserObj from "../objects/UserObj";
 import { useAtomValue } from "jotai";
+import "../../styles/ProfilePage.css";
 import * as chatAtom from "../atom/ChatAtom";
-import { ProfileAtom, isMyProfileAtom } from "../atom/UserAtom";
+import { FollowingAtom, isMyProfileAtom } from "../atom/UserAtom";
+import UserObj from "../objects/UserObj";
 
 export default function ProfileFriend() {
   const userList = useAtomValue(chatAtom.userListAtom);
   const followingList = useAtomValue(chatAtom.followingListAtom);
   const isMyProfile = useAtomValue(isMyProfileAtom);
-  const profile = useAtomValue(ProfileAtom);
+  const following = useAtomValue(FollowingAtom);
 
   return (
     <div className="ProfileFriendFrame">
@@ -22,9 +22,9 @@ export default function ProfileFriend() {
                   <UserObj
                     key={key}
                     uid={Number(key)}
-                    nickName={userList[Number(key)].userDisplayName}
+                    nickName={userList[Number(key)]?.userDisplayName ?? ''}
                     profileImage={userList[Number(key)].userProfileUrl}
-                    status={userList[Number(key)].userStatus ?? 'offline'}
+                    status={userList[Number(key)]?.userStatus ?? 'offline'}
                     chat={'normal'}
                     power="member"
                     callBack={() => { }}
@@ -32,14 +32,14 @@ export default function ProfileFriend() {
                   />
                 );
               })
-              : profile.followings?.map((key) => {
+              : following.map((key) => {
                 return (
                   <UserObj
                     key={key.uid}
                     uid={Number(key.uid)}
                     nickName={key.nickname}
                     profileImage={key.profileUrl}
-                    status={userList[Number(key.uid)].userStatus ?? 'offline'}
+                    status={userList[Number(key.uid)]?.userStatus ?? 'offline'}
                     chat={'normal'}
                     power="member"
                     callBack={() => { }}

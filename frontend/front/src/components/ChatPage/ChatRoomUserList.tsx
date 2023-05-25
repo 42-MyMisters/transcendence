@@ -1,17 +1,16 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import {
-  userInfoModalAtom,
-  inviteModalAtom
-} from "../../components/atom/ModalAtom";
 import { useCallback } from "react";
+import {
+  inviteModalAtom, userInfoModalAtom
+} from "../../components/atom/ModalAtom";
 
 import "../../styles/ChatRoomUserList.css";
 import UserObj from "../objects/UserObj";
 
+import { roomModalAtom } from "../../components/atom/ModalAtom";
+import * as socket from "../../socket/chat.socket";
 import * as chatAtom from '../atom/ChatAtom';
 import { UserAtom } from "../atom/UserAtom";
-import * as socket from "../../socket/chat.socket";
-import { roomModalAtom } from "../../components/atom/ModalAtom";
 
 export default function ChatRoomUserList() {
   const setInviteModal = useSetAtom(inviteModalAtom);

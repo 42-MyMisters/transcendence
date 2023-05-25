@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { ConflictException, Logger, UnauthorizedException, UnprocessableEntityException } from "@nestjs/common";
 import {
 	ConnectedSocket,
@@ -8,17 +7,15 @@ import {
 	OnGatewayInit,
 	SubscribeMessage,
 	WebSocketGateway,
-	WebSocketServer,
+	WebSocketServer
 } from "@nestjs/websockets";
+import * as bcrypt from 'bcrypt';
 import { Namespace, Socket } from "socket.io";
 import { AuthService } from "src/auth/auth.service";
-import { User } from "src/database/entity/user.entity";
-import { DirectMessage } from 'src/database/entity/direct-message.entity';
-import { UserFollow } from "src/database/entity/user-follow.entity";
-import { UserBlock } from "src/database/entity/user-block.entity";
-import { UserService } from "src/user/user.service";
 import { DatabaseService } from "src/database/database.service";
-import * as bcrypt from 'bcrypt';
+import { DirectMessage } from 'src/database/entity/direct-message.entity';
+import { User } from "src/database/entity/user.entity";
+import { UserService } from "src/user/user.service";
 
 
 type roomType = 'open' | 'protected' | 'private' | 'dm';
@@ -170,7 +167,7 @@ let ROOM_COUNT = 3;
 const MAX_ROOM_COUNT = 200;
 let leaderBoard = [] as leaderboardDto[];
 
-@WebSocketGateway({ namespace: "sock", cors: { origin: "*" } })
+@WebSocketGateway({ namespace: "chat", cors: { origin: "*" } })
 export class EventsGateway
 	implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
 	constructor(
@@ -228,18 +225,18 @@ export class EventsGateway
 						isRefresh: false,
 					};
 				} else if (userList[uid].status !== 'offline') {
-					this.logger.debug(`[${userList[uid].status}]-${user.nickname} multi connection. - ${socket.id}`);
+					this.logger.debug(`[${userList[uid]?.status}]-${user.nickname} multi connection. - ${socket.id}`);
 					if (userList[uid].socket !== undefined) {
 						this.logger.warn(`${user.nickname} is already connected. - ${userList[uid]!.socket!.id} <> ${socket.id}`)
 						this.nsp.to(userList[uid]!.socket!.id).emit("multiple-login");
 					}
 				} else {
-					this.logger.debug(`[${userList[uid].status}]-${user.nickname} reconnect - ${socket.id}`);
+					this.logger.debug(`[${userList[uid]?.status}]-${user.nickname} reconnect - ${socket.id}`);
 					userList[uid].isRefresh = true;
 				}
 
 				if (userList[uid].disconnectedSocket !== socket.id) {
-					this.logger.debug(`${userList[uid].userDisplayName} is now online : ${socket.id}`);
+					this.logger.debug(`${userList[uid]?.userDisplayName} is now online : ${socket.id}`);
 					userList[uid].status = 'online';
 					userList[uid].gameStatus = 'end';
 					userList[uid].socket = socket;
@@ -276,7 +273,7 @@ export class EventsGateway
 		this.logger.verbose(`${socket.id} <> ${userList[socket?.data?.user?.uid]?.socket?.id}`)
 		if (socket.data?.user?.uid !== undefined) {
 			if (userList[socket.data.user.uid]?.socket?.id === socket.id) {
-				this.logger.debug(`${userList[socket.data.user.uid].userDisplayName} is now offline: ${socket.id}`);
+				this.logger.debug(`${userList[socket.data.user.uid]?.userDisplayName} is now offline: ${socket.id}`);
 				userList[socket.data.user.uid].socket = undefined;
 				userList[socket.data.user.uid].status = 'offline';
 				socket.broadcast.emit("user-update", {
@@ -479,7 +476,7 @@ export class EventsGateway
 				roomName: trimmedRoomName,
 				roomType
 			});
-			this.logger.debug(`room ${trimmedRoomName} created by ${userList[socket.data.user.uid].userDisplayName}`);
+			this.logger.debug(`room ${trimmedRoomName} created by ${userList[socket.data.user.uid]?.userDisplayName}`);
 			this.nsp.to(socket.id).emit("room-join", {
 				roomId: tempRoomNumber,
 				roomName: trimmedRoomName,
@@ -575,7 +572,7 @@ export class EventsGateway
 						userRoomPower: 'member',
 					}
 					roomList[roomId].roomMembers[socket.data.user.uid] = newMember;
-					this.logger.debug(`${userList[socket.data.user.uid].userDisplayName} join room ${roomList[roomId].roomName}: ${JSON.stringify(roomList[roomId].roomMembers[socket.data.user.uid])}`);
+					this.logger.debug(`${userList[socket.data.user.uid]?.userDisplayName} join room ${roomList[roomId].roomName}: ${JSON.stringify(roomList[roomId].roomMembers[socket.data.user.uid])}`);
 					socket.join(roomId.toString());
 					socket.data.roomList.push(roomId);
 					this.nsp.to(socket.id).emit("room-join", {
@@ -862,7 +859,7 @@ export class EventsGateway
 					}
 					case 'ban': {
 						if (roomList[roomId].bannedUsers.includes(targetId) === false) {
-							this.logger.debug(`${socket.data.user.nickname} ban ${userList[targetId].userDisplayName} from ${roomList[roomId].roomName} `);
+							this.logger.debug(`${socket.data.user.nickname} ban ${userList[targetId]?.userDisplayName} from ${roomList[roomId].roomName} `);
 							roomList[roomId].bannedUsers.push(targetId);
 							setTimeout(() => {
 								if (roomList[roomId] !== undefined) {
@@ -950,11 +947,6 @@ export class EventsGateway
 			targetId: number,
 		}) {
 		try {
-			// const myDmList = await this.databaseService.findDMSenderAndReceiver(socket.data.user.uid, targetId);
-			// const targetDmlist = await this.databaseService.findDMSenderAndReceiver(targetId, socket.data.user.uid);
-			// console.log(myDmList);
-			// console.log(`---------------------------------------\n`);
-			// console.log(targetDmlist);
 			const dmUserList: Record<number, RoomMember> = {};
 			dmUserList[socket.data.user.uid] = {
 				userRoomStatus: 'normal',
@@ -995,10 +987,10 @@ export class EventsGateway
 		this.logger.verbose("server-room-list");
 		Object.entries(roomList).forEach(([roomId, roomInfo]) => {
 			console.log(`\n${roomInfo.roomName} : ${roomId}: ${roomInfo.roomType} ${roomInfo.roomPass} `);
-			console.log(`\towner: ${userList[roomInfo.roomOwner].userDisplayName}: ${roomInfo.roomOwner} `);
-			console.log(`\tadmins: ${roomInfo.roomAdmins.map((adminId) => userList[adminId].userDisplayName).join(', ')} `);
+			console.log(`\towner: ${userList[roomInfo.roomOwner]?.userDisplayName}: ${roomInfo.roomOwner} `);
+			console.log(`\tadmins: ${roomInfo.roomAdmins.map((adminId) => userList[adminId]?.userDisplayName).join(', ')} `);
 			Object.entries(roomInfo.roomMembers).forEach(([uid, memberInfo]) => {
-				console.log(`\t${userList[uid].userDisplayName}: ${uid}: \t\t${memberInfo.userRoomStatus} ${memberInfo.userRoomPower} `);
+				console.log(`\t${userList[uid]?.userDisplayName}: ${uid}: \t\t${memberInfo.userRoomStatus} ${memberInfo.userRoomPower} `);
 			});
 		});
 	}

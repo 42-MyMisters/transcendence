@@ -1,14 +1,14 @@
+import { keyboardKey } from '@testing-library/user-event';
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useState } from 'react';
 import { passwordInputModalAtom } from "../../components/atom/ModalAtom";
 import { PressKey } from "../../event/event.util";
-import { keyboardKey } from '@testing-library/user-event';
-import { useState } from 'react';
 
 import "../../styles/PasswordModal.css";
 
+import { useAutoFocus } from '../../event/event.util';
 import * as socket from "../../socket/chat.socket";
 import * as chatAtom from "../atom/ChatAtom";
-import { useAutoFocus } from '../../event/event.util';
 
 export default function PasswordModal() {
   const setPwInputModal = useSetAtom(passwordInputModalAtom);

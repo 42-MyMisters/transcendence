@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import * as chatAtom from "../../components/atom/ChatAtom";
 import { hasLoginAtom } from "../../components/atom/ChatAtom";
-import { isFirstLoginAtom, } from "../../components/atom/LoginAtom";
+import { isFirstLoginAtom } from "../../components/atom/LoginAtom";
 import * as api from "../../event/api.request";
 import { AdminLogPrinter } from '../../event/event.util';
 import "../../styles/LoginModals.css";

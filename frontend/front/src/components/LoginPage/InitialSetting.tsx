@@ -1,11 +1,11 @@
 import "../../styles/LoginModals.css";
 
-import { useRef, useState, useEffect } from "react";
+import { useAtomValue, useSetAtom } from "jotai";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AdminLogPrinter } from "../../event/event.util";
 import * as chatAtom from "../../components/atom/ChatAtom";
 import { isFirstLoginAtom, refreshTokenAtom } from "../../components/atom/LoginAtom";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { AdminLogPrinter } from "../../event/event.util";
 import { UserAtom } from "../atom/UserAtom";
 
 import { hasLoginAtom } from "../../components/atom/ChatAtom";
@@ -55,14 +55,14 @@ export default function InitialSettingModal() {
     formData.append("profileImage", profileRef.current?.files?.[0]!);
     AdminLogPrinter(adminConsole, profileRef.current?.files?.[0]!.name);
 
-    const changeNickNameRes = await api.changeProfileImage(adminConsole, formData);
-    if (changeNickNameRes === 401) {
+    const changeImageRes = await api.changeProfileImage(adminConsole, formData);
+    if (changeImageRes === 401) {
       const refreshResponse = await api.RefreshToken(adminConsole);
       if (refreshResponse !== 201) {
         logOutHandler();
       } else {
-        const getMeResponse = await api.changeProfileImage(adminConsole, formData);
-        if (getMeResponse === 401) {
+        const changeImageRes = await api.changeProfileImage(adminConsole, formData);
+        if (changeImageRes === 401) {
           logOutHandler();
         } else {
           return true;
@@ -93,13 +93,17 @@ export default function InitialSettingModal() {
       if (refreshResponse !== 201) {
         logOutHandler();
       } else {
-        const getMeResponse = await api.changeNickName(adminConsole, format);
-        if (getMeResponse === 401) {
+        const changeNickNameRes = await api.changeNickName(adminConsole, format);
+        if (changeNickNameRes === 401) {
           logOutHandler();
+        } else if (changeNickNameRes === 400) {
+          return false;
         } else {
           return true;
         }
       }
+    } else if (changeNickNameRes === 400) {
+      return false;
     } else {
       return true;
     }

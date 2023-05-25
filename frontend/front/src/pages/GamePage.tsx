@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import BackGround from "../components/BackGround";
 import "../components/GamePage/PingPong";
 import PingPong from "../components/GamePage/PingPong";
@@ -6,66 +6,47 @@ import TopBar from "../components/TopBar";
 
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
-  isGameStartedAtom,
+  gameInviteInfoAtom, GameMode, gameModeAtom, gameModeForDisplayAtom, GamePlayer, gamePlayerAtom, gameSocketAtom, isGameQuitAtom, isGameStartedAtom,
   isLoadingAtom,
   isMatchedAtom,
-  isPrivateAtom,
-  isGameQuitAtom,
-  gameInviteInfoAtom,
-  gameSocketAtom,
-  gameModeAtom,
-  // isP1Atom,
-  gameWinnerAtom,
-  p1IdAtom,
-  p2IdAtom,
-  gamePlayerAtom,
-  GamePlayer,
-  GameMode,
-  gameModeForDisplayAtom,
+  isPrivateAtom, p1IdAtom,
+  p2IdAtom
 } from "../components/atom/GameAtom";
 
-import * as chatSocket from "../socket/chat.socket";
 import * as chatAtom from "../components/atom/ChatAtom";
 import { gameResultModalAtom } from "../components/atom/ModalAtom";
 import GameResultModal from "../components/GamePage/GameResultModal";
 import LadderBoard from "../components/GamePage/LadderBoard";
 
+import { UserAtom } from "../components/atom/UserAtom";
+import { player1, player2 } from "../components/GamePage/GameInfo";
 import Waiting from "../components/GamePage/Waiting";
 import { AdminLogPrinter, PressKey } from "../event/event.util";
-import { io, Socket } from 'socket.io-client';
-import { UserAtom } from "../components/atom/UserAtom";
 import { GameType } from "../socket/game.dto";
-import { player1, player2 } from "../components/GamePage/GameInfo";
+import GameLeftModal from '../components/GamePage/GameLeftModal';
 
 export default function GamePage() {
-  const [showComponent, setShowComponent] = useState(true);
-  const [gameResultModal, setGameResultModal] = useAtom(gameResultModalAtom);
-
-  const [isLoading, setIsLoading] = useAtom(isLoadingAtom);
-  const [isMatched, setIsMatched] = useAtom(isMatchedAtom);
-  const [isPrivate, setIsPrivate] = useAtom(isPrivateAtom);
-  const [isGameStart, setIsGameStart] = useAtom(isGameStartedAtom);
-  const setIsGameQuit = useSetAtom(isGameQuitAtom);
-  const [gameInviteInfo, setGameInviteInfo] = useAtom(gameInviteInfoAtom);
-  const [gameMode, setGameMode] = useAtom(gameModeAtom);
-
   const [adminConsole, setAdminConsole] = useAtom(chatAtom.adminConsoleAtom);
 
-  const [userInfo, setUserInfo] = useAtom(UserAtom);
+  const isPrivate = useAtomValue(isPrivateAtom);
+  const [isLoading, setIsLoading] = useAtom(isLoadingAtom);
+  const [isMatched, setIsMatched] = useAtom(isMatchedAtom);
+  const [isGameStart, setIsGameStart] = useAtom(isGameStartedAtom);
+  const [gameInviteInfo, setGameInviteInfo] = useAtom(gameInviteInfoAtom);
+  const gameResultModal = useAtomValue(gameResultModalAtom);
+  const [gameModeForDisplay, setGameModeForDisplay] = useAtom(gameModeForDisplayAtom);
 
   const [gameSocket, setGameSocket] = useAtom(gameSocketAtom);
-
-  const [gamePlayer, setGamePlayer] = useAtom(gamePlayerAtom);
-
-  const [gameModeForDisplay, setGameModeForDisplay] = useAtom(gameModeForDisplayAtom);
-  // const [isP1, setIsP1] = useAtom(isP1Atom);
-
 
   const [p1Id, setP1Id] = useAtom(p1IdAtom);
   const [p2Id, setP2Id] = useAtom(p2IdAtom);
 
+  const setGameMode = useSetAtom(gameModeAtom);
+  const setGamePlayer = useSetAtom(gamePlayerAtom);
+  const setIsGameQuit = useSetAtom(isGameQuitAtom);
+
+  const userInfo = useAtomValue(UserAtom);
   const userList = useAtomValue(chatAtom.userListAtom);
-  const gameWinner = useAtomValue(gameWinnerAtom);
 
   class socketAuth {
     token: string | null;
@@ -88,7 +69,6 @@ export default function GamePage() {
   });
 
   const clearState = () => {
-    // setIsGameStart(false);
     setIsLoading(false);
     setIsMatched(false);
     setIsGameQuit(true);
@@ -153,7 +133,6 @@ export default function GamePage() {
   const matchEventHandler = ({ p1, p2 }: { p1: number, p2: number }) => {
     AdminLogPrinter(adminConsole, "matched time: ", Date.now());
     if (p1 === userInfo.uid) {
-      // setIsP1(true);
       setGamePlayer(GamePlayer.player1);
       setP1Id(p1);
       setP2Id(p2);
@@ -224,36 +203,6 @@ export default function GamePage() {
 
   return (
     <BackGround>
-      {adminConsole ? (
-        <div>
-          <button
-            onClick={() => {
-              const loading = !isLoading;
-              setIsLoading(loading);
-              setIsGameStart(!loading);
-            }}
-          >
-            LadderRanking
-          </button>
-          <button
-            onClick={() => {
-              const gameOverModal = !gameResultModal;
-              setGameResultModal(gameOverModal);
-            }}
-          >
-            GameOver
-          </button>
-          <button
-            onClick={() => {
-              console.log(`isPrivate: ${isPrivate}`);
-            }}
-          >
-            isPrivate
-          </button>
-        </div>
-      ) : (
-        ""
-      )}
       <TopBar />
       {
         isLoading
@@ -266,7 +215,7 @@ export default function GamePage() {
           )
           : isGameStart
             ? (<PingPong />)
-            : ''
+            : <GameLeftModal userName={player2.name} />
       }
       {gameResultModal ? <GameResultModal leftScore={player1.score} rightScore={player2.score} /> : null}
     </BackGround>

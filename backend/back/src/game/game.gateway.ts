@@ -1,8 +1,7 @@
 import { Logger, UnauthorizedException } from '@nestjs/common';
-import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { ConnectedSocket, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Namespace, Socket } from 'socket.io';
 import { AuthService } from 'src/auth/auth.service';
-import { DatabaseService } from 'src/database/database.service';
 import { UserService } from 'src/user/user.service';
 import { GameMode, GameStatus, GameType } from './game.enum';
 import { GameService, GameStartVar } from './game.service';
@@ -94,7 +93,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         const mySocket = matchQueue[i][1][0];
         // range will be increased.
         const range = this.getMatchRange(curTime, mySocket);
-        this.logger.log('Queue state', [...matchQueue]);
+        // this.logger.log('Queue state', [...matchQueue]);
         if (i === 0) {
           const nextElo = matchQueue[i + 1][0];
           if (myElo + range >= nextElo) {
@@ -234,13 +233,17 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         }
       }
     } catch (e) {
-      this.logger.log(`${socket.data.user.uid} invalid connection. reason: ${e}. disconnect socket.`);
+      this.logger.log(`${socket?.data?.user?.uid} invalid connection. reason: ${e}. disconnect socket.`);
       socket.disconnect();
     }
   }
 
   handleDisconnect(@ConnectedSocket() socket: Socket) {
     const user = socket.data.user;
+    if (user === undefined) {
+      this.logger.log("user disconnected before get user info.");
+      return ;
+    }
     const joinedRoom = socket.data.room;
     if (joinedRoom !== undefined) {
       // Game finished or socket disconnected while game playing(Maybe refreshed).

@@ -2,57 +2,112 @@ import "../../styles/ProfilePage.css";
 
 import { PlayerRecordLine } from "../GamePage/PlayerRecordBoard";
 
-import { ReactElement } from "react";
-import { useAtom, useAtomValue } from "jotai";
-import { ProfileAtom, UserAtom, isMyProfileAtom } from "../atom/UserAtom";
-import { Game } from "../GamePage/Pong";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
+import * as chatAtom from "../../components/atom/ChatAtom";
+import { refreshTokenAtom } from "../../components/atom/LoginAtom";
+import * as api from "../../event/api.request";
+import { GameRecordAtom, GameRecordType, isMyProfileAtom, ProfileAtom, UserAtom } from "../atom/UserAtom";
 
 export default function ProfileMatchHistory() {
   const isMyProfile = useAtomValue(isMyProfileAtom);
   const userInfo = useAtomValue(UserAtom);
   const profile = useAtomValue(ProfileAtom);
+  const [gameRecord, setGameRecord] = useAtom(GameRecordAtom);
+  const adminConsole = useAtomValue(chatAtom.adminConsoleAtom);
+  const setRefreshToken = useSetAtom(refreshTokenAtom);
+  const navigate = useNavigate();
+
+  const logOutHandler = () => {
+    api.LogOut(adminConsole, setRefreshToken, navigate, "/");
+  };
+
+  async function getGameRecordHandler(setter: React.Dispatch<React.SetStateAction<GameRecordType[]>>, userId: number) {
+    const getProfileResponse = await api.GetOtherGameRecord(adminConsole, setter, userId);
+    if (getProfileResponse === 401) {
+      const refreshResponse = await api.RefreshToken(adminConsole);
+      if (refreshResponse !== 201) {
+        logOutHandler();
+      } else {
+        const getProfileResponse = await api.GetOtherGameRecord(
+          adminConsole,
+          setter,
+          userId
+        );
+        if (getProfileResponse === 401) {
+          logOutHandler();
+        }
+      }
+    }
+  }
+
+  useEffect(() => {
+    if (isMyProfile) {
+      getGameRecordHandler(setGameRecord, userInfo.uid);
+    }
+  }, []);
 
   return (
     <div className="ProfileMatchFrame">
-      <div className="ProfileMatchScore">{`${userInfo?.games?.length ?? 0}games ${userInfo?.games?.filter((game) => game.winner.nickname === userInfo.nickname)?.length ?? 0
-        }win ${userInfo?.games?.filter((game) => game.winner.nickname !== userInfo.nickname)?.length ?? 0
-        }lose`}</div>
-      <div className="ProfileMatchELO">{`ELO ${userInfo?.ELO ?? 1000}`}</div>
+      {
+        isMyProfile
+          ? <div className="ProfileMatchScore">{`${gameRecord?.length ?? 0}games ${gameRecord?.filter((game) => game.winnerNickname === userInfo.nickname)?.length ?? 0
+            }win ${gameRecord?.filter((game) => game.winnerNickname !== userInfo.nickname)?.length ?? 0
+            }lose`}</div>
+          : <div className="ProfileMatchScore">{`${gameRecord?.length ?? 0}games ${gameRecord?.filter((game) => game.winnerNickname === profile.nickname)?.length ?? 0
+            }win ${gameRecord?.filter((game) => game.winnerNickname !== profile.nickname)?.length ?? 0
+            }lose`}</div>
+      }
+      {
+        isMyProfile
+          ? <div className="ProfileMatchELO">{`ELO ${userInfo?.ELO ?? 1000}`}</div>
+          : <div className="ProfileMatchELO">{`ELO ${profile?.ELO ?? 1000}`}</div>
+      }
       <div className="ProfileMatchHistoryBG">
         <div className="ProfileMatchHistoryList">
           {
-            isMyProfile
-              // ? Object.entries(userInfo.games).map(())
+            gameRecord?.length === 0
               ? ''
-              // userInfo?.games?.map((game) => {
-              //   return (
-              //     <PlayerRecordLine
-              //       key={game.gid + game.winner.nickname + game.loser.nickname}
-              //       LeftSideNickName={game.winner.nickname}
-              //       LeftSideScore={game.winnerScore}
-              //       RightSideScore={game.loserScore}
-              //       RightSideNickName={game.loser.nickname}
-              //     />
-              //   );
-              // })
-              : ''
-
+              // : ''
+              : gameRecord?.map((game) => {
+                return (
+                  isMyProfile
+                    ? game.winnerUid === userInfo.uid
+                      ? <PlayerRecordLine
+                        key={game.gid + game.winnerNickname}
+                        LeftSideNickName={game.winnerNickname}
+                        LeftSideScore={game.winnerScore}
+                        RightSideScore={game.loserScore}
+                        RightSideNickName={game.loserNickname}
+                      />
+                      : <PlayerRecordLine
+                        key={game.gid + game.loserNickname}
+                        LeftSideNickName={game.loserNickname}
+                        LeftSideScore={game.loserScore}
+                        RightSideScore={game.winnerScore}
+                        RightSideNickName={game.winnerNickname}
+                        color={"#E2979C"}
+                      />
+                    : game.winnerUid === profile.uid
+                      ? <PlayerRecordLine
+                        key={game.gid + game.winnerNickname}
+                        LeftSideNickName={game.winnerNickname}
+                        LeftSideScore={game.winnerScore}
+                        RightSideScore={game.loserScore}
+                        RightSideNickName={game.loserNickname}
+                      />
+                      : <PlayerRecordLine
+                        key={game.gid + game.loserNickname}
+                        LeftSideNickName={game.loserNickname}
+                        LeftSideScore={game.loserScore}
+                        RightSideScore={game.winnerScore}
+                        RightSideNickName={game.winnerNickname}
+                        color={"#E2979C"}
+                      />
+                );
+              })
           }
-          {/* {records.map(
-            (record: {
-              LeftSideNickName: string;
-              LeftSideScore: string;
-              RightSideScore: string;
-              RightSideNickName: string;
-            }): ReactElement => (
-              <PlayerRecordLine
-                LeftSideNickName={record.LeftSideNickName}
-                LeftSideScore={record.LeftSideScore}
-                RightSideScore={record.RightSideScore}
-                RightSideNickName={record.RightSideNickName}
-              />
-            )
-          )} */}
         </div>
       </div>
     </div>

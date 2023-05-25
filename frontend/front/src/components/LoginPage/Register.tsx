@@ -1,10 +1,9 @@
-import React, { useEffect } from "react";
-import { useState } from "react";
+import { useAtom } from "jotai";
+import React, { useEffect, useState } from "react";
 import { MdAddPhotoAlternate } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
-import { AdminLogPrinter } from "../../event/event.util";
 import * as chatAtom from "../../components/atom/ChatAtom";
-import { useAtom } from "jotai";
+import { AdminLogPrinter } from "../../event/event.util";
 
 import "../../styles/LoginModal.css";
 

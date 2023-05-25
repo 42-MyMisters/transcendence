@@ -1,8 +1,6 @@
 import React from "react";
 import { GameCoordinate } from "../../socket/game.dto";
 import { ball, HEIGHT, net, player1, player2, WIDTH } from "./GameInfo";
-import { useAtomValue } from 'jotai';
-import PlayerRecordBoard from './PlayerRecordBoard';
 
 function drawRect(
   x: number,

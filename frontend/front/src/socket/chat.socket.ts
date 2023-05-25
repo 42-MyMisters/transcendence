@@ -1,25 +1,22 @@
-import { io } from "socket.io-client";
 import { NavigateFunction } from "react-router-dom";
-import { useAtom } from "jotai";
-import * as chatAtom from "../components/atom/ChatAtom";
-import * as userAtom from "../components/atom/UserAtom";
+import { io } from "socket.io-client";
 import type * as chatType from "./chat.dto";
 
 import { AdminLogPrinter } from "../event/event.util";
 
-const URL = process.env.REACT_APP_API_URL;
-const NameSpace = "/sock";
+// const URL = process.env.REACT_APP_API_URL;
+const URL = "https://localhost";
+const NameSpace = "/chat";
 
 export const socket = io(`${URL}${NameSpace}`, {
   auth: (cb) => {
     cb({ token: localStorage.getItem("refreshToken") });
   },
-  autoConnect: false,
-  transports: ["websocket"],
-  // reconnectionDelay: 1000, // defaults to 1000
-  // reconnectionDelayMax: 10000, // defaults to 5000
-  // withCredentials: true,
-  // path: "/socket.io",
+	autoConnect: false,
+	transports: ["polling", "websocket"],
+	secure: true,
+	upgrade: true,
+  path: "/socket.io/chat",
 });
 
 export function emitRoomCreate(

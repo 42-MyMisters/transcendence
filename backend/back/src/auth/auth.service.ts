@@ -3,7 +3,7 @@ import {
   BadRequestException,
   Injectable,
   Logger,
-  UnauthorizedException,
+  UnauthorizedException
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";

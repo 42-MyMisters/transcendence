@@ -1,4 +1,4 @@
-import { atom, createStore } from "jotai";
+import { atom } from "jotai";
 import type * as DTO from '../../socket/chat.dto';
 
 export const needToLogout = atom<boolean>(false);
@@ -18,6 +18,6 @@ export const socketStateAtom = atom<boolean>(false);
 export const roomSettingAtom = atom<boolean>(false);
 export const roomSettingIsPrivateAtom = atom<boolean>(false);
 export const roomSettingCurrentRoomNameAtom = atom<string>('');
-export const adminConsoleAtom = atom<boolean>(true);
+export const adminConsoleAtom = atom<boolean>(false);
 
 export const leaderBoardAtom = atom<DTO.leaderboardDto[]>([]);

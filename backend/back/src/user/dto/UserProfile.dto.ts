@@ -1,7 +1,4 @@
-import { Game } from "src/database/entity/game.entity";
-import { UserFollow } from "src/database/entity/user-follow.entity";
 import { User } from "../../database/entity/user.entity";
-import { FollowingUserDto } from "./FollowingUser.dto";
 
 export class UserProfileDto {
 	uid: number;

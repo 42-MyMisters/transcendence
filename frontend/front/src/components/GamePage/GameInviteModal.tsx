@@ -4,7 +4,7 @@ import * as chatAtom from "../../components/atom/ChatAtom";
 import { PressKey } from "../../event/event.util";
 import * as socket from "../../socket/chat.socket";
 import "../../styles/GameInviteModal.css";
-import { gameInviteInfoAtom, gameinviteFromAtom, isPrivateAtom } from "../atom/GameAtom";
+import { gameinviteFromAtom, gameInviteInfoAtom, isPrivateAtom } from "../atom/GameAtom";
 import { gameInviteModalAtom } from "../atom/ModalAtom";
 
 export default function GameInviteModal() {
@@ -37,7 +37,7 @@ export default function GameInviteModal() {
     <>
       <div className="GameInviteModalBG" />
       <div className="GameInviteModal">
-        <div className="GameInviteModalTxt">{`Game Invite\nfrom ${userList[gameInviteFrom].userDisplayName}`}</div>
+        <div className="GameInviteModalTxt">{`Game Invite\nfrom ${userList[gameInviteFrom]?.userDisplayName}`}</div>
         <button
           className="GameInviteModalAcceptBtn"
           onClick={acceptHandler}
