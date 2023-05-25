@@ -1,10 +1,10 @@
-import { Injectable, InternalServerErrorException, Logger } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { Namespace } from "socket.io";
 import { DatabaseService } from "src/database/database.service";
-import { Direction, GameMode, GameStatus, GameType, Hit } from "./game.enum";
-import { Game as GameEntity } from "../database/entity/game.entity";
-import { GameInfo } from "./game.gateway";
 import { User } from "src/database/entity/user.entity";
+import { Game as GameEntity } from "../database/entity/game.entity";
+import { Direction, GameMode, GameStatus, GameType, Hit } from "./game.enum";
+import { GameInfo } from "./game.gateway";
 
 interface GameCoords {
   paddle1Y: number,
@@ -40,7 +40,7 @@ export class GameService {
       curGame.gameStart();
       console.log(`game started!!!!`);
     } catch (e) {
-      throw new InternalServerErrorException("Fail to create game.");
+      Logger.error("Fail to create game.");
     }
   }
 

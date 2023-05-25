@@ -1,14 +1,14 @@
-import { ExtractJwt, Strategy } from "passport-jwt";
-import { PassportStrategy } from "@nestjs/passport";
 import {
   Injectable,
   Logger,
   UnauthorizedException,
-  UnprocessableEntityException,
+  UnprocessableEntityException
 } from "@nestjs/common";
+import { PassportStrategy } from "@nestjs/passport";
+import config from "config";
+import { ExtractJwt, Strategy } from "passport-jwt";
 import { UserService } from "../../user/user.service";
 import { TokenPayload } from "../token-payload.entity";
-import config from "config";
 
 @Injectable()
 export class Jwt2faStrategy extends PassportStrategy(Strategy, "jwt-2fa") {

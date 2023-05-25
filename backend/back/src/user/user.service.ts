@@ -3,7 +3,6 @@ import * as bcrypt from 'bcrypt';
 import config from "config";
 import { authenticator } from "otplib";
 import { toDataURL } from 'qrcode';
-import { find } from "rxjs";
 import { DatabaseService } from "src/database/database.service";
 import { UserFollow } from "src/database/entity/user-follow.entity";
 import { User } from "src/database/entity/user.entity";
