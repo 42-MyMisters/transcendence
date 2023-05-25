@@ -1,15 +1,11 @@
 /config
 /db
 .vscode/settings.json
-<<<<<<< HEAD
 .trunk/
-<<<<<<< HEAD
 =======
 back/img
 Dockerfile_prod
 back/config/production.yml
->>>>>>> 1287e74b3f390d97ce15849b5a324503518851d3
 =======
 
 .env
->>>>>>> b7459260804d0a53cb1036b70c40e9486b841d64
