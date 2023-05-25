@@ -179,6 +179,8 @@ export default function PingPong() {
     } else {
       setGameWinner(player2.uid);
     }
+    coords.ballSpeedX = 0;
+    coords.ballSpeedY = 0;
     setGameResultModal(true);
     clearInterval(pingInterval);
   };
