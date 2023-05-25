@@ -234,7 +234,7 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         }
       }
     } catch (e) {
-      this.logger.log(`${socket.data.user.uid} invalid connection. reason: ${e}. disconnect socket.`);
+      this.logger.log(`${socket?.data?.user?.uid} invalid connection. reason: ${e}. disconnect socket.`);
       socket.disconnect();
     }
   }

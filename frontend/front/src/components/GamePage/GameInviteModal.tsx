@@ -37,7 +37,7 @@ export default function GameInviteModal() {
     <>
       <div className="GameInviteModalBG" />
       <div className="GameInviteModal">
-        <div className="GameInviteModalTxt">{`Game Invite\nfrom ${userList[gameInviteFrom].userDisplayName}`}</div>
+        <div className="GameInviteModalTxt">{`Game Invite\nfrom ${userList[gameInviteFrom]?.userDisplayName}`}</div>
         <button
           className="GameInviteModalAcceptBtn"
           onClick={acceptHandler}
