@@ -1,8 +1,8 @@
 import { Controller, Get, Res } from '@nestjs/common';
-import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { TesterService } from './tester.service';
 
+@Controller("tester")
 export class TesterController {
   constructor(private readonly testerService: TesterService) { }
 

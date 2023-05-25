@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppController } from './app.controller';
 import { EventsModule } from './chat/chat.module';
 import { typeORMConfig } from './configs/typeorm.config';
 import { GameModule } from './game/game.module';
@@ -15,6 +14,5 @@ import { TesterModule } from './tester/tester.module';
 		TesterModule,
 		EventsModule,
 	],
-	controllers: [AppController],
 })
 export class AppModule { }
