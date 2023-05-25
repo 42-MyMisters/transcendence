@@ -1,6 +1,4 @@
-import { useAtomValue } from 'jotai';
 import "../../styles/GamePlayerInfo.css";
-import { userListAtom } from '../atom/ChatAtom';
 import { GameRecordType } from '../atom/UserAtom';
 
 export function PlayerRecordLine({

@@ -1,12 +1,11 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { roomModalAtom } from "../../components/atom/ModalAtom";
-import { passwordInputModalAtom } from "../../components/atom/ModalAtom";
+import { passwordInputModalAtom, roomModalAtom } from "../../components/atom/ModalAtom";
 
 import "../../styles/ChatList.css";
 import ChatRoom from "../objects/ChatRoom";
 
-import * as chatAtom from "../atom/ChatAtom";
 import * as socket from "../../socket/chat.socket";
+import * as chatAtom from "../atom/ChatAtom";
 
 export default function ChatRoomList() {
   const setRoomModal = useSetAtom(roomModalAtom);

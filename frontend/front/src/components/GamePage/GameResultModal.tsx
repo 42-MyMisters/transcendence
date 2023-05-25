@@ -1,14 +1,12 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { useNavigate } from "react-router-dom";
-import { PressKey } from "../../event/event.util";
 import {
-  isGameStartedAtom,
+  gameWinnerAtom, isGameQuitAtom, isGameStartedAtom,
   isLoadingAtom,
   isMatchedAtom,
-  isPrivateAtom,
-  isGameQuitAtom,
-  gameWinnerAtom,
+  isPrivateAtom
 } from "../../components/atom/GameAtom";
+import { PressKey } from "../../event/event.util";
 import "../../styles/GameResultModal.css";
 import { userListAtom } from "../atom/ChatAtom";
 import { gameResultModalAtom } from "../atom/ModalAtom";

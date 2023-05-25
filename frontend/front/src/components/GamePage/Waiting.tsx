@@ -4,27 +4,27 @@ import { useNavigate } from 'react-router-dom';
 import * as chatAtom from "../../components/atom/ChatAtom";
 import { refreshTokenAtom } from "../../components/atom/LoginAtom";
 import * as api from "../../event/api.request";
+import { AdminLogPrinter } from '../../event/event.util';
 import "../../styles/BackGround.css";
 import "../../styles/GamePlayerInfo.css";
 import { userListAtom } from '../atom/ChatAtom';
-import { UserType, GameRecordType } from '../atom/UserAtom';
+import { GamePlayer, gamePlayerAtom, isMatchedAtom, isPrivateAtom, p1IdAtom, p2IdAtom } from '../atom/GameAtom';
+import { GameRecordType } from '../atom/UserAtom';
 import CheckBox from "./CheckBox";
 import PlayerRecordBoard from "./PlayerRecordBoard";
-import { GamePlayer, gamePlayerAtom, isMatchedAtom, isPrivateAtom, p1IdAtom, p2IdAtom } from '../atom/GameAtom';
-import { AdminLogPrinter } from '../../event/event.util';
 
 export default function Waiting() {
-  const userList = useAtomValue(userListAtom);
-  const adminConsole = useAtomValue(chatAtom.adminConsoleAtom);
   const [player1Info, setPlayer1Info] = useState([] as GameRecordType[]);
   const [player2Info, setPlayer2Info] = useState([] as GameRecordType[]);
-  const isPrivate = useAtomValue(isPrivateAtom);
+
   const setRefreshToken = useSetAtom(refreshTokenAtom);
-  // const isP1 = useAtomValue(isP1Atom);
+  
   const gamePlayer = useAtomValue(gamePlayerAtom);
   const p1Id = useAtomValue(p1IdAtom);
   const p2Id = useAtomValue(p2IdAtom);
-  const isMatched = useAtomValue(isMatchedAtom);
+
+  const userList = useAtomValue(userListAtom);
+  const adminConsole = useAtomValue(chatAtom.adminConsoleAtom);
 
   const navigate = useNavigate();
 

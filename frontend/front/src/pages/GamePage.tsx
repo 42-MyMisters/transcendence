@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import BackGround from "../components/BackGround";
 import "../components/GamePage/PingPong";
 import PingPong from "../components/GamePage/PingPong";
@@ -6,67 +6,47 @@ import TopBar from "../components/TopBar";
 
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
-  isGameStartedAtom,
+  gameInviteInfoAtom, GameMode, gameModeAtom, gameModeForDisplayAtom, GamePlayer, gamePlayerAtom, gameSocketAtom, isGameQuitAtom, isGameStartedAtom,
   isLoadingAtom,
   isMatchedAtom,
-  isPrivateAtom,
-  isGameQuitAtom,
-  gameInviteInfoAtom,
-  gameSocketAtom,
-  gameModeAtom,
-  // isP1Atom,
-  gameWinnerAtom,
-  p1IdAtom,
-  p2IdAtom,
-  gamePlayerAtom,
-  GamePlayer,
-  GameMode,
-  gameModeForDisplayAtom,
+  isPrivateAtom, p1IdAtom,
+  p2IdAtom
 } from "../components/atom/GameAtom";
 
-import * as chatSocket from "../socket/chat.socket";
 import * as chatAtom from "../components/atom/ChatAtom";
 import { gameResultModalAtom } from "../components/atom/ModalAtom";
 import GameResultModal from "../components/GamePage/GameResultModal";
 import LadderBoard from "../components/GamePage/LadderBoard";
 
+import { UserAtom } from "../components/atom/UserAtom";
+import { player1, player2 } from "../components/GamePage/GameInfo";
 import Waiting from "../components/GamePage/Waiting";
 import { AdminLogPrinter, PressKey } from "../event/event.util";
-import { io, Socket } from 'socket.io-client';
-import { UserAtom } from "../components/atom/UserAtom";
 import { GameType } from "../socket/game.dto";
-import { player1, player2 } from "../components/GamePage/GameInfo";
 
 export default function GamePage() {
-  const [showComponent, setShowComponent] = useState(true);
-  const [gameResultModal, setGameResultModal] = useAtom(gameResultModalAtom);
-
+  const [adminConsole, setAdminConsole] = useAtom(chatAtom.adminConsoleAtom);
+  
+  const isPrivate = useAtomValue(isPrivateAtom);
   const [isLoading, setIsLoading] = useAtom(isLoadingAtom);
   const [isMatched, setIsMatched] = useAtom(isMatchedAtom);
-  const [isPrivate, setIsPrivate] = useAtom(isPrivateAtom);
   const [isGameStart, setIsGameStart] = useAtom(isGameStartedAtom);
-  const setIsGameQuit = useSetAtom(isGameQuitAtom);
   const [gameInviteInfo, setGameInviteInfo] = useAtom(gameInviteInfoAtom);
-  const [gameMode, setGameMode] = useAtom(gameModeAtom);
-
-  const [adminConsole, setAdminConsole] = useAtom(chatAtom.adminConsoleAtom);
-
-  const [userInfo, setUserInfo] = useAtom(UserAtom);
-
-  const [gameSocket, setGameSocket] = useAtom(gameSocketAtom);
-
-  const [gamePlayer, setGamePlayer] = useAtom(gamePlayerAtom);
-
+  const [gameResultModal, setGameResultModal] = useAtom(gameResultModalAtom);
   const [gameModeForDisplay, setGameModeForDisplay] = useAtom(gameModeForDisplayAtom);
-  // const [isP1, setIsP1] = useAtom(isP1Atom);
-
-
+  
+  const [gameSocket, setGameSocket] = useAtom(gameSocketAtom);
+  
   const [p1Id, setP1Id] = useAtom(p1IdAtom);
   const [p2Id, setP2Id] = useAtom(p2IdAtom);
-
+  
+  const setGameMode = useSetAtom(gameModeAtom);
+  const setGamePlayer = useSetAtom(gamePlayerAtom);
+  const setIsGameQuit = useSetAtom(isGameQuitAtom);
+  
+  const userInfo = useAtomValue(UserAtom);
   const userList = useAtomValue(chatAtom.userListAtom);
-  const gameWinner = useAtomValue(gameWinnerAtom);
-
+  
   class socketAuth {
     token: string | null;
     type: GameType;

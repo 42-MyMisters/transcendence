@@ -1,44 +1,40 @@
 import "../../styles/BackGround.css";
 import "../../styles/PingPong.css";
 
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 
 import * as chatAtom from "../atom/ChatAtom";
 import {
-  GameMode,
-  GamePlayer,
-  gameModeForDisplayAtom,
-  gamePlayerAtom,
+  GameMode, gameModeForDisplayAtom, GamePlayer, gamePlayerAtom,
   gameSocketAtom,
-  gameWinnerAtom,
-  isGameStartedAtom,
-  isPrivateAtom,
+  gameWinnerAtom
 } from "../atom/GameAtom";
 import { Game } from "./Pong";
 
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useRef, useState } from "react";
-import { gameResultModalAtom, isLoadingAtom } from "../atom/ModalAtom";
+import { gameResultModalAtom } from "../atom/ModalAtom";
 import { ball, HEIGHT, paddle, player1, player2, WIDTH } from "./GameInfo";
 
 import { AdminLogPrinter } from "../../event/event.util";
-import { GameCoordinate, scoreInfo, Direction, Hit, GameType } from "../../socket/game.dto";
+import { Direction, GameCoordinate, Hit, scoreInfo } from "../../socket/game.dto";
 
 export default function PingPong() {
-  const [upArrow, setUpArrow] = useState(false);
-  const [downArrow, setDownArrow] = useState(false);
-  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
+
   const canvas = useRef<HTMLCanvasElement>(null);
 
+  const [adminConsole] = useAtom(chatAtom.adminConsoleAtom);
+  
+  const [upArrow, setUpArrow] = useState(false);
+  const [downArrow, setDownArrow] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+    
+  const gameSocket = useAtomValue(gameSocketAtom);
+  const gamePlayer = useAtomValue(gamePlayerAtom);
+  
+  const setGameWinner = useSetAtom(gameWinnerAtom);
   const setGameResultModal = useSetAtom(gameResultModalAtom);
 
-  const gameSocket = useAtomValue(gameSocketAtom);
-
-  // const isP1 = useAtomValue(isP1Atom);
-  const gamePlayer = useAtomValue(gamePlayerAtom);
-  const setGameWinner = useSetAtom(gameWinnerAtom);
-
-  const [count, setCount] = useState(0);
   const gameModeForDisplay = useAtomValue(gameModeForDisplayAtom);
 
   let serverClientTimeDiff: number = 400;
@@ -185,11 +181,11 @@ export default function PingPong() {
     clearInterval(pingInterval);
   };
 
-  const setCountdown = (countdownTime: number) => {
+  const setCountdownSec = (countdownTime: number) => {
     console.log(`set counter ${countdownTime}`)
-    setCount(countdownTime);
+    setCountdown(countdownTime);
     if (countdownTime >= 1) {
-      setTimeout(setCountdown, 1000, countdownTime - 1)
+      setTimeout(setCountdownSec, 1000, countdownTime - 1)
     }
   }
 
@@ -203,8 +199,7 @@ export default function PingPong() {
       "\nserver curTime: ",
       localTime
     );
-    setCountdown(Math.round((time - (Date.now() - localTime)) / 1000));
-    // setCountDownTime(curTime + serverClientTimeDiff);
+    setCountdownSec(Math.round((time - (Date.now() - localTime)) / 1000));
   };
 
   useEffect(() => {
@@ -418,7 +413,7 @@ export default function PingPong() {
     <div className="QueueBackGround">
       <canvas ref={canvas} id="pong" width={1150} height={600}></canvas>
       {
-        count !== 0 ? <div className="countDown">{count}</div> : ""
+        countdown !== 0 ? <div className="countDown">{countdown}</div> : ""
       }
       {
         gameModeForDisplay === GameMode.DEFAULT

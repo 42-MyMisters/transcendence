@@ -1,11 +1,11 @@
 import "../../styles/LoginModals.css";
 
-import { useRef, useState, useEffect } from "react";
+import { useAtomValue, useSetAtom } from "jotai";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AdminLogPrinter } from "../../event/event.util";
 import * as chatAtom from "../../components/atom/ChatAtom";
 import { isFirstLoginAtom, refreshTokenAtom } from "../../components/atom/LoginAtom";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { AdminLogPrinter } from "../../event/event.util";
 import { UserAtom } from "../atom/UserAtom";
 
 import { hasLoginAtom } from "../../components/atom/ChatAtom";

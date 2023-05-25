@@ -1,15 +1,13 @@
-import { Cookies } from "react-cookie";
-import "../styles/TopBar.css";
 import { Link, NavLink, useNavigate } from "react-router-dom";
+import "../styles/TopBar.css";
 
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { refreshTokenAtom } from "./atom/LoginAtom";
-import { LogOut } from "../event/api.request";
-import * as socket from "../socket/chat.socket";
+import { useAtomValue, useSetAtom } from "jotai";
 import * as chatAtom from "../components/atom/ChatAtom";
-import { AdminLogPrinter } from "../event/event.util";
 import { isMyProfileAtom } from "../components/atom/UserAtom";
+import { LogOut } from "../event/api.request";
+import { AdminLogPrinter } from "../event/event.util";
 import { isGameStartedAtom, isPrivateAtom } from "./atom/GameAtom";
+import { refreshTokenAtom } from "./atom/LoginAtom";
 
 export default function TopBar() {
   return (

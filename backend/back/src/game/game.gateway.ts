@@ -241,6 +241,10 @@ export class GameGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   handleDisconnect(@ConnectedSocket() socket: Socket) {
     const user = socket.data.user;
+    if (user === undefined) {
+      this.logger.log("user disconnected before get user info.");
+      return ;
+    }
     const joinedRoom = socket.data.room;
     if (joinedRoom !== undefined) {
       // Game finished or socket disconnected while game playing(Maybe refreshed).

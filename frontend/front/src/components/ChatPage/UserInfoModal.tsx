@@ -7,7 +7,7 @@ import { IoCloseOutline } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
 import * as chatAtom from "../../components/atom/ChatAtom";
 import { refreshTokenAtom } from "../../components/atom/LoginAtom";
-import { ProfileAtom, isMyProfileAtom, FollowingAtom, GameRecordAtom } from "../../components/atom/UserAtom";
+import { FollowingAtom, GameRecordAtom, isMyProfileAtom, ProfileAtom } from "../../components/atom/UserAtom";
 import * as socket from "../../socket/chat.socket";
 import "../../styles/UserInfoModal.css";
 import { gameInviteInfoAtom, isGameStartedAtom, isPrivateAtom, p2IdAtom } from "../atom/GameAtom";

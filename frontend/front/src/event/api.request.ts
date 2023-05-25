@@ -1,8 +1,8 @@
 import { NavigateFunction } from "react-router-dom";
-import type { UserType, FollowingsType, GameRecordType } from "../components/atom/UserAtom";
+import type { FollowingsType, GameRecordType, UserType } from "../components/atom/UserAtom";
+import { AdminLogPrinter } from "../event/event.util";
 import type * as chatType from "../socket/chat.dto";
 import * as socket from "../socket/chat.socket";
-import { AdminLogPrinter } from "../event/event.util";
 
 type setUserInfo = React.Dispatch<React.SetStateAction<UserType>>;
 type setFollowing = React.Dispatch<React.SetStateAction<FollowingsType[]>>;

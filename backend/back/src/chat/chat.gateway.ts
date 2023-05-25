@@ -170,7 +170,7 @@ let ROOM_COUNT = 3;
 const MAX_ROOM_COUNT = 200;
 let leaderBoard = [] as leaderboardDto[];
 
-@WebSocketGateway({ namespace: "sock", cors: { origin: "*" } })
+@WebSocketGateway({ namespace: "chat", cors: { origin: "*" } })
 export class EventsGateway
 	implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
 	constructor(

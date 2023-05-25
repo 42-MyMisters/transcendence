@@ -1,4 +1,4 @@
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import "../../styles/UserObj.css";
 import * as chatAtom from '../atom/ChatAtom';
 import { UserAtom } from '../atom/UserAtom';

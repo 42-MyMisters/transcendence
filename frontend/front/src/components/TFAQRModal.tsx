@@ -1,9 +1,7 @@
 import { keyboardKey } from '@testing-library/user-event';
 import { useAtom, useSetAtom } from "jotai";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from 'react-router-dom';
 import * as chatAtom from "../components/atom/ChatAtom";
-import { refreshTokenAtom } from "../components/atom/LoginAtom";
 import * as api from '../event/api.request';
 import { AdminLogPrinter, PressKey } from "../event/event.util";
 import "../styles/TFAQRModal.css";

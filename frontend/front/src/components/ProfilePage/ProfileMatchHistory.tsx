@@ -2,14 +2,13 @@ import "../../styles/ProfilePage.css";
 
 import { PlayerRecordLine } from "../GamePage/PlayerRecordBoard";
 
-import { ReactElement, useEffect, useState } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { ProfileAtom, UserAtom, isMyProfileAtom, GameRecordAtom, GameRecordType } from "../atom/UserAtom";
-import { Game } from "../GamePage/Pong";
-import * as api from "../../event/api.request";
+import { useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 import * as chatAtom from "../../components/atom/ChatAtom";
 import { refreshTokenAtom } from "../../components/atom/LoginAtom";
-import { useNavigate } from 'react-router-dom';
+import * as api from "../../event/api.request";
+import { GameRecordAtom, GameRecordType, isMyProfileAtom, ProfileAtom, UserAtom } from "../atom/UserAtom";
 
 export default function ProfileMatchHistory() {
   const isMyProfile = useAtomValue(isMyProfileAtom);

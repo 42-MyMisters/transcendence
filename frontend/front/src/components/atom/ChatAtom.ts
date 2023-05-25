@@ -1,4 +1,4 @@
-import { atom, createStore } from "jotai";
+import { atom } from "jotai";
 import type * as DTO from '../../socket/chat.dto';
 
 export const needToLogout = atom<boolean>(false);
