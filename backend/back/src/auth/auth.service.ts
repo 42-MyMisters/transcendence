@@ -126,11 +126,7 @@ export class AuthService {
       twoFactorAuthenticated: twoFactor,
     };
     const refreshToken = await this.jwtService.sign(payload, {
-<<<<<<< HEAD
-      expiresIn: process.env.JWT_REFRESH_EXP,
-=======
       expiresIn: String(process.env.JWT_REFRESH_EXP),
->>>>>>> b7459260804d0a53cb1036b70c40e9486b841d64
     });
     return refreshToken;
   }

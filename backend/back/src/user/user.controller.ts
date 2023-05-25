@@ -241,11 +241,7 @@ export class UserController {
   })
   @Post("/me")
   @UseGuards(JwtInitialAuthGuard)
-<<<<<<< HEAD
-  async getUserProfilePost(@Req() reqeust): Promise<UserProfileDto> {
-=======
   async getUserProfiePost(@Req() reqeust): Promise<UserProfileDto> {
->>>>>>> b7459260804d0a53cb1036b70c40e9486b841d64
     const user = reqeust.user;
     return await this.userService.getUserProfile(user.uid, true);
   }
