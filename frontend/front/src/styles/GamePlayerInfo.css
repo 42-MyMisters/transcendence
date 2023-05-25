@@ -68,22 +68,6 @@ div::-webkit-scrollbar {
   height: 30px;
 
   margin-bottom: 20px;
-
-  background-color: darkseagreen;
-}
-
-.PlayerRecordWrapLose {
-  /* position: absolute; */
-
-  /* top: 30px;
-  left: 30px; */
-
-  width: 550px;
-  height: 30px;
-
-  margin-bottom: 20px;
-
-  background-color: lightcoral;
 }
 
 /* Player Record Text */

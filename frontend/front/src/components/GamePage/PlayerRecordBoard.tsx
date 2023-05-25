@@ -8,14 +8,16 @@ export function PlayerRecordLine({
   LeftSideScore,
   RightSideScore,
   RightSideNickName,
+  color = '#9BDEAC',
 }: {
   LeftSideNickName: string;
   LeftSideScore: number;
   RightSideScore: number;
   RightSideNickName: string;
+  color?: string;
 }) {
   return (
-    <div className="PlayerRecordWrap">
+    <div className="PlayerRecordWrap" style={{ backgroundColor: color }}>
       <div className="LeftSideNickName">{LeftSideNickName}</div>
       <div className="LeftSideScore">{LeftSideScore}</div>
       <div className="VSText">VS</div>
@@ -24,29 +26,6 @@ export function PlayerRecordLine({
     </div>
   );
 }
-
-export function PlayerRecordLineLose({
-  LeftSideNickName,
-  LeftSideScore,
-  RightSideScore,
-  RightSideNickName,
-}: {
-  LeftSideNickName: string;
-  LeftSideScore: number;
-  RightSideScore: number;
-  RightSideNickName: string;
-}) {
-  return (
-    <div className="PlayerRecordWrapLose">
-      <div className="LeftSideNickName">{LeftSideNickName}</div>
-      <div className="LeftSideScore">{LeftSideScore}</div>
-      <div className="VSText">VS</div>
-      <div className="RightSideScore">{RightSideScore}</div>
-      <div className="RightSideNickName">{RightSideNickName}</div>
-    </div>
-  );
-}
-
 
 export default function PlayerRecordBoard({
   records,
@@ -57,31 +36,34 @@ export default function PlayerRecordBoard({
 }) {
   return (
     <div className="PlayerRecordBoard">
-      {/* <div className="PlayerRecoreList">{rec}</div> */}
-      {
+      <div className="PlayerRecoreList">
 
-        records?.length === 0
-          ? ''
-          : records?.map((game) => {
-            return (
-              game.winnerUid === userId
-                ? <PlayerRecordLine
-                  key={game.gid + game.winnerNickname + game.loserNickname}
-                  LeftSideNickName={game.winnerNickname}
-                  LeftSideScore={game.winnerScore}
-                  RightSideScore={game.loserScore}
-                  RightSideNickName={game.loserNickname}
-                />
-                : <PlayerRecordLineLose
-                  key={game.gid + game.winnerNickname + game.loserNickname}
-                  LeftSideNickName={game.winnerNickname}
-                  LeftSideScore={game.winnerScore}
-                  RightSideScore={game.loserScore}
-                  RightSideNickName={game.loserNickname}
-                />
-            );
-          })
-      }
+        {
+
+          records?.length === 0
+            ? ''
+            : records?.map((game) => {
+              return (
+                game.winnerUid === userId
+                  ? <PlayerRecordLine
+                    key={game.gid + game.winnerNickname + game.loserNickname}
+                    LeftSideNickName={game.winnerNickname}
+                    LeftSideScore={game.winnerScore}
+                    RightSideScore={game.loserScore}
+                    RightSideNickName={game.loserNickname}
+                  />
+                  : <PlayerRecordLine
+                    key={game.gid + game.winnerNickname + game.loserNickname}
+                    LeftSideNickName={game.winnerNickname}
+                    LeftSideScore={game.winnerScore}
+                    RightSideScore={game.loserScore}
+                    RightSideNickName={game.loserNickname}
+                    color={"#E2979C"}
+                  />
+              );
+            })
+        }
+      </div>
     </div>
   );
 }

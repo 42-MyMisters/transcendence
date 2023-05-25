@@ -377,7 +377,6 @@ export async function GetOtherGameRecord(
       status = response.status;
       switch (response.status) {
         case 200: {
-          console.log(response);
           return response.json();
         }
         default: {

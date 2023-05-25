@@ -30,8 +30,8 @@ export const TFAAtom = atom<boolean>(false);
 export const isMyProfileAtom = atom<boolean>(true);
 
 export const ProfileAtom = atom<UserType>({} as UserType);
-export const FollowingAtom = atom<FollowingsType[]>([{} as FollowingsType]);
-export const GameRecordAtom = atom<GameRecordType[]>([{} as GameRecordType]);
+export const FollowingAtom = atom<FollowingsType[]>([]);
+export const GameRecordAtom = atom<GameRecordType[]>([]);
 
 export const UserAtom = atom<UserType>({
   uid: 1,

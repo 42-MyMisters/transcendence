@@ -158,7 +158,6 @@ export default function ChatWrapper({ children }: { children: JSX.Element }) {
 				} else {
 					key.winRate = Number((key.winGameCount / key.totalGameCount * 100).toFixed(2));
 				}
-				key.elo = 1000 + key.elo;
 			});
 			setLeaderBoard(leaderBoard);
 		});

@@ -16,8 +16,8 @@ import { AdminLogPrinter } from '../../event/event.util';
 export default function Waiting() {
   const userList = useAtomValue(userListAtom);
   const adminConsole = useAtomValue(chatAtom.adminConsoleAtom);
-  const [player1Info, setPlayer1Info] = useState([{} as GameRecordType]);
-  const [player2Info, setPlayer2Info] = useState([{} as GameRecordType]);
+  const [player1Info, setPlayer1Info] = useState([] as GameRecordType[]);
+  const [player2Info, setPlayer2Info] = useState([] as GameRecordType[]);
   const isPrivate = useAtomValue(isPrivateAtom);
   const setRefreshToken = useSetAtom(refreshTokenAtom);
   // const isP1 = useAtomValue(isP1Atom);
@@ -52,32 +52,24 @@ export default function Waiting() {
   }
 
   useEffect(() => {
-    if (isPrivate) {
-      getGameRecordHandler(setPlayer1Info, p1Id)
-        .catch((e) => { AdminLogPrinter(adminConsole, e) });
-      getGameRecordHandler(setPlayer2Info, p2Id)
-        .catch((e) => { AdminLogPrinter(adminConsole, e) });
-    } else if (isMatched) {
-      getGameRecordHandler(setPlayer2Info, p2Id)
-        .catch((e) => { AdminLogPrinter(adminConsole, e) });
-    } else {
-      getGameRecordHandler(setPlayer1Info, p1Id)
-        .catch((e) => { AdminLogPrinter(adminConsole, e) });
-    }
-  }, [isMatched, p1Id, p2Id]);
+    getGameRecordHandler(setPlayer1Info, p1Id)
+      .catch((e) => { AdminLogPrinter(adminConsole, e) });
+    getGameRecordHandler(setPlayer2Info, p2Id)
+      .catch((e) => { AdminLogPrinter(adminConsole, e) });
+  }, [p1Id, p2Id]);
 
   return (
     <div className="QueueBackGround">
       <div className="LeftWrap">
         <div className="PlayerWrap">
-          <div className="PlayerNickName">{userList[p1Id].userDisplayName}</div>
+          <div className="PlayerNickName">{userList[p1Id]?.userDisplayName ?? 'LeftName'}</div>
           <PlayerRecordBoard records={player1Info} userId={p1Id} />
         </div>
       </div>
       <div className="RightWrap">
         <div className="PlayerWrap">
-          <div className="PlayerNickName">{userList[p2Id].userDisplayName}</div>
-          <PlayerRecordBoard records={player1Info} userId={p2Id} />
+          <div className="PlayerNickName">{userList[p2Id]?.userDisplayName ?? 'RightName'}</div>
+          <PlayerRecordBoard records={player2Info} userId={p2Id} />
         </div>
       </div>
       {

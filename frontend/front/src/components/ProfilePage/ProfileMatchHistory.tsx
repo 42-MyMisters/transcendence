@@ -1,6 +1,6 @@
 import "../../styles/ProfilePage.css";
 
-import { PlayerRecordLine, PlayerRecordLineLose } from "../GamePage/PlayerRecordBoard";
+import { PlayerRecordLine } from "../GamePage/PlayerRecordBoard";
 
 import { ReactElement, useEffect, useState } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
@@ -76,33 +76,35 @@ export default function ProfileMatchHistory() {
                   isMyProfile
                     ? game.winnerUid === userInfo.uid
                       ? <PlayerRecordLine
-                        key={game.gid + game.winnerNickname + game.loserNickname}
+                        key={game.gid + game.winnerNickname}
                         LeftSideNickName={game.winnerNickname}
                         LeftSideScore={game.winnerScore}
                         RightSideScore={game.loserScore}
                         RightSideNickName={game.loserNickname}
                       />
-                      : <PlayerRecordLineLose
-                        key={game.gid + game.winnerNickname + game.loserNickname}
-                        LeftSideNickName={game.winnerNickname}
-                        LeftSideScore={game.winnerScore}
-                        RightSideScore={game.loserScore}
-                        RightSideNickName={game.loserNickname}
+                      : <PlayerRecordLine
+                        key={game.gid + game.loserNickname}
+                        LeftSideNickName={game.loserNickname}
+                        LeftSideScore={game.loserScore}
+                        RightSideScore={game.winnerScore}
+                        RightSideNickName={game.winnerNickname}
+                        color={"#E2979C"}
                       />
                     : game.winnerUid === profile.uid
                       ? <PlayerRecordLine
-                        key={game.gid + game.winnerNickname + game.loserNickname}
+                        key={game.gid + game.winnerNickname}
                         LeftSideNickName={game.winnerNickname}
                         LeftSideScore={game.winnerScore}
                         RightSideScore={game.loserScore}
                         RightSideNickName={game.loserNickname}
                       />
-                      : <PlayerRecordLineLose
-                        key={game.gid + game.winnerNickname + game.loserNickname}
-                        LeftSideNickName={game.winnerNickname}
-                        LeftSideScore={game.winnerScore}
-                        RightSideScore={game.loserScore}
-                        RightSideNickName={game.loserNickname}
+                      : <PlayerRecordLine
+                        key={game.gid + game.loserNickname}
+                        LeftSideNickName={game.loserNickname}
+                        LeftSideScore={game.loserScore}
+                        RightSideScore={game.winnerScore}
+                        RightSideNickName={game.winnerNickname}
+                        color={"#E2979C"}
                       />
                 );
               })
