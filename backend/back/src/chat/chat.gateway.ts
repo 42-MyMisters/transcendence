@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { ConflictException, Logger, UnauthorizedException, UnprocessableEntityException } from "@nestjs/common";
 import {
 	ConnectedSocket,
@@ -8,17 +7,15 @@ import {
 	OnGatewayInit,
 	SubscribeMessage,
 	WebSocketGateway,
-	WebSocketServer,
+	WebSocketServer
 } from "@nestjs/websockets";
+import * as bcrypt from 'bcrypt';
 import { Namespace, Socket } from "socket.io";
 import { AuthService } from "src/auth/auth.service";
-import { User } from "src/database/entity/user.entity";
-import { DirectMessage } from 'src/database/entity/direct-message.entity';
-import { UserFollow } from "src/database/entity/user-follow.entity";
-import { UserBlock } from "src/database/entity/user-block.entity";
-import { UserService } from "src/user/user.service";
 import { DatabaseService } from "src/database/database.service";
-import * as bcrypt from 'bcrypt';
+import { DirectMessage } from 'src/database/entity/direct-message.entity';
+import { User } from "src/database/entity/user.entity";
+import { UserService } from "src/user/user.service";
 
 
 type roomType = 'open' | 'protected' | 'private' | 'dm';

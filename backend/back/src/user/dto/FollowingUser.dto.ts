@@ -1,5 +1,3 @@
-import { Type } from "class-transformer";
-import { validateOrReject } from "class-validator";
 import { UserFollow } from "../../database/entity/user-follow.entity";
 
 export class FollowingUserDto {

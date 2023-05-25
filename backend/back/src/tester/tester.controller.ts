@@ -1,18 +1,11 @@
-import { Controller, Get, Post, Res } from '@nestjs/common';
-import { Response } from 'express';
+import { Controller, Get, Res } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Response } from 'express';
 import { TesterService } from './tester.service';
 
-@Controller('/tester')
-@ApiTags('Test Router')
 export class TesterController {
   constructor(private readonly testerService: TesterService) { }
 
-  @ApiOperation({
-    summary: 'test router',
-    description: 'send "Hello World!" to clients.',
-  })
-  @ApiOkResponse({ description: 'ok' })
   @Get("/addUser")
   async registerUser(@Res() res: Response) {
     const tokenSet = await this.testerService.userGenerate();
@@ -24,10 +17,5 @@ export class TesterController {
     });
     res.cookie('refreshToken', tokenSet.refresh_token);
     return res.redirect('http://localhost:3000/');
-  }
-
-  @Get("/elo")
-  async eloCalc(){
-    // this.testerService.eloLogic(0,0,)
   }
 }
