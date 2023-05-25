@@ -9,6 +9,7 @@ import * as chatAtom from "../../components/atom/ChatAtom";
 import { refreshTokenAtom } from "../../components/atom/LoginAtom";
 import * as api from "../../event/api.request";
 import { GameRecordAtom, GameRecordType, isMyProfileAtom, ProfileAtom, UserAtom } from "../atom/UserAtom";
+import { AdminLogPrinter } from '../../event/event.util';
 
 export default function ProfileMatchHistory() {
   const isMyProfile = useAtomValue(isMyProfileAtom);
@@ -44,9 +45,10 @@ export default function ProfileMatchHistory() {
 
   useEffect(() => {
     if (isMyProfile) {
-      getGameRecordHandler(setGameRecord, userInfo.uid);
+      getGameRecordHandler(setGameRecord, userInfo.uid)
+        .catch((e) => { AdminLogPrinter(adminConsole, e) });
     }
-  }, []);
+  }, [isMyProfile]);
 
   return (
     <div className="ProfileMatchFrame">
