@@ -42,13 +42,16 @@ services:
           - postgres
     env_file:
       - .env
+<<<<<<< HEAD
     ports:
       - "5444:5432"
+=======
+>>>>>>> b7459260804d0a53cb1036b70c40e9486b841d64
     healthcheck:
       test: pg_isready -d $POSTGRES_DB -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER
       interval: 10s
       timeout: 30s
-      retries: 5
+      retries: 20
       start_period: 10s
 
   # pgadmin:

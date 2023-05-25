@@ -117,7 +117,7 @@ export default function GamePage() {
     } else if (reason === "io client disconnect") {
       setIsGameStart(false);
     }
-    console.log(`gameSocket end`, reason);
+    // console.log(`gameSocket end`, reason);
     clearState();
     AdminLogPrinter(adminConsole, "gameSocket disconnected");
   };

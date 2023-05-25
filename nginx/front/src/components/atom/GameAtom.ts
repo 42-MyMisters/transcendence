@@ -24,11 +24,15 @@ type gameMode = 'normal' | 'item';
 
 export const gameModeAtom = atom<gameMode>('normal');
 
+<<<<<<< HEAD
 <<<<<<< HEAD:frontend/front/src/components/atom/GameAtom.ts
 const URL = "https://wchaeserver.mooo.com";
 =======
 const URL = process.env.REACT_APP_API_URL;
 >>>>>>> 9e630b5be567f65ad1493b8992e2a1a490c4bc42:nginx/front/src/components/atom/GameAtom.ts
+=======
+const URL = process.env.REACT_APP_API_URL;
+>>>>>>> b7459260804d0a53cb1036b70c40e9486b841d64
 const NameSpace = "/game";
 
 export const gameSocketAtom = atom<Socket>(io(`${URL}${NameSpace}`, {
