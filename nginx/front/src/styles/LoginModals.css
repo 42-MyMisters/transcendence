@@ -1,58 +1,66 @@
+
+
 .LoginModalsBG {
-  position: absolute;
-  left: 330px;
-  top: 212px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
 
-  width: 780px;
-  height: 600px;
-
-  background: #d9d9d9;
+  /* background: #d9d9d9; */
 }
+
+.login-form {
+  /* margin-top: 50%; */
+  width: 300px;
+  background-color: #545c66;
+  margin-right: auto;
+  margin-left: auto;
+  margin-top: 50px;
+  padding: 20px;
+  text-align: center;
+  border: none;
+  
+}
+
+
+.text-field {
+  font-size: 14px;
+  padding: 10px;
+  border: 2px;;
+  width: 260px;
+  margin-bottom: 10px;
+
+}
+
+.submit-btn {
+font-size: 14px;
+border: none;
+padding: 10px;
+width: 260px;
+background-color: #a18484;
+margin-bottom: 30px;
+color: rgb(255, 255, 255);
+}
+
+.links {
+text-align: center;
+}
+
+.links a {
+font-size: 12px;
+color: #9B9B9B;
+}
+
 
 .LoginTxt {
-  position: absolute;
-  left: 120px;
-  top: 130px;
+  position: relative;
+  padding-top: 10%;
 
-  width: 540px;
-  height: 60px;
 
   font-weight: 400;
   font-size: 50px;
   align-items: center;
   text-align: center;
-}
-
-.LoginBtn {
-  position: absolute;
-  left: 120px;
-  bottom: 90px;
-
-  width: 540px;
-  height: 100px;
-
-  background: #fff;
-
-  font-weight: 400;
-  font-size: 50px;
-  line-height: 100px;
-  align-items: center;
-  text-align: center;
-}
-
-.LoginModalInput {
-  position: absolute;
-  left: 120px;
-  top: 310px;
-
-  width: 540px;
-  height: 80px;
-
-  outline: none;
-  font-size: 50px;
-  font-weight: 400;
-  align-items: center;
-  color: #000;
 }
 
 .DefaultProfileImg {

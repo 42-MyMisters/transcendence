@@ -1,5 +1,5 @@
 .WindowWrap {
-  width: 1440px;
-  height: 1024px;
-  position: absolute;
+  width: auto;
+  height: auto;
+  position: relative;
 }
