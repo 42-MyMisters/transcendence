@@ -134,6 +134,8 @@ export class AuthService {
   async refreshAccessToken(refresh_token: string, user: User) {
     const refreshToken = refresh_token.split(" ")[1];
     const refreshTokenVerify = refreshToken.split(".")[2];
+    if (user.refreshToken === undefined || user.refreshToken === "" || user.refreshToken === null)
+      throw new UnauthorizedException();
     const isMatch = await bcrypt.compare(
       refreshTokenVerify,
       user.refreshToken,
