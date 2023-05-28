@@ -34,7 +34,7 @@ export default function App() {
       <Provider>
         <div className="WindowWrap">
           <Router>
-            <CheckLogin>
+            {/* <CheckLogin> */}
               <ChatWrapper>
                 <Routes>
                   <Route path="/" element={<LoginPage />}></Route>
@@ -44,7 +44,7 @@ export default function App() {
                   <Route path="*" element={<NotFoundPage />}></Route>
                 </Routes>
               </ChatWrapper>
-            </CheckLogin>
+            {/* </CheckLogin> */}
           </Router>
         </div>
       </Provider>

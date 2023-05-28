@@ -82,7 +82,7 @@ services:
     ports:
       - "8443:8443"
       - "443:443"
-      - "80:80"
+      # - "80:80"
     env_file:
       - .env
     depends_on:

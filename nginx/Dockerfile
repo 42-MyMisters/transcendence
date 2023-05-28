@@ -24,7 +24,8 @@ RUN chmod +x /sign.sh && /sign.sh
 
 COPY --from=build_stage /data/front/build /var/www/html/
 
-EXPOSE 443 80 8443
+EXPOSE 443 8443 
+#80
 
 STOPSIGNAL SIGKILL
 

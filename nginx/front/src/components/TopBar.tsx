@@ -11,6 +11,26 @@ import { refreshTokenAtom } from "./atom/LoginAtom";
 
 export default function TopBar() {
   return (
+
+    <header>
+  <section className="hbody">
+    <article className="nav">
+    <div className="title">
+            <LogoBtn />
+    </div>
+    <ul id="menu">
+      <li><ChatBtn /></li>
+      <li><QueueBtn /></li>
+      <li><ProfileBtn/></li>
+      <li><LogoutBtn/></li>
+    </ul>
+    <i className="fab fa-twitter-square"></i>
+    <i className="fas fa-bars"></i>
+    </article>
+  </section>
+</header>
+/*
+
     <div className="TopBarBG">
       <LogoBtn />
       <div className="TopBarBtnAlign">
@@ -20,6 +40,7 @@ export default function TopBar() {
         <LogoutBtn />
       </div>
     </div>
+    */
   );
 }
 
